@@ -6,7 +6,16 @@
       "type": "header",
       "text": {
         "en": "Aura server (own port)",
-        "de": "Aura-Server (eigener Port)"
+        "de": "Aura-Server (eigener Port)",
+        "ru": "Сервер Аура (собственный порт)",
+        "pt": "Servidor Aura (porta própria)",
+        "nl": "Aura-server (eigen poort)",
+        "fr": "Serveur Aura (port propre)",
+        "it": "Server Aura (porta propria)",
+        "es": "Servidor Aura (puerto propio)",
+        "pl": "Serwer Aura (własny port)",
+        "uk": "Сервер Aura (власний порт)",
+        "zh-cn": "Aura服务器（自己的端口）"
       },
       "size": 2,
       "xs": 12,
@@ -19,11 +28,29 @@
       "type": "number",
       "label": {
         "en": "Port",
-        "de": "Port"
+        "de": "Hafen",
+        "ru": "Порт",
+        "pt": "Porta",
+        "nl": "Haven",
+        "fr": "Port",
+        "it": "Porta",
+        "es": "Puerto",
+        "pl": "Port",
+        "uk": "Порт",
+        "zh-cn": "港口"
       },
       "help": {
         "en": "Port for the aura HTTP server (frontend + iframe proxy). Must be free and reachable in your network. Default: 8095.",
-        "de": "Port für den aura HTTP-Server (Frontend + iFrame-Proxy). Muss frei und im Netzwerk erreichbar sein. Standard: 8095."
+        "de": "Port für den aura HTTP-Server (Frontend + iFrame-Proxy). Muss frei und im Netzwerk erreichbar sein. Standard: 8095.",
+        "ru": "Порт для HTTP-сервера aura (интерфейс + прокси-сервер iframe). Должен быть бесплатным и доступным в вашей сети. По умолчанию: 8095.",
+        "pt": "Porta para o servidor HTTP aura (frontend + proxy iframe). Deve ser gratuito e acessível em sua rede. Padrão: 8095.",
+        "nl": "Poort voor de aura HTTP-server (frontend + iframe proxy). Moet gratis en bereikbaar zijn in uw netwerk. Standaard: 8095.",
+        "fr": "Port pour le serveur HTTP aura (frontend + proxy iframe). Doit être gratuit et accessible dans votre réseau. Par défaut : 8095.",
+        "it": "Porta per il server HTTP aura (frontend + proxy iframe). Deve essere gratuito e raggiungibile nella tua rete. Predefinito: 8095.",
+        "es": "Puerto para el servidor HTTP de aura (frontend + proxy iframe). Debe ser gratuito y accesible en su red. Predeterminado: 8095.",
+        "pl": "Port dla serwera HTTP aura (frontend + proxy iframe). Musi być bezpłatny i osiągalny w Twojej sieci. Wartość domyślna: 8095.",
+        "uk": "Порт для HTTP-сервера aura (frontend + iframe proxy). Має бути безкоштовним і доступним у вашій мережі. Типове значення: 8095.",
+        "zh-cn": "aura HTTP 服务器的端口（前端 + iframe 代理）。必须是免费的并且可以在您的网络中访问。默认值：8095。"
       },
       "min": 1024,
       "max": 65535,
@@ -40,13 +67,13 @@
       "label": {
         "en": "Reachable on",
         "de": "Erreichbar über",
-        "es": "Accesible a través de",
+        "ru": "Доступен через",
+        "pt": "Acessível através de",
+        "nl": "Bereikbaar via",
         "fr": "Accessible via",
         "it": "Raggiungibile tramite",
-        "nl": "Bereikbaar via",
+        "es": "Accesible a través de",
         "pl": "Dostępny przez",
-        "pt": "Acessível através de",
-        "ru": "Доступен через",
         "uk": "Доступний через",
         "zh-cn": "访问方式"
       },
@@ -55,13 +82,13 @@
           "label": {
             "en": "Network - all interfaces (default)",
             "de": "Netzwerk – alle Schnittstellen (Standard)",
-            "es": "Red: todas las interfaces (predeterminado)",
+            "ru": "Сеть – все интерфейсы (по умолчанию)",
+            "pt": "Rede – todas as interfaces (padrão)",
+            "nl": "Netwerk – alle interfaces (standaard)",
             "fr": "Réseau – toutes les interfaces (par défaut)",
             "it": "Rete – tutte le interfacce (predefinito)",
-            "nl": "Netwerk – alle interfaces (standaard)",
+            "es": "Red: todas las interfaces (predeterminado)",
             "pl": "Sieć – wszystkie interfejsy (domyślnie)",
-            "pt": "Rede – todas as interfaces (padrão)",
-            "ru": "Сеть – все интерфейсы (по умолчанию)",
             "uk": "Мережа – усі інтерфейси (за замовчуванням)",
             "zh-cn": "网络 - 所有接口（默认）"
           },
@@ -71,13 +98,13 @@
           "label": {
             "en": "Only via the web instance (/aura/) - port not reachable in the network",
             "de": "Nur über die Web-Instanz (/aura/) – Port im Netzwerk nicht erreichbar",
-            "es": "Solo a través de la instancia web (/aura/): puerto no accesible en la red",
+            "ru": "Только через веб-экземпляр (/aura/) – порт недоступен в сети",
+            "pt": "Apenas através da instância web (/aura/) – porta não acessível na rede",
+            "nl": "Alleen via de webinstantie (/aura/) – poort niet bereikbaar in het netwerk",
             "fr": "Uniquement via l'instance web (/aura/) – port non accessible sur le réseau",
             "it": "Solo tramite l'istanza web (/aura/) – porta non raggiungibile in rete",
-            "nl": "Alleen via de webinstantie (/aura/) – poort niet bereikbaar in het netwerk",
+            "es": "Solo a través de la instancia web (/aura/): puerto no accesible en la red",
             "pl": "Tylko przez instancję web (/aura/) – port niedostępny w sieci",
-            "pt": "Apenas através da instância web (/aura/) – porta não acessível na rede",
-            "ru": "Только через веб-экземпляр (/aura/) – порт недоступен в сети",
             "uk": "Лише через вебекземпляр (/aura/) – порт недоступний у мережі",
             "zh-cn": "仅通过 Web 实例 (/aura/) - 端口在网络中不可访问"
           },
@@ -86,7 +113,16 @@
       ],
       "help": {
         "en": "\"Only via the web instance\" lets the server listen on 127.0.0.1: the port above is then closed for the network and Aura is opened as <web-port>/aura/ only. Needs a web instance on the same host under \"Also reachable via web instance\" below.",
-        "de": "„Nur über die Web-Instanz“ lässt den Server auf 127.0.0.1 lauschen: Der Port oben ist dann im Netzwerk zu, Aura wird nur noch als <Web-Port>/aura/ geöffnet. Braucht eine Web-Instanz auf demselben Host unter „Zusätzlich erreichbar über Web-Instanz“ weiter unten."
+        "de": "„Nur über die Web-Instanz“ lässt den Server auf 127.0.0.1 lauschen: Der Port oben ist dann im Netzwerk zu, Aura wird nur noch als <Web-Port>/aura/ geöffnet. Braucht eine Web-Instanz auf demselben Host unter „Zusätzlich erreichbar über Web-Instanz“ weiter unten.",
+        "ru": "«Только через веб-экземпляр» позволяет серверу прослушивать порт 127.0.0.1: указанный выше порт затем закрывается для сети, а Aura открывается только как <web-port>/aura/. Требуется веб-экземпляр на том же хосте в разделе «Также доступен через веб-экземпляр» ниже.",
+        "pt": "\"Somente através da instância da web\" permite que o servidor escute em 127.0.0.1: a porta acima é então fechada para a rede e o Aura é aberto apenas como <web-port>/aura/. Precisa de uma instância da web no mesmo host em \"Também acessível via instância da web\" abaixo.",
+        "nl": "Met \"Alleen via de webinstantie\" kan de server luisteren op 127.0.0.1: de poort hierboven is dan gesloten voor het netwerk en Aura wordt geopend als <web-port>/aura/ only. Vereist een webinstantie op dezelfde host onder 'Ook bereikbaar via webinstantie' hieronder.",
+        "fr": "\"Uniquement via l'instance Web\" permet au serveur d'écouter sur 127.0.0.1 : le port ci-dessus est alors fermé pour le réseau et Aura est ouvert en tant que <web-port>/aura/ uniquement. Nécessite une instance Web sur le même hôte sous « Également accessible via une instance Web » ci-dessous.",
+        "it": "\"Solo tramite l'istanza web\" consente al server di ascoltare su 127.0.0.1: la porta sopra viene quindi chiusa per la rete e Aura viene aperta solo come <web-port>/aura/. È necessaria un'istanza Web sullo stesso host nella sezione \"Raggiungibile anche tramite istanza Web\" di seguito.",
+        "es": "\"Solo a través de la instancia web\" permite que el servidor escuche en 127.0.0.1: el puerto anterior se cierra para la red y Aura se abre solo como <web-port>/aura/. Necesita una instancia web en el mismo host en \"También accesible a través de una instancia web\" a continuación.",
+        "pl": "„Tylko przez instancję internetową” pozwala serwerowi nasłuchiwać na 127.0.0.1: powyższy port jest wówczas zamykany dla sieci, a Aura jest otwierana tylko jako <web-port>/aura/. Potrzebuje instancji internetowej na tym samym hoście w sekcji „Osiągalny również przez instancję internetową” poniżej.",
+        "uk": "«Лише через веб-екземпляр» дозволяє серверу прослуховувати 127.0.0.1: порт вище закривається для мережі, а Aura відкривається лише як <web-port>/aura/. Потрібен веб-екземпляр на тому самому хості в розділі «Також доступний через веб-екземпляр» нижче.",
+        "zh-cn": "“仅通过网络实例”让服务器侦听 127.0.0.1：然后关闭网络上面的端口，并且仅将 Aura 作为 <web-port>/aura/ 打开。在下面的“也可通过 Web 实例访问”下，需要同一主机上的 Web 实例。"
       },
       "validator": "data.bind !== '127.0.0.1' || !!data.webInstance",
       "validatorErrorText": "Pick a web instance below - otherwise Aura can only be opened on the ioBroker machine itself.",
@@ -112,7 +148,16 @@
       "type": "header",
       "text": {
         "en": "HTTPS / TLS of the Aura server",
-        "de": "HTTPS / TLS des Aura-Servers"
+        "de": "HTTPS / TLS des Aura-Servers",
+        "ru": "HTTPS/TLS сервера Aura",
+        "pt": "HTTPS/TLS do servidor Aura",
+        "nl": "HTTPS/TLS van de Aura-server",
+        "fr": "HTTPS/TLS du serveur Aura",
+        "it": "HTTPS/TLS del server Aura",
+        "es": "HTTPS/TLS del servidor Aura",
+        "pl": "HTTPS/TLS serwera Aura",
+        "uk": "HTTPS / TLS сервера Aura",
+        "zh-cn": "Aura 服务器的 HTTPS / TLS"
       },
       "size": 2,
       "xs": 12,
@@ -125,11 +170,29 @@
       "type": "checkbox",
       "label": {
         "en": "Use HTTPS",
-        "de": "HTTPS verwenden"
+        "de": "HTTPS verwenden",
+        "ru": "Используйте HTTPS",
+        "pt": "Usar HTTPS",
+        "nl": "Gebruik HTTPS",
+        "fr": "Utiliser HTTPS",
+        "it": "Utilizza HTTPS",
+        "es": "Usar HTTPS",
+        "pl": "Użyj protokołu HTTPS",
+        "uk": "Використовуйте HTTPS",
+        "zh-cn": "使用 HTTPS"
       },
       "help": {
         "en": "Enable TLS for the built-in HTTP server. Certificates are loaded from ioBroker system.certificates. Note: self-signed default certificates will cause a browser warning.",
-        "de": "TLS für den eingebauten HTTP-Server aktivieren. Zertifikate werden aus ioBroker system.certificates geladen. Hinweis: Standard-selbstsignierte Zertifikate erzeugen eine Browser-Warnung."
+        "de": "TLS für den eingebauten HTTP-Server aktivieren. Zertifikate werden aus ioBroker system.certificates geladen. Hinweis: Standard-selbstsignierte Zertifikate erzeugen eine Browser-Warnung.",
+        "ru": "Включите TLS для встроенного HTTP-сервера. Сертификаты загружаются из ioBroker system.certificates. Примечание. Самозаверяющие сертификаты по умолчанию вызывают предупреждение браузера.",
+        "pt": "Habilite o TLS para o servidor HTTP integrado. Os certificados são carregados do sistema ioBroker.certificates. Observação: certificados padrão autoassinados causarão um aviso no navegador.",
+        "nl": "Schakel TLS in voor de ingebouwde HTTP-server. Certificaten worden geladen vanuit ioBroker system.certificates. Let op: zelfondertekende standaardcertificaten veroorzaken een browserwaarschuwing.",
+        "fr": "Activez TLS pour le serveur HTTP intégré. Les certificats sont chargés à partir du système ioBroker.certificates. Remarque : les certificats par défaut auto-signés entraîneront un avertissement du navigateur.",
+        "it": "Abilita TLS per il server HTTP integrato. I certificati vengono caricati da ioBroker system.certificates. Nota: i certificati predefiniti autofirmati causeranno un avviso nel browser.",
+        "es": "Habilite TLS para el servidor HTTP integrado. Los certificados se cargan desde ioBroker system.certificates. Nota: los certificados predeterminados autofirmados generarán una advertencia en el navegador.",
+        "pl": "Włącz TLS dla wbudowanego serwera HTTP. Certyfikaty są ładowane z pliku ioBroker system.certificates. Uwaga: domyślne certyfikaty z podpisem własnym spowodują ostrzeżenie przeglądarki.",
+        "uk": "Увімкніть TLS для вбудованого HTTP-сервера. Сертифікати завантажуються з ioBroker system.certificates. Примітка: самопідписані сертифікати за замовчуванням викличуть попередження браузера.",
+        "zh-cn": "为内置 HTTP 服务器启用 TLS。证书从 ioBroker system.certificates 加载。注意：自签名默认证书将导致浏览器警告。"
       },
       "default": false,
       "xs": 12,
@@ -143,7 +206,16 @@
       "certType": "public",
       "label": {
         "en": "Public certificate",
-        "de": "Öffentliches Zertifikat"
+        "de": "Öffentliches Zertifikat",
+        "ru": "Публичный сертификат",
+        "pt": "Certificado público",
+        "nl": "Openbaar certificaat",
+        "fr": "Certificat public",
+        "it": "Certificato pubblico",
+        "es": "certificado publico",
+        "pl": "Certyfikat publiczny",
+        "uk": "Публічний сертифікат",
+        "zh-cn": "公共证书"
       },
       "hidden": "!data.secure",
       "xs": 12,
@@ -157,7 +229,16 @@
       "certType": "private",
       "label": {
         "en": "Private key",
-        "de": "Privater Schlüssel"
+        "de": "Privater Schlüssel",
+        "ru": "Закрытый ключ",
+        "pt": "Chave privada",
+        "nl": "Privé sleutel",
+        "fr": "Clé privée",
+        "it": "Chiave privata",
+        "es": "clave privada",
+        "pl": "Klucz prywatny",
+        "uk": "Приватний ключ",
+        "zh-cn": "私钥"
       },
       "hidden": "!data.secure",
       "xs": 12,
@@ -171,7 +252,16 @@
       "certType": "chained",
       "label": {
         "en": "Chained certificate",
-        "de": "Kettenzertifikat"
+        "de": "Kettenzertifikat",
+        "ru": "Связанный сертификат",
+        "pt": "Certificado encadeado",
+        "nl": "Geketend certificaat",
+        "fr": "Certificat chaîné",
+        "it": "Certificato concatenato",
+        "es": "certificado encadenado",
+        "pl": "Certyfikat przykuty",
+        "uk": "Прикутий сертифікат",
+        "zh-cn": "链式证书"
       },
       "hidden": "!data.secure",
       "xs": 12,
@@ -184,7 +274,16 @@
       "type": "header",
       "text": {
         "en": "Data connection to ioBroker (socket backend)",
-        "de": "Datenverbindung zu ioBroker (Socket-Backend)"
+        "de": "Datenverbindung zu ioBroker (Socket-Backend)",
+        "ru": "Подключение данных к ioBroker (серверная часть сокета)",
+        "pt": "Conexão de dados com ioBroker (backend de soquete)",
+        "nl": "Dataverbinding met ioBroker (socket backend)",
+        "fr": "Connexion de données à ioBroker (backend de socket)",
+        "it": "Connessione dati a ioBroker (backend socket)",
+        "es": "Conexión de datos a ioBroker (backend de socket)",
+        "pl": "Połączenie danych z ioBrokerem (backend gniazda)",
+        "uk": "Підключення до ioBroker (сокетний сервер)",
+        "zh-cn": "与 ioBroker（套接字后端）的数据连接"
       },
       "size": 2,
       "xs": 12,
@@ -200,11 +299,29 @@
       "noTranslation": true,
       "label": {
         "en": "Data connection (socket backend)",
-        "de": "Datenverbindung (Socket-Backend)"
+        "de": "Datenverbindung (Socket-Backend)",
+        "ru": "Подключение к данным (серверная часть сокета)",
+        "pt": "Conexão de dados (backend de soquete)",
+        "nl": "Dataverbinding (socket-backend)",
+        "fr": "Connexion de données (backend de socket)",
+        "it": "Connessione dati (backend socket)",
+        "es": "Conexión de datos (backend de socket)",
+        "pl": "Połączenie danych (zaplecze gniazda)",
+        "uk": "З’єднання даних (сокет)",
+        "zh-cn": "数据连接（套接字后端）"
       },
       "help": {
         "en": "Where Aura gets live values and adapter files from: the web or socketio instance its server forwards the socket, /webfs and /echarts to. Port, bind address and HTTPS are then taken from that instance — the fields below are no longer needed. \"automatic\" looks the instance up by the port below. The list is only filled while this instance runs.",
-        "de": "Von hier holt Aura Live-Werte und Adapter-Dateien: die Web- oder socketio-Instanz, an die der Aura-Server Socket, /webfs und /echarts weiterleitet. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz – die Felder darunter entfallen. „Automatisch“ sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+        "de": "Von hier holt Aura Live-Werte und Adapter-Dateien: die Web- oder socketio-Instanz, an die der Aura-Server Socket, /webfs und /echarts weiterleitet. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz – die Felder darunter entfallen. „Automatisch“ sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft.",
+        "ru": "Откуда Aura получает текущие значения и файлы адаптера: экземпляр web или Socketio, на который сервер перенаправляет сокет, /webfs и /echarts. Порт, адрес привязки и HTTPS затем берутся из этого экземпляра — поля ниже больше не нужны. «автоматически» ищет экземпляр по порту ниже. Список заполняется только во время работы этого экземпляра.",
+        "pt": "De onde o Aura obtém valores ativos e arquivos do adaptador: da instância web ou socketio, seu servidor encaminha o soquete, /webfs e /echarts para. Porta, endereço de ligação e HTTPS são então retirados dessa instância — os campos abaixo não são mais necessários. \"automático\" procura a instância pela porta abaixo. A lista só é preenchida enquanto esta instância é executada.",
+        "nl": "Waar Aura live waarden en adapterbestanden vandaan haalt: de web- of socketio-instantie waar de server de socket, /webfs en /echarts naar doorstuurt. Poort, bindadres en HTTPS worden vervolgens uit die instantie gehaald; de onderstaande velden zijn niet langer nodig. \"automatisch\" zoekt de instantie op via de onderstaande poort. De lijst wordt alleen gevuld terwijl deze instantie wordt uitgevoerd.",
+        "fr": "Où Aura obtient les valeurs en direct et les fichiers d'adaptateur : l'instance Web ou socketio vers laquelle son serveur transmet le socket, /webfs et /echarts. Le port, l'adresse de liaison et HTTPS sont ensuite extraits de cette instance — les champs ci-dessous ne sont plus nécessaires. \"automatique\" recherche l'instance par le port ci-dessous. La liste n'est remplie que pendant l'exécution de cette instance.",
+        "it": "Da dove Aura ottiene valori live e file dell'adattatore: l'istanza web o socketio a cui il suo server inoltra il socket, /webfs e /echarts. Porta, indirizzo di collegamento e HTTPS vengono quindi presi da quell'istanza: i campi seguenti non sono più necessari. \"automatic\" cerca l'istanza tramite la porta sottostante. L'elenco viene compilato solo durante l'esecuzione di questa istanza.",
+        "es": "De donde Aura obtiene valores en vivo y archivos de adaptador: la instancia web o socketio a la que su servidor reenvía el socket, /webfs y /echarts. El puerto, la dirección de enlace y HTTPS se toman de esa instancia; los campos siguientes ya no son necesarios. \"automático\" busca la instancia en el puerto siguiente. La lista solo se completa mientras se ejecuta esta instancia.",
+        "pl": "Skąd Aura pobiera aktualne wartości i pliki adaptera: z sieci lub instancji gniazda, jej serwer przekazuje gniazdo, /webfs i /echarts. Port, adres powiązania i HTTPS są następnie pobierane z tej instancji — poniższe pola nie są już potrzebne. „automatycznie” wyszukuje instancję według portu poniżej. Lista jest wypełniana tylko podczas działania tej instancji.",
+        "uk": "Звідки Aura отримує поточні значення та файли адаптера: веб-примірник або екземпляр socketio, куди його сервер пересилає сокет, /webfs і /echarts. Порт, адреса прив’язки та HTTPS потім беруться з цього екземпляра — поля нижче більше не потрібні. \"automatic\" шукає екземпляр за портом нижче. Список заповнюється лише під час роботи цього екземпляра.",
+        "zh-cn": "Aura 从中获取实时值和适配器文件：其服务器将套接字转发到的 Web 或 socketio 实例、/webfs 和 /echarts。然后从该实例获取端口、绑定地址和 HTTPS — 不再需要以下字段。 “自动”通过下面的端口查找实例。仅当该实例运行时才会填充该列表。"
       },
       "xs": 12,
       "sm": 12,
@@ -216,11 +333,29 @@
       "type": "number",
       "label": {
         "en": "ioBroker socket port",
-        "de": "ioBroker Socket-Port"
+        "de": "ioBroker Socket-Port",
+        "ru": "порт сокета ioBroker",
+        "pt": "Porta de soquete ioBroker",
+        "nl": "ioBroker-socketpoort",
+        "fr": "Port de socket ioBroker",
+        "it": "Porta socket ioBroker",
+        "es": "Puerto de socket ioBroker",
+        "pl": "Port gniazda ioBroker",
+        "uk": "Порт сокета ioBroker",
+        "zh-cn": "ioBroker 套接字端口"
       },
       "help": {
         "en": "Port of the iobroker.web instance that provides the socket.io connection (default: 8082).",
-        "de": "Port der iobroker.web-Instanz, die die socket.io-Verbindung bereitstellt (Standard: 8082)."
+        "de": "Port der iobroker.web-Instanz, die die socket.io-Verbindung bereitstellt (Standard: 8082).",
+        "ru": "Порт экземпляра iobroker.web, обеспечивающего соединение сокета.io (по умолчанию: 8082).",
+        "pt": "Porta da instância iobroker.web que fornece a conexão socket.io (padrão: 8082).",
+        "nl": "Poort van de iobroker.web-instantie die de socket.io-verbinding levert (standaard: 8082).",
+        "fr": "Port de l'instance iobroker.web qui fournit la connexion socket.io (par défaut : 8082).",
+        "it": "Porta dell'istanza iobroker.web che fornisce la connessione socket.io (impostazione predefinita: 8082).",
+        "es": "Puerto de la instancia iobroker.web que proporciona la conexión socket.io (predeterminado: 8082).",
+        "pl": "Port instancji iobroker.web, który zapewnia połączenie Socket.io (domyślnie: 8082).",
+        "uk": "Порт екземпляра iobroker.web, який забезпечує з’єднання socket.io (за замовчуванням: 8082).",
+        "zh-cn": "提供socket.io连接的iobroker.web实例的端口（默认：8082）。"
       },
       "min": 1024,
       "max": 65535,
@@ -236,11 +371,29 @@
       "type": "checkbox",
       "label": {
         "en": "Web adapter uses HTTPS",
-        "de": "Web-Adapter nutzt HTTPS"
+        "de": "Web-Adapter nutzt HTTPS",
+        "ru": "Веб-адаптер использует HTTPS",
+        "pt": "O adaptador da Web usa HTTPS",
+        "nl": "Webadapter maakt gebruik van HTTPS",
+        "fr": "L'adaptateur Web utilise HTTPS",
+        "it": "L'adattatore Web utilizza HTTPS",
+        "es": "El adaptador web utiliza HTTPS",
+        "pl": "Adapter internetowy korzysta z protokołu HTTPS",
+        "uk": "Веб-адаптер використовує HTTPS",
+        "zh-cn": "Web 适配器使用 HTTPS"
       },
       "help": {
         "en": "Enable if the iobroker.web instance at the socket port has HTTPS activated. Aura will then connect internally via wss/https (self-signed certificates are accepted).",
-        "de": "Aktivieren wenn die iobroker.web-Instanz am Socket-Port HTTPS aktiviert hat. Aura verbindet dann intern über wss/https (selbstsignierte Zertifikate werden akzeptiert)."
+        "de": "Aktivieren wenn die iobroker.web-Instanz am Socket-Port HTTPS aktiviert hat. Aura verbindet dann intern über wss/https (selbstsignierte Zertifikate werden akzeptiert).",
+        "ru": "Включите, если экземпляр iobroker.web в порту сокета активирован HTTPS. Затем Aura выполнит внутреннее подключение через wss/https (принимаются самозаверяющие сертификаты).",
+        "pt": "Habilite se a instância iobroker.web na porta do soquete tiver HTTPS ativado. O Aura então se conectará internamente via wss/https (certificados autoassinados são aceitos).",
+        "nl": "Inschakelen als voor de iobroker.web-instantie op de socketpoort HTTPS is geactiveerd. Aura zal dan intern verbinding maken via wss/https (zelfondertekende certificaten worden geaccepteerd).",
+        "fr": "Activez si l'instance iobroker.web sur le port de socket a activé HTTPS. Aura se connectera ensuite en interne via wss/https (les certificats auto-signés sont acceptés).",
+        "it": "Abilita se l'istanza iobroker.web sulla porta socket ha HTTPS attivato. Aura si connetterà quindi internamente tramite wss/https (sono accettati certificati autofirmati).",
+        "es": "Habilítelo si la instancia de iobroker.web en el puerto del socket tiene HTTPS activado. Luego, Aura se conectará internamente a través de wss/https (se aceptan certificados autofirmados).",
+        "pl": "Włącz, jeśli instancja iobroker.web na porcie gniazda ma aktywowany protokół HTTPS. Aura połączy się następnie wewnętrznie poprzez wss/https (akceptowane są certyfikaty z podpisem własnym).",
+        "uk": "Увімкніть, якщо екземпляр iobroker.web на порту сокета має активований HTTPS. Після цього Aura підключиться до мережі через wss/https (приймаються самопідписані сертифікати).",
+        "zh-cn": "如果套接字端口上的 iobroker.web 实例已激活 HTTPS，则启用。然后，Aura 将通过 wss/https 进行内部连接（接受自签名证书）。"
       },
       "hidden": "!!data.socketInstance",
       "xs": 12,
@@ -253,11 +406,29 @@
       "type": "text",
       "label": {
         "en": "ioBroker socket URL (override)",
-        "de": "ioBroker Socket-URL (Override)"
+        "de": "ioBroker Socket-URL (Override)",
+        "ru": "URL-адрес сокета ioBroker (переопределить)",
+        "pt": "URL do soquete ioBroker (substituição)",
+        "nl": "ioBroker-socket-URL (overschrijven)",
+        "fr": "URL du socket ioBroker (remplacement)",
+        "it": "URL del socket ioBroker (override)",
+        "es": "URL del socket de ioBroker (anulación)",
+        "pl": "Adres URL gniazda ioBroker (nadpisanie)",
+        "uk": "URL-адреса сокета ioBroker (перевизначення)",
+        "zh-cn": "ioBroker 套接字 URL（覆盖）"
       },
       "help": {
         "en": "Override the socket URL injected into the frontend. Leave empty for auto-detection (http(s)://<host>:<socketPort>). Set this when using a reverse proxy — e.g. 'https://your-domain.com' if nginx proxies /socket.io/ and /echarts/ to the web adapter port.",
-        "de": "Überschreibt die in das Frontend injizierte Socket-URL. Leer lassen für automatische Erkennung (http(s)://<Host>:<socketPort>). Setzen bei Reverse-Proxy — z.B. 'https://deine-domain.de' wenn nginx /socket.io/ und /echarts/ zum Web-Adapter-Port weiterleitet."
+        "de": "Überschreibt die in das Frontend injizierte Socket-URL. Leer lassen für automatische Erkennung (http(s)://<Host>:<socketPort>). Setzen bei Reverse-Proxy — z.B. 'https://deine-domain.de' wenn nginx /socket.io/ und /echarts/ zum Web-Adapter-Port weiterleitet.",
+        "ru": "Переопределить URL-адрес сокета, введенный во внешний интерфейс. Оставьте пустым для автоматического обнаружения (http(s)://<host>:<socketPort>). Установите это значение при использовании обратного прокси-сервера — например. 'https://your-domain.com', если nginx проксирует /socket.io/ и /echarts/ к порту веб-адаптера.",
+        "pt": "Substitua o URL do soquete injetado no frontend. Deixe em branco para detecção automática (http(s)://<host>:<socketPort>). Defina isto ao usar um proxy reverso – por exemplo. 'https://your-domain.com' se os proxies nginx /socket.io/ e /echarts/ para a porta do adaptador web.",
+        "nl": "Overschrijf de socket-URL die in de frontend is geïnjecteerd. Laat leeg voor automatische detectie (http(s)://<host>:<socketPort>). Stel dit in als u een reverse proxy gebruikt, b.v. 'https://your-domain.com' als nginx-proxy's /socket.io/ en /echarts/ naar de webadapterpoort sturen.",
+        "fr": "Remplacez l’URL du socket injectée dans le frontend. Laissez vide pour la détection automatique (http(s)://<host>:<socketPort>). Définissez ceci lorsque vous utilisez un proxy inverse, par exemple. 'https://your-domain.com' si nginx proxy /socket.io/ et /echarts/ vers le port de l'adaptateur Web.",
+        "it": "Sostituisci l'URL del socket inserito nel frontend. Lascia vuoto per il rilevamento automatico (http(s)://<host>:<socketPort>). Impostalo quando utilizzi un proxy inverso, ad es. 'https://your-domain.com' se nginx invia tramite proxy /socket.io/ e /echarts/ alla porta dell'adattatore Web.",
+        "es": "Anule la URL del socket inyectada en la interfaz. Déjelo vacío para la detección automática (http(s)://<host>:<socketPort>). Configúrelo cuando utilice un proxy inverso, p. 'https://your-domain.com' si nginx envía proxy /socket.io/ y /echarts/ al puerto del adaptador web.",
+        "pl": "Zastąp adres URL gniazda wstrzyknięty do frontendu. Pozostaw puste dla automatycznego wykrywania (http(s)://<host>:<socketPort>). Ustaw tę opcję, jeśli używasz odwrotnego proxy — np. 'https://your-domain.com' jeśli proxy Nginx /socket.io/ i /echarts/ do portu adaptera internetowego.",
+        "uk": "Перевизначте URL-адресу сокета, вставлену у зовнішній інтерфейс. Залиште порожнім для автоматичного визначення (http(s)://<host>:<socketPort>). Встановіть це під час використання зворотного проксі — наприклад, 'https://your-domain.com', якщо nginx проксі-сервер /socket.io/ і /echarts/ до порту веб-адаптера.",
+        "zh-cn": "覆盖注入前端的套接字 URL。留空以进行自动检测 (http(s)://<host>:<socketPort>)。使用反向代理时设置此项 - 例如'https://your-domain.com' 如果 nginx 将 /socket.io/ 和 /echarts/ 代理到 Web 适配器端口。"
       },
       "placeholder": "https://your-domain.com",
       "xs": 12,
@@ -271,7 +442,16 @@
       "type": "staticText",
       "text": {
         "en": "A wrong backend is the most common cause of \"aura does not work\": a blank dashboard, widgets with a load error, images that stay empty. The check below says in plain words what is wrong — and its report is what to paste into a forum post or a GitHub issue. Aura also runs it at every start and writes the result to the log and to info.backendCheck.",
-        "de": "Ein falsch eingestelltes Backend ist die häufigste Ursache für „aura geht nicht“: leeres Dashboard, Widgets mit Ladefehler, Bilder die leer bleiben. Die Prüfung unten sagt im Klartext, was nicht stimmt — und ihr Bericht ist genau das, was in einen Forumsbeitrag oder ein GitHub-Issue gehört. Aura führt sie außerdem bei jedem Start aus und schreibt das Ergebnis ins Log und nach info.backendCheck."
+        "de": "Ein falsch eingestelltes Backend ist die häufigste Ursache für „aura geht nicht“: leeres Dashboard, Widgets mit Ladefehler, Bilder die leer bleiben. Die Prüfung unten sagt im Klartext, was nicht stimmt — und ihr Bericht ist genau das, was in einen Forumsbeitrag oder ein GitHub-Issue gehört. Aura führt sie außerdem bei jedem Start aus und schreibt das Ergebnis ins Log und nach info.backendCheck.",
+        "ru": "Неправильный бэкенд — самая частая причина «ауры не работает»: пустой дашборд, виджеты с ошибкой загрузки, изображения, которые остаются пустыми. Проверка ниже простыми словами говорит, что не так, а ее отчет — это то, что вставить в сообщение на форуме или в проблему GitHub. Аура также запускает его при каждом запуске и записывает результат в журнал и в info.backendCheck.",
+        "pt": "Um backend errado é a causa mais comum de “aura não funciona”: um painel em branco, widgets com erro de carregamento, imagens que permanecem vazias. A verificação abaixo diz em palavras simples o que está errado - e seu relatório é o que colar em uma postagem do fórum ou em um problema do GitHub. Aura também o executa a cada inicialização e grava o resultado no log e em info.backendCheck.",
+        "nl": "Een verkeerde backend is de meest voorkomende oorzaak van \"aura werkt niet\": een leeg dashboard, widgets met een laadfout, afbeeldingen die leeg blijven. De controle hieronder zegt in duidelijke bewoordingen wat er mis is - en het rapport geeft aan wat je in een forumpost of een GitHub-probleem moet plakken. Aura voert het ook bij elke start uit en schrijft het resultaat naar het logbestand en naar info.backendCheck.",
+        "fr": "Un mauvais backend est la cause la plus fréquente de « l'aura ne fonctionne pas » : un tableau de bord vide, des widgets avec une erreur de chargement, des images qui restent vides. La vérification ci-dessous indique en termes simples ce qui ne va pas – et son rapport indique ce qu'il faut coller dans un message de forum ou un problème GitHub. Aura l'exécute également à chaque démarrage et écrit le résultat dans le journal et dans info.backendCheck.",
+        "it": "Un backend sbagliato è la causa più comune di \"aura non funziona\": dashboard vuota, widget con errori di caricamento, immagini che rimangono vuote. Il controllo riportato di seguito indica in parole semplici cosa c'è che non va e il suo rapporto indica cosa incollare in un post del forum o in un problema di GitHub. Anche Aura lo esegue ad ogni avvio e scrive il risultato nel log e in info.backendCheck.",
+        "es": "Un backend incorrecto es la causa más común de que \"aura no funciona\": un panel en blanco, widgets con un error de carga, imágenes que permanecen vacías. La verificación a continuación dice en palabras sencillas qué está mal y su informe es lo que se debe pegar en una publicación del foro o en un problema de GitHub. Aura también lo ejecuta en cada inicio y escribe el resultado en el registro y en info.backendCheck.",
+        "pl": "Najczęstszą przyczyną „niedziałającej aury” jest niewłaściwy backend: pusty pulpit nawigacyjny, widżety z błędem ładowania, obrazy, które pozostają puste. Poniższa kontrola pokazuje prostymi słowami, co jest nie tak — a jej raport zawiera informację, co należy wkleić do posta na forum lub problemu z GitHubem. Aura uruchamia go również przy każdym uruchomieniu i zapisuje wynik do dziennika i do info.backendCheck.",
+        "uk": "Неправильний бекенд є найпоширенішою причиною «аура не працює»: порожня інформаційна панель, віджети з помилкою завантаження, зображення, які залишаються порожніми. Перевірка нижче простими словами говорить про те, що не так, а її звіт — це те, що потрібно вставити в повідомлення на форумі чи проблему GitHub. Aura також запускає його під час кожного запуску та записує результат у журнал і до info.backendCheck.",
+        "zh-cn": "错误的后端是“aura 不起作用”的最常见原因：空白的仪表板、加载错误的小部件、留空的图像。下面的检查用简单的文字说明了问题所在，其报告是粘贴到论坛帖子或 GitHub 问题中的内容。 Aura 还会在每次启动时运行它，并将结果写入日志和 info.backendCheck。"
       },
       "xs": 12,
       "sm": 12,
@@ -284,7 +464,16 @@
       "command": "checkBackend",
       "label": {
         "en": "Check backend",
-        "de": "Backend prüfen"
+        "de": "Backend prüfen",
+        "ru": "Проверьте серверную часть",
+        "pt": "Verifique o back-end",
+        "nl": "Controleer de backend",
+        "fr": "Vérifier le back-end",
+        "it": "Controlla il back-end",
+        "es": "comprobar el backend",
+        "pl": "Sprawdź zaplecze",
+        "uk": "Перевірте бекенд",
+        "zh-cn": "检查后端"
       },
       "variant": "contained",
       "icon": "search",
@@ -293,7 +482,16 @@
       "timeout": 20000,
       "help": {
         "en": "Tests the instance, the socket connection and the file delivery live. The instance must be running.",
-        "de": "Prüft Instanz, Socket-Verbindung und Dateiauslieferung live. Die Instanz muss dafür laufen."
+        "de": "Prüft Instanz, Socket-Verbindung und Dateiauslieferung live. Die Instanz muss dafür laufen.",
+        "ru": "Тестирует экземпляр, соединение сокета и доставку файла в реальном времени. Экземпляр должен быть запущен.",
+        "pt": "Testa a instância, a conexão do soquete e a entrega do arquivo ao vivo. A instância deve estar em execução.",
+        "nl": "Test live de instance, de socketverbinding en de bestandslevering. De instantie moet actief zijn.",
+        "fr": "Teste l'instance, la connexion socket et la livraison du fichier en direct. L'instance doit être en cours d'exécution.",
+        "it": "Testa l'istanza, la connessione socket e la consegna del file in tempo reale. L'istanza deve essere in esecuzione.",
+        "es": "Prueba la instancia, la conexión del socket y la entrega del archivo en vivo. La instancia debe estar ejecutándose.",
+        "pl": "Testuje instancję, połączenie z gniazdem i dostarczenie pliku na żywo. Instancja musi działać.",
+        "uk": "Тестує екземпляр, з’єднання сокета та доставку файлів у реальному часі. Примірник має бути запущеним.",
+        "zh-cn": "实时测试实例、套接字连接和文件传送。该实例必须正在运行。"
       },
       "xs": 12,
       "sm": 12,
@@ -310,7 +508,16 @@
       "maxRows": 24,
       "label": {
         "en": "Check report",
-        "de": "Prüfbericht"
+        "de": "Prüfbericht",
+        "ru": "Проверить отчет",
+        "pt": "Verifique o relatório",
+        "nl": "Controleer rapport",
+        "fr": "Vérifier le rapport",
+        "it": "Controlla il rapporto",
+        "es": "Informe de verificación",
+        "pl": "Sprawdź raport",
+        "uk": "Звіт про перевірку",
+        "zh-cn": "检查报告"
       },
       "hidden": "!data.backendCheckReport",
       "xs": 12,
@@ -323,7 +530,16 @@
       "type": "header",
       "text": {
         "en": "Also reachable via the web adapter (/aura/)",
-        "de": "Zusätzlich erreichbar über den Web-Adapter (/aura/)"
+        "de": "Zusätzlich erreichbar über den Web-Adapter (/aura/)",
+        "ru": "Также доступен через веб-адаптер (/aura/)",
+        "pt": "Também acessível através do adaptador web (/aura/)",
+        "nl": "Ook bereikbaar via de webadapter (/aura/)",
+        "fr": "Également accessible via l'adaptateur Web (/aura/)",
+        "it": "Raggiungibile anche tramite l'adattatore web (/aura/)",
+        "es": "También accesible a través del adaptador web (/aura/)",
+        "pl": "Dostępny także poprzez adapter sieciowy (/aura/)",
+        "uk": "Також доступний через веб-адаптер (/aura/)",
+        "zh-cn": "也可通过网络适配器 (/aura/) 访问"
       },
       "size": 2,
       "xs": 12,
@@ -336,7 +552,16 @@
       "type": "staticText",
       "text": {
         "en": "Optional. Makes Aura additionally reachable as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), which is what the ioBroker Visu App and the cloud adapter can open. Aura keeps running on its own port above as well; dashboards, PINs and settings are the same on both ways. Visu App / remote access via ioBroker.pro: choose the same web instance that the cloud adapter uses (usually web.0). The cloud adapter forwards only one web instance, so Aura, vis and the other apps must all be served by it. A separate web instance for Aura (e.g. web.1) then only works locally — switching cloud.0 over to it breaks vis remotely. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved (technically unavoidable). It needs its integrated socket (the default) — the dashboard uses it for live values.",
-        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Visu App / Fernzugriff über ioBroker.pro: dieselbe Web-Instanz wählen, die der Cloud-Adapter nutzt (meist web.0). Der Cloud-Adapter leitet nur eine Web-Instanz weiter – Aura, vis und die anderen Apps müssen also alle über sie laufen. Eine eigene Web-Instanz für Aura (z. B. web.1) funktioniert dann nur lokal; stellt man cloud.0 auf sie um, geht vis von unterwegs nicht mehr. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird (technisch bedingt). Sie braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards."
+        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Visu App / Fernzugriff über ioBroker.pro: dieselbe Web-Instanz wählen, die der Cloud-Adapter nutzt (meist web.0). Der Cloud-Adapter leitet nur eine Web-Instanz weiter – Aura, vis und die anderen Apps müssen also alle über sie laufen. Eine eigene Web-Instanz für Aura (z. B. web.1) funktioniert dann nur lokal; stellt man cloud.0 auf sie um, geht vis von unterwegs nicht mehr. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird (technisch bedingt). Sie braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards.",
+        "ru": "Необязательный. Делает Aura дополнительно доступной как <web-port>/aura/ (например, http://192.168.1.10:8082/aura/), которую могут открыть приложение ioBroker Visu и облачный адаптер. Аура также продолжает работать через свой порт выше; информационные панели, PIN-коды и настройки одинаковы в обоих случаях. Приложение Visu / удаленный доступ через ioBroker.pro: выберите тот же веб-экземпляр, который использует облачный адаптер (обычно web.0). Облачный адаптер перенаправляет только один веб-экземпляр, поэтому все Aura, vis и другие приложения должны обслуживаться им. Отдельный веб-экземпляр для Aura (например, web.1) тогда работает только локально — переключение на него cloud.0 приводит к удаленному отключению vis. Выбранный веб-экземпляр перезапускается каждый раз, когда этот экземпляр Aura запускается, останавливается или сохраняются его настройки (технически это неизбежно). Ему нужен встроенный сокет (по умолчанию) — панель мониторинга использует его для текущих значений.",
+        "pt": "Opcional. Torna o Aura acessível adicionalmente como <web-port>/aura/ (por exemplo, http://192.168.1.10:8082/aura/), que é o que o aplicativo ioBroker Visu e o adaptador de nuvem podem abrir. Aura também continua funcionando em sua própria porta acima; painéis, PINs e configurações são iguais em ambos os sentidos. Visu App / acesso remoto via ioBroker.pro: escolha a mesma instância web que o adaptador de nuvem usa (geralmente web.0). O adaptador de nuvem encaminha apenas uma instância da web, portanto, Aura, vis e os outros aplicativos devem ser atendidos por ele. Uma instância da web separada para Aura (por exemplo, web.1) funciona apenas localmente - a mudança de cloud.0 para ele interrompe o vis remotamente. A instância da web escolhida é reiniciada sempre que esta instância do Aura é iniciada, interrompida ou suas configurações são salvas (tecnicamente inevitável). Ele precisa de seu soquete integrado (o padrão) — o painel o utiliza para valores ativos.",
+        "nl": "Optioneel. Maakt Aura bovendien bereikbaar als <web-port>/aura/ (bijvoorbeeld http://192.168.1.10:8082/aura/), wat de ioBroker Visu-app en de cloudadapter kunnen openen. Aura blijft ook op zijn eigen poort draaien; dashboards, pincodes en instellingen zijn op beide manieren hetzelfde. Visu App / externe toegang via ioBroker.pro: kies dezelfde webinstantie die de cloudadapter gebruikt (meestal web.0). De cloudadapter stuurt slechts één webinstantie door, dus Aura, vis en de andere apps moeten er allemaal door worden bediend. Een aparte webinstantie voor Aura (bijvoorbeeld web.1) werkt dan alleen lokaal; het overschakelen van cloud.0 ernaar werkt niet op afstand. De gekozen webinstantie wordt opnieuw opgestart telkens wanneer deze Aura-instantie wordt gestart, gestopt of de instellingen ervan worden opgeslagen (technisch onvermijdelijk). Het heeft een geïntegreerde socket nodig (de standaard) – het dashboard gebruikt het voor live-waarden.",
+        "fr": "Facultatif. Rend Aura également accessible en tant que <web-port>/aura/ (par exemple http://192.168.1.10:8082/aura/), ce que l'application ioBroker Visu et l'adaptateur cloud peuvent ouvrir. Aura continue également de fonctionner sur son propre port ci-dessus ; les tableaux de bord, les codes PIN et les paramètres sont les mêmes dans les deux sens. Visu App / accès à distance via ioBroker.pro : choisissez la même instance Web que celle utilisée par l'adaptateur cloud (généralement web.0). L'adaptateur cloud ne transfère qu'une seule instance Web, donc Aura, vis et les autres applications doivent toutes être servies par celui-ci. Une instance Web distincte pour Aura (par exemple web.1) ne fonctionne alors que localement — le basculement de cloud.0 vers elle interrompt la visibilité à distance. L'instance web choisie redémarre à chaque fois que cette instance Aura est démarrée, arrêtée ou que ses paramètres sont enregistrés (techniquement inévitable). Il a besoin de son socket intégré (la valeur par défaut) — le tableau de bord l'utilise pour les valeurs en direct.",
+        "it": "Opzionale. Rende Aura inoltre raggiungibile come <web-port>/aura/ (ad esempio http://192.168.1.10:8082/aura/), che è ciò che l'app ioBroker Visu e l'adattatore cloud possono aprire. Anche Aura continua a funzionare sul proprio porto sopra; dashboard, PIN e impostazioni sono gli stessi in entrambe le direzioni. App Visu / accesso remoto tramite ioBroker.pro: scegli la stessa istanza web utilizzata dall'adattatore cloud (solitamente web.0). L'adattatore cloud inoltra solo un'istanza Web, quindi Aura, vis e le altre app devono essere tutte servite da esso. Un'istanza web separata per Aura (ad esempio web.1) funziona quindi solo localmente: il passaggio a cloud.0 interrompe la visibilità in remoto. L'istanza web scelta si riavvia ogni volta che questa istanza Aura viene avviata, arrestata o le sue impostazioni vengono salvate (tecnicamente inevitabile). Ha bisogno del suo socket integrato (predefinito): il dashboard lo utilizza per i valori in tempo reale.",
+        "es": "Opcional. Hace que Aura también sea accesible como <web-port>/aura/ (por ejemplo, http://192.168.1.10:8082/aura/), que es lo que pueden abrir la aplicación ioBroker Visu y el adaptador de nube. Aura también sigue ejecutándose en su propio puerto arriba; Los paneles, PIN y configuraciones son los mismos en ambos sentidos. Visu App/acceso remoto a través de ioBroker.pro: elija la misma instancia web que utiliza el adaptador de nube (normalmente web.0). El adaptador de nube reenvía solo una instancia web, por lo que Aura, vis y las demás aplicaciones deben ser atendidas por él. Una instancia web separada para Aura (por ejemplo, web.1) solo funciona localmente; cambiar cloud.0 a ella se rompe de forma remota. La instancia web elegida se reinicia cada vez que se inicia, se detiene o se guarda su configuración (técnicamente inevitable). Necesita su socket integrado (el predeterminado): el tablero lo usa para los valores en vivo.",
+        "pl": "Fakultatywny. Sprawia, że ​​Aura jest dodatkowo osiągalna jako <web-port>/aura/ (np. http://192.168.1.10:8082/aura/), co jest tym, co może otworzyć aplikacja ioBroker Visu i adapter chmury. Aura również działa na swoim własnym porcie powyżej; pulpity nawigacyjne, kody PIN i ustawienia są takie same w obu przypadkach. Aplikacja Visu / zdalny dostęp przez ioBroker.pro: wybierz tę samą instancję internetową, z której korzysta adapter chmury (zwykle web.0). Adapter chmury przekazuje tylko jedną instancję internetową, więc Aura, vis i inne aplikacje muszą być przez nią obsługiwane. Oddzielna instancja sieciowa dla Aury (np. web.1) działa wtedy tylko lokalnie — przełączenie na nią cloud.0 przerywa działanie zdalne. Wybrana instancja internetowa uruchamia się ponownie za każdym razem, gdy instancja Aura jest uruchamiana, zatrzymywana lub zapisywane są jej ustawienia (technicznie nieuniknione). Potrzebuje zintegrowanego gniazda (domyślnego) — deska rozdzielcza używa go do przesyłania wartości na żywo.",
+        "uk": "Додатково. Робить Aura додатково доступним як <web-port>/aura/ (наприклад, http://192.168.1.10:8082/aura/), який може відкрити програма ioBroker Visu та хмарний адаптер. Aura продовжує працювати на власному порту вище; інформаційні панелі, PIN-коди та налаштування однакові в обох напрямках. Додаток Visu / віддалений доступ через ioBroker.pro: виберіть той самий веб-екземпляр, який використовує хмарний адаптер (зазвичай web.0). Хмарний адаптер пересилає лише один веб-екземпляр, тому Aura, vis та інші програми повинні обслуговуватися ним. Тоді окремий веб-екземпляр для Aura (наприклад, web.1) працює лише локально — перемикання cloud.0 на нього порушує роботу віддалено. Вибраний веб-примірник перезапускається кожного разу, коли цей екземпляр Aura запускається, зупиняється або зберігаються його налаштування (технічно неминуче). Йому потрібен інтегрований роз’єм (за замовчуванням) — приладова панель використовує його для поточних значень.",
+        "zh-cn": "选修的。还可以通过 <web-port>/aura/（例如 http://192.168.1.10:8082/aura/）访问 Aura，这是 ioBroker Visu 应用程序和云适配器可以打开的内容。 Aura 也继续在上面自己的端口上运行；两种方式的仪表板、PIN 码和设置都是相同的。 Visu 应用程序/通过 ioBroker.pro 进行远程访问：选择云适配器使用的同一 Web 实例（通常为 web.0）。云适配器仅转发一个 Web 实例，因此 Aura、vis 和其他应用程序都必须由它提供服务。 Aura 的单独 Web 实例（例如 web.1）只能在本地运行 - 将 cloud.0 切换到它会破坏远程访问。每次启动、停止此 Aura 实例或保存其设置时，所选的 Web 实例都会重新启动（技术上不可避免）。它需要其集成插座（默认）——仪表板将其用于实时值。"
       },
       "xs": 12,
       "sm": 12,
@@ -351,11 +576,29 @@
       "noTranslation": true,
       "label": {
         "en": "Also reachable via web instance (/aura/)",
-        "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)"
+        "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)",
+        "ru": "Также доступен через веб-экземпляр (/aura/)",
+        "pt": "Também acessível via instância web (/aura/)",
+        "nl": "Ook bereikbaar via webinstantie (/aura/)",
+        "fr": "Également accessible via une instance Web (/aura/)",
+        "it": "Raggiungibile anche tramite istanza web (/aura/)",
+        "es": "También accesible a través de una instancia web (/aura/)",
+        "pl": "Dostępny również za pośrednictwem instancji internetowej (/aura/)",
+        "uk": "Також доступний через веб-екземпляр (/aura/)",
+        "zh-cn": "也可通过 Web 实例 (/aura/) 访问"
       },
       "help": {
         "en": "Only for the Visu App / cloud. For remote access pick the web instance set in cloud.0 (usually web.0). Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
-        "de": "Nur für Visu App / Cloud. Für den Fernzugriff die Web-Instanz wählen, die in cloud.0 eingetragen ist (meist web.0). Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+        "de": "Nur für Visu App / Cloud. Für den Fernzugriff die Web-Instanz wählen, die in cloud.0 eingetragen ist (meist web.0). Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft.",
+        "ru": "Только для приложения/облака Visu. Для удаленного доступа выберите веб-экземпляр, заданный в cloud.0 (обычно web.0). Не связано с указанным выше подключением для передачи данных. Пусто = выключено. Список заполняется только во время работы этого экземпляра.",
+        "pt": "Somente para o Visu App/nuvem. Para acesso remoto, escolha a instância da web definida em cloud.0 (geralmente web.0). Não relacionado à conexão de dados acima. Vazio = desligado. A lista só é preenchida enquanto esta instância é executada.",
+        "nl": "Alleen voor de Visu App/cloud. Voor externe toegang kiest u de webinstantie die is ingesteld in cloud.0 (meestal web.0). Niet gerelateerd aan de bovenstaande dataverbinding. Leeg = uit. De lijst wordt alleen gevuld terwijl deze instantie wordt uitgevoerd.",
+        "fr": "Uniquement pour l'application Visu/cloud. Pour l'accès à distance, choisissez l'instance Web définie dans cloud.0 (généralement web.0). Sans rapport avec la connexion de données ci-dessus. Vide = éteint. La liste n'est remplie que pendant l'exécution de cette instance.",
+        "it": "Solo per l'app Visu/cloud. Per l'accesso remoto scegli l'istanza web impostata in cloud.0 (solitamente web.0). Non correlato alla connessione dati di cui sopra. Vuoto = spento. L'elenco viene compilato solo durante l'esecuzione di questa istanza.",
+        "es": "Sólo para la Visu App/nube. Para acceso remoto, seleccione la instancia web configurada en cloud.0 (normalmente web.0). No relacionado con la conexión de datos anterior. Vacío = apagado. La lista solo se completa mientras se ejecuta esta instancia.",
+        "pl": "Tylko dla aplikacji/chmury Visu. Aby uzyskać dostęp zdalny, wybierz instancję internetową ustawioną w cloud.0 (zwykle web.0). Niezwiązane z powyższym połączeniem danych. Pusty = wyłączony. Lista jest wypełniana tylko podczas działania tej instancji.",
+        "uk": "Лише для програми Visu / хмари. Для віддаленого доступу виберіть веб-екземпляр, налаштований у cloud.0 (зазвичай web.0). Не пов’язано з наведеним вище з’єднанням даних. Порожній = вимкнено. Список заповнюється лише під час роботи цього екземпляра.",
+        "zh-cn": "仅适用于 Visu 应用程序/云。对于远程访问，请选择 cloud.0（通常是 web.0）中设置的 Web 实例。与上面的数据连接无关。空=关闭。仅当该实例运行时才会填充该列表。"
       },
       "xs": 12,
       "sm": 12,
@@ -367,7 +610,16 @@
       "type": "header",
       "text": {
         "en": "Image / file paths",
-        "de": "Bild- / Dateipfade"
+        "de": "Bild- / Dateipfade",
+        "ru": "Пути к изображениям/файлам",
+        "pt": "Caminhos de imagem/arquivo",
+        "nl": "Afbeeldings-/bestandspaden",
+        "fr": "Chemins d’images/fichiers",
+        "it": "Percorsi di immagini/file",
+        "es": "Rutas de imagen/archivo",
+        "pl": "Ścieżki obrazu/pliku",
+        "uk": "Шляхи до зображень/файлів",
+        "zh-cn": "图像/文件路径"
       },
       "size": 2,
       "xs": 12,
@@ -380,11 +632,29 @@
       "type": "table",
       "label": {
         "en": "Allowed root folders",
-        "de": "Erlaubte Wurzelverzeichnisse"
+        "de": "Erlaubte Wurzelverzeichnisse",
+        "ru": "Разрешенные корневые папки",
+        "pt": "Pastas raiz permitidas",
+        "nl": "Toegestane hoofdmappen",
+        "fr": "Dossiers racine autorisés",
+        "it": "Cartelle principali consentite",
+        "es": "Carpetas raíz permitidas",
+        "pl": "Dozwolone foldery główne",
+        "uk": "Дозволені кореневі папки",
+        "zh-cn": "允许的根文件夹"
       },
       "help": {
         "en": "Folders the file picker (e.g. image widget) may browse. Add absolute paths for your operating system — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Subfolders are included automatically.",
-        "de": "Verzeichnisse, die der Datei-Picker (z. B. Bild-Widget) durchsuchen darf. Absolute Pfade für dein Betriebssystem eintragen — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/du/Bilder · Windows: C:\\Users\\du\\Bilder. Unterordner werden automatisch einbezogen."
+        "de": "Verzeichnisse, die der Datei-Picker (z. B. Bild-Widget) durchsuchen darf. Absolute Pfade für dein Betriebssystem eintragen — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/du/Bilder · Windows: C:\\Users\\du\\Bilder. Unterordner werden automatisch einbezogen.",
+        "ru": "Папки, которые может просматривать средство выбора файлов (например, виджет изображения). Добавьте абсолютные пути для вашей операционной системы — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Подпапки добавляются автоматически.",
+        "pt": "Pastas que o seletor de arquivos (por exemplo, widget de imagem) pode navegar. Adicione caminhos absolutos para seu sistema operacional — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. As subpastas são incluídas automaticamente.",
+        "nl": "Mappen waarin de bestandskiezer (bijvoorbeeld een afbeeldingswidget) kan bladeren. Voeg absolute paden toe voor uw besturingssysteem: Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Submappen worden automatisch opgenomen.",
+        "fr": "Dossiers que le sélecteur de fichiers (par exemple, un widget d'image) peut parcourir. Ajoutez des chemins absolus pour votre système d'exploitation : Linux : /opt/iobroker/iobroker-data/files · macOS : /Users/you/Pictures · Windows : C:\\Users\\you\\Pictures. Les sous-dossiers sont inclus automatiquement.",
+        "it": "Cartelle che il selettore file (ad esempio il widget immagine) può sfogliare. Aggiungi percorsi assoluti per il tuo sistema operativo: Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Le sottocartelle vengono incluse automaticamente.",
+        "es": "Carpetas que el selector de archivos (por ejemplo, widget de imagen) puede explorar. Agregue rutas absolutas para su sistema operativo: Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Las subcarpetas se incluyen automáticamente.",
+        "pl": "Foldery, które może przeglądać selektor plików (np. widżet obrazu). Dodaj ścieżki bezwzględne dla swojego systemu operacyjnego — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Podfoldery są dołączane automatycznie.",
+        "uk": "Папки, які може переглядати засіб вибору файлів (наприклад, віджет зображення). Додайте абсолютні шляхи для вашої операційної системи — Linux: /opt/iobroker/iobroker-data/files · macOS: /Users/you/Pictures · Windows: C:\\Users\\you\\Pictures. Підпапки додаються автоматично.",
+        "zh-cn": "文件选择器（例如图像小部件）可以浏览的文件夹。添加操作系统的绝对路径 — Linux：/opt/iobroker/iobroker-data/files · macOS：/Users/you/Pictures · Windows：C:\\Users\\you\\Pictures. 自动包含子文件夹。"
       },
       "items": [
         {
@@ -393,7 +663,16 @@
           "width": "35%",
           "title": {
             "en": "Label",
-            "de": "Bezeichnung"
+            "de": "Bezeichnung",
+            "ru": "Этикетка",
+            "pt": "Rótulo",
+            "nl": "Label",
+            "fr": "Étiquette",
+            "it": "Etichetta",
+            "es": "Etiqueta",
+            "pl": "Etykieta",
+            "uk": "Мітка",
+            "zh-cn": "标签"
           }
         },
         {
@@ -402,7 +681,16 @@
           "width": "65%",
           "title": {
             "en": "Absolute path",
-            "de": "Absoluter Pfad"
+            "de": "Absoluter Pfad",
+            "ru": "Абсолютный путь",
+            "pt": "Caminho absoluto",
+            "nl": "Absoluut pad",
+            "fr": "Chemin absolu",
+            "it": "Percorso assoluto",
+            "es": "camino absoluto",
+            "pl": "Absolutna ścieżka",
+            "uk": "Абсолютний шлях",
+            "zh-cn": "绝对路径"
           }
         }
       ],
@@ -416,7 +704,16 @@
       "type": "header",
       "text": {
         "en": "Timer widget scheduler",
-        "de": "Zeitschaltuhr-Scheduler"
+        "de": "Zeitschaltuhr-Scheduler",
+        "ru": "Планировщик виджета таймера",
+        "pt": "Agendador de widget de cronômetro",
+        "nl": "Timerwidgetplanner",
+        "fr": "Planificateur de widget de minuterie",
+        "it": "Pianificatore widget timer",
+        "es": "Programador de widgets de temporizador",
+        "pl": "Harmonogram widgetów timera",
+        "uk": "Планувальник віджетів таймера",
+        "zh-cn": "定时器小部件调度程序"
       },
       "size": 2,
       "xs": 12,
@@ -429,11 +726,29 @@
       "type": "number",
       "label": {
         "en": "Tick interval (s)",
-        "de": "Prüfintervall (s)"
+        "de": "Prüfintervall (s)",
+        "ru": "Тиковый интервал (с)",
+        "pt": "Intervalo(s) de tick(s)",
+        "nl": "Tikinterval(s)",
+        "fr": "Intervalle(s) de tick",
+        "it": "Intervallo di spunta (s)",
+        "es": "Intervalo(s) de tic",
+        "pl": "Interwał zaznaczenia (y)",
+        "uk": "Інтервал тактів (с)",
+        "zh-cn": "刻度间隔（秒）"
       },
       "help": {
         "en": "How often the backend scheduler checks for due timer events. Lower = more precise but more CPU. Range: 5–600. Default: 30.",
-        "de": "Wie oft der Backend-Scheduler nach fälligen Zeitschaltuhr-Ereignissen prüft. Kleiner = präziser, aber mehr CPU. Bereich: 5–600. Standard: 30."
+        "de": "Wie oft der Backend-Scheduler nach fälligen Zeitschaltuhr-Ereignissen prüft. Kleiner = präziser, aber mehr CPU. Bereich: 5–600. Standard: 30.",
+        "ru": "Как часто внутренний планировщик проверяет наличие событий таймера. Меньше = точнее, но больше процессора. Диапазон: 5–600. По умолчанию: 30.",
+        "pt": "Com que frequência o agendador de back-end verifica eventos de timer vencidos. Menor = mais preciso, mas com mais CPU. Faixa: 5–600. Padrão: 30.",
+        "nl": "Hoe vaak de backend-planner controleert op vervaldatum-timergebeurtenissen. Lager = nauwkeuriger maar meer CPU. Bereik: 5–600. Standaard: 30.",
+        "fr": "À quelle fréquence le planificateur back-end vérifie les événements du minuteur. Inférieur = plus précis mais plus CPU. Plage : 5 à 600. Par défaut : 30.",
+        "it": "La frequenza con cui lo scheduler del backend controlla gli eventi del timer in scadenza. Inferiore = più preciso ma più CPU. Intervallo: 5–600. Predefinito: 30.",
+        "es": "Con qué frecuencia el programador backend verifica los eventos del temporizador vencidos. Menor = más preciso pero más CPU. Rango: 5–600. Predeterminado: 30.",
+        "pl": "Jak często program planujący zaplecza sprawdza terminarz zdarzeń. Niższy = bardziej precyzyjny, ale z większym procesorem. Zakres: 5–600. Wartość domyślna: 30.",
+        "uk": "Як часто внутрішній планувальник перевіряє наявність належних подій таймера. Нижче = точніше, але більше ЦП. Діапазон: 5–600. Типове значення: 30.",
+        "zh-cn": "后端调度程序检查到期计时器事件的频率。更低=更精确但更多的CPU。范围：5–600。默认值：30。"
       },
       "min": 5,
       "max": 600,
@@ -448,7 +763,16 @@
       "type": "header",
       "text": {
         "en": "Message archive",
-        "de": "Meldungs-Archiv"
+        "de": "Meldungs-Archiv",
+        "ru": "Архив сообщений",
+        "pt": "Arquivo de mensagens",
+        "nl": "Berichtarchief",
+        "fr": "Archives des messages",
+        "it": "Archivio messaggi",
+        "es": "Archivo de mensajes",
+        "pl": "Archiwum wiadomości",
+        "uk": "Архів повідомлень",
+        "zh-cn": "留言存档"
       },
       "size": 2,
       "xs": 12,
@@ -461,11 +785,29 @@
       "type": "number",
       "label": {
         "en": "Messages kept",
-        "de": "Gespeicherte Meldungen"
+        "de": "Gespeicherte Meldungen",
+        "ru": "Сообщения сохранены",
+        "pt": "Mensagens mantidas",
+        "nl": "Berichten bewaard",
+        "fr": "Messages conservés",
+        "it": "Messaggi conservati",
+        "es": "Mensajes guardados",
+        "pl": "Wiadomości zachowane",
+        "uk": "Повідомлення збережено",
+        "zh-cn": "保留的消息"
       },
       "help": {
-        "en": "How many messages the archive holds before the oldest are dropped. Feeds the Meldungen widget and the unread counter. Range: 1-1000. Default: 100.",
-        "de": "Wie viele Meldungen das Archiv behält, bevor die ältesten wegfallen. Speist das Meldungen-Widget und den Ungelesen-Zähler. Bereich: 1-1000. Standard: 100."
+        "en": "How many messages the archive holds before the oldest are dropped. Feeds the Messages widget and the unread counter. Range: 1-1000. Default: 100.",
+        "de": "Wie viele Meldungen das Archiv behält, bevor die ältesten wegfallen. Speist das Meldungen-Widget und den Ungelesen-Zähler. Bereich: 1-1000. Standard: 100.",
+        "ru": "Сколько сообщений хранится в архиве до того, как самые старые будут удалены. Подает виджет Messages и счетчик непрочитанных сообщений. Диапазон: 1-1000. По умолчанию: 100.",
+        "pt": "Quantas mensagens o arquivo contém antes que as mais antigas sejam descartadas. Alimenta o widget Messages e o contador de não lidos. Faixa: 1-1000. Padrão: 100.",
+        "nl": "Hoeveel berichten het archief bevat voordat de oudste worden verwijderd. Voedt de Messages-widget en de ongelezen teller. Bereik: 1-1000. Standaard: 100.",
+        "fr": "Combien de messages l’archive contient-elle avant que les plus anciens ne soient supprimés. Alimente le widget Messages et le compteur de non lus. Plage : 1-1000. Par défaut : 100.",
+        "it": "Quanti messaggi contiene l'archivio prima che il più vecchio venga eliminato. Alimenta il widget Messages e il contatore dei dati non letti. Intervallo: 1-1000. Predefinito: 100.",
+        "es": "Cuántos mensajes contiene el archivo antes de que se eliminen los más antiguos. Alimenta el widget Messages y el contador de no leídos. Rango: 1-1000. Predeterminado: 100.",
+        "pl": "Ile wiadomości przechowuje archiwum, zanim najstarsze zostaną usunięte. Zasila widżet Messages i licznik nieprzeczytanych informacji. Zakres: 1-1000. Wartość domyślna: 100.",
+        "uk": "Скільки повідомлень містить архів до видалення найстарішого. Подає віджет Messages і лічильник непрочитаних. Діапазон: 1-1000. Типове значення: 100.",
+        "zh-cn": "在删除最旧的消息之前，存档保存了多少消息。提供 Messages 小部件和未读计数器。范围：1-1000。默认值：100。"
       },
       "min": 1,
       "max": 1000,
@@ -480,11 +822,29 @@
       "type": "number",
       "label": {
         "en": "Keep for (days)",
-        "de": "Aufbewahrung (Tage)"
+        "de": "Aufbewahrung (Tage)",
+        "ru": "Хранить (дней)",
+        "pt": "Manter por (dias)",
+        "nl": "Bewaar gedurende (dagen)",
+        "fr": "Conserver pendant (jours)",
+        "it": "Conservare per (giorni)",
+        "es": "Mantener durante (días)",
+        "pl": "Przechowuj przez (dni)",
+        "uk": "Зберігати (днів)",
+        "zh-cn": "保留（天）"
       },
       "help": {
         "en": "Messages older than this are removed from the archive. 0 = keep forever. Default: 30.",
-        "de": "Meldungen, die älter sind, werden aus dem Archiv entfernt. 0 = unbegrenzt aufbewahren. Standard: 30."
+        "de": "Meldungen, die älter sind, werden aus dem Archiv entfernt. 0 = unbegrenzt aufbewahren. Standard: 30.",
+        "ru": "Сообщения старше этого времени удаляются из архива. 0 = хранить навсегда. По умолчанию: 30.",
+        "pt": "Mensagens mais antigas que isso são removidas do arquivo. 0 = manter para sempre. Padrão: 30.",
+        "nl": "Berichten ouder dan dit worden uit het archief verwijderd. 0 = voor altijd behouden. Standaard: 30.",
+        "fr": "Les messages plus anciens sont supprimés des archives. 0 = conserver pour toujours. Par défaut : 30.",
+        "it": "I messaggi più vecchi di questo verranno rimossi dall'archivio. 0 = conserva per sempre. Predefinito: 30.",
+        "es": "Los mensajes anteriores a esta se eliminan del archivo. 0 = conservar para siempre. Predeterminado: 30.",
+        "pl": "Wiadomości starsze niż ta są usuwane z archiwum. 0 = zachowaj na zawsze. Wartość domyślna: 30.",
+        "uk": "Старіші повідомлення видаляються з архіву. 0 = зберігати назавжди. Типове значення: 30.",
+        "zh-cn": "早于此时间的邮件将从存档中删除。 0 = 永久保留。默认值：30。"
       },
       "min": 0,
       "max": 3650,
@@ -499,7 +859,16 @@
       "type": "header",
       "text": {
         "en": "Status overview: battery changes",
-        "de": "Statusübersicht: Batteriewechsel"
+        "de": "Statusübersicht: Batteriewechsel",
+        "ru": "Обзор состояния: замена батареи",
+        "pt": "Visão geral do status: alterações na bateria",
+        "nl": "Statusoverzicht: batterijwissels",
+        "fr": "Aperçu de l'état : changements de batterie",
+        "it": "Panoramica dello stato: sostituzione della batteria",
+        "es": "Resumen de estado: cambios de batería",
+        "pl": "Przegląd stanu: zmiany baterii",
+        "uk": "Огляд стану: заміна батареї",
+        "zh-cn": "状态概览：电池更换"
       },
       "size": 2,
       "xs": 12,
@@ -512,11 +881,29 @@
       "type": "number",
       "label": {
         "en": "Changes kept",
-        "de": "Gespeicherte Wechsel"
+        "de": "Gespeicherte Wechsel",
+        "ru": "Изменения сохранены",
+        "pt": "Mudanças mantidas",
+        "nl": "Wijzigingen behouden",
+        "fr": "Modifications conservées",
+        "it": "Modifiche mantenute",
+        "es": "Cambios mantenidos",
+        "pl": "Zmiany zachowane",
+        "uk": "Зміни збережено",
+        "zh-cn": "保留更改"
       },
       "help": {
         "en": "How many closed hints (battery changes) status.<category>.history keeps. The latest change of each device is always kept, so the next one can show how long the battery lasted. Range: 1-1000. Default: 50.",
-        "de": "Wie viele geschlossene Hinweise (Batteriewechsel) status.<Kategorie>.history behält. Der jeweils letzte Wechsel eines Geräts bleibt immer, damit der nächste die Laufzeit der Batterie zeigen kann. Bereich: 1-1000. Standard: 50."
+        "de": "Wie viele geschlossene Hinweise (Batteriewechsel) status.<Kategorie>.history behält. Der jeweils letzte Wechsel eines Geräts bleibt immer, damit der nächste die Laufzeit der Batterie zeigen kann. Bereich: 1-1000. Standard: 50.",
+        "ru": "Сколько статусов закрытых подсказок (замены батареи).<category>.история сохраняется. Последние изменения каждого устройства всегда сохраняются, поэтому следующее может показать, как долго проработала батарея. Диапазон: 1-1000. По умолчанию: 50.",
+        "pt": "Quantas dicas fechadas (mudanças de bateria) status.<category>.history mantém. A última alteração de cada dispositivo é sempre mantida, para que o próximo possa mostrar quanto tempo durou a bateria. Faixa: 1-1000. Padrão: 50.",
+        "nl": "Hoeveel gesloten hints (batterijwissels) status.<category>.history blijft behouden. De laatste wijziging van elk apparaat wordt altijd bewaard, zodat op het volgende apparaat kan worden weergegeven hoe lang de batterij het volhield. Bereik: 1-1000. Standaard: 50.",
+        "fr": "Combien d'indices fermés (changements de batterie) l'état.<category>.historique est conservé. La dernière modification de chaque appareil est toujours conservée, afin que la suivante puisse indiquer la durée de vie de la batterie. Plage : 1-1000. Par défaut : 50.",
+        "it": "Numero di suggerimenti chiusi (sostituzioni batteria).<category>.history conserva. Viene sempre conservata l'ultima modifica di ciascun dispositivo, in modo che quella successiva possa mostrare la durata della batteria. Intervallo: 1-1000. Predefinito: 50.",
+        "es": "Cuántos estados de sugerencias cerradas (cambios de batería).<category>.el historial se mantiene. Siempre se guarda el último cambio de cada dispositivo, por lo que el siguiente puede mostrar cuánto duró la batería. Rango: 1-1000. Predeterminado: 50.",
+        "pl": "Ile statusów zamkniętych podpowiedzi (zmian baterii).<category>.history. Zawsze zapamiętywana jest ostatnia zmiana każdego urządzenia, więc następna może pokazać, jak długo wytrzymała bateria. Zakres: 1-1000. Wartość domyślna: 50.",
+        "uk": "Скільки закритих підказок (замін батареї) статусу.<category>.history зберігає. Завжди зберігається остання зміна кожного пристрою, тому наступна може показати, скільки часу працював акумулятор. Діапазон: 1-1000. Типове значення: 50.",
+        "zh-cn": "保留多少个关闭提示（电池电量变化）状态。<category>.history。每个设备的最新更改始终保留，因此下一个可以显示电池持续了多长时间。范围：1-1000。默认值：50。"
       },
       "min": 1,
       "max": 1000,
@@ -531,11 +918,29 @@
       "type": "number",
       "label": {
         "en": "Keep changes for (days)",
-        "de": "Wechsel aufbewahren (Tage)"
+        "de": "Wechsel aufbewahren (Tage)",
+        "ru": "Хранить изменения в течение (дней)",
+        "pt": "Manter as alterações por (dias)",
+        "nl": "Wijzigingen bewaren gedurende (dagen)",
+        "fr": "Conserver les modifications pendant (jours)",
+        "it": "Conserva le modifiche per (giorni)",
+        "es": "Mantener los cambios durante (días)",
+        "pl": "Zachowaj zmiany przez (dni)",
+        "uk": "Зберігати зміни протягом (днів)",
+        "zh-cn": "保留更改（天）"
       },
       "help": {
         "en": "Changes older than this are removed (except the latest one per device). 0 = keep forever. Default: 730 (two years).",
-        "de": "Ältere Wechsel werden entfernt (außer dem letzten je Gerät). 0 = unbegrenzt aufbewahren. Standard: 730 (zwei Jahre)."
+        "de": "Ältere Wechsel werden entfernt (außer dem letzten je Gerät). 0 = unbegrenzt aufbewahren. Standard: 730 (zwei Jahre).",
+        "ru": "Изменения старше этого срока удаляются (кроме самого последнего для каждого устройства). 0 = хранить навсегда. По умолчанию: 730 (два года).",
+        "pt": "As alterações anteriores a esta serão removidas (exceto a mais recente por dispositivo). 0 = manter para sempre. Padrão: 730 (dois anos).",
+        "nl": "Wijzigingen ouder dan deze worden verwijderd (behalve de laatste per apparaat). 0 = voor altijd behouden. Standaard: 730 (twee jaar).",
+        "fr": "Les modifications plus anciennes sont supprimées (sauf la dernière par appareil). 0 = conserver pour toujours. Par défaut : 730 (deux ans).",
+        "it": "Changes older than this are removed (except the latest one per device). 0 = conserva per sempre. Impostazione predefinita: 730 (due anni).",
+        "es": "Los cambios anteriores a este se eliminan (excepto el más reciente por dispositivo). 0 = conservar para siempre. Valor predeterminado: 730 (dos años).",
+        "pl": "Zmiany starsze niż te zostaną usunięte (z wyjątkiem najnowszych na urządzenie). 0 = zachowaj na zawsze. Wartość domyślna: 730 (dwa lata).",
+        "uk": "Старіші зміни видаляються (крім останньої на пристрій). 0 = зберігати назавжди. За замовчуванням: 730 (два роки).",
+        "zh-cn": "早于此的更改将被删除（每台设备的最新更改除外）。 0 = 永久保留。默认值：730（两年）。"
       },
       "min": 0,
       "max": 3650,
@@ -550,7 +955,16 @@
       "type": "header",
       "text": {
         "en": "Update notice",
-        "de": "Update-Hinweis"
+        "de": "Update-Hinweis",
+        "ru": "Уведомление об обновлении",
+        "pt": "Aviso de atualização",
+        "nl": "Kennisgeving bijwerken",
+        "fr": "Avis de mise à jour",
+        "it": "Avviso di aggiornamento",
+        "es": "Aviso de actualización",
+        "pl": "Aktualizuj powiadomienie",
+        "uk": "Повідомлення про оновлення",
+        "zh-cn": "更新通知"
       },
       "size": 2,
       "xs": 12,
@@ -563,11 +977,29 @@
       "type": "checkbox",
       "label": {
         "en": "Announce new adapter versions in the frontend",
-        "de": "Neue Adapter-Versionen im Frontend melden"
+        "de": "Neue Adapter-Versionen im Frontend melden",
+        "ru": "Анонсируйте новые версии адаптеров во внешнем интерфейсе",
+        "pt": "Anuncie novas versões do adaptador no frontend",
+        "nl": "Kondig nieuwe adapterversies aan in de frontend",
+        "fr": "Annoncer les nouvelles versions de l'adaptateur dans le frontend",
+        "it": "Annuncia le nuove versioni dell'adattatore nel frontend",
+        "es": "Anunciar nuevas versiones de adaptadores en el frontend.",
+        "pl": "Ogłaszaj nowe wersje adapterów w interfejsie użytkownika",
+        "uk": "Анонсуйте нові версії адаптера у інтерфейсі",
+        "zh-cn": "在前端宣布新的适配器版本"
       },
       "help": {
         "en": "Posts a message (toast, bell, archive) once per new version found in your activated repository. The Aura admin shows the hint next to the version number either way. Default: off.",
-        "de": "Meldet einmal pro neuer Version aus dem aktivierten Repository über Toast, Glocke und Archiv. Der Aura-Admin zeigt den Hinweis ohnehin neben der Versionsnummer. Standard: aus."
+        "de": "Meldet einmal pro neuer Version aus dem aktivierten Repository über Toast, Glocke und Archiv. Der Aura-Admin zeigt den Hinweis ohnehin neben der Versionsnummer. Standard: aus.",
+        "ru": "Публикует сообщение (тост, звонок, архив) один раз для каждой новой версии, найденной в вашем активированном репозитории. Администратор Aura в любом случае показывает подсказку рядом с номером версии. По умолчанию: выключено.",
+        "pt": "Publica uma mensagem (brinde, sino, arquivo) uma vez por nova versão encontrada em seu repositório ativado. O administrador do Aura mostra a dica ao lado do número da versão de qualquer maneira. Padrão: desligado.",
+        "nl": "Plaatst één keer een bericht (toast, bel, archief) per nieuwe versie gevonden in uw geactiveerde repository. De Aura-beheerder toont hoe dan ook de hint naast het versienummer. Standaard: uit.",
+        "fr": "Publie un message (toast, cloche, archive) une fois par nouvelle version trouvée dans votre référentiel activé. L'administrateur Aura affiche l'indice à côté du numéro de version dans les deux cas. Par défaut : désactivé.",
+        "it": "Pubblica un messaggio (toast, campanello, archivio) una volta per ogni nuova versione trovata nel repository attivato. In ogni caso, l'amministratore di Aura mostra il suggerimento accanto al numero di versione. Impostazione predefinita: disattivata.",
+        "es": "Publica un mensaje (brindis, campana, archivo) una vez por cada nueva versión encontrada en su repositorio activado. El administrador de Aura muestra la pista junto al número de versión en cualquier sentido. Valor predeterminado: desactivado.",
+        "pl": "Wysyła wiadomość (toast, dzwonek, archiwum) raz na każdą nową wersję znalezioną w aktywowanym repozytorium. W obu przypadkach administrator Aury wyświetla podpowiedź obok numeru wersji. Domyślnie: wyłączone.",
+        "uk": "Публікує повідомлення (тост, дзвінок, архів) один раз для кожної нової версії, знайденої у вашому активованому сховищі. Адміністратор Aura показує підказку поруч із номером версії в будь-якому випадку. За замовчуванням: вимкнено.",
+        "zh-cn": "每个在激活的存储库中找到的新版本都会发布一条消息（吐司、响铃、存档）。无论哪种方式，Aura 管理员都会在版本号旁边显示提示。默认值：关闭。"
       },
       "default": false,
       "xs": 12,
@@ -580,11 +1012,29 @@
       "type": "checkbox",
       "label": {
         "en": "Update notice has to be confirmed",
-        "de": "Update-Hinweis muss bestätigt werden"
+        "de": "Update-Hinweis muss bestätigt werden",
+        "ru": "Уведомление об обновлении должно быть подтверждено",
+        "pt": "O aviso de atualização precisa ser confirmado",
+        "nl": "Updatemelding moet worden bevestigd",
+        "fr": "L'avis de mise à jour doit être confirmé",
+        "it": "L'avviso di aggiornamento deve essere confermato",
+        "es": "El aviso de actualización debe ser confirmado.",
+        "pl": "Powiadomienie o aktualizacji musi zostać potwierdzone",
+        "uk": "Повідомлення про оновлення має бути підтверджено",
+        "zh-cn": "更新通知需确认"
       },
       "help": {
         "en": "The notice stays on screen until somebody confirms it and comes back after a reload. Switch it off to let it fade like an ordinary info message. Default: on.",
-        "de": "Der Hinweis bleibt stehen, bis ihn jemand bestätigt, und kommt nach einem Neuladen zurück. Ausgeschaltet blendet er sich wie eine gewöhnliche Info-Meldung aus. Standard: an."
+        "de": "Der Hinweis bleibt stehen, bis ihn jemand bestätigt, und kommt nach einem Neuladen zurück. Ausgeschaltet blendet er sich wie eine gewöhnliche Info-Meldung aus. Standard: an.",
+        "ru": "Уведомление остается на экране до тех пор, пока кто-нибудь не подтвердит его и не вернется после перезагрузки. Выключите его, чтобы оно исчезло, как обычное информационное сообщение. По умолчанию: включено.",
+        "pt": "O aviso permanece na tela até que alguém o confirme e volte após recarregar. Desligue-o para deixá-lo desaparecer como uma mensagem informativa comum. Padrão: ativado.",
+        "nl": "De melding blijft op het scherm totdat iemand deze bevestigt en komt terug na een herlaadbeurt. Schakel het uit om het te laten vervagen als een gewoon infobericht. Standaard: aan.",
+        "fr": "L'avis reste à l'écran jusqu'à ce que quelqu'un le confirme et revienne après un rechargement. Éteignez-le pour le laisser disparaître comme un message d'information ordinaire. Par défaut : activé.",
+        "it": "L'avviso rimane sullo schermo finché qualcuno non lo conferma e ritorna dopo una ricarica. Spegnilo per lasciarlo sbiadire come un normale messaggio informativo. Impostazione predefinita: attiva.",
+        "es": "El aviso permanece en pantalla hasta que alguien lo confirma y regresa después de una recarga. Apáguelo para que se desvanezca como un mensaje de información normal. Valor predeterminado: activado.",
+        "pl": "Powiadomienie pozostaje na ekranie, dopóki ktoś go nie potwierdzi i nie pojawi się ponownie po ponownym załadowaniu. Wyłącz go, aby zniknął jak zwykły komunikat informacyjny. Domyślnie: włączone.",
+        "uk": "Сповіщення залишається на екрані, доки хтось не підтвердить його, і не з’явиться після перезавантаження. Вимкніть його, щоб воно зникло, як звичайне інформаційне повідомлення. За замовчуванням: увімкнено.",
+        "zh-cn": "该通知会一直显示在屏幕上，直到有人确认并在重新加载后返回。将其关闭，让它像普通的信息消息一样消失。默认值：打开。"
       },
       "default": true,
       "hidden": "!data.updateNotify",
@@ -598,7 +1048,16 @@
       "type": "header",
       "text": {
         "en": "Performance diagnostics",
-        "de": "Performance-Diagnose"
+        "de": "Performance-Diagnose",
+        "ru": "Диагностика производительности",
+        "pt": "Diagnóstico de desempenho",
+        "nl": "Prestatiediagnostiek",
+        "fr": "Diagnostic des performances",
+        "it": "Diagnostica delle prestazioni",
+        "es": "Diagnóstico de rendimiento",
+        "pl": "Diagnostyka wydajności",
+        "uk": "Діагностика продуктивності",
+        "zh-cn": "性能诊断"
       },
       "size": 2,
       "xs": 12,
@@ -611,11 +1070,29 @@
       "type": "checkbox",
       "label": {
         "en": "Record load-time metrics",
-        "de": "Ladezeiten-Metriken aufzeichnen"
+        "de": "Ladezeiten-Metriken aufzeichnen",
+        "ru": "Запись показателей времени загрузки",
+        "pt": "Registrar métricas de tempo de carregamento",
+        "nl": "Registreer laadtijdstatistieken",
+        "fr": "Enregistrer les métriques de temps de chargement",
+        "it": "Registra le metriche del tempo di caricamento",
+        "es": "Registre métricas de tiempo de carga",
+        "pl": "Rejestruj wskaźniki czasu ładowania",
+        "uk": "Записуйте показники часу завантаження",
+        "zh-cn": "记录加载时间指标"
       },
       "help": {
-        "en": "Collect page-level load metrics (initial load, first paint, socket warm-up, tab switch, long tasks) and backend command round-trip times. Overhead is negligible. Feeds the Ladezeiten widget.",
-        "de": "Erfasst seitenweite Ladezeiten (Initial-Load, First Paint, Socket-Warmup, Tab-Wechsel, Long-Tasks) und Backend-Antwortzeiten. Vernachlässigbarer Overhead. Speist das Ladezeiten-Widget."
+        "en": "Collect page-level load metrics (initial load, first paint, socket warm-up, tab switch, long tasks) and backend command round-trip times. Overhead is negligible. Feeds the Load times widget.",
+        "de": "Erfasst seitenweite Ladezeiten (Initial-Load, First Paint, Socket-Warmup, Tab-Wechsel, Long-Tasks) und Backend-Antwortzeiten. Vernachlässigbarer Overhead. Speist das Ladezeiten-Widget.",
+        "ru": "Собирайте показатели загрузки на уровне страницы (начальная загрузка, первая отрисовка, прогрев сокета, переключение вкладок, длительные задачи) и время выполнения серверных команд. Накладные расходы незначительны. Подает виджет Load times.",
+        "pt": "Colete métricas de carregamento no nível da página (carregamento inicial, primeira pintura, aquecimento do soquete, alternância de guias, tarefas longas) e tempos de ida e volta do comando de back-end. As despesas gerais são insignificantes. Alimenta o widget Load times.",
+        "nl": "Verzamel laadstatistieken op paginaniveau (initiële belasting, eerste verf, socket-opwarming, tabbladschakelaar, lange taken) en retourtijden van backend-opdrachten. De overhead is verwaarloosbaar. Voedt de Load times-widget.",
+        "fr": "Collectez les métriques de chargement au niveau de la page (chargement initial, première peinture, échauffement du socket, changement d'onglet, tâches longues) et les temps d'aller-retour des commandes backend. Les frais généraux sont négligeables. Alimente le widget Load times.",
+        "it": "Raccogli i parametri di caricamento a livello di pagina (caricamento iniziale, prima elaborazione, riscaldamento del socket, cambio di scheda, attività lunghe) e tempi di andata e ritorno dei comandi di backend. Le spese generali sono trascurabili. Alimenta il widget Load times.",
+        "es": "Recopile métricas de carga a nivel de página (carga inicial, primera pintura, calentamiento del socket, cambio de pestaña, tareas largas) y tiempos de ida y vuelta de los comandos de backend. Los gastos generales son insignificantes. Alimenta el widget Load times.",
+        "pl": "Zbieraj wskaźniki obciążenia na poziomie strony (wczytywanie początkowe, pierwsze malowanie, rozgrzewanie gniazda, przełączanie kart, długie zadania) i czasy wykonywania poleceń zaplecza w obie strony. Narzut jest znikomy. Zasila widżet Load times.",
+        "uk": "Збирайте показники завантаження на рівні сторінки (початкове завантаження, перше малювання, розминка сокета, перемикання вкладок, довгі завдання) і час проходження команд серверної частини. Накладні витрати незначні. Подає віджет Load times.",
+        "zh-cn": "收集页面级负载指标（初始负载、首次绘制​​、套接字预热、选项卡切换、长任务）和后端命令往返时间。开销可以忽略不计。提供 Load times 小部件。"
       },
       "default": true,
       "xs": 12,
@@ -628,11 +1105,29 @@
       "type": "checkbox",
       "label": {
         "en": "Record per-widget timing (higher overhead)",
-        "de": "Timing pro Widget aufzeichnen (höherer Overhead)"
+        "de": "Timing pro Widget aufzeichnen (höherer Overhead)",
+        "ru": "Запись времени для каждого виджета (более высокие накладные расходы)",
+        "pt": "Grave o tempo por widget (maior sobrecarga)",
+        "nl": "Record per widget timing (hogere overhead)",
+        "fr": "Enregistrez le timing par widget (surcharge plus élevée)",
+        "it": "Registra i tempi per widget (overhead maggiore)",
+        "es": "Registre el tiempo por widget (mayor sobrecarga)",
+        "pl": "Rejestruj czas na widżet (wyższy narzut)",
+        "uk": "Час запису для кожного віджета (більше накладних витрат)",
+        "zh-cn": "记录每个小部件的计时（更高的开销）"
       },
       "help": {
-        "en": "Additionally measure render and ready time for every widget so the Ladezeiten widget can show which widget is slow. This instruments every widget on every render — enable only to diagnose a problem, then turn it off.",
-        "de": "Misst zusätzlich Render- und Bereit-Zeit für jedes Widget, damit das Ladezeiten-Widget anzeigt, welches Widget langsam ist. Instrumentiert jedes Widget bei jedem Render — nur zur Fehlersuche aktivieren, danach wieder ausschalten."
+        "en": "Additionally measure render and ready time for every widget so the Load times widget can show which widget is slow. This instruments every widget on every render — enable only to diagnose a problem, then turn it off.",
+        "de": "Misst zusätzlich Render- und Bereit-Zeit für jedes Widget, damit das Ladezeiten-Widget anzeigt, welches Widget langsam ist. Instrumentiert jedes Widget bei jedem Render — nur zur Fehlersuche aktivieren, danach wieder ausschalten.",
+        "ru": "Кроме того, измерьте время рендеринга и готовности для каждого виджета, чтобы виджет Load times мог показать, какой виджет работает медленно. Это инструментирует каждый виджет при каждом рендеринге — включайте только для диагностики проблемы, а затем отключайте его.",
+        "pt": "Além disso, meça o tempo de renderização e prontidão para cada widget para que o widget Load times possa mostrar qual widget está lento. Isso instrumenta cada widget em cada renderização – permite apenas diagnosticar um problema e depois desligá-lo.",
+        "nl": "Meet bovendien de render- en gereedtijd voor elke widget, zodat de Load times-widget kan laten zien welke widget langzaam is. Hiermee wordt elke widget bij elke weergave geïnstrueerd: schakel deze alleen in om een ​​probleem te diagnosticeren en schakel deze vervolgens uit.",
+        "fr": "Mesurez également le temps de rendu et de préparation de chaque widget afin que le widget Load times puisse indiquer quel widget est lent. Cela instrumente chaque widget sur chaque rendu - permet uniquement de diagnostiquer un problème, puis de le désactiver.",
+        "it": "Inoltre misura il rendering e il tempo di pronto per ogni widget in modo che il widget Load times possa mostrare quale widget è lento. Questo strumenta ogni widget su ogni rendering: consente solo di diagnosticare un problema, quindi di disattivarlo.",
+        "es": "Además, mida el tiempo de procesamiento y preparación de cada widget para que el widget Load times pueda mostrar qué widget es lento. Esto instrumenta cada widget en cada renderizado: habilítelo solo para diagnosticar un problema y luego apáguelo.",
+        "pl": "Dodatkowo mierz czas renderowania i gotowości każdego widżetu, aby widżet Load times mógł pokazać, który widżet działa wolno. To instrumentuje każdy widget na każdym renderowaniu — umożliwia jedynie zdiagnozowanie problemu, a następnie go wyłącza.",
+        "uk": "Додатково вимірюйте візуалізацію та час готовності для кожного віджета, щоб віджет Load times міг показати, який віджет працює повільно. Це інструментує кожен віджет на кожному рендері — увімкніть лише для діагностики проблеми, а потім вимкніть.",
+        "zh-cn": "另外测量每个小部件的渲染和准备时间，以便 Load times 小部件可以显示哪个小部件速度慢。这会在每次渲染时检测每个小部件 - 仅启用以诊断问题，然后将其关闭。"
       },
       "default": false,
       "disabled": "!data.perfTracking",
@@ -646,7 +1141,16 @@
       "type": "header",
       "text": {
         "en": "Speech output",
-        "de": "Sprachausgabe"
+        "de": "Sprachausgabe",
+        "ru": "Речевой вывод",
+        "pt": "Saída de fala",
+        "nl": "Spraakuitvoer",
+        "fr": "Sortie vocale",
+        "it": "Uscita vocale",
+        "es": "Salida de voz",
+        "pl": "Wyjście mowy",
+        "uk": "Вивід мови",
+        "zh-cn": "语音输出"
       },
       "size": 2,
       "xs": 12,
@@ -659,11 +1163,29 @@
       "type": "checkbox",
       "label": {
         "en": "Online voice for devices without a voice of their own",
-        "de": "Online-Stimme für Geräte ohne eigene Stimme"
+        "de": "Online-Stimme für Geräte ohne eigene Stimme",
+        "ru": "Онлайн-голос для устройств без собственного голоса",
+        "pt": "Voz online para dispositivos sem voz própria",
+        "nl": "Online stem voor apparaten zonder eigen stem",
+        "fr": "Voix en ligne pour les appareils sans voix propre",
+        "it": "Voce online per dispositivi senza voce propria",
+        "es": "Voz online para dispositivos sin voz propia",
+        "pl": "Głos online dla urządzeń bez własnego głosu",
+        "uk": "Онлайн-голос для пристроїв без власного голосу",
+        "zh-cn": "为没有自己的声音的设备提供在线语音"
       },
       "help": {
         "en": "Some browsers cannot speak text, e.g. Fully Kiosk (Android WebView). They then get the announcement as an MP3 from Aura's server, which fetches it from Google Translate. The text is sent to Google; requires internet. Off: such devices report speech.lastResult = unsupported.",
-        "de": "Manche Browser können keinen Text sprechen, z. B. Fully Kiosk (Android-WebView). Sie bekommen die Ansage dann als MP3 vom Aura-Server, der sie bei Google Translate abruft. Der Text geht an Google; braucht Internet. Aus: solche Geräte melden speech.lastResult = unsupported."
+        "de": "Manche Browser können keinen Text sprechen, z. B. Fully Kiosk (Android-WebView). Sie bekommen die Ansage dann als MP3 vom Aura-Server, der sie bei Google Translate abruft. Der Text geht an Google; braucht Internet. Aus: solche Geräte melden speech.lastResult = unsupported.",
+        "ru": "Некоторые браузеры не могут произносить текст, например. Полностью киоск (Android WebView). Затем они получают объявление в формате MP3 с сервера Ауры, который получает его из Google Translate. Текст отправляется в Google; требует интернета. Выключено: такие устройства сообщают, что voice.lastResult = не поддерживается.",
+        "pt": "Alguns navegadores não conseguem falar texto, por ex. Totalmente quiosque (Android WebView). Eles então recebem o anúncio como um MP3 do servidor da Aura, que o busca no Google Translate. O texto é enviado ao Google; requer internet. Desativado: esses dispositivos relatam discurso.lastResult = não suportado.",
+        "nl": "Sommige browsers kunnen geen tekst uitspreken, b.v. Volledig kiosk (Android WebView). Ze krijgen de aankondiging vervolgens als mp3 van de server van Aura, die deze van Google Translate ophaalt. De tekst wordt naar Google verzonden; vereist internet. Uit: dergelijke apparaten rapporteren spraak.lastResult = niet ondersteund.",
+        "fr": "Certains navigateurs ne peuvent pas lire le texte, par ex. Entièrement kiosque (Android WebView). Ils reçoivent ensuite l'annonce au format MP3 du serveur d'Aura, qui la récupère à partir de Google Translate. Le texte est envoyé à Google ; nécessite Internet. Désactivé : ces appareils signalent Speech.lastResult = non pris en charge.",
+        "it": "Alcuni browser non sono in grado di leggere il testo, ad es. Completamente Kiosk (Android WebView). Quindi ricevono l'annuncio in formato MP3 dal server di Aura, che lo recupera da Google Translate. Il testo viene inviato a Google; richiede Internet. Spento: tali dispositivi segnalano Speech.lastResult = non supportato.",
+        "es": "Algunos navegadores no pueden leer texto, p. Totalmente quiosco (Android WebView). Luego obtienen el anuncio como MP3 del servidor de Aura, que lo recupera de Google Translate. El texto se envía a Google; requiere internet. Desactivado: dichos dispositivos informan discurso.lastResult = no admitido.",
+        "pl": "Niektóre przeglądarki nie czytają tekstu, np. W pełni kiosk (Android WebView). Następnie otrzymują ogłoszenie w formacie MP3 z serwera Aury, który pobiera je z Tłumacza Google. Tekst jest wysyłany do Google; wymaga internetu. Wyłączone: takie urządzenia zgłaszają mowę.lastResult = nieobsługiwane.",
+        "uk": "Деякі браузери не можуть озвучувати текст, напр. Повністю кіоск (Android WebView). Потім вони отримують оголошення як MP3 із сервера Aura, який завантажує його з Google Translate. Текст надсилається в Google; потрібен Інтернет. Вимкнено: такі пристрої повідомляють, що voice.lastResult = не підтримується.",
+        "zh-cn": "有些浏览器无法朗读文本，例如完全信息亭（Android WebView）。然后，他们从 Aura 的服务器获取 MP3 形式的公告，该服务器从 Google 翻译中获取公告。文本发送至 Google；需要互联网。关闭：此类设备报告 voice.lastResult = 不支持。"
       },
       "default": true,
       "xs": 12,
@@ -676,7 +1198,16 @@
       "type": "header",
       "text": {
         "en": "Security",
-        "de": "Sicherheit"
+        "de": "Sicherheit",
+        "ru": "Безопасность",
+        "pt": "Segurança",
+        "nl": "Beveiliging",
+        "fr": "Sécurité",
+        "it": "Sicurezza",
+        "es": "Seguridad",
+        "pl": "Bezpieczeństwo",
+        "uk": "Безпека",
+        "zh-cn": "安全"
       },
       "size": 2,
       "xs": 12,
@@ -689,11 +1220,29 @@
       "type": "checkbox",
       "label": {
         "en": "Reset admin PIN on next start",
-        "de": "Admin-PIN beim nächsten Start zurücksetzen"
+        "de": "Admin-PIN beim nächsten Start zurücksetzen",
+        "ru": "Сбросить PIN-код администратора при следующем запуске",
+        "pt": "Redefinir o PIN do administrador na próxima inicialização",
+        "nl": "Reset de beheerderspincode bij de volgende start",
+        "fr": "Réinitialiser le code PIN administrateur au prochain démarrage",
+        "it": "Reimposta il PIN amministratore al prossimo avvio",
+        "es": "Restablecer el PIN de administrador en el próximo inicio",
+        "pl": "Zresetuj PIN administratora przy następnym uruchomieniu",
+        "uk": "Скинути PIN-код адміністратора під час наступного запуску",
+        "zh-cn": "下次启动时重置管理员 PIN"
       },
       "help": {
         "en": "For a forgotten admin PIN: tick, then Save and close. The instance restarts, removes the admin PIN and signs everyone out; the admin area then asks for a new PIN. PINs of protected sections and tabs are kept. The box clears itself.",
-        "de": "Für einen vergessenen Admin-PIN: anhaken, dann Speichern und schließen. Die Instanz startet neu, entfernt den Admin-PIN und meldet alle ab; der Adminbereich fragt danach nach einem neuen PIN. PINs geschützter Bereiche und Tabs bleiben erhalten. Der Haken entfernt sich selbst."
+        "de": "Für einen vergessenen Admin-PIN: anhaken, dann Speichern und schließen. Die Instanz startet neu, entfernt den Admin-PIN und meldet alle ab; der Adminbereich fragt danach nach einem neuen PIN. PINs geschützter Bereiche und Tabs bleiben erhalten. Der Haken entfernt sich selbst.",
+        "ru": "Если вы забыли PIN-код администратора: установите флажок, затем «Сохранить» и закрыть. Экземпляр перезапускается, удаляет ПИН-код администратора и выполняет выход всех; затем область администратора запрашивает новый PIN-код. ПИН-коды защищенных разделов и вкладок сохраняются. Коробка очищается сама собой.",
+        "pt": "Para um PIN de administrador esquecido: marque, salve e feche. A instância é reiniciada, remove o PIN do administrador e desconecta todos; a área de administração solicita um novo PIN. Os PINs das seções e guias protegidas são mantidos. A caixa se limpa sozinha.",
+        "nl": "Voor een vergeten beheerderspincode: vink aan, vervolgens Opslaan en sluiten. De instantie wordt opnieuw opgestart, verwijdert de beheerderspincode en meldt iedereen af; het admin-gedeelte vraagt ​​​​vervolgens om een ​​nieuwe pincode. Pincodes van beveiligde secties en tabbladen blijven behouden. De doos ruimt zichzelf op.",
+        "fr": "Pour un code PIN administrateur oublié : cochez, puis enregistrez et fermez. L'instance redémarre, supprime le code PIN d'administrateur et déconnecte tout le monde ; la zone d'administration demande alors un nouveau code PIN. Les codes PIN des sections et onglets protégés sont conservés. La boîte se vide d'elle-même.",
+        "it": "In caso di PIN amministratore dimenticato: selezionare, quindi Salva e chiudi. L'istanza si riavvia, rimuove il PIN dell'amministratore e disconnette tutti; l'area amministrativa richiede quindi un nuovo PIN. I PIN delle sezioni e delle schede protette vengono mantenuti. La scatola si svuota da sola.",
+        "es": "Para un PIN de administrador olvidado: marque, luego Guardar y cerrar. La instancia se reinicia, elimina el PIN de administrador y cierra la sesión de todos; Luego, el área de administración solicita un nuevo PIN. Se conservan los PIN de las secciones y pestañas protegidas. La caja se limpia sola.",
+        "pl": "W przypadku zapomnianego PIN-u administratora: zaznacz, następnie Zapisz i zamknij. Instancja uruchamia się ponownie, usuwa PIN administratora i wylogowuje wszystkich; następnie obszar administracyjny poprosi o nowy kod PIN. Numery PIN chronionych sekcji i zakładek są zachowywane. Pudełko samo się czyści.",
+        "uk": "Для забутого PIN-коду адміністратора: поставте галочку, потім Збережіть і закрийте. Примірник перезапускається, видаляє PIN-код адміністратора та виводить усіх із системи; потім область адміністратора запитує новий PIN-код. PIN-коди захищених розділів і вкладок зберігаються. Ящик очищається сам.",
+        "zh-cn": "对于忘记的管理员 PIN 码：勾选，然后保存并关闭。实例重新启动，删除管理员 PIN 并将所有人注销；然后管理区域会要求输入新的 PIN 码。保留受保护部分和选项卡的 PIN。盒子会自行清除。"
       },
       "default": false,
       "xs": 12,
@@ -706,7 +1255,16 @@
       "type": "header",
       "text": {
         "en": "AI access (MCP)",
-        "de": "KI-Zugriff (MCP)"
+        "de": "KI-Zugriff (MCP)",
+        "ru": "Доступ к ИИ (MCP)",
+        "pt": "Acesso de IA (MCP)",
+        "nl": "AI-toegang (MCP)",
+        "fr": "Accès IA (MCP)",
+        "it": "Accesso all'IA (MCP)",
+        "es": "Acceso a IA (MCP)",
+        "pl": "Dostęp AI (MCP)",
+        "uk": "AI доступ (MCP)",
+        "zh-cn": "人工智能接入（MCP）"
       },
       "size": 2,
       "xs": 12,
@@ -719,7 +1277,16 @@
       "type": "staticText",
       "text": {
         "en": "An AI assistant can change your dashboard through this endpoint. It can get things wrong: widgets in the wrong place, options that do not do what was intended, a tab overwritten. Every write is backed up to the instance backups (aura.0.backups) first, but check the result. Do not enable this on a system you cannot afford to have disturbed.",
-        "de": "Über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird in den Sicherungen der Instanz (aura.0.backups) gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst."
+        "de": "Über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird in den Sicherungen der Instanz (aura.0.backups) gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst.",
+        "ru": "Через эту конечную точку ИИ-помощник может изменить вашу панель управления. Он может сделать что-то не так: виджеты в неправильном месте, параметры, которые не делают то, что было задумано, вкладка перезаписана. Каждая запись сначала копируется в резервные копии экземпляра (aura.0.backups), но проверяйте результат. Не включайте это в системе, которую вы не можете позволить себе беспокоить.",
+        "pt": "Um assistente de IA pode alterar seu painel por meio deste endpoint. As coisas podem dar errado: widgets no lugar errado, opções que não fazem o que foi planejado, uma guia sobrescrita. É feito backup de cada gravação nos backups da instância (aura.0.backups) primeiro, mas verifique o resultado. Não ative isso em um sistema que você não pode permitir que seja perturbado.",
+        "nl": "Via dit eindpunt kan een AI-assistent uw dashboard wijzigen. Er kunnen dingen misgaan: widgets op de verkeerde plek, opties die niet doen wat de bedoeling was, een tabblad overschreven. Van elke schrijfbewerking wordt eerst een back-up gemaakt naar de exemplaarback-ups (aura.0.backups), maar controleer het resultaat. Schakel dit niet in op een systeem waarvan u zich niet kunt veroorloven dat het wordt verstoord.",
+        "fr": "Un assistant IA peut modifier votre tableau de bord via ce point de terminaison. Cela peut se tromper : des widgets au mauvais endroit, des options qui ne font pas ce qui était prévu, un onglet écrasé. Chaque écriture est d'abord sauvegardée sur les sauvegardes d'instance (aura.0.backups), mais vérifiez le résultat. N'activez pas cette fonctionnalité sur un système que vous ne pouvez pas vous permettre de perturber.",
+        "it": "Un assistente AI può modificare la dashboard tramite questo endpoint. Può sbagliare: widget nel posto sbagliato, opzioni che non fanno ciò che era previsto, una scheda sovrascritta. Ogni scrittura viene prima sottoposta a backup sui backup dell'istanza (aura.0.backups), ma controlla il risultato. Non abilitarlo su un sistema che non puoi permetterti di disturbare.",
+        "es": "Un asistente de IA puede cambiar su panel a través de este punto final. Puede hacer cosas mal: widgets en el lugar equivocado, opciones que no hacen lo que se pretendía, una pestaña sobrescrita. Primero se realiza una copia de seguridad de cada escritura en las copias de seguridad de la instancia (aura.0.backups), pero verifique el resultado. No habilite esto en un sistema que no pueda permitirse el lujo de que lo molesten.",
+        "pl": "Asystent AI może zmienić Twój pulpit nawigacyjny za pośrednictwem tego punktu końcowego. Może coś zepsuć: widżety w niewłaściwym miejscu, opcje, które nie wykonują tego, co było zamierzone, nadpisana karta. Kopia zapasowa każdego zapisu jest najpierw tworzona w kopiach zapasowych instancji (aura.0.backups), ale sprawdź wynik. Nie włączaj tej opcji w systemie, na który nie możesz sobie pozwolić.",
+        "uk": "Помічник AI може змінити вашу інформаційну панель через цю кінцеву точку. Він може помилитися: віджети в неправильному місці, параметри, які не виконують те, що було заплановано, вкладка перезаписана. Для кожного запису спочатку створюється резервна копія до резервних копій екземпляра (aura.0.backups), але перевірте результат. Не вмикайте це в системі, яку ви не можете дозволити собі порушити.",
+        "zh-cn": "人工智能助手可以通过此端点更改您的仪表板。它可能会出错：小部件位于错误的位置，选项不符合预期，选项卡被覆盖。每次写入都会首先备份到实例备份 (aura.0.backups)，但检查结果。不要在您无法承受干扰的系统上启用此功能。"
       },
       "style": {
         "color": "#b45309",
@@ -734,8 +1301,17 @@
     "mcpPrereq": {
       "type": "staticText",
       "text": {
+        "en": "REQUIREMENT: the ioBroker MCP server must be set up as well. It is the only source of datapoints — this endpoint knows none. Without it the AI knows neither which devices exist nor which room they are in, and starts inventing datapoint ids. Both MCP servers must point at the same ioBroker installation.",
         "de": "VORAUSSETZUNG: Zusätzlich muss der ioBroker-MCP eingerichtet sein. Nur er liefert der KI die Datenpunkte — dieser Endpunkt kennt keine. Ohne ihn weiß die KI weder, welche Geräte es gibt, noch in welchem Raum sie stehen, und fängt an, Datenpunkt-IDs zu erfinden. Beide MCPs müssen auf dieselbe ioBroker-Installation zeigen.",
-        "en": "REQUIREMENT: the ioBroker MCP server must be set up as well. It is the only source of datapoints — this endpoint knows none. Without it the AI knows neither which devices exist nor which room they are in, and starts inventing datapoint ids. Both MCP servers must point at the same ioBroker installation."
+        "ru": "ТРЕБОВАНИЕ: также должен быть настроен сервер ioBroker MCP. Это единственный источник точек данных — эта конечная точка ничего не знает. Без этого ИИ не знает, какие устройства существуют и в какой комнате они находятся, и начинает придумывать идентификаторы точек данных. Оба сервера MCP должны указывать на одну и ту же установку ioBroker.",
+        "pt": "REQUISITO: o servidor ioBroker MCP também deve estar configurado. É a única fonte de pontos de dados – este endpoint não conhece nenhum. Sem isso, a IA não sabe quais dispositivos existem nem em que sala eles estão e começa a inventar identificações de pontos de dados. Ambos os servidores MCP devem apontar para a mesma instalação do ioBroker.",
+        "nl": "VEREISTE: de ioBroker MCP-server moet ook zijn ingesteld. Het is de enige bron van datapunten; dit eindpunt kent er geen. Zonder dit weet de AI niet welke apparaten bestaan, noch in welke kamer ze zich bevinden, en begint hij datapunt-ID's uit te vinden. Beide MCP-servers moeten naar dezelfde ioBroker-installatie verwijzen.",
+        "fr": "EXIGENCE : le serveur ioBroker MCP doit également être configuré. C'est la seule source de points de données – ce point de terminaison n'en connaît aucun. Sans cela, l’IA ne sait ni quels appareils existent ni dans quelle pièce ils se trouvent, et commence à inventer des identifiants de points de données. Les deux serveurs MCP doivent pointer vers la même installation ioBroker.",
+        "it": "REQUISITI: deve essere configurato anche il server MCP ioBroker. È l'unica fonte di punti dati: questo endpoint non ne conosce nessuno. Senza di esso l’intelligenza artificiale non sa né quali dispositivi esistono né in quale stanza si trovano e inizia a inventare ID dei punti dati. Entrambi i server MCP devono puntare alla stessa installazione di ioBroker.",
+        "es": "REQUISITO: el servidor ioBroker MCP también debe estar configurado. Es la única fuente de puntos de datos; este punto final no conoce ninguno. Sin él, la IA no sabe qué dispositivos existen ni en qué habitación se encuentran, y comienza a inventar identificaciones de puntos de datos. Ambos servidores MCP deben apuntar a la misma instalación de ioBroker.",
+        "pl": "WYMAGANIA: musi być również skonfigurowany serwer ioBroker MCP. Jest to jedyne źródło punktów danych — ten punkt końcowy nie zna żadnego. Bez tego sztuczna inteligencja nie wie, jakie urządzenia istnieją ani w jakim pomieszczeniu się znajdują, i zaczyna wymyślać identyfikatory punktów danych. Obydwa serwery MCP muszą wskazywać tę samą instalację ioBroker.",
+        "uk": "ВИМОГА: сервер ioBroker MCP також має бути налаштований. Це єдине джерело точок даних — ця кінцева точка нічого не знає. Без нього штучний інтелект не знає, які пристрої існують і в якій кімнаті вони знаходяться, і починає винаходити ідентифікатори точок даних. Обидва MCP-сервери мають вказувати на ту саму установку ioBroker.",
+        "zh-cn": "要求：还必须设置 ioBroker MCP 服务器。它是数据点的唯一来源——该端点不知道任何数据点。如果没有它，人工智能既不知道存在哪些设备，也不知道它们位于哪个房间，并开始发明数据点 ID。两个 MCP 服务器必须指向同一个 ioBroker 安装。"
       },
       "style": {
         "color": "#1d4ed8",
@@ -750,8 +1326,17 @@
     "mcpHowTo0": {
       "type": "staticText",
       "text": {
+        "en": "Quick start",
         "de": "Kurzanleitung",
-        "en": "Quick start"
+        "ru": "Быстрый старт",
+        "pt": "Início rápido",
+        "nl": "Snel beginnen",
+        "fr": "Démarrage rapide",
+        "it": "Avvio rapido",
+        "es": "Inicio rápido",
+        "pl": "Szybki start",
+        "uk": "Швидкий старт",
+        "zh-cn": "快速启动"
       },
       "style": {
         "fontWeight": "bold"
@@ -765,8 +1350,17 @@
     "mcpHowTo1": {
       "type": "staticText",
       "text": {
+        "en": "1. Tick “Enable MCP endpoint”.",
         "de": "1. Haken bei „MCP-Endpunkt aktivieren“ setzen.",
-        "en": "1. Tick “Enable MCP endpoint”."
+        "ru": "1. Установите флажок «Включить конечную точку MCP».",
+        "pt": "1. Marque “Ativar endpoint MCP”.",
+        "nl": "1. Vink “MCP-eindpunt inschakelen” aan.",
+        "fr": "1. Cochez « Activer le point de terminaison MCP ».",
+        "it": "1. Selezionare \"Abilita endpoint MCP\".",
+        "es": "1. Marque \"Habilitar punto final MCP\".",
+        "pl": "1. Zaznacz „Włącz punkt końcowy MCP”.",
+        "uk": "1. Поставте прапорець «Увімкнути кінцеву точку MCP».",
+        "zh-cn": "1. 勾选“启用 MCP 端点”。"
       },
       "xs": 12,
       "sm": 12,
@@ -777,8 +1371,17 @@
     "mcpHowTo2": {
       "type": "staticText",
       "text": {
+        "en": "2. Click “Generate token” (the instance must be running). The block below is then complete — copy it right away; after saving, the token in it is replaced by a placeholder.",
         "de": "2. Auf „Token erzeugen“ klicken (die Instanz muss dafür laufen). Der Block unten ist dann vollständig — gleich kopieren, nach dem Speichern wird der Token darin durch einen Platzhalter ersetzt.",
-        "en": "2. Click “Generate token” (the instance must be running). The block below is then complete — copy it right away; after saving, the token in it is replaced by a placeholder."
+        "ru": "2. Нажмите «Сгенерировать токен» (экземпляр должен быть запущен). Блок ниже готов — сразу скопируйте его; после сохранения токен в нем заменяется заполнителем.",
+        "pt": "2. Clique em “Gerar token” (a instância deve estar em execução). O bloco abaixo está então completo – copie-o imediatamente; após salvar, o token contido nele é substituído por um espaço reservado.",
+        "nl": "2. Klik op “Token genereren” (de instantie moet actief zijn). Het onderstaande blok is dan compleet – kopieer het meteen; na het opslaan wordt het token daarin vervangen door een tijdelijke aanduiding.",
+        "fr": "2. Cliquez sur « Générer le jeton » (l'instance doit être en cours d'exécution). Le bloc ci-dessous est alors terminé — copiez-le tout de suite ; après l'enregistrement, le jeton qu'il contient est remplacé par un espace réservé.",
+        "it": "2. Fare clic su \"Genera token\" (l'istanza deve essere in esecuzione). Il blocco sottostante è quindi completo: copialo subito; dopo il salvataggio, il token in esso contenuto viene sostituito da un segnaposto.",
+        "es": "2. Haga clic en \"Generar token\" (la instancia debe estar ejecutándose). El siguiente bloque estará entonces completo; cópielo de inmediato; después de guardar, el token que contiene se reemplaza por un marcador de posición.",
+        "pl": "2. Kliknij „Generuj token” (instancja musi być uruchomiona). Poniższy blok jest wówczas gotowy — skopiuj go od razu; po zapisaniu znajdujący się w nim token zostaje zastąpiony symbolem zastępczym.",
+        "uk": "2. Натисніть «Створити маркер» (екземпляр має бути запущеним). Наведений нижче блок готовий — негайно скопіюйте його; після збереження маркер в ньому замінюється заповнювачем.",
+        "zh-cn": "2. 单击“生成令牌”（实例必须正在运行）。下面的块就完成了——立即复制它；保存后，其中的token会被占位符替换。"
       },
       "xs": 12,
       "sm": 12,
@@ -789,8 +1392,17 @@
     "mcpHowTo3": {
       "type": "staticText",
       "text": {
+        "en": "3. Copy the block you need (click into it, Ctrl+A, Ctrl+C): HTTP for Claude Code, the mcp-remote one for Claude Desktop. Either goes into the client's mcpServers section.",
         "de": "3. Den passenden Block unten kopieren (hineinklicken, Strg+A, Strg+C): HTTP für Claude Code, den mcp-remote-Block für Claude Desktop. Beides gehört in den Abschnitt mcpServers des Clients.",
-        "en": "3. Copy the block you need (click into it, Ctrl+A, Ctrl+C): HTTP for Claude Code, the mcp-remote one for Claude Desktop. Either goes into the client's mcpServers section."
+        "ru": "3. Скопируйте нужный вам блок (нажмите на него, Ctrl+A, Ctrl+C): HTTP для Claude Code, mcp-remote для Claude Desktop. Либо идет в раздел mcpServers клиента.",
+        "pt": "3. Copie o bloco que você precisa (clique nele, Ctrl+A, Ctrl+C): HTTP para Claude Code, o mcp-remote para Claude Desktop. Qualquer um deles vai para a seção mcpServers do cliente.",
+        "nl": "3. Kopieer het benodigde blok (klik erin, Ctrl+A, Ctrl+C): HTTP voor Claude Code, het mcp-remote blok voor Claude Desktop. Beide gaan naar de mcpServers-sectie van de klant.",
+        "fr": "3. Copiez le bloc dont vous avez besoin (cliquez dessus, Ctrl+A, Ctrl+C) : HTTP pour Claude Code, celui mcp-remote pour Claude Desktop. L'un ou l'autre va dans la section mcpServers du client.",
+        "it": "3. Copia il blocco che ti serve (fai clic su di esso, Ctrl+A, Ctrl+C): HTTP per Claude Code, quello mcp-remote per Claude Desktop. Entrambi vanno nella sezione mcpServers del client.",
+        "es": "3. Copie el bloque que necesita (haga clic en él, Ctrl+A, Ctrl+C): HTTP para Claude Code, el mcp-remote para Claude Desktop. Cualquiera de los dos ingresa a la sección mcpServers del cliente.",
+        "pl": "3. Skopiuj potrzebny blok (kliknij na niego, Ctrl+A, Ctrl+C): HTTP dla Claude Code, mcp-remote dla Claude Desktop. Albo przechodzi do sekcji mcpServers klienta.",
+        "uk": "3. Скопіюйте потрібний блок (клацніть на ньому, Ctrl+A, Ctrl+C): HTTP для Claude Code, mcp-remote для Claude Desktop. Або переходить до розділу mcpServers клієнта.",
+        "zh-cn": "3. 复制您需要的块（单击进入，Ctrl+A、Ctrl+C）：Claude Code 的 HTTP，Claude Desktop 的 mcp-remote。要么进入客户端的 mcpServers 部分。"
       },
       "xs": 12,
       "sm": 12,
@@ -801,8 +1413,17 @@
     "mcpHowTo4": {
       "type": "staticText",
       "text": {
+        "en": "4. Set up the ioBroker MCP server if you have not already (see the requirement above).",
         "de": "4. Den ioBroker-MCP einrichten, falls noch nicht geschehen (siehe Voraussetzung oben).",
-        "en": "4. Set up the ioBroker MCP server if you have not already (see the requirement above)."
+        "ru": "4. Настройте сервер MCP ioBroker, если вы еще этого не сделали (см. требование выше).",
+        "pt": "4. Configure o servidor ioBroker MCP, caso ainda não o tenha feito (consulte o requisito acima).",
+        "nl": "4. Stel de ioBroker MCP-server in als u dat nog niet heeft gedaan (zie de vereiste hierboven).",
+        "fr": "4. Configurez le serveur ioBroker MCP si vous ne l'avez pas déjà fait (voir les exigences ci-dessus).",
+        "it": "4. Configura il server MCP ioBroker se non lo hai già fatto (vedi il requisito sopra).",
+        "es": "4. Configure el servidor MCP de ioBroker si aún no lo ha hecho (consulte el requisito anterior).",
+        "pl": "4. Skonfiguruj serwer ioBroker MCP, jeśli jeszcze tego nie zrobiłeś (patrz wymagania powyżej).",
+        "uk": "4. Налаштуйте сервер ioBroker MCP, якщо ви ще цього не зробили (див. вимогу вище).",
+        "zh-cn": "4. 如果尚未设置 ioBroker MCP 服务器（请参阅上述要求）。"
       },
       "xs": 12,
       "sm": 12,
@@ -813,8 +1434,17 @@
     "mcpHowTo5": {
       "type": "staticText",
       "text": {
+        "en": "5. Then just say what you want built — e.g. “Add a tile for every light in the living room tab, with the room temperature below.”",
         "de": "5. Dann einfach sagen, was gebaut werden soll — z. B. „Lege im Tab Wohnzimmer für jedes Licht eine Kachel an und darunter die Raumtemperatur.“",
-        "en": "5. Then just say what you want built — e.g. “Add a tile for every light in the living room tab, with the room temperature below.”"
+        "ru": "5. Затем просто скажите, что вы хотите построить, например: «Добавьте плитку для каждого источника света на вкладке гостиной, указав комнатную температуру ниже».",
+        "pt": "5. Em seguida, basta dizer o que você deseja construir – por exemplo. “Adicione um bloco para cada luz na guia da sala, com a temperatura ambiente abaixo.”",
+        "nl": "5. Zeg dan gewoon wat je wilt laten bouwen, b.v. “Voeg voor elke lamp op het tabblad woonkamer een tegel toe, met de kamertemperatuur eronder.”",
+        "fr": "5. Ensuite, dites simplement ce que vous voulez construire, par exemple. \"Ajoutez une tuile pour chaque lumière dans l'onglet Salon, avec la température ambiante en dessous.\"",
+        "it": "5. Quindi dì semplicemente cosa vuoi costruire, ad es. \"Aggiungi un riquadro per ogni luce nella scheda del soggiorno, con la temperatura della stanza sotto.\"",
+        "es": "5. Luego simplemente diga lo que desea que se construya, p. \"Agregue un mosaico para cada luz en la pestaña de la sala de estar, con la temperatura ambiente debajo\".",
+        "pl": "5. Następnie po prostu powiedz, co chcesz zbudować — np.: „Dodaj kafelek dla każdego światła w zakładce salonu, z temperaturą w pomieszczeniu poniżej.”",
+        "uk": "5. Потім просто скажіть, що ви хочете створити — напр. «Додайте плитку для кожного світла на вкладці вітальні з кімнатною температурою нижче».",
+        "zh-cn": "5. 然后说出您想要构建的内容 - 例如“为客厅选项卡中的每盏灯添加一块瓷砖，室温低于。”"
       },
       "xs": 12,
       "sm": 12,
@@ -826,11 +1456,29 @@
       "type": "checkbox",
       "label": {
         "en": "Enable MCP endpoint",
-        "de": "MCP-Endpunkt aktivieren"
+        "de": "MCP-Endpunkt aktivieren",
+        "ru": "Включить конечную точку MCP",
+        "pt": "Habilitar ponto de extremidade MCP",
+        "nl": "MCP-eindpunt inschakelen",
+        "fr": "Activer le point de terminaison MCP",
+        "it": "Abilita endpoint MCP",
+        "es": "Habilitar punto final MCP",
+        "pl": "Włącz punkt końcowy MCP",
+        "uk": "Увімкнути кінцеву точку MCP",
+        "zh-cn": "启用 MCP 端点"
       },
       "help": {
         "en": "Serves POST /mcp so an AI assistant can read the dashboard structure, look up widget options and change tabs. Datapoints come from the ioBroker MCP server, not from here. Off by default; a token is required.",
-        "de": "Stellt POST /mcp bereit, damit ein KI-Assistent die Dashboard-Struktur lesen, Widget-Optionen nachschlagen und Tabs ändern kann. Die Datenpunkte liefert der ioBroker-MCP, nicht dieser Endpunkt. Standardmäßig aus; ein Token ist Pflicht."
+        "de": "Stellt POST /mcp bereit, damit ein KI-Assistent die Dashboard-Struktur lesen, Widget-Optionen nachschlagen und Tabs ändern kann. Die Datenpunkte liefert der ioBroker-MCP, nicht dieser Endpunkt. Standardmäßig aus; ein Token ist Pflicht.",
+        "ru": "Служит POST /mcp, чтобы ИИ-помощник мог читать структуру информационной панели, искать параметры виджетов и менять вкладки. Точки данных поступают с сервера MCP ioBroker, а не отсюда. По умолчанию выключено; требуется токен.",
+        "pt": "Serve POST /mcp para que um assistente de IA possa ler a estrutura do painel, procurar opções de widget e alterar guias. Os pontos de dados vêm do servidor ioBroker MCP, não daqui. Desativado por padrão; é necessário um token.",
+        "nl": "Dient POST /mcp zodat een AI-assistent de dashboardstructuur kan lezen, widgetopties kan opzoeken en van tabblad kan wisselen. Datapunten komen van de ioBroker MCP-server, niet van hier. Standaard uitgeschakeld; een token is vereist.",
+        "fr": "Sert POST /mcp afin qu'un assistant IA puisse lire la structure du tableau de bord, rechercher les options des widgets et modifier les onglets. Les points de données proviennent du serveur ioBroker MCP, pas d'ici. Désactivé par défaut ; un jeton est requis.",
+        "it": "Serve POST /mcp in modo che un assistente AI possa leggere la struttura del dashboard, cercare le opzioni del widget e modificare le schede. I punti dati provengono dal server MCP ioBroker, non da qui. Disattivato per impostazione predefinita; è richiesto un gettone.",
+        "es": "Sirve POST /mcp para que un asistente de IA pueda leer la estructura del panel, buscar opciones de widgets y cambiar pestañas. Los puntos de datos provienen del servidor MCP de ioBroker, no de aquí. Desactivado de forma predeterminada; se requiere una ficha.",
+        "pl": "Obsługuje POST /mcp, dzięki czemu asystent AI może czytać strukturę pulpitu nawigacyjnego, przeglądać opcje widżetów i zmieniać karty. Punkty danych pochodzą z serwera ioBroker MCP, a nie stąd. Domyślnie wyłączone; wymagany jest token.",
+        "uk": "Обслуговує POST /mcp, щоб помічник ШІ міг читати структуру інформаційної панелі, шукати параметри віджетів і змінювати вкладки. Точки даних надходять із сервера ioBroker MCP, а не звідси. Вимкнено за замовчуванням; потрібен маркер.",
+        "zh-cn": "提供 POST /mcp，以便 AI 助手可以读取仪表板结构、查找小部件选项和更改选项卡。数据点来自 ioBroker MCP 服务器，而不是来自这里。默认关闭；需要一个令牌。"
       },
       "default": false,
       "xs": 12,
@@ -843,11 +1491,29 @@
       "type": "password",
       "label": {
         "en": "MCP token (required)",
-        "de": "MCP-Token (Pflicht)"
+        "de": "MCP-Token (Pflicht)",
+        "ru": "Токен MCP (обязательно)",
+        "pt": "Token MCP (obrigatório)",
+        "nl": "MCP-token (vereist)",
+        "fr": "Jeton MCP (obligatoire)",
+        "it": "Token MCP (richiesto)",
+        "es": "Token MCP (obligatorio)",
+        "pl": "Token MCP (wymagany)",
+        "uk": "Маркер MCP (обов’язково)",
+        "zh-cn": "MCP 令牌（必需）"
       },
       "help": {
         "en": "Sent by the client as \"Authorization: Bearer <token>\". Without a token the endpoint refuses every request — Aura's server has no authentication of its own. Hidden here only against onlookers; the block below shows it in clear text because that is what has to be copied.",
-        "de": "Der Client sendet ihn als „Authorization: Bearer <Token>\". Ohne Token weist der Endpunkt jede Anfrage ab — Auras Server hat keine eigene Authentifizierung. Hier nur gegen Mitleser verdeckt; der Block unten zeigt ihn im Klartext, weil genau das kopiert werden muss."
+        "de": "Der Client sendet ihn als „Authorization: Bearer <Token>\". Ohne Token weist der Endpunkt jede Anfrage ab — Auras Server hat keine eigene Authentifizierung. Hier nur gegen Mitleser verdeckt; der Block unten zeigt ihn im Klartext, weil genau das kopiert werden muss.",
+        "ru": "Отправлено клиентом как \"Authorization: Bearer <token>\". Без токена конечная точка отклоняет каждый запрос — сервер Aura не имеет собственной аутентификации. Спрятан здесь только от зрителей; блок ниже показывает это в виде открытого текста, потому что это то, что нужно скопировать.",
+        "pt": "Enviado pelo cliente como \"Authorization: Bearer <token>\". Sem um token, o endpoint recusa todas as solicitações — o servidor do Aura não possui autenticação própria. Escondido aqui apenas contra espectadores; o bloco abaixo mostra em texto não criptografado porque é isso que deve ser copiado.",
+        "nl": "Verzonden door de klant als \"Authorization: Bearer <token>\". Zonder token weigert het eindpunt elk verzoek; de server van Aura heeft geen eigen authenticatie. Hier alleen verborgen voor toeschouwers; het onderstaande blok toont het in duidelijke tekst, want dat is wat gekopieerd moet worden.",
+        "fr": "Envoyé par le client sous le nom \"Authorization: Bearer <token>\". Sans jeton, le point final refuse chaque demande : le serveur d'Aura ne dispose d'aucune authentification propre. Caché ici seulement contre les badauds ; le bloc ci-dessous le montre en texte clair car c'est ce qui doit être copié.",
+        "it": "Inviato dal client come \"Authorization: Bearer <token>\". Senza un token l'endpoint rifiuta ogni richiesta: il server di Aura non ha una propria autenticazione. Nascosto qui solo contro gli spettatori; il blocco sottostante lo mostra in chiaro perché è quello che deve essere copiato.",
+        "es": "Enviado por el cliente como \"Authorization: Bearer <token>\". Sin un token, el punto final rechaza todas las solicitudes: el servidor de Aura no tiene autenticación propia. Escondido aquí sólo contra los espectadores; el bloque a continuación lo muestra en texto claro porque eso es lo que se debe copiar.",
+        "pl": "Wysłane przez klienta jako \"Authorization: Bearer <token>\". Bez tokena punkt końcowy odrzuca każde żądanie — serwer Aury nie ma własnego uwierzytelnienia. Ukryty tutaj tylko przed widzami; poniższy blok pokazuje to jawnym tekstem, ponieważ to właśnie należy skopiować.",
+        "uk": "Надіслано клієнтом як \"Authorization: Bearer <token>\". Без токена кінцева точка відхиляє всі запити — сервер Aura не має власної автентифікації. Прихований тут лише від глядачів; блок нижче показує це відкритим текстом, тому що це те, що потрібно скопіювати.",
+        "zh-cn": "由客户端作为 \"Authorization: Bearer <token>\" 发送。如果没有令牌，端点将拒绝每个请求 - Aura 的服务器没有自己的身份验证。隐藏在这里只是为了防止旁观者；下面的块以明文形式显示它，因为这是必须复制的内容。"
       },
       "default": "",
       "repeat": false,
@@ -863,13 +1529,31 @@
       "command": "generateMcpToken",
       "label": {
         "en": "Generate token",
-        "de": "Token erzeugen"
+        "de": "Token erzeugen",
+        "ru": "Создать токен",
+        "pt": "Gerar token",
+        "nl": "Token genereren",
+        "fr": "Générer un jeton",
+        "it": "Genera token",
+        "es": "Generar token",
+        "pl": "Wygeneruj token",
+        "uk": "Згенерувати маркер",
+        "zh-cn": "生成代币"
       },
       "variant": "contained",
       "useNative": true,
       "help": {
         "en": "Creates a random 32-character token and fills the field above. The instance must be running.",
-        "de": "Erzeugt einen zufälligen 32-Zeichen-Token und füllt das Feld darüber. Die Instanz muss dafür laufen."
+        "de": "Erzeugt einen zufälligen 32-Zeichen-Token und füllt das Feld darüber. Die Instanz muss dafür laufen.",
+        "ru": "Создает случайный 32-значный токен и заполняет поле выше. Экземпляр должен быть запущен.",
+        "pt": "Cria um token aleatório de 32 caracteres e preenche o campo acima. A instância deve estar em execução.",
+        "nl": "Creëert een willekeurig token van 32 tekens en vult het bovenstaande veld. De instantie moet actief zijn.",
+        "fr": "Crée un jeton aléatoire de 32 caractères et remplit le champ ci-dessus. L'instance doit être en cours d'exécution.",
+        "it": "Crea un token casuale di 32 caratteri e riempie il campo sopra. L'istanza deve essere in esecuzione.",
+        "es": "Crea un token aleatorio de 32 caracteres y completa el campo de arriba. La instancia debe estar ejecutándose.",
+        "pl": "Tworzy losowy token składający się z 32 znaków i wypełnia powyższe pole. Instancja musi działać.",
+        "uk": "Створює випадковий маркер із 32 символів і заповнює поле вище. Примірник має бути запущеним.",
+        "zh-cn": "创建随机 32 个字符的标记并填充上面的字段。该实例必须正在运行。"
       },
       "hidden": "!data.mcpEnabled",
       "xs": 12,
@@ -882,7 +1566,16 @@
       "type": "select",
       "label": {
         "en": "What the AI may do",
-        "de": "Was die KI darf"
+        "de": "Was die KI darf",
+        "ru": "Что может сделать ИИ",
+        "pt": "O que a IA pode fazer",
+        "nl": "Wat de AI kan doen",
+        "fr": "Ce que l'IA peut faire",
+        "it": "Cosa può fare l’intelligenza artificiale",
+        "es": "Lo que puede hacer la IA",
+        "pl": "Co może zrobić sztuczna inteligencja",
+        "uk": "Що може зробити ШІ",
+        "zh-cn": "人工智能可以做什么"
       },
       "options": [
         {
@@ -952,7 +1645,16 @@
       ],
       "help": {
         "en": "Each step includes the ones before it. Tools above the level are not even offered to the AI. Start with “read only” and raise it once you trust the result — deleting takes the content with it: a tab its widgets, a section its tabs.",
-        "de": "Jede Stufe schließt die vorherigen ein. Werkzeuge oberhalb der Stufe werden der KI gar nicht erst angeboten. Beginne mit „Nur lesen“ und erhöhe erst, wenn dich das Ergebnis überzeugt — Löschen nimmt den Inhalt mit: ein Tab seine Widgets, ein Bereich seine Tabs."
+        "de": "Jede Stufe schließt die vorherigen ein. Werkzeuge oberhalb der Stufe werden der KI gar nicht erst angeboten. Beginne mit „Nur lesen“ und erhöhe erst, wenn dich das Ergebnis überzeugt — Löschen nimmt den Inhalt mit: ein Tab seine Widgets, ein Bereich seine Tabs.",
+        "ru": "Каждый шаг включает в себя предыдущие. Инструменты выше уровня ИИ даже не предлагаются. Начните с «только для чтения» и поднимите его, как только вы поверите результату — удаление заберет с собой контент: вкладку — ее виджеты, раздел — его вкладки.",
+        "pt": "Cada etapa inclui as anteriores. Ferramentas acima do nível nem são oferecidas à IA. Comece com “somente leitura” e aumente quando você confiar no resultado – a exclusão leva o conteúdo consigo: uma guia, seus widgets, uma seção, suas guias.",
+        "nl": "Elke stap omvat de stappen ervoor. Tools boven het niveau worden niet eens aan de AI aangeboden. Begin met 'alleen-lezen' en verhoog dit zodra u het resultaat vertrouwt. Bij het verwijderen wordt de inhoud meegenomen: een tabblad met de widgets, een sectie met de tabbladen.",
+        "fr": "Chaque étape inclut celles qui la précèdent. Les outils supérieurs au niveau ne sont même pas proposés à l’IA. Commencez par « lecture seule » et augmentez-le une fois que vous avez confiance dans le résultat : la suppression entraîne le contenu avec lui : un onglet et ses widgets, une section et ses onglets.",
+        "it": "Ogni passaggio include quelli precedenti. Gli strumenti di livello superiore non vengono nemmeno offerti all'IA. Inizia con \"sola lettura\" e aumentalo quando ti fidi del risultato: l'eliminazione porta con sé il contenuto: una scheda i suoi widget, una sezione le sue schede.",
+        "es": "Cada paso incluye los anteriores. Las herramientas por encima del nivel ni siquiera se ofrecen a la IA. Comience con “solo lectura” y súbalo una vez que confíe en el resultado: la eliminación se lleva el contenido consigo: una pestaña, sus widgets, una sección, sus pestañas.",
+        "pl": "Każdy krok zawiera poprzednie. Narzędzia powyżej poziomu nie są nawet oferowane AI. Zacznij od opcji „tylko do odczytu” i podnieś ją, gdy zaufasz wynikowi — usunięcie pociągnie za sobą zawartość: kartę z widżetami, sekcję z zakładkami.",
+        "uk": "Кожен крок включає попередні. Інструменти вище рівня навіть не пропонуються ШІ. Почніть із «лише для читання» та підвищте його, коли довіритеся результату — видалення забирає вміст разом із собою: вкладка — віджети, розділ — вкладки.",
+        "zh-cn": "每个步骤都包含其之前的步骤。级别以上的工具甚至不提供给AI。从“只读”开始，一旦你相信结果就提出它——删除会带走内容：选项卡的小部件，部分的选项卡。"
       },
       "default": "read",
       "hidden": "!data.mcpEnabled",
@@ -966,11 +1668,29 @@
       "type": "number",
       "label": {
         "en": "Keep MCP backups (count)",
-        "de": "MCP-Sicherungen behalten (Anzahl)"
+        "de": "MCP-Sicherungen behalten (Anzahl)",
+        "ru": "Сохраняйте резервные копии MCP (подсчет)",
+        "pt": "Manter backups do MCP (contagem)",
+        "nl": "MCP-back-ups bewaren (aantal)",
+        "fr": "Conserver les sauvegardes MCP (nombre)",
+        "it": "Conserva i backup MCP (conteggio)",
+        "es": "Mantener copias de seguridad de MCP (recuento)",
+        "pl": "Przechowuj kopie zapasowe MCP (liczba)",
+        "uk": "Зберігайте резервні копії MCP (кількість)",
+        "zh-cn": "保留 MCP 备份（计数）"
       },
       "help": {
         "en": "Before every change the AI makes, a copy of the configuration lands in aura.0.backups (mcp-*.json.gz); changes within a minute share one. Older files beyond this count are deleted — they end up in every ioBroker backup.",
-        "de": "Vor jeder Änderung durch die KI landet eine Kopie der Konfiguration in aura.0.backups (mcp-*.json.gz); Änderungen innerhalb einer Minute teilen sich eine. Ältere Dateien über diese Anzahl hinaus werden gelöscht — sie landen sonst in jeder ioBroker-Sicherung."
+        "de": "Vor jeder Änderung durch die KI landet eine Kopie der Konfiguration in aura.0.backups (mcp-*.json.gz); Änderungen innerhalb einer Minute teilen sich eine. Ältere Dateien über diese Anzahl hinaus werden gelöscht — sie landen sonst in jeder ioBroker-Sicherung.",
+        "ru": "Перед каждым изменением, которое вносит ИИ, копия конфигурации попадает в aura.0.backups (mcp-*.json.gz); изменения в течение минуты поделитесь одним. Более старые файлы, превышающие это количество, удаляются — они попадают в каждую резервную копию ioBroker.",
+        "pt": "Antes de cada alteração feita pela IA, uma cópia da configuração chega a aura.0.backups (mcp-*.json.gz); mudanças dentro de um minuto, compartilhe um. Arquivos mais antigos além dessa contagem são excluídos – eles acabam em todos os backups do ioBroker.",
+        "nl": "Vóór elke wijziging die de AI aanbrengt, komt een kopie van de configuratie terecht in aura.0.backups (mcp-*.json.gz); veranderingen binnen een minuut deel er één. Oudere bestanden boven dit aantal worden verwijderd; ze komen terecht in elke ioBroker-back-up.",
+        "fr": "Avant chaque modification apportée par l'IA, une copie de la configuration atterrit dans aura.0.backups (mcp-*.json.gz) ; changements en une minute, partagez-en un. Les fichiers plus anciens au-delà de ce nombre sont supprimés – ils se retrouvent dans chaque sauvegarde ioBroker.",
+        "it": "Prima di ogni modifica apportata dall'intelligenza artificiale, una copia della configurazione arriva in aura.0.backups (mcp-*.json.gz); cambia entro un minuto condividi uno. I file più vecchi oltre questo conteggio vengono eliminati: finiscono in ogni backup di ioBroker.",
+        "es": "Antes de cada cambio que realiza la IA, una copia de la configuración llega a aura.0.backups (mcp-*.json.gz); cambios en un minuto comparte uno. Los archivos más antiguos que superen este número se eliminan y terminan en cada copia de seguridad de ioBroker.",
+        "pl": "Przed każdą zmianą dokonaną przez sztuczną inteligencję kopia konfiguracji trafia do aura.0.backups (mcp-*.json.gz); zmiany w ciągu minuty udostępnij jeden. Starsze pliki przekraczające tę liczbę są usuwane — trafiają do każdej kopii zapasowej ioBroker.",
+        "uk": "Перед кожною зміною, внесеною ШІ, копія конфігурації потрапляє в aura.0.backups (mcp-*.json.gz); зміни протягом хвилини поділіться одним. Старіші файли, що перевищують цю кількість, видаляються — вони потрапляють у кожну резервну копію ioBroker.",
+        "zh-cn": "在 AI 进行每次更改之前，配置的副本都会存放在 aura.0.backups (mcp-*.json.gz) 中；一分钟内的变化分享一个。超出此计数的较旧文件将被删除 - 它们最终会出现在每个 ioBroker 备份中。"
       },
       "min": 1,
       "max": 1000,
@@ -986,11 +1706,29 @@
       "type": "number",
       "label": {
         "en": "Keep MCP backups (days)",
-        "de": "MCP-Sicherungen behalten (Tage)"
+        "de": "MCP-Sicherungen behalten (Tage)",
+        "ru": "Хранить резервные копии MCP (дни)",
+        "pt": "Manter backups do MCP (dias)",
+        "nl": "MCP-back-ups bewaren (dagen)",
+        "fr": "Conserver les sauvegardes MCP (jours)",
+        "it": "Conserva i backup MCP (giorni)",
+        "es": "Mantener copias de seguridad de MCP (días)",
+        "pl": "Przechowuj kopie zapasowe MCP (dni)",
+        "uk": "Зберігати резервні копії MCP (дні)",
+        "zh-cn": "保留 MCP 备份（天）"
       },
       "help": {
         "en": "Deletes MCP backups older than this; the newest 5 always stay. 0 = no age limit, only the count applies.",
-        "de": "Löscht MCP-Sicherungen, die älter sind; die neuesten 5 bleiben immer. 0 = kein Alterslimit, nur die Anzahl zählt."
+        "de": "Löscht MCP-Sicherungen, die älter sind; die neuesten 5 bleiben immer. 0 = kein Alterslimit, nur die Anzahl zählt.",
+        "ru": "Удаляет резервные копии MCP старше этого; самые новые 5 всегда остаются. 0 = нет возрастных ограничений, применяется только количество.",
+        "pt": "Exclui backups MCP anteriores a este; os 5 mais novos sempre ficam. 0 = sem limite de idade, apenas a contagem se aplica.",
+        "nl": "Verwijdert MCP-back-ups die ouder zijn; de nieuwste 5 blijven altijd. 0 = geen leeftijdsgrens, alleen de telling geldt.",
+        "fr": "Supprime les sauvegardes MCP plus anciennes ; les 5 plus récents restent toujours. 0 = pas de limite d'âge, seul le décompte s'applique.",
+        "it": "Elimina i backup MCP precedenti a questo; i 5 più nuovi restano sempre. 0 = nessun limite di età, vale solo il conteggio.",
+        "es": "Elimina las copias de seguridad de MCP anteriores a esta; Los 5 más nuevos siempre se quedan. 0 = sin límite de edad, solo aplica el conteo.",
+        "pl": "Usuwa starsze kopie zapasowe MCP; najnowsze 5 zawsze zostaje. 0 = brak limitu wieku, obowiązuje tylko licznik.",
+        "uk": "Видаляє старіші резервні копії MCP; найновіші 5 завжди залишаються. 0 = немає вікових обмежень, застосовується лише підрахунок.",
+        "zh-cn": "删除早于此的 MCP 备份；最新的 5 个始终保留。 0 = 无年龄限制，仅适用计数。"
       },
       "min": 0,
       "max": 3650,
@@ -1006,11 +1744,29 @@
       "type": "text",
       "label": {
         "en": "Client configuration — HTTP (Claude Code, and anything that speaks MCP over HTTP)",
-        "de": "Client-Konfiguration — HTTP (Claude Code und alles, was MCP über HTTP spricht)"
+        "de": "Client-Konfiguration — HTTP (Claude Code und alles, was MCP über HTTP spricht)",
+        "ru": "Конфигурация клиента — HTTP (код Claude и все, что говорит MCP через HTTP)",
+        "pt": "Configuração do cliente — HTTP (Código Claude e qualquer coisa que fale MCP sobre HTTP)",
+        "nl": "Clientconfiguratie - HTTP (Claude Code en alles dat MCP via HTTP spreekt)",
+        "fr": "Configuration client - HTTP (Claude Code et tout ce qui parle MCP sur HTTP)",
+        "it": "Configurazione client: HTTP (codice Claude e tutto ciò che parla MCP su HTTP)",
+        "es": "Configuración del cliente: HTTP (Código Claude y cualquier cosa que hable MCP a través de HTTP)",
+        "pl": "Konfiguracja klienta — HTTP (Claude Code i wszystko, co mówi MCP przez HTTP)",
+        "uk": "Конфігурація клієнта — HTTP (Claude Code та все, що розмовляє MCP через HTTP)",
+        "zh-cn": "客户端配置 - HTTP（Claude Code，以及任何通过 HTTP 传输 MCP 的内容）"
       },
       "help": {
         "en": "The short way: URL and token, nothing to install. Click into the field, Ctrl+A, Ctrl+C — after saving, the token here is replaced by a placeholder so it is not readable when this page is opened again; the URL stays correct and you paste the token from the field above. Treat the complete block like a password.",
-        "de": "Der kurze Weg: URL und Token, nichts zu installieren. Ins Feld klicken, Strg+A, Strg+C — nach dem Speichern steht hier statt des Tokens ein Platzhalter, damit er beim erneuten Öffnen nicht lesbar ist; die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein. Den vollständigen Block wie ein Passwort behandeln."
+        "de": "Der kurze Weg: URL und Token, nichts zu installieren. Ins Feld klicken, Strg+A, Strg+C — nach dem Speichern steht hier statt des Tokens ein Platzhalter, damit er beim erneuten Öffnen nicht lesbar ist; die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein. Den vollständigen Block wie ein Passwort behandeln.",
+        "ru": "Короткий путь: URL и токен, ничего устанавливать не нужно. Нажмите на поле, Ctrl+A, Ctrl+C — после сохранения токен здесь заменяется заполнителем, поэтому он не читается при повторном открытии этой страницы; URL-адрес остается правильным, и вы вставляете токен из поля выше. Относитесь к полному блоку как к паролю.",
+        "pt": "O caminho mais curto: URL e token, nada para instalar. Clique no campo Ctrl+A, Ctrl+C — após salvar, o token aqui é substituído por um espaço reservado para que não fique legível quando esta página for aberta novamente; o URL permanece correto e você cola o token do campo acima. Trate o bloco completo como uma senha.",
+        "nl": "De korte weg: URL en token, niets te installeren. Klik in het veld, Ctrl+A, Ctrl+C — na het opslaan wordt het token hier vervangen door een tijdelijke aanduiding, zodat het niet leesbaar is wanneer deze pagina opnieuw wordt geopend; de URL blijft correct en je plakt het token uit het bovenstaande veld. Behandel het volledige blok als een wachtwoord.",
+        "fr": "Le chemin le plus court : URL et token, rien à installer. Cliquez dans le champ Ctrl+A, Ctrl+C — après l'enregistrement, le jeton ici est remplacé par un espace réservé afin qu'il ne soit pas lisible lorsque cette page est à nouveau ouverte ; l'URL reste correcte et vous collez le jeton depuis le champ ci-dessus. Traitez le bloc complet comme un mot de passe.",
+        "it": "La via breve: URL e token, niente da installare. Fai clic nel campo Ctrl+A, Ctrl+C: dopo il salvataggio, il token qui viene sostituito da un segnaposto, quindi non è leggibile quando questa pagina viene riaperta; l'URL rimane corretto e incolli il token dal campo sopra. Tratta il blocco completo come una password.",
+        "es": "El camino corto: URL y token, nada que instalar. Haga clic en el campo Ctrl+A, Ctrl+C: después de guardar, el token aquí se reemplaza por un marcador de posición, por lo que no se puede leer cuando se abre esta página nuevamente; la URL permanece correcta y usted pega el token del campo de arriba. Trate el bloque completo como una contraseña.",
+        "pl": "Krótka droga: adres URL i token, nic do instalowania. Kliknij w pole, Ctrl+A, Ctrl+C — po zapisaniu znajdujący się w tym miejscu token zostanie zastąpiony symbolem zastępczym, dzięki czemu nie będzie można go odczytać przy ponownym otwarciu tej strony; adres URL pozostaje poprawny i wklejasz token z powyższego pola. Traktuj cały blok jak hasło.",
+        "uk": "Короткий шлях: URL-адреса та маркер, нічого не потрібно встановлювати. Клацніть у полі, Ctrl+A, Ctrl+C — після збереження маркер тут буде замінено заповнювачем, тому його не можна буде прочитати, коли цю сторінку знову відкрити; URL-адреса залишається правильною, і ви вставляєте маркер із поля вище. Розглядайте повний блок як пароль.",
+        "zh-cn": "简短的方法：URL 和令牌，无需安装。单击字段 Ctrl+A、Ctrl+C — 保存后，此处的令牌将被占位符替换，因此再次打开此页面时将无法读取该令牌； URL 保持正确，您可以粘贴上面字段中的令牌。将整个块视为密码。"
       },
       "minRows": 12,
       "readOnly": true,
@@ -1028,11 +1784,29 @@
       "type": "text",
       "label": {
         "en": "Client configuration — Claude Desktop (via mcp-remote)",
-        "de": "Client-Konfiguration — Claude Desktop (über mcp-remote)"
+        "de": "Client-Konfiguration — Claude Desktop (über mcp-remote)",
+        "ru": "Конфигурация клиента — Claude Desktop (через mcp-remote)",
+        "pt": "Configuração do cliente — Claude Desktop (via mcp-remote)",
+        "nl": "Clientconfiguratie — Claude Desktop (via mcp-remote)",
+        "fr": "Configuration client — Claude Desktop (via mcp-remote)",
+        "it": "Configurazione client — Claude Desktop (tramite mcp-remote)",
+        "es": "Configuración del cliente: Claude Desktop (a través de mcp-remote)",
+        "pl": "Konfiguracja klienta — Claude Desktop (przez mcp-remote)",
+        "uk": "Конфігурація клієнта — Claude Desktop (через mcp-remote)",
+        "zh-cn": "客户端配置 — Claude Desktop（通过 mcp-remote）"
       },
       "help": {
         "en": "For clients that can only start a local process. Goes into claude_desktop_config.json (Settings → Developer → Edit config) — do NOT replace that file: it already holds the app's own settings, so add only the \"aura\" entry to the existing mcpServers object. Node.js must be installed on that machine, npx fetches mcp-remote itself. Then quit Claude Desktop completely and start it again — closing the window is not enough.",
-        "de": "Für Clients, die nur einen lokalen Prozess starten können. Gehört in die claude_desktop_config.json (Einstellungen → Entwickler → Konfiguration bearbeiten) — die Datei NICHT ersetzen: dort stehen schon die Einstellungen der App, also nur den Eintrag \"aura\" in das bestehende mcpServers-Objekt einhängen. Node.js muss auf dem Rechner installiert sein, mcp-remote holt npx selbst. Danach Claude Desktop vollständig beenden und neu starten — das Fenster zu schließen reicht nicht."
+        "de": "Für Clients, die nur einen lokalen Prozess starten können. Gehört in die claude_desktop_config.json (Einstellungen → Entwickler → Konfiguration bearbeiten) — die Datei NICHT ersetzen: dort stehen schon die Einstellungen der App, also nur den Eintrag \"aura\" in das bestehende mcpServers-Objekt einhängen. Node.js muss auf dem Rechner installiert sein, mcp-remote holt npx selbst. Danach Claude Desktop vollständig beenden und neu starten — das Fenster zu schließen reicht nicht.",
+        "ru": "Для клиентов, которые могут запускать только локальный процесс. Заходит в claude_desktop_config.json (Настройки → Разработчик → Изменить конфигурацию). НЕ заменяйте этот файл: он уже содержит собственные настройки приложения, поэтому добавьте только запись «aura» в существующий объект mcpServers. На этом компьютере должен быть установлен Node.js, npx сам извлекает mcp-remote. Затем полностью закройте Claude Desktop и запустите его снова — закрыть окно недостаточно.",
+        "pt": "Para clientes que só podem iniciar um processo local. Vai para claude_desktop_config.json (Configurações → Desenvolvedor → Editar configuração) — NÃO substitua esse arquivo: ele já contém as configurações do próprio aplicativo, então adicione apenas a entrada \"aura\" ao objeto mcpServers existente. O Node.js deve estar instalado nessa máquina, o npx busca o próprio mcp-remote. Em seguida, saia completamente do Claude Desktop e reinicie-o – fechar a janela não é suficiente.",
+        "nl": "Voor klanten die alleen een lokaal proces kunnen starten. Gaat naar claude_desktop_config.json (Instellingen → Ontwikkelaar → Configuratie bewerken) — vervang dat bestand NIET: het bevat al de eigen instellingen van de app, dus voeg alleen de vermelding \"aura\" toe aan het bestaande mcpServers-object. Node.js moet op die machine zijn geïnstalleerd, npx haalt mcp-remote zelf op. Sluit Claude Desktop vervolgens volledig af en start het opnieuw. Het sluiten van het venster is niet voldoende.",
+        "fr": "Pour les clients qui ne peuvent démarrer qu'un processus local. Va dans claude_desktop_config.json (Paramètres → Développeur → Modifier la configuration) — ne remplacez PAS ce fichier : il contient déjà les propres paramètres de l'application, ajoutez donc uniquement l'entrée \"aura\" à l'objet mcpServers existant. Node.js doit être installé sur cette machine, npx récupère lui-même mcp-remote. Quittez ensuite complètement Claude Desktop et redémarrez-le : fermer la fenêtre ne suffit pas.",
+        "it": "Per i client che possono avviare solo un processo locale. Va in claude_desktop_config.json (Impostazioni → Sviluppatore → Modifica configurazione) - NON sostituire quel file: contiene già le impostazioni dell'app, quindi aggiungi solo la voce \"aura\" all'oggetto mcpServers esistente. Node.js deve essere installato su quella macchina, npx recupera mcp-remote stesso. Quindi esci completamente da Claude Desktop e riavvialo: chiudere la finestra non è sufficiente.",
+        "es": "Para clientes que sólo pueden iniciar un proceso local. Va a claude_desktop_config.json (Configuración → Desarrollador → Editar configuración). NO reemplace ese archivo: ya contiene la configuración propia de la aplicación, así que agregue solo la entrada \"aura\" al objeto mcpServers existente. Node.js debe estar instalado en esa máquina, npx busca mcp-remote. Luego, cierre completamente Claude Desktop y vuelva a iniciarlo; cerrar la ventana no es suficiente.",
+        "pl": "Dla klientów, którzy mogą rozpocząć tylko proces lokalny. Przechodzi do claude_desktop_config.json (Ustawienia → Programista → Edytuj konfigurację) — NIE zastępuj tego pliku: zawiera już własne ustawienia aplikacji, więc dodaj tylko wpis „aura” do istniejącego obiektu mcpServers. Na tym komputerze musi być zainstalowany Node.js, npx sam pobiera mcp-remote. Następnie całkowicie zamknij Claude Desktop i uruchom go ponownie — zamknięcie okna nie wystarczy.",
+        "uk": "Для клієнтів, які можуть запускати лише локальний процес. Перейдіть до claude_desktop_config.json (Налаштування → Розробник → Редагувати конфігурацію) — НЕ замінюйте цей файл: він уже містить власні налаштування програми, тому додайте лише запис «aura» до існуючого об’єкта mcpServers. Node.js має бути встановлено на цій машині, npx отримує mcp-remote самостійно. Потім повністю закрийте Claude Desktop і запустіть його знову — закрити вікно недостатньо.",
+        "zh-cn": "对于只能启动本地进程的客户端。进入 claude_desktop_config.json（设置 → 开发人员 → 编辑配置） — 不要替换该文件：它已经保存了应用程序自己的设置，因此只需将“aura”条目添加到现有的 mcpServers 对象中。 Node.js 必须安装在该计算机上，npx 本身获取 mcp-remote。然后完全退出 Claude Desktop 并再次启动它 - 关闭窗口是不够的。"
       },
       "minRows": 12,
       "readOnly": true,

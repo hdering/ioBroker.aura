@@ -55,6 +55,7 @@
     "test:slideshow-widget": "node tools/tests/slideshow-widget.mjs",
     "test:feed-proxy": "node tools/tests/feed-proxy.mjs",
     "test:proxy-guard": "node tools/tests/proxy-guard.mjs",
+    "i18n:jsonconfig": "node tools/i18n/translate-jsonconfig.mjs",
     "test:feed-parse": "node tools/tests/feed-parse.mjs",
     "test:feed-news": "node tools/tests/feed-news.mjs",
     "test:feed-widget": "node tools/tests/feed-widget.mjs",
