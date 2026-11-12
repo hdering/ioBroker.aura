@@ -17,10 +17,29 @@ for (const ip of [
     '::ffff:127.0.0.1',
     'fe80::1',
     '[::1]',
+    // Node's URL parser rewrites [::ffff:127.0.0.1] to this hex form — found live on the test instance.
+    '::ffff:7f00:1',
+    '[::ffff:7f00:1]',
+    '::ffff:a9fe:a9fe',
+    '0:0:0:0:0:ffff:127.0.0.1',
+    '::127.0.0.1',
+    '0:0:0:0:0:0:0:1',
+    'febf::1',
+    'fe80::1%eth0',
 ]) {
     check(`blocked ${ip}`, isBlockedAddress(ip));
 }
-for (const ip of ['192.168.1.10', '10.0.0.1', '172.16.0.5', '8.8.8.8', 'fd00::1', '2001:db8::1']) {
+for (const ip of [
+    '192.168.1.10',
+    '10.0.0.1',
+    '172.16.0.5',
+    '8.8.8.8',
+    'fd00::1',
+    '2001:db8::1',
+    '::ffff:c0a8:10a',
+    'fec0::1',
+    '1::1',
+]) {
     check(`allowed ${ip}`, !isBlockedAddress(ip));
 }
 check('localhost name', isBlockedHost('localhost') && isBlockedHost('app.localhost'));
@@ -41,5 +60,7 @@ for (const v of ['same-origin', 'same-site', 'none', undefined]) {
 }
 
 console.log(`proxy-guard: ${pass} passed, ${fails.length} failed`);
-for (const f of fails) console.log(`  FAIL ${f}`);
+for (const f of fails) {
+    console.log(`  FAIL ${f}`);
+}
 process.exit(fails.length ? 1 : 0);

@@ -2959,6 +2959,10 @@ class Aura extends utils.Adapter {
                 try {
                     // Doubles as the backfill for clients whose tree is incomplete.
                     await this._ensureClientTree(cId);
+                    // Reported values, read-only for users — also on trees created before.
+                    for (const dp of ['info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+                        await this._alignCommon(`clients.${cId}.${dp}`, { write: false });
+                    }
                     // Unconditional: _ensureClientTree short-circuits on an existing
                     // navigate.url, so a client from before the messages channel
                     // existed would never be reached from there (#429).
@@ -4818,6 +4822,17 @@ class Aura extends utils.Adapter {
             this.log.debug(`[timers] loaded ${this._timerState.size} timer widget(s)`);
         } catch (e) {
             this.log.warn(`[timers] initial scan failed: ${e.message}`);
+        }
+        // Untitled timers used to be created as "Zeitschaltuhr" — English object names now.
+        for (const [widgetId, entry] of this._timerState.entries()) {
+            try {
+                const ch = await this.getObjectAsync(`timers.${widgetId}`);
+                if (ch?.common?.name === 'Zeitschaltuhr') {
+                    await this._syncTimerName(widgetId, entry.payload?.title);
+                }
+            } catch (e) {
+                this.log.debug(`[timers] rename of ${widgetId} failed: ${e.message}`);
+            }
         }
         // Catch up what was missed while the adapter was down (#872).
         for (const [widgetId, entry] of this._timerState.entries()) {

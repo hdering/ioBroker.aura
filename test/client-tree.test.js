@@ -191,6 +191,23 @@ const FULL_TREE = [
         console.log('✓ startup sync heals half-built clients and fills the selector');
     }
 
+    // ── Reported info values of an existing tree become read-only ────────────
+    {
+        const a = makeAdapter();
+        await a._ensureClientTree('old', 'Old');
+        // As a pre-review tree had them: writable.
+        for (const dp of ['info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+            a._objects.get(`clients.old.${dp}`).common.write = true;
+        }
+        a._objects.set('navigate.target', { type: 'state', common: { role: 'text' }, native: {} });
+        await a._syncNavigateTargets();
+        for (const dp of ['info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+            assert.strictEqual(a._objects.get(`clients.old.${dp}`).common.write, false, `${dp} must be read-only`);
+        }
+        assert.strictEqual(a._objects.get('clients.old.info.name').common.write, true, 'the name stays writable');
+        console.log('✓ startup sync makes reported info values of old clients read-only');
+    }
+
     // ── #620: client ids are sanitised before they become object-id segments ──
     {
         assert.strictEqual(sanitizeClientId('Wohnzimmer Tablet'), 'wohnzimmer-tablet');
