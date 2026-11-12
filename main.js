@@ -66,6 +66,7 @@ const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
+const { adapterTimers } = require('./lib/timers');
 const { createAutoListSync } = require('./lib/autoListSync');
 const { compareVersions, usableRepoNames, bestRepoVersion, computeAdapterUpdates } = require('./lib/adapterUpdates');
 
@@ -1978,6 +1979,7 @@ class Aura extends utils.Adapter {
                 dataDir: this._instanceDataDir(),
                 isAllowed: insideRoots,
                 log: this.log,
+                timers: adapterTimers(this),
             }));
 
         // Icons are served from our own origin (see lib/iconCache.js): the public
@@ -2004,7 +2006,12 @@ class Aura extends utils.Adapter {
                 this.log.debug(`aura: info.iconCache not written — ${e.message}`);
             }
         };
-        const iconCache = createIconCache({ dir: this._instanceDataDir(), log: this.log, onChange: publishIconCache });
+        const iconCache = createIconCache({
+            dir: this._instanceDataDir(),
+            log: this.log,
+            onChange: publishIconCache,
+            timers: adapterTimers(this),
+        });
         publishIconCache(iconCache.summary());
         // Icons of installed ioBroker icon adapters (#716) — served from their
         // own storage, never bundled or re-hosted by Aura.
@@ -4750,6 +4757,7 @@ class Aura extends utils.Adapter {
         this.subscribeObjects('countdowns.*');
         this._countdownObjectsEnsured = new Set();
         this._countdowns = new CountdownEngine({
+            ...adapterTimers(this),
             log: this.log,
             writeStatus: (key, status) => this._writeCountdownStatus(key, status),
             writeTarget: (dp, raw, why) => this._writeCountdownTarget(dp, raw, why),
@@ -5071,11 +5079,9 @@ class Aura extends utils.Adapter {
     /** Shared engine for delayed writes (#974) — timer targets and staggered group actions. */
     _stagger() {
         if (!this._staggerWriter) {
-            const hasTimers = typeof this.setTimeout === 'function' && typeof this.clearTimeout === 'function';
             this._staggerWriter = new StaggeredWriter({
                 write: (id, val) => this.setForeignStateAsync(id, val, false),
-                setTimeout: hasTimers ? (fn, ms) => this.setTimeout(fn, ms) : undefined,
-                clearTimeout: hasTimers ? (h) => this.clearTimeout(h) : undefined,
+                ...adapterTimers(this),
             });
         }
         return this._staggerWriter;
@@ -6357,6 +6363,7 @@ class Aura extends utils.Adapter {
                 this._statusDiscovery ??= createStatusDiscovery({
                     getObjectView: (type, startkey, endkey) =>
                         this.getObjectViewAsync('system', type, { startkey, endkey }),
+                    timers: adapterTimers(this),
                 });
                 const m = msg.message || {};
                 reply(await this._statusDiscovery.discover(m.opts, m.overrides));
@@ -6399,13 +6406,16 @@ class Aura extends utils.Adapter {
                 // instance's /aura/mcp, which the extension lets past the web login.
                 const web = isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
                 const blocks = await resolveBothConfigs(
-                    mcpBaseOptions({
-                        customUrl: this.config.customUrl,
-                        port: this.config.port,
-                        https: this._httpsActive,
-                        bind: this.config.bind,
-                        web,
-                    }),
+                    {
+                        ...mcpBaseOptions({
+                            customUrl: this.config.customUrl,
+                            port: this.config.port,
+                            https: this._httpsActive,
+                            bind: this.config.bind,
+                            web,
+                        }),
+                        timers: adapterTimers(this),
+                    },
                     token,
                 );
                 reply({
