@@ -5,6 +5,7 @@
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/web-component-sendto-ui.mjs
+//   KEEP_OPEN=1 node tools/tests/web-component-sendto-ui.mjs   (visible, stays open)
 //
 // The component is served by the browser itself (page.route), sendTo is answered by
 // the harness (mockSendTo): no adapter, no ioBroker.
@@ -59,7 +60,9 @@ const manifest = {
     },
 };
 
-const browser = await chromium.launch();
+// KEEP_OPEN=1: visible browser, left open after the checks to try the fields by hand
+const keepOpen = !!process.env.KEEP_OPEN;
+const browser = await chromium.launch({ headless: !keepOpen });
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await ctx.newPage();
 const errors = [];
@@ -181,7 +184,12 @@ eq('no answer: text field with the value', await broken.locator('input[type="tex
 
 eq('no page errors', errors, []);
 
-await browser.close();
+if (keepOpen) {
+    console.log('Browser stays open - close it to end.');
+    await new Promise((r) => browser.on('disconnected', r));
+} else {
+    await browser.close();
+}
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} passed`);
 process.exit(failed ? 1 : 0);
