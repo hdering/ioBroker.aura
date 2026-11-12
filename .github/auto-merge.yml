@@ -1,0 +1,10 @@
+# Dependabot updates merged automatically by .github/workflows/automerge-dependabot.yml
+# (iobroker-bot-orga/action-automerge-dependabot). Anything not matched here waits
+# for a manual review. update_type is hierarchical: semver:minor includes patches.
+- match:
+    # Patch updates of every dependency (production, development, GitHub Actions)
+    update_type: "semver:patch"
+- match:
+    # Development dependencies may also take minor updates
+    dependency_type: development
+    update_type: "semver:minor"
