@@ -998,7 +998,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                         >
                             <p className="text-[10px] mb-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                                 Mit Chips oder Blättern zeigen aufgezeichnete Strecken diesen Zeitraum statt des
-                                Zeitraums der Linie. Lange Strecken werden auf „Max. Punkte“ vereinfacht.
+                                Zeitraums der Linie. {'Lange Strecken werden auf „Max. Punkte“ vereinfacht.'}
                             </p>
                             <RangeChipsEditor
                                 value={o.rangeChips}
