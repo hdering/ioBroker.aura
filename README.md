@@ -122,6 +122,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.113.3 (2026-11-12)
+- 🐛 **Bug fix:** PIN protection - the "Editable via MCP" switch no longer turns itself off when the dashboard is saved, and a protected view no longer answers "wrong PIN" after a save that held it only as a locked placeholder
+- 🐛 **Bug fix:** PIN protection - a tab the MCP added to a protected area no longer disappears when the admin editor saves before it has loaded that tab
+- 🐛 **Bug fix:** Admin settings - the "Reachable on" option and its web-instance hint are now translated into all admin languages
+
+
 ### 0.113.2 (2026-11-12)
 - 🐛 **Bug fix:** Web components - after an adapter update the browser loads the new files of its components instead of cached ones ([#954](https://github.com/hdering/ioBroker.aura/issues/954))
 - 🐛 **Bug fix:** Thermostat - with a Homematic MANU_MODE datapoint the widget now shows the setpoint from SET_TEMPERATURE, so changes made on the device itself appear ([#973](https://github.com/hdering/ioBroker.aura/issues/973))
@@ -276,12 +282,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Group - the group action now also controls mirrored widgets inside the group ([#912](https://github.com/hdering/ioBroker.aura/issues/912))
 
 
-### 0.101.0 (2026-11-02)
-- 🌟 **New feature:** Named PINs - create a PIN once (e.g. "Kids") and pick it for any section or tab; Layouts > Access protection lists every PIN with the views it guards, changing a PIN applies everywhere at once, and existing PINs are converted automatically
-- 🐛 **Bug fix:** Slideshow - the chosen transition and its time now apply on devices with "reduce motion" turned on; only slide and page turn give way to a fade, with the set time ([#903](https://github.com/hdering/ioBroker.aura/issues/903))
-- 🐛 **Bug fix:** iFrame - in fullscreen the tile underneath no longer keeps playing, so sound is not heard twice and out of step; also when the iFrame sits in a group ([#904](https://github.com/hdering/ioBroker.aura/issues/904))
-
-
 ## License
 
 MIT License
@@ -293,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

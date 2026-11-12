@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.101.0 (2026-11-02)
+- 🌟 **New feature:** Named PINs - create a PIN once (e.g. "Kids") and pick it for any section or tab; Layouts > Access protection lists every PIN with the views it guards, changing a PIN applies everywhere at once, and existing PINs are converted automatically
+- 🐛 **Bug fix:** Slideshow - the chosen transition and its time now apply on devices with "reduce motion" turned on; only slide and page turn give way to a fade, with the set time ([#903](https://github.com/hdering/ioBroker.aura/issues/903))
+- 🐛 **Bug fix:** iFrame - in fullscreen the tile underneath no longer keeps playing, so sound is not heard twice and out of step; also when the iFrame sits in a group ([#904](https://github.com/hdering/ioBroker.aura/issues/904))
+
 ## 0.100.1 (2026-11-01)
 - 🐛 **Bug fix:** iOS - Safari now also shows the Aura icon in the browser tab; the PNG favicon was missing from the 0.100.0 bundle ([#899](https://github.com/hdering/ioBroker.aura/issues/899))
 
