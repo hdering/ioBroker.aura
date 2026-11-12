@@ -65,6 +65,7 @@
     "test:web-component-catalog-ui": "node tools/tests/web-component-catalog-ui.mjs",
     "test:web-component-header-ui": "node tools/tests/web-component-header-ui.mjs",
     "test:web-component-click-ui": "node tools/tests/web-component-click-ui.mjs",
+    "test:web-component-sendto-ui": "node tools/tests/web-component-sendto-ui.mjs",
     "test:countdowns": "node test/countdowns.test.js && node test/countdown-adapter.test.js",
     "test:countdown-format": "node tools/tests/countdown-format.mjs",
     "test:countdown-ui": "node tools/tests/countdown-widget.mjs",
@@ -490,7 +491,7 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.4.3",
-    "@iobroker/web-components": "^0.6.0",
+    "@iobroker/web-components": "^0.8.0",
     "suncalc": "^2.0.0"
   },
   "devDependencies": {

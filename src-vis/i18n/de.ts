@@ -3671,6 +3671,8 @@ export const de = {
     'wc.noObjects': 'Keine Objekte gefunden',
     'wc.objectNotFound': '{id} (nicht gefunden)',
     'wc.pickDatapoint': 'Aus ioBroker wählen',
+    'wc.sendToLoading': 'Lade Auswahl …',
+    'wc.sendToNotInList': '{value} (nicht in der Liste)',
     'wc.dialog': 'Dialog der Komponente',
     'wc.host.title': 'Kommt vom Widget-Titel (Titel/Icon oben bzw. Titel-Quelle)',
     'wc.host.fullView': 'Kommt vom Vollbild-Knopf des Widgets (Darstellung)',

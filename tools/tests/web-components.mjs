@@ -1009,6 +1009,85 @@ check(
     check('merge: a changed manifest of the same version is a new object', changedSettings[0] === before[2], false);
 }
 
+// ── selectSendTo / autocompleteSendTo (#975) ───────────────────────────────
+{
+    const { getSendToRequest } = await import('@iobroker/web-components');
+    const setting = {
+        type: 'selectSendTo',
+        command: 'getLocations',
+        jsonData: '{ "lang": "${data.lang}" }',
+        alsoDependsOn: ['region'],
+    };
+    const req = getSendToRequest(setting, { lang: 'de', region: 'n' }, 'openmeteo-notify');
+    check('sendTo: without instance the first instance of the adapter is asked', req?.instance, 'openmeteo-notify.0');
+    check('sendTo: jsonData is filled from the settings', req?.data, { lang: 'de' });
+    const again = getSendToRequest(setting, { lang: 'de', region: 's' }, 'openmeteo-notify');
+    check('sendTo: a change in alsoDependsOn changes the key', req.key === again.key, false);
+    check(
+        'sendTo: instance pattern without a chosen instance - no request (text field)',
+        getSendToRequest({ ...setting, instance: '${data.instance}' }, {}, 'x'),
+        null,
+    );
+
+    const calls = [];
+    const answer = await m.askSendToOptions(req, async (instance, command, data) => {
+        calls.push([instance, command, data]);
+        return [{ value: 'berlin', label: { en: 'Berlin', de: 'Berlin' } }, 'hilchenbach'];
+    });
+    check('sendTo: asks instance, command and message', calls, [
+        ['openmeteo-notify.0', 'getLocations', { lang: 'de' }],
+    ]);
+    check('sendTo: answer becomes the options', answer, {
+        key: req.key,
+        options: [
+            { value: 'berlin', label: { en: 'Berlin', de: 'Berlin' } },
+            { value: 'hilchenbach', label: 'hilchenbach' },
+        ],
+    });
+    check(
+        'sendTo: a timeout is no answer',
+        (await m.askSendToOptions(req, async () => ({ __timeout: true }))).options,
+        null,
+    );
+    check(
+        'sendTo: an error text is no answer',
+        (await m.askSendToOptions(req, async () => 'unknown command')).options,
+        null,
+    );
+    check(
+        'sendTo: a thrown error is no answer',
+        (
+            await m.askSendToOptions(req, async () => {
+                throw new Error('x');
+            })
+        ).options,
+        null,
+    );
+    check('sendTo: an empty list is an answer', (await m.askSendToOptions(req, async () => [])).options, []);
+
+    const opts = [
+        { value: 'b', label: { en: 'Berlin', de: 'Berlin' } },
+        { value: 7, label: 'Seven' },
+    ];
+    check(
+        'autocomplete: fixed options follow the answer, without duplicates',
+        m
+            .mergeSendToOptions(opts, [
+                { value: 'b', label: 'dup' },
+                { value: 'x', label: 'Extra' },
+            ])
+            .map((o) => o.value),
+        ['b', 7, 'x'],
+    );
+    check('autocomplete: a label picks its value', m.autocompleteValue('Berlin', opts, false, 'de'), { value: 'b' });
+    check('autocomplete: a value keeps its type', m.autocompleteValue('7', opts, false, 'de'), { value: 7 });
+    check('autocomplete: other text without freeSolo is no value', m.autocompleteValue('Ber', opts, false, 'de'), null);
+    check('autocomplete: other text with freeSolo is the value', m.autocompleteValue('Ber', opts, true, 'de'), {
+        value: 'Ber',
+    });
+    check('autocomplete: empty text clears', m.autocompleteValue('', opts, false, 'de'), { value: undefined });
+}
+
 if (failed) {
     console.error(`\n${failed} check(s) failed`);
     process.exit(1);

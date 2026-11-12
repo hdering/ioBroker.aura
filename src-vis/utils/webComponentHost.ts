@@ -22,8 +22,11 @@ import {
     getText,
     resolveManifestUrl,
     toSettings,
+    toSendToOptions,
     toWebComponentTheme,
     type LoadedWebComponent,
+    type WebComponentSendToRequest,
+    type WebComponentSettingOption,
     type WebComponentManifest,
     type WebComponentSettings,
     type WebComponentSocket,
@@ -239,6 +242,75 @@ export function evalSettingExpr(expr: string | undefined, data: Record<string, u
     } catch {
         return false;
     }
+}
+
+// ── options from the adapter (selectSendTo / autocompleteSendTo) ──────────
+
+/** The answer of the instance for one sendTo setting: options, or null when there was none */
+export interface SendToAnswer {
+    /** `key` of the request it answers (getSendToRequest) */
+    key: string;
+    /** null: no answer, an error or a timeout - the field stays a text field */
+    options: WebComponentSettingOption[] | null;
+}
+
+/**
+ * Asks the instance for the options of a `selectSendTo` / `autocompleteSendTo`
+ * setting. A timeout, an error text or anything that is no list counts as no
+ * answer (null), so the host falls back to the text field.
+ *
+ * @param request from getSendToRequest
+ * @param sendTo the socket's sendTo
+ */
+export async function askSendToOptions(
+    request: WebComponentSendToRequest,
+    sendTo: (instance: string, command: string, data: unknown) => Promise<unknown>,
+): Promise<SendToAnswer> {
+    try {
+        const answer = await sendTo(request.instance, request.command, request.data);
+        return { key: request.key, options: Array.isArray(answer) ? toSendToOptions(answer) : null };
+    } catch {
+        return { key: request.key, options: null };
+    }
+}
+
+/**
+ * The options an `autocompleteSendTo` offers: the answer of the instance, then the
+ * fixed `options` of the manifest that the answer does not already contain.
+ *
+ * @param answer options from the instance
+ * @param fixed `options` of the setting
+ */
+export function mergeSendToOptions(
+    answer: WebComponentSettingOption[],
+    fixed: WebComponentSettingOption[] | undefined,
+): WebComponentSettingOption[] {
+    const seen = new Set(answer.map((o) => String(o.value)));
+    return [...answer, ...(fixed ?? []).filter((o) => !seen.has(String(o.value)))];
+}
+
+/**
+ * The value an `autocompleteSendTo` stores for what was typed: the value of an
+ * option whose value or label matches; any text with `freeSolo`; otherwise
+ * undefined (not a value - the stored one stays). An empty text clears it.
+ *
+ * @param text what is in the field
+ * @param options the options offered
+ * @param freeSolo any text is a value
+ * @param lang language of the labels
+ */
+export function autocompleteValue(
+    text: string,
+    options: WebComponentSettingOption[],
+    freeSolo: boolean,
+    lang: Parameters<typeof getText>[1],
+): { value: string | number | boolean | undefined } | null {
+    if (text === '') return { value: undefined };
+    const byValue = options.find((o) => String(o.value) === text);
+    if (byValue) return { value: byValue.value };
+    const byLabel = options.find((o) => getText(o.label, lang) === text);
+    if (byLabel) return { value: byLabel.value };
+    return freeSolo ? { value: text } : null;
 }
 
 // ── title and icon from the component ─────────────────────────────────────

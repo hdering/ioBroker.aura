@@ -3640,6 +3640,8 @@ export const en: Record<TranslationKey, string> = {
     'wc.noObjects': 'No objects found',
     'wc.objectNotFound': '{id} (not found)',
     'wc.pickDatapoint': 'Pick from ioBroker',
+    'wc.sendToLoading': 'Loading choices …',
+    'wc.sendToNotInList': '{value} (not in the list)',
     'wc.dialog': 'Dialog of the component',
     'wc.host.title': "Comes from the widget's title (title/icon above or title source)",
     'wc.host.fullView': "Comes from the widget's fullscreen button (Look)",
