@@ -11,3 +11,4 @@
 
 - fix: Web components - after an adapter update the browser loads the new files of its components instead of cached ones (#954)
 - fix: Thermostat - with a Homematic MANU_MODE datapoint the widget now shows the setpoint from SET_TEMPERATURE, so changes made on the device itself appear (#973)
+- feat: Timer and group actions - optional delay between target datapoints, so e.g. several shutters start one after another instead of all at once; the adapter runs the sequence and stop always acts on all at once (#974)

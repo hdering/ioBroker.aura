@@ -51,6 +51,7 @@ export interface TimerConfigPayload {
     events: TimerEvent[];
     targetDp?: string; // widget-level: where to write when an event fires
     extraTargetDps?: string[]; // further DPs written with the same value (#774)
+    extraTargetDelays?: number[]; // ms after the trigger per extraTargetDps index (#974)
     value?: string; // widget-level: what to write (parsed bool/number/string)
     allowEventValue?: boolean; // when true, backend honors per-event ev.value overrides
     allowEventAnnounce?: boolean; // when true, backend announces ev.announce (#918)

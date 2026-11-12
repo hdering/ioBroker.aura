@@ -189,6 +189,28 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const setOpts = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
     const setExtra = (next: string[]) => setOpts({ extraTargetDps: next.length > 0 ? next : undefined });
+    // Delay per extra DP after the trigger (#974), index-aligned with extraTargetDps, in ms.
+    const extraTargetDelays = (o.extraTargetDelays as number[] | undefined) ?? [];
+    const delayOf = (i: number) => extraTargetDelays[i] ?? 0;
+    const delaysPatch = (next: number[]) => ({
+        extraTargetDelays: next.some((d) => d > 0) ? next : undefined,
+    });
+    const setDelay = (i: number, sec: string) => {
+        const n = Number(sec);
+        const ms = sec === '' || !Number.isFinite(n) || n <= 0 ? 0 : Math.min(600000, Math.round(n * 1000));
+        setOpts(delaysPatch(extraTargetDps.map((_, j) => (j === i ? ms : delayOf(j)))));
+    };
+    const removeExtra = (i: number) => {
+        const dps = extraTargetDps.filter((_, j) => j !== i);
+        const delays = extraTargetDps.map((_, j) => delayOf(j)).filter((_, j) => j !== i);
+        setOpts({ extraTargetDps: dps.length > 0 ? dps : undefined, ...delaysPatch(delays) });
+    };
+    const [staggerStep, setStaggerStep] = useState('2');
+    const applyStagger = () => {
+        const step = Number(staggerStep);
+        if (!Number.isFinite(step) || step < 0) return;
+        setOpts(delaysPatch(extraTargetDps.map((_, i) => Math.min(600000, Math.round((i + 1) * step * 1000)))));
+    };
 
     const currentPickerValue =
         typeof pickerTarget === 'number'
@@ -339,11 +361,20 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 >
                                     <Database size={13} />
                                 </button>
-                                {/* Same width as the remove button below, so all inputs line up. */}
+                                {/* Same width as the delay field and remove button below, so all inputs line up. */}
                                 {extraTargetDps.length > 0 && (
-                                    <span className="px-1.5 shrink-0 invisible" aria-hidden>
-                                        <X size={13} />
-                                    </span>
+                                    <>
+                                        <span
+                                            className="w-14 shrink-0 text-[10px] self-center text-right pr-1 tabular-nums"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                            title="Der erste Datenpunkt schaltet sofort"
+                                        >
+                                            +0 s
+                                        </span>
+                                        <span className="px-1.5 shrink-0 invisible" aria-hidden>
+                                            <X size={13} />
+                                        </span>
+                                    </>
                                 )}
                             </div>
                             {extraTargetDps.map((dp, i) => (
@@ -370,9 +401,21 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                     >
                                         <Database size={13} />
                                     </button>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step={0.1}
+                                        value={delayOf(i) > 0 ? delayOf(i) / 1000 : ''}
+                                        onChange={(e) => setDelay(i, e.target.value)}
+                                        placeholder="+0 s"
+                                        title="Verzögerung nach dem Auslösen in Sekunden"
+                                        aria-label="Verzögerung in Sekunden"
+                                        className={`w-14 shrink-0 tabular-nums ${inputCls}`}
+                                        style={inputStyle}
+                                    />
                                     <button
                                         type="button"
-                                        onClick={() => setExtra(extraTargetDps.filter((_, j) => j !== i))}
+                                        onClick={() => removeExtra(i)}
                                         className="px-1.5 rounded-lg shrink-0 hover:opacity-70"
                                         style={{ color: 'var(--text-secondary)' }}
                                         title="Datenpunkt entfernen"
@@ -389,8 +432,34 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             >
                                 <Plus size={12} /> Weiterer Datenpunkt
                             </button>
+                            {extraTargetDps.length > 0 && (
+                                <div className="mt-1 flex items-center gap-1 text-[11px]">
+                                    <span style={{ color: 'var(--text-secondary)' }}>Nacheinander alle</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step={0.5}
+                                        value={staggerStep}
+                                        onChange={(e) => setStaggerStep(e.target.value)}
+                                        aria-label="Abstand in Sekunden"
+                                        className={`w-14 tabular-nums ${inputCls}`}
+                                        style={inputStyle}
+                                    />
+                                    <span style={{ color: 'var(--text-secondary)' }}>s</span>
+                                    <button
+                                        type="button"
+                                        onClick={applyStagger}
+                                        className="hover:opacity-80"
+                                        style={{ color: 'var(--accent)' }}
+                                    >
+                                        staffeln
+                                    </button>
+                                </div>
+                            )}
                             <p className={hintCls} style={hintStyle}>
-                                Alle Datenpunkte bekommen beim Auslösen denselben Wert — z. B. mehrere Thermostate.
+                                Alle Datenpunkte bekommen beim Auslösen denselben Wert — z. B. mehrere Thermostate. Mit
+                                einer Verzögerung (Sek. nach dem Auslösen) schalten sie nacheinander, z. B. damit nicht
+                                alle Rollläden zugleich anlaufen.
                             </p>
                         </div>
                         <div>

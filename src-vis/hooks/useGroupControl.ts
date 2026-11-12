@@ -17,6 +17,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIoBroker } from './useIoBroker';
 import { isActiveVal, mixedAsks, nextTurnOn, type GroupMixedAction, type GroupTarget } from '../utils/groupTargets';
+import { runStaggered, staggerDelay } from '../utils/staggeredWrite';
 
 export type GroupAggregate = 'on' | 'off' | 'mixed' | 'none';
 
@@ -28,7 +29,11 @@ export function aggregateState(targets: GroupTarget[]): GroupAggregate {
     return 'mixed';
 }
 
-export function useGroupControl(targets: GroupTarget[], mixedAction: GroupMixedAction = 'on') {
+export function useGroupControl(
+    targets: GroupTarget[],
+    mixedAction: GroupMixedAction = 'on',
+    stagger?: { key: string; stepMs?: number },
+) {
     const { setState, getState } = useIoBroker();
     const parentAggregate = useMemo(() => aggregateState(targets), [targets]);
     const activeCount = useMemo(() => targets.reduce((n, t) => n + (t.active ? 1 : 0), 0), [targets]);
@@ -52,16 +57,21 @@ export function useGroupControl(targets: GroupTarget[], mixedAction: GroupMixedA
         if (targets.length === 0) return;
         setOverride(allOn ? 'on' : 'off');
         const ids = targets.map((t) => t.id);
-        for (const t of targets) {
-            setState(t.id, allOn ? t.onWrite : t.offWrite);
-        }
+        // With a delay between devices (#974) the last one lands (n-1)·step later.
+        const items = targets.map((t, i) => ({
+            id: t.id,
+            val: allOn ? t.onWrite : t.offWrite,
+            delayMs: staggerDelay(i, stagger?.stepMs),
+        }));
+        runStaggered(stagger?.key ?? 'group', items, setState);
+        const lastDelay = items.reduce((m, it) => Math.max(m, it.delayMs), 0);
         // Confirm via getState — a live stateChange push may never arrive.
         globalThis.setTimeout(() => {
             Promise.all(ids.map((id) => getState(id))).then((states) => {
                 const on = states.reduce((n, s) => n + (isActiveVal(s?.val ?? null) ? 1 : 0), 0);
                 setOverride(on === 0 ? 'off' : on === states.length ? 'on' : 'mixed');
             });
-        }, 700);
+        }, 700 + lastDelay);
     };
 
     const toggleAll = () => setAll();

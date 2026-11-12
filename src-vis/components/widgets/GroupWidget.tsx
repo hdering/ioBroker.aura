@@ -565,6 +565,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             dimmerIds={groupDimmerIds}
                             shutterTargets={groupShutterTargets}
                             pulseIds={groupPulseIds}
+                            staggerKey={config.id}
                             editing={editMode}
                             placeholderHint={t('group.masterPlaceholder')}
                             placeholderLabel={t('group.masterPlaceholderShort')}

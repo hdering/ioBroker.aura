@@ -1149,6 +1149,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             dimmerIds={groupDimmerIds}
             shutterTargets={groupShutterTargets}
             pulseIds={groupPulseIds}
+            staggerKey={config.id}
             editing={editMode}
             placeholderHint={t('group.masterPlaceholder')}
             placeholderLabel={t('group.masterPlaceholderShort')}

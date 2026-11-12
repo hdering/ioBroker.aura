@@ -10,6 +10,7 @@ const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS, countdownAnnouncement } = require('./lib/countdowns');
 const auraShared = require('./lib/shared/auraShared');
 const { timerEventAnnouncement, timerHasWork } = require('./lib/timerAnnounce');
+const { StaggeredWriter, clampDelay } = require('./lib/staggeredWrite');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
 const { WidgetPublishEngine, PUBLISH_STATE_DEFS, collectWidgets } = require('./lib/widgetPublish');
 /** Record of battery changes kept by the former battery script — imported once (status.battery.history). */
@@ -4929,6 +4930,8 @@ class Aura extends utils.Adapter {
             // explicit save via the renameTimer onMessage handler.
             if (entry.payload) void this._ensureTimerReapplyObject(widgetId, entry.payload.title);
         }
+        // Switched off or emptied: staggered writes still pending must not land (#974).
+        if (!entry.enabled || !entry.payload) this._staggerWriter?.cancel(`timer:${widgetId}`);
         this._timerState.set(widgetId, entry);
     }
 
@@ -5034,16 +5037,56 @@ class Aura extends utils.Adapter {
         return [...new Set(all.filter((id) => typeof id === 'string' && id.trim()).map((id) => id.trim()))];
     }
 
-    async _writeTarget(targets, baseValue, ev, override) {
-        const val = override !== undefined ? override : this._parseValue(baseValue);
-        for (const targetDp of targets) {
-            try {
-                await this.setForeignStateAsync(targetDp, val, false);
-                this.log.info(`[timers] fired ${ev.label || ev.id}: ${targetDp} ← ${JSON.stringify(val)}`);
-            } catch (e) {
-                this.log.warn(`[timers] write failed (${targetDp}): ${e.message}`);
-            }
+    /**
+     * The timer's targets with their delay after the trigger (#974): targetDp at 0,
+     * extraTargetDps[i] at extraTargetDelays[i] ms. Same order and dedupe as _timerTargets.
+     */
+    _timerTargetItems(payload) {
+        const extras = Array.isArray(payload.extraTargetDps) ? payload.extraTargetDps : [];
+        const delays = Array.isArray(payload.extraTargetDelays) ? payload.extraTargetDelays : [];
+        const all = [{ id: payload.targetDp, delayMs: 0 }, ...extras.map((id, i) => ({ id, delayMs: delays[i] }))];
+        const seen = new Set();
+        const out = [];
+        for (const it of all) {
+            if (typeof it.id !== 'string' || !it.id.trim()) continue;
+            const id = it.id.trim();
+            if (seen.has(id)) continue;
+            seen.add(id);
+            out.push({ id, delayMs: clampDelay(it.delayMs) });
         }
+        return out;
+    }
+
+    /** Shared engine for delayed writes (#974) — timer targets and staggered group actions. */
+    _stagger() {
+        if (!this._staggerWriter) {
+            const hasTimers = typeof this.setTimeout === 'function' && typeof this.clearTimeout === 'function';
+            this._staggerWriter = new StaggeredWriter({
+                write: (id, val) => this.setForeignStateAsync(id, val, false),
+                setTimeout: hasTimers ? (fn, ms) => this.setTimeout(fn, ms) : undefined,
+                clearTimeout: hasTimers ? (h) => this.clearTimeout(h) : undefined,
+            });
+        }
+        return this._staggerWriter;
+    }
+
+    /**
+     * Write the timer's value to all its targets. Targets with a delay (#974) are
+     * written later; a new write of the same timer drops those still pending.
+     */
+    async _writeTarget(widgetId, payload, baseValue, ev, override) {
+        const val = override !== undefined ? override : this._parseValue(baseValue);
+        const name = ev.label || ev.id;
+        const items = this._timerTargetItems(payload).map((it) => ({ ...it, val }));
+        const write = async (id) => {
+            try {
+                await this.setForeignStateAsync(id, val, false);
+                this.log.info(`[timers] fired ${name}: ${id} ← ${JSON.stringify(val)}`);
+            } catch (e) {
+                this.log.warn(`[timers] write failed (${id}): ${e.message}`);
+            }
+        };
+        await this._stagger().run(`timer:${widgetId}`, items, write);
     }
 
     /**
@@ -5078,10 +5121,10 @@ class Aura extends utils.Adapter {
         if (sig === prev) return;
         this._timerException.set(widgetId, sig);
         if (exc) {
-            await this._writeTarget(this._timerTargets(payload), exc.value, { label: this._exceptionLabel(exc.kind) });
+            await this._writeTarget(widgetId, payload, exc.value, { label: this._exceptionLabel(exc.kind) });
             return;
         }
-        if (!(await this._writeLastDue(payload, now, holidays, vacation))) {
+        if (!(await this._writeLastDue(widgetId, payload, now, holidays, vacation))) {
             this.log.info(`[timers] ${this._exceptionLabel(prev.split(':')[0])} ended — no regular event to restore`);
         }
     }
@@ -5091,7 +5134,7 @@ class Aura extends utils.Adapter {
     }
 
     /** Write what the regular schedule wrote last (see lastDueWrite); false when nothing is due. */
-    async _writeLastDue(payload, now, holidays, vacation) {
+    async _writeLastDue(widgetId, payload, now, holidays, vacation) {
         const last = lastDueWrite(payload, now, holidays, vacation, (event, date, offsetMin) =>
             this._computeAstroDate(event, date, offsetMin),
         );
@@ -5101,7 +5144,7 @@ class Aura extends utils.Adapter {
             const v = this._parseValue(last.baseValue);
             override = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
         }
-        await this._writeTarget(this._timerTargets(payload), last.baseValue, last.ev, override);
+        await this._writeTarget(widgetId, payload, last.baseValue, last.ev, override);
         return true;
     }
 
@@ -5131,10 +5174,10 @@ class Aura extends utils.Adapter {
         this._timerException.set(widgetId, exc ? `${exc.kind}:${exc.value}` : null);
         this.log.info(`[timers] reapply ${name} (${reason})`);
         if (exc) {
-            await this._writeTarget(this._timerTargets(payload), exc.value, { label: this._exceptionLabel(exc.kind) });
+            await this._writeTarget(widgetId, payload, exc.value, { label: this._exceptionLabel(exc.kind) });
             return;
         }
-        if (!(await this._writeLastDue(payload, now, holidays, vacation))) {
+        if (!(await this._writeLastDue(widgetId, payload, now, holidays, vacation))) {
             this.log.info(`[timers] reapply ${name}: no regular event due in the last days`);
         }
     }
@@ -5268,7 +5311,7 @@ class Aura extends utils.Adapter {
                     const v = this._parseValue(baseValue);
                     writeVal = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
                 }
-                await this._writeTarget(targets, baseValue, ev, writeVal);
+                await this._writeTarget(widgetId, payload, baseValue, ev, writeVal);
                 this._timerFired.add(c.key);
                 // The end of a range only switches back; it has nothing to say (#918).
                 if (!c.invert) {
@@ -6637,6 +6680,7 @@ class Aura extends utils.Adapter {
                 this._timerState.delete(widgetId);
                 this._timerException.delete(widgetId);
                 this._timerReapplyEnsured?.delete(widgetId);
+                this._staggerWriter?.cancel(`timer:${widgetId}`);
                 this.log.info(`[timers] deleteTimer ${base} → ${JSON.stringify(results)}`);
                 reply({ ok: true, results });
                 return;
@@ -6881,6 +6925,46 @@ class Aura extends utils.Adapter {
                 return;
             }
 
+            if (msg.command === 'staggeredWrite') {
+                // Group action with a delay between devices (#974): the adapter runs the
+                // sequence, so it completes even when the tablet sleeps or the page closes.
+                // { key, items: [{ id, val, delayMs }] } starts a run, { key, cancel: true }
+                // drops what is still pending (stop button).
+                const key = String(msg.message?.key || '').trim();
+                if (!/^[\w.:-]{1,128}$/.test(key)) {
+                    reply({ ok: false, error: `Invalid key: ${key}` });
+                    return;
+                }
+                const runKey = `group:${key}`;
+                if (msg.message?.cancel === true) {
+                    reply({ ok: true, cancelled: this._stagger().cancel(runKey) });
+                    return;
+                }
+                const raw = Array.isArray(msg.message?.items) ? msg.message.items.slice(0, 200) : [];
+                const items = [];
+                for (const it of raw) {
+                    const id = typeof it?.id === 'string' ? it.id.trim() : '';
+                    if (!id) continue;
+                    const obj = await this.getForeignObjectAsync(id).catch(() => null);
+                    // Only real, writable states — never a channel or a read-only DP.
+                    if (!obj || obj.type !== 'state' || obj.common?.write === false) {
+                        this.log.warn(`[stagger] skipped ${id}: not a writable state`);
+                        continue;
+                    }
+                    items.push({ id, val: it.val, delayMs: clampDelay(it.delayMs) });
+                }
+                const scheduled = await this._stagger().run(runKey, items, async (id, val) => {
+                    try {
+                        await this.setForeignStateAsync(id, val, false);
+                    } catch (e) {
+                        this.log.warn(`[stagger] write failed (${id}): ${e.message}`);
+                    }
+                });
+                this.log.debug(`[stagger] ${key}: ${items.length} writes, ${scheduled} delayed`);
+                reply({ ok: true, scheduled });
+                return;
+            }
+
             if (msg.command === 'upgradeAdapter') {
                 const name = String(msg.message?.name || '').trim();
                 if (!name || !/^[a-z0-9_-]+$/i.test(name)) {
@@ -6998,6 +7082,7 @@ class Aura extends utils.Adapter {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;
             }
+            this._staggerWriter?.dispose();
             if (this._countdowns) {
                 this._countdowns.dispose();
             }

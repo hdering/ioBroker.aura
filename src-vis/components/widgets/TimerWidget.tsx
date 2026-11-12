@@ -367,6 +367,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const o = (config.options ?? {}) as Record<string, unknown>;
     const targetDp = o.targetDp as string | undefined;
     const extraTargetDps = o.extraTargetDps as string[] | undefined;
+    const extraTargetDelays = o.extraTargetDelays as number[] | undefined;
     // Everything the adapter writes (#774) — targetDp plus the extra DPs, as main.js _timerTargets.
     const targets = useMemo(
         () => [...new Set([targetDp, ...(extraTargetDps ?? [])].map((id) => id?.trim() ?? '').filter(Boolean))],
@@ -502,6 +503,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             events,
             targetDp,
             extraTargetDps,
+            extraTargetDelays: extraTargetDelays?.some((d) => d > 0) ? extraTargetDelays : undefined,
             value: targetValue,
             allowEventValue,
             allowEventAnnounce: allowEventAnnounce || undefined,
@@ -525,6 +527,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         events,
         targetDp,
         extraTargetDps,
+        extraTargetDelays,
         targetValue,
         allowEventValue,
         allowEventAnnounce,

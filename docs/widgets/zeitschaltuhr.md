@@ -69,6 +69,7 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 | --- | --- | --- |
 | `targetDp` | — | Ziel-DP — ohne Ziel-DP feuert nichts |
 | `extraTargetDps` | — | Weitere Ziel-DPs („+ Weiterer Datenpunkt“), bekommen denselben Wert — z. B. mehrere Thermostate |
+| `extraTargetDelays` | — | Verzögerung je weiterem Ziel-DP in ms nach dem Auslösen (Feld „+ s“, Knopf „staffeln“) — z. B. Rollläden nacheinander anlaufen lassen; Ausschalten der Uhr verwirft offene Schaltungen |
 | `value` | `true` | Wert beim Auslösen |
 | `reapplyOnStart` | `false` | Beim Adapterstart den Wert schreiben, der laut Plan gerade gilt — siehe [Plan erneut anwenden](#plan-erneut-anwenden) |
 

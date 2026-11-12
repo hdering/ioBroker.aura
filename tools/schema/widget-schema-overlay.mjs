@@ -2047,6 +2047,11 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Weitere Datenpunkte, die bei jeder Schaltzeit (und bei Ausnahme-Werten) denselben Wert wie targetDp bekommen — z. B. mehrere Thermostate mit einem Zeitplan.',
         },
+        extraTargetDelays: {
+            description:
+                'Verzögerung in ms nach dem Auslösen je weiterem Ziel-DP, gleicher Index wie extraTargetDps (#974) — z. B. [0, 3000, 3000] lässt Rollläden gestaffelt anlaufen. targetDp schaltet immer sofort; fehlender Eintrag = 0, max. 600000. ' +
+                'Der Adapter führt die Folge aus; ein neues Auslösen, Ausschalten oder Löschen der Uhr verwirft noch offene Schreibvorgänge.',
+        },
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
         allowEventAnnounce: {

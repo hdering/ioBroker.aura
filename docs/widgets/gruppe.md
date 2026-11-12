@@ -48,3 +48,4 @@ Ein Steuerelement im Titel schaltet alle steuerbaren Kind-Datenpunkte gemeinsam.
 | `groupPulseValue` | `true` | Impuls-Wert (nur `momentary`) |
 | `groupPulseReset` | `false` | nach Verzögerung zurücksetzen (nur `momentary`) |
 | `groupPulseResetValue` / `groupPulseDelay` | `false` / `500` | Reset-Wert / Verzögerung in ms |
+| `groupStaggerMs` | `0` | Versatz zwischen Geräten in ms (Feld „Versatz zwischen Geräten“) — läuft im Adapter, Stopp wirkt sofort auf alle |

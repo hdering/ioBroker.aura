@@ -8203,6 +8203,10 @@
           ],
           "description": "Value the Taster action writes to every target. Default true."
         },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
+        },
         "groupSwitch": {
           "type": "boolean",
           "description": "Show the group action control in the header / title bar.",
@@ -11859,6 +11863,10 @@
           ],
           "description": "Value the Taster action writes to every target. Default true."
         },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
+        },
         "groupSwitch": {
           "type": "boolean",
           "description": "Show the group action control in the header / title bar.",
@@ -15474,6 +15482,10 @@
           ],
           "description": "Value the Taster action writes to every target. Default true."
         },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
+        },
         "groupSwitch": {
           "type": "boolean",
           "description": "Show the group action control in the header / title bar.",
@@ -18353,6 +18365,10 @@
             "boolean"
           ],
           "description": "Value the Taster action writes to every target. Default true."
+        },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
         },
         "groupSwitch": {
           "type": "boolean",
@@ -24203,6 +24219,13 @@
             "ref": "TimerEvent"
           },
           "description": "Die Schaltzeiten."
+        },
+        "extraTargetDelays": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Verzögerung in ms nach dem Auslösen je weiterem Ziel-DP, gleicher Index wie extraTargetDps (#974) — z. B. [0, 3000, 3000] lässt Rollläden gestaffelt anlaufen. targetDp schaltet immer sofort; fehlender Eintrag = 0, max. 600000. Der Adapter führt die Folge aus; ein neues Auslösen, Ausschalten oder Löschen der Uhr verwirft noch offene Schreibvorgänge."
         },
         "extraTargetDps": {
           "type": "array",
