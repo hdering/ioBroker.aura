@@ -23844,7 +23844,6 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
-        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",
@@ -23965,6 +23964,11 @@
         "showSetpoint": {
           "type": "boolean",
           "default": true
+        },
+        "statusDp": {
+          "description": "Rückmelde-Datenpunkt der Soll-Temperatur. Leer bei Haupt-DP \"….MANU_MODE\" (Homematic classic, meldet nie zurück) = automatisch der Geschwister-DP \"SET_TEMPERATURE\"; sonst leer = Haupt-DP.",
+          "type": "string",
+          "datapoint": true
         },
         "step": {
           "type": "number",

@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 
 - fix: Web components - after an adapter update the browser loads the new files of its components instead of cached ones (#954)
+- fix: Thermostat - with a Homematic MANU_MODE datapoint the widget now shows the setpoint from SET_TEMPERATURE, so changes made on the device itself appear (#973)

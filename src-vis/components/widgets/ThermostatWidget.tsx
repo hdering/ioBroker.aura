@@ -114,6 +114,16 @@ function fitDialValue(text: string): number {
     return Math.max(15, Math.min(30, DIAL_TEXT_W / (text.length * 0.62)));
 }
 
+/**
+ * Homematic classic MANU_MODE is a write-only action: writing a temperature switches the
+ * thermostat to manual with that setpoint, but the device never reports on it — the
+ * setpoint it confirms (also after turning the wheel on the device) lands in the sibling
+ * SET_TEMPERATURE. Without an explicit status DP the widget reads that one (#973).
+ */
+export function implicitThermostatStatusDp(mainDp: string | undefined): string {
+    return mainDp && /\.MANU_MODE$/.test(mainDp) ? mainDp.replace(/\.MANU_MODE$/, '.SET_TEMPERATURE') : '';
+}
+
 // ── main widget ────────────────────────────────────────────────────────────
 
 export function ThermostatWidget({ config }: WidgetProps) {
@@ -121,7 +131,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const actualDpId = (config.options?.actualDatapoint as string) || '';
     const { value: rawActual } = useDatapoint(actualDpId);
     // An optional status DP supplies the shown setpoint; writes still go to the main DP (#828).
-    const { value: rawTarget } = useReadBackDatapoint(config.datapoint, config.options?.statusDp);
+    const explicitStatusDp = typeof config.options?.statusDp === 'string' ? config.options.statusDp.trim() : '';
+    const { value: readBackTarget } = useReadBackDatapoint(
+        config.datapoint,
+        explicitStatusDp || implicitThermostatStatusDp(config.datapoint),
+    );
+    // Implicit Homematic read-back without a value (sibling missing): fall back to the main DP.
+    const { value: mainTarget } = useDatapoint(config.datapoint);
+    const rawTarget = explicitStatusDp ? readBackTarget : (readBackTarget ?? mainTarget);
     const { setState } = useIoBroker();
 
     const minTemp = (config.options?.minTemp as number) ?? 10;

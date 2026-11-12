@@ -475,6 +475,11 @@ export const WIDGET_OPTION_NOTES = {
     },
     thermostat: {
         actualDatapoint: { description: 'Datenpunkt der Ist-Temperatur (der Haupt-DP ist die Soll-Temperatur).' },
+        statusDp: {
+            description:
+                'Rückmelde-Datenpunkt der Soll-Temperatur. Leer bei Haupt-DP "….MANU_MODE" (Homematic classic, meldet nie zurück) = ' +
+                'automatisch der Geschwister-DP "SET_TEMPERATURE"; sonst leer = Haupt-DP.',
+        },
         minTemp: { description: 'Untere Grenze der Soll-Temperatur.' },
         maxTemp: { description: 'Obere Grenze der Soll-Temperatur.' },
         step: { description: 'Schrittweite der Soll-Temperatur.' },

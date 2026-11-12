@@ -19678,6 +19678,11 @@ function WidgetFrameInner({
                                             );
                                             if (v) patch.actualDatapoint = v;
                                         }
+                                        // Homematic MANU_MODE never reports back — SET_TEMPERATURE does (#973).
+                                        if (parts[parts.length - 1] === 'MANU_MODE' && !o.statusDp) {
+                                            const v = find('SET_TEMPERATURE');
+                                            if (v) patch.statusDp = v;
+                                        }
                                         if (Object.keys(patch).length) setO(patch);
                                     };
                                     return (
