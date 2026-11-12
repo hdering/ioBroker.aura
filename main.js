@@ -42,6 +42,7 @@ const {
     splitDashboard,
     exposeMarkers,
     buildVaultSections,
+    keepStubEntries,
     unredactView,
     restoreView,
     stampPinLengths,
@@ -1603,6 +1604,10 @@ class Aura extends utils.Adapter {
         // Shown markers (#944) come from the real view, not from the stub it arrived as.
         exposeMarkers(publicConfig, prot);
         const { sections, unresolved } = buildVaultSections(prot, data.sections || {}, data.codes || {});
+        const kept = keepStubEntries(publicConfig, sections, data.sections || {});
+        if (kept.length) {
+            this.log.debug(`aura: PIN vault — kept ${kept.length} view(s) saved as stub: ${kept.join(', ')}`);
+        }
         if (unresolved.length) {
             // A "keep the current PIN" marker pointed at a PIN the vault does not
             // know (only reachable by hand-editing the state). Never drop the view's

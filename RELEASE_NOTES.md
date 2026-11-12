@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
+- fix: PIN protection - the "Editable via MCP" switch no longer turns itself off when the dashboard is saved, and a protected view no longer answers "wrong PIN" after a save that held it only as a locked placeholder

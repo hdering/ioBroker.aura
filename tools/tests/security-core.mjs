@@ -266,6 +266,49 @@ const fullConfig = () => ({
     ok(orphan.unresolved.indexOf('section:sLocked') >= 0, 'orphan KEEP is reported as unresolved');
 }
 
+// ── A save keeps the MCP release and the entries of views saved as stubs ──────
+{
+    const first = vault.splitDashboard(fullConfig());
+    const { sections: existing } = vault.buildVaultSections(first.protected);
+    existing['section:sLocked'].mcpWrite = true;
+    existing['tab:sTabLock:tPin'].mcpWrite = true;
+
+    // Editor save: the section held with content (KEEP), the tab only as a stub —
+    // it was never merged, or the state changed under the editor (MCP).
+    const save = fullConfig();
+    save.layouts[0].sections[1].pin = vault.KEEP_PIN;
+    const tPin = save.layouts[0].sections[2].tabs[1];
+    for (const k of Object.keys(tPin)) {
+        if (!['id', 'name', 'slug'].includes(k)) {
+            delete tPin[k];
+        }
+    }
+    Object.assign(tPin, { pinProtected: true, widgets: [] });
+    const split = vault.splitDashboard(save);
+    const { sections } = vault.buildVaultSections(split.protected, existing);
+
+    ok(sections['section:sLocked'].mcpWrite === true, 'a save keeps „Über MCP bearbeitbar“');
+    ok(!sections['tab:sTabLock:tPin'], 'a stub-only view is not in the split (the old loss)');
+    const kept = vault.keepStubEntries(split.publicConfig, sections, existing);
+    ok(kept.length === 1 && kept[0] === 'tab:sTabLock:tPin', 'keepStubEntries carries the stub view over');
+    const t = sections['tab:sTabLock:tPin'];
+    ok(auth.verifySecret('9999', t.salt, t.hash), '… so its PIN still opens it');
+    ok(t.content.widgets[0].id === 'wHidden' && t.mcpWrite === true, '… with content and release');
+
+    // A view that is gone from the config is still dropped.
+    const gone = fullConfig();
+    gone.layouts[0].sections[1].pin = vault.KEEP_PIN;
+    gone.layouts[0].sections[2].tabs.pop();
+    const split2 = vault.splitDashboard(gone);
+    const { sections: s2 } = vault.buildVaultSections(split2.protected, existing);
+    ok(vault.keepStubEntries(split2.publicConfig, s2, existing).length === 0, 'a deleted view is not kept');
+    ok(!s2['tab:sTabLock:tPin'], '… and its entry goes');
+
+    // A view without a previous release does not gain one.
+    const fresh = vault.buildVaultSections(vault.splitDashboard(fullConfig()).protected, {}).sections;
+    ok(fresh['section:sLocked'].mcpWrite === undefined, 'no release out of nowhere');
+}
+
 // ── Linked PIN (pinFrom): a view follows the PIN of another one ──────────────
 {
     // A new tab takes the PIN of the section: no own hash yet → LINK sentinel.
