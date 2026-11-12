@@ -31,6 +31,8 @@ interface Props {
 type PickerTarget = 'target' | 'holidays' | 'vacation' | number;
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+// Small number fields (delay per DP, #974): fixed width — inputCls' w-full would win over w-14.
+const smallInputCls = 'w-14 shrink-0 min-w-0 text-xs rounded-lg px-1.5 py-2 text-right tabular-nums focus:outline-none';
 const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
     color: 'var(--text-primary)',
@@ -410,7 +412,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                         placeholder="+0 s"
                                         title="Verzögerung nach dem Auslösen in Sekunden"
                                         aria-label="Verzögerung in Sekunden"
-                                        className={`w-14 shrink-0 tabular-nums ${inputCls}`}
+                                        className={smallInputCls}
                                         style={inputStyle}
                                     />
                                     <button
@@ -442,7 +444,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                         value={staggerStep}
                                         onChange={(e) => setStaggerStep(e.target.value)}
                                         aria-label="Abstand in Sekunden"
-                                        className={`w-14 tabular-nums ${inputCls}`}
+                                        className={smallInputCls}
                                         style={inputStyle}
                                     />
                                     <span style={{ color: 'var(--text-secondary)' }}>s</span>
