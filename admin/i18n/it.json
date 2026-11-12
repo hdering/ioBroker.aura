@@ -1,6 +1,5 @@
 {
     "Base URL": "URL base",
-    "Custom URL (optional)": "URL personalizzato (opzionale)",
     "MCP token generated": "Token MCP generato",
     "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:<port>).": "Sostituisce i link mostrati nella panoramica ioBroker e nelle istanze. Lasciare vuoto per usare il valore predefinito (http://<ip>:<port>).",
     "Pick a web instance below - otherwise Aura can only be opened on the ioBroker machine itself.": "Scegli un'istanza web qui sotto, altrimenti Aura potrà essere aperta solo sulla macchina ioBroker stessa.",

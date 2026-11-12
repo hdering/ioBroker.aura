@@ -17,7 +17,7 @@ const { WidgetPublishEngine, PUBLISH_STATE_DEFS, collectWidgets } = require('./l
 const LEGACY_BATTERY_HISTORY_ID = '0_userdata.0.Batterien.Verlauf';
 
 /** Channel names of aura.<inst>.status.<cat> (Statusübersicht, remembered hints). */
-const STATUS_CATEGORY_NAMES = { battery: 'Batterien', unreach: 'Nicht erreichbar', alarm: 'Rauch- & Wasser-Alarme' };
+const STATUS_CATEGORY_NAMES = { battery: 'Batteries', unreach: 'Unreachable', alarm: 'Smoke & water alarms' };
 const { parseSpecialDays } = require('./lib/specialDays');
 const {
     activeException,
@@ -184,7 +184,7 @@ const POPUP_CLOSE_OBJ = {
         name: 'Close all open popups (true; reset by the client)',
         type: 'boolean',
         role: 'button',
-        read: true,
+        read: false,
         write: true,
         def: false,
     },
@@ -2543,7 +2543,7 @@ class Aura extends utils.Adapter {
                 // for each WS upgrade — useful when chasing "No sid found" / protocol
                 // mismatches. Enable the adapter's debug log level to see it.
                 this.log.debug(
-                    `aura: WS upgrade in="${req.url}" pure=${isPureWs} sid="${parsedUrl.searchParams.get('sid') ?? ''}" injected=${injected} -> "${targetReqUrl}"`,
+                    `aura: WS upgrade in="${parsedUrl.pathname}" pure=${isPureWs} sid=${parsedUrl.searchParams.has('sid') ? 'present' : 'none'} injected=${injected} -> "${String(targetReqUrl).split('?')[0]}"`,
                 );
                 proxyWebSocket(
                     req,
@@ -3473,6 +3473,22 @@ class Aura extends utils.Adapter {
             native: {},
         });
         await this.setObjectNotExistsAsync(`clients.${cId}.popup.close`, POPUP_CLOSE_OBJ);
+        await this._alignCommon(`clients.${cId}.popup.close`, { read: false });
+    }
+
+    /**
+     * Brings `common` fields of an object created by an older version in line —
+     * setObjectNotExists leaves existing objects untouched (English names, role flags).
+     */
+    async _alignCommon(id, common) {
+        try {
+            const obj = await this.getObjectAsync(id);
+            if (!obj) return;
+            const stale = Object.entries(common).some(([k, v]) => obj.common?.[k] !== v);
+            if (stale) await this.extendObjectAsync(id, { common });
+        } catch (e) {
+            this.log.debug(`aura: align ${id} failed: ${e.message}`);
+        }
     }
 
     /**
@@ -4054,9 +4070,10 @@ class Aura extends utils.Adapter {
         });
         await this.setObjectNotExistsAsync('timers', {
             type: 'channel',
-            common: { name: 'Zeitschaltuhren (timer widgets)' },
+            common: { name: 'Timers (timer widgets)' },
             native: {},
         });
+        await this._alignCommon('timers', { name: 'Timers (timer widgets)' });
         await this.setObjectNotExistsAsync('panels', {
             type: 'channel',
             common: { name: 'Panels widget slide selectors' },
@@ -4111,6 +4128,7 @@ class Aura extends utils.Adapter {
             native: {},
         });
         await this.setObjectNotExistsAsync('popup.close', POPUP_CLOSE_OBJ);
+        await this._alignCommon('popup.close', { read: false });
 
         await this.setObjectNotExistsAsync('config.dashboard', {
             type: 'state',
@@ -4145,7 +4163,7 @@ class Aura extends utils.Adapter {
         await this.setObjectNotExistsAsync('info.activeSection', {
             type: 'state',
             common: {
-                name: 'Currently displayed section (Bereich)',
+                name: 'Currently displayed section',
                 type: 'string',
                 role: 'text',
                 read: true,
@@ -4154,6 +4172,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon('info.activeSection', { name: 'Currently displayed section' });
         await this.setObjectNotExistsAsync('info.activeTab', {
             type: 'state',
             common: {
@@ -4958,7 +4977,7 @@ class Aura extends utils.Adapter {
         const base = `timers.${widgetId}`;
         const ch = await this.getObjectAsync(base);
         if (!ch) return;
-        const want = title || 'Zeitschaltuhr';
+        const want = title || 'Timer';
         if (ch.common?.name === want) return;
         await this.extendObjectAsync(base, { common: { name: want } });
         await this.extendObjectAsync(`${base}.config`, { common: { name: `${want} — config` } });
@@ -5212,7 +5231,7 @@ class Aura extends utils.Adapter {
             await this.setObjectNotExistsAsync(`timers.${widgetId}.reapply`, {
                 type: 'state',
                 common: {
-                    name: `${title || 'Zeitschaltuhr'} — reapply`,
+                    name: `${title || 'Timer'} — reapply`,
                     desc: 'true = write the value the schedule wants right now',
                     type: 'boolean',
                     role: 'button',
@@ -5674,9 +5693,10 @@ class Aura extends utils.Adapter {
         try {
             await this.setObjectNotExistsAsync('status', {
                 type: 'channel',
-                common: { name: 'Statusübersicht – gemerkte Hinweise' },
+                common: { name: 'Status overview - remembered hints' },
                 native: {},
             });
+            await this._alignCommon('status', { name: 'Status overview - remembered hints' });
             await this.setObjectNotExistsAsync('status.register', {
                 type: 'state',
                 common: {
@@ -5695,6 +5715,7 @@ class Aura extends utils.Adapter {
                     common: { name: STATUS_CATEGORY_NAMES[cat] || cat },
                     native: {},
                 });
+                await this._alignCommon(`status.${cat}`, { name: STATUS_CATEGORY_NAMES[cat] || cat });
                 for (const [sub, def] of Object.entries(STATUS_STATE_DEFS)) {
                     await this.setObjectNotExistsAsync(`status.${cat}.${sub}`, {
                         type: 'state',

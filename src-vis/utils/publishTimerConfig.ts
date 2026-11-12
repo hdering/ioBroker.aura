@@ -74,13 +74,13 @@ function ensureObjects(widgetId: string, title: string): Promise<void> {
     const p = (async () => {
         await setObjectAsync(timerChannelId(widgetId), {
             type: 'channel',
-            common: { name: title || 'Zeitschaltuhr' },
+            common: { name: title || 'Timer' },
             native: {},
         });
         await setObjectAsync(timerConfigStateId(widgetId), {
             type: 'state',
             common: {
-                name: `${title || 'Zeitschaltuhr'} — config`,
+                name: `${title || 'Timer'} — config`,
                 type: 'string',
                 role: 'json',
                 read: true,
@@ -92,7 +92,7 @@ function ensureObjects(widgetId: string, title: string): Promise<void> {
         await setObjectAsync(timerEnabledStateId(widgetId), {
             type: 'state',
             common: {
-                name: `${title || 'Zeitschaltuhr'} — enabled`,
+                name: `${title || 'Timer'} — enabled`,
                 type: 'boolean',
                 role: 'switch',
                 read: true,
@@ -215,7 +215,7 @@ export function renameTimerForWidget(
     if (typeof stateBaseId !== 'string') return;
     const backendKey = stateBaseId.split('.').pop();
     if (!backendKey) return;
-    const title = widget.title || 'Zeitschaltuhr';
+    const title = widget.title || 'Timer';
     if (lastRenameSent.get(backendKey) === title) return;
     lastRenameSent.set(backendKey, title);
     void sendToDirect(NS, 'renameTimer', { widgetId: backendKey, title });

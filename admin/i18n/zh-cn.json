@@ -1,6 +1,5 @@
 {
     "Base URL": "基础 URL",
-    "Custom URL (optional)": "自定义 URL（可选）",
     "MCP token generated": "已生成 MCP 令牌",
     "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:<port>).": "覆盖 ioBroker 概览和实例中显示的链接。留空则使用默认值 (http://<ip>:<port>)。",
     "Pick a web instance below - otherwise Aura can only be opened on the ioBroker machine itself.": "请在下方选择一个 Web 实例，否则只能在 ioBroker 主机本身上打开 Aura。",
