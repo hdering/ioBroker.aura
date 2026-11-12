@@ -117,7 +117,7 @@ const frame = (u) => `/feed/frame?url=${encodeURIComponent(u)}`;
 
 // ── routing ──
 {
-    const p = createFeedProxy();
+    const p = createFeedProxy({ allowLocalTargets: true });
     check('other paths are not handled', !(await call(p, '/icons/x.json')).handled);
     check('POST is not handled', !(await call(p, feed(`${ORIGIN}/latin1.xml`), 'POST')).handled);
     const bad = await call(p, feed('file:///etc/passwd'));
@@ -127,7 +127,7 @@ const frame = (u) => `/feed/frame?url=${encodeURIComponent(u)}`;
 
 // ── bytes, cache, stale ──
 {
-    const p = createFeedProxy();
+    const p = createFeedProxy({ allowLocalTargets: true });
     const a = await call(p, feed(`${ORIGIN}/latin1.xml`));
     check('feed served', a.res.status === 200, String(a.res.status));
     check('bytes untouched (Latin-1)', a.res.body.equals(latin1));
@@ -147,7 +147,7 @@ const frame = (u) => `/feed/frame?url=${encodeURIComponent(u)}`;
     check('ttl floor of 60 s', upstream.hits['/latin1.xml'] === 1);
 
     // A fresh proxy with a cached copy whose ttl ran out, publisher down → stale copy
-    const p2 = createFeedProxy();
+    const p2 = createFeedProxy({ allowLocalTargets: true });
     upstream.hits = {};
     await call(p2, feed(`${ORIGIN}/gzip.xml`));
     check('gzip unpacked', (await call(p2, feed(`${ORIGIN}/gzip.xml`))).res.body.toString() === RSS);
@@ -162,14 +162,14 @@ const frame = (u) => `/feed/frame?url=${encodeURIComponent(u)}`;
     check('refresh was attempted', upstream.hits['/gzip.xml'] === 2, String(upstream.hits['/gzip.xml']));
 
     upstream.fail = true;
-    const down = await call(createFeedProxy(), feed(`${ORIGIN}/gzip.xml`));
+    const down = await call(createFeedProxy({ allowLocalTargets: true }), feed(`${ORIGIN}/gzip.xml`));
     upstream.fail = false;
     check('no copy + failure → 502', down.res.status === 502, String(down.res.status));
 }
 
 // ── concurrency, redirects, size ──
 {
-    const p = createFeedProxy();
+    const p = createFeedProxy({ allowLocalTargets: true });
     upstream.hits = {};
     upstream.delay = 150;
     const all = await Promise.all([1, 2, 3, 4].map(() => call(p, feed(`${ORIGIN}/latin1.xml`))));
@@ -198,12 +198,12 @@ const frame = (u) => `/feed/frame?url=${encodeURIComponent(u)}`;
     check('frame-ancestors * → embeddable', frameAllowed({ 'content-security-policy': 'frame-ancestors *' }));
     check("frame-ancestors 'none' → not", !frameAllowed({ 'content-security-policy': "frame-ancestors 'none'" }));
 
-    const p = createFeedProxy();
+    const p = createFeedProxy({ allowLocalTargets: true });
     const json = async (u) => JSON.parse((await call(p, frame(u))).res.body.toString());
     check('X-Frame-Options page not embeddable', (await json(`${ORIGIN}/article-deny`)).embeddable === false);
     check('frame-ancestors page not embeddable', (await json(`${ORIGIN2}/article-csp`)).embeddable === false);
 
-    const p2 = createFeedProxy();
+    const p2 = createFeedProxy({ allowLocalTargets: true });
     upstream.hits = {};
     const ok = JSON.parse((await call(p2, frame(`${ORIGIN}/article-head405`))).res.body.toString());
     check('HEAD 405 falls back to GET', ok.embeddable === true && upstream.hits['/article-head405'] === 2);
@@ -211,8 +211,20 @@ const frame = (u) => `/feed/frame?url=${encodeURIComponent(u)}`;
     await call(p2, frame(`${ORIGIN}/article-deny`));
     check('answered per host', !upstream.hits['/article-deny'], String(upstream.hits['/article-deny']));
 
-    const dead = JSON.parse((await call(createFeedProxy(), frame('http://127.0.0.1:9/x'))).res.body.toString());
+    const dead = JSON.parse(
+        (await call(createFeedProxy({ allowLocalTargets: true }), frame('http://127.0.0.1:9/x'))).res.body.toString(),
+    );
     check('unreachable → not embeddable', dead.embeddable === false);
+}
+
+// ── targets on the ioBroker host are refused by default (lib/proxyGuard.js) ──
+{
+    const p = createFeedProxy();
+    upstream.hits = {};
+    const ip = await call(p, feed(`${ORIGIN}/latin1.xml`));
+    check('loopback ip refused', ip.res.status === 502 && !upstream.hits['/latin1.xml'], String(ip.res.status));
+    const name = await call(p, feed(`${ORIGIN2}/latin1.xml`));
+    check('localhost name refused', name.res.status === 502 && !upstream.hits['/latin1.xml'], String(name.res.status));
 }
 
 server.close();

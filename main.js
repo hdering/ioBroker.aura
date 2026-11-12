@@ -64,6 +64,7 @@ const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
 const { createAnnouncements } = require('./lib/announcements');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
+const { isBlockedHost, guardedLookup, isCrossSite } = require('./lib/proxyGuard');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
 const { adapterTimers } = require('./lib/timers');
@@ -546,7 +547,7 @@ function applyForwardedHeaders(headers, req) {
     if (req.headers['host']) headers['X-Forwarded-Host'] = req.headers['x-forwarded-host'] || req.headers['host'];
 }
 
-function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) {
+function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, guard = false) {
     let targetUrl;
     try {
         targetUrl = new URL(targetWsUrl);
@@ -573,6 +574,8 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) 
         },
         rejectUnauthorized: false,
     };
+    // User-supplied iframe targets (/proxyws): nothing on the ioBroker host itself.
+    if (guard) opts.lookup = guardedLookup;
     if (req.headers['sec-websocket-protocol'])
         opts.headers['Sec-WebSocket-Protocol'] = req.headers['sec-websocket-protocol'];
     if (req.headers['cookie']) opts.headers['Cookie'] = req.headers['cookie'];
@@ -2050,6 +2053,19 @@ class Aura extends utils.Adapter {
             if (adapterIcons.handle(req, res, parsedUrl)) {
                 return;
             }
+            // Proxy and file routes answer only Aura's own pages, not a foreign web
+            // page driving a visitor's browser (lib/proxyGuard.js).
+            if (
+                (pathname === '/proxy' ||
+                    pathname === '/feed' ||
+                    pathname.startsWith('/feed/') ||
+                    pathname.startsWith('/fs/')) &&
+                isCrossSite(req)
+            ) {
+                res.writeHead(403);
+                res.end('Cross-site request refused');
+                return;
+            }
             if (feedProxy.handle(req, res, parsedUrl)) {
                 return;
             }
@@ -2099,6 +2115,11 @@ class Aura extends utils.Adapter {
                     res.end(`Invalid proxy URL: ${e.message}`);
                     return;
                 }
+                if (isBlockedHost(targetUrl.hostname)) {
+                    res.writeHead(403);
+                    res.end('Proxy target not allowed');
+                    return;
+                }
 
                 const lib = targetUrl.protocol === 'https:' ? https : http;
                 const fwdHeaders = buildFwdHeaders(req);
@@ -2112,6 +2133,7 @@ class Aura extends utils.Adapter {
                     timeout: PROXY_TIMEOUT_MS,
                     headers: fwdHeaders,
                     rejectUnauthorized: false,
+                    lookup: guardedLookup,
                 };
 
                 const proxyReq = lib.request(reqOptions, (proxyRes) => {
@@ -2161,7 +2183,7 @@ class Aura extends utils.Adapter {
                 });
                 proxyReq.on('error', (e) => {
                     if (!res.headersSent) {
-                        res.writeHead(502);
+                        res.writeHead(/** @type {NodeJS.ErrnoException} */ (e).code === 'EAURABLOCKED' ? 403 : 502);
                         res.end(`Proxy error: ${e.message}`);
                     }
                 });
@@ -2560,7 +2582,18 @@ class Aura extends utils.Adapter {
                 socket.destroy();
                 return;
             }
-            proxyWebSocket(req, socket, targetWsUrl, this.log);
+            let wsHost = '';
+            try {
+                wsHost = new URL(targetWsUrl).hostname;
+            } catch {
+                /* proxyWebSocket answers 400 */
+            }
+            if (isCrossSite(req) || (wsHost && isBlockedHost(wsHost))) {
+                socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+                socket.destroy();
+                return;
+            }
+            proxyWebSocket(req, socket, targetWsUrl, this.log, true, true);
         });
 
         const bindAddr = listenAddress(this.config.bind);
