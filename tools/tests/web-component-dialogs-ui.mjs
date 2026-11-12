@@ -70,7 +70,7 @@ async function openPage(viewport, theme = 'light') {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.route('**/adapter/aura-demo/webcomponents/**', (route) => {
-        const url = route.request().url();
+        const url = new URL(route.request().url()).pathname;
         if (url.endsWith('.json')) {
             return route.fulfill({ contentType: 'application/json', body: JSON.stringify(manifest) });
         }
