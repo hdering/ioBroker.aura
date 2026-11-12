@@ -1,8 +1,14 @@
 import { useEffect, useId, useState } from 'react';
 import { Database } from 'lucide-react';
-import { getText, type WebComponentSetting } from '@iobroker/web-components';
+import {
+    getSendToRequest,
+    getText,
+    toSendToOptions,
+    type WebComponentSetting,
+    type WebComponentSettingOption,
+} from '@iobroker/web-components';
 import { useT } from '../../i18n';
-import { getObjectViewDirect } from '../../hooks/useIoBroker';
+import { getObjectViewDirect, sendToDirect } from '../../hooks/useIoBroker';
 import { evalSettingExpr, objectIdOfRow } from '../../utils/webComponentHost';
 import { DatapointPicker } from './DatapointPicker';
 
@@ -14,8 +20,10 @@ import { DatapointPicker } from './DatapointPicker';
  *
  * Supported: text (minRows), password, number, slider, checkbox, color, select,
  * objectId (states through the datapoint picker; other `types` below `root` as a
- * list), instance (adapter), header, staticText, divider; `hidden` / `disabled`
- * expressions over `data` and `help` texts.
+ * list), instance (adapter), selectSendTo / autocompleteSendTo (the options come
+ * from the adapter via sendTo, a text field when it gives none), header,
+ * staticText, divider; `hidden` / `disabled` expressions over `data` and `help`
+ * texts.
  */
 
 export type WebComponentLang = 'en' | 'de' | 'ru' | 'pt' | 'nl' | 'fr' | 'it' | 'es' | 'pl' | 'uk' | 'zh-cn';
@@ -188,6 +196,159 @@ function InstanceSelect({
     );
 }
 
+/** How long a `selectSendTo` / `autocompleteSendTo` waits for the instance - a stopped one never answers */
+const SEND_TO_TIMEOUT_MS = 10000;
+
+type SendToList =
+    | { state: 'none' }
+    | { state: 'loading'; instance: string }
+    | { state: 'failed'; instance: string }
+    | { state: 'ready'; instance: string; options: WebComponentSettingOption[] };
+
+/**
+ * The options of a `selectSendTo` / `autocompleteSendTo`: asked from the instance
+ * whenever the request changes (message, instance, `alsoDependsOn`) - a moment
+ * after the last change, so typing into a field the message depends on asks once.
+ */
+function useSendToOptions(item: WebComponentSetting, data: Record<string, unknown>, adapter: string): SendToList {
+    const request = getSendToRequest(item, data, adapter);
+    const key = request?.key ?? '';
+    const [list, setList] = useState<SendToList>({ state: 'none' });
+    useEffect(() => {
+        if (!request) {
+            setList({ state: 'none' });
+            return;
+        }
+        let alive = true;
+        const { instance, command, data: message } = request;
+        setList({ state: 'loading', instance });
+        const timer = setTimeout(() => {
+            void sendToDirect(instance, command, message, SEND_TO_TIMEOUT_MS)
+                .catch(() => null)
+                .then((answer) => {
+                    if (!alive) return;
+                    setList(
+                        Array.isArray(answer)
+                            ? { state: 'ready', instance, options: toSendToOptions(answer) }
+                            : { state: 'failed', instance },
+                    );
+                });
+        }, 300);
+        return () => {
+            alive = false;
+            clearTimeout(timer);
+        };
+        // the key stands for the request
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key]);
+    return list;
+}
+
+/**
+ * `selectSendTo` and `autocompleteSendTo` of JSON-Config: a list the adapter
+ * gives at runtime (its locations, devices, …). Without an answer - no instance
+ * chosen, instance stopped, no handler - a text field, so the value stays editable.
+ */
+function SendToField({
+    id,
+    item,
+    value,
+    data,
+    adapter,
+    lang,
+    disabled,
+    onSet,
+}: {
+    id: string;
+    item: WebComponentSetting;
+    value: unknown;
+    data: Record<string, unknown>;
+    adapter: string;
+    lang: WebComponentLang;
+    disabled: boolean;
+    onSet: (v: unknown) => void;
+}) {
+    const t = useT();
+    const list = useSendToOptions(item, data, adapter);
+    const current = value === undefined || value === null ? '' : String(value);
+    const autocomplete = item.type === 'autocompleteSendTo';
+    const options: WebComponentSettingOption[] = [
+        ...(autocomplete ? (item.options ?? []) : []),
+        ...(list.state === 'ready' ? list.options : []),
+    ];
+    const pick = (text: string) => {
+        const option = options.find((o) => String(o.value) === text);
+        onSet(option ? option.value : text);
+    };
+    const hint = (text: string) => (
+        <p className="text-[10px] mt-0.5" style={wcHintStyle}>
+            {text}
+        </p>
+    );
+
+    if (list.state === 'ready' && !autocomplete) {
+        return (
+            <select
+                id={id}
+                value={current}
+                disabled={disabled}
+                onChange={(e) => pick(e.target.value)}
+                className={wcInputCls}
+                style={wcInputStyle}
+            >
+                <option value="">{options.length ? '–' : t('wc.noObjects')}</option>
+                {current && !options.some((o) => String(o.value) === current) && (
+                    <option value={current}>
+                        {options.length ? t('wc.objectNotFound', { id: current }) : current}
+                    </option>
+                )}
+                {options.map((o) => (
+                    <option key={String(o.value)} value={String(o.value)}>
+                        {getText(o.label, lang)}
+                    </option>
+                ))}
+            </select>
+        );
+    }
+
+    // autocomplete, and the text field while the list is missing
+    const listId = `${id}-options`;
+    const notInList =
+        autocomplete &&
+        !item.freeSolo &&
+        list.state === 'ready' &&
+        current !== '' &&
+        !options.some((o) => String(o.value) === current);
+    return (
+        <>
+            <input
+                id={id}
+                type="text"
+                list={options.length ? listId : undefined}
+                value={current}
+                maxLength={autocomplete ? item.maxLength : undefined}
+                disabled={disabled}
+                onChange={(e) => pick(e.target.value)}
+                className={wcInputCls}
+                style={wcInputStyle}
+            />
+            {options.length > 0 && (
+                <datalist id={listId}>
+                    {options.map((o) => (
+                        <option key={String(o.value)} value={String(o.value)}>
+                            {getText(o.label, lang)}
+                        </option>
+                    ))}
+                </datalist>
+            )}
+            {list.state === 'loading' && hint(t('wc.sendTo.loading', { instance: list.instance }))}
+            {list.state === 'failed' && hint(t('wc.sendTo.failed', { instance: list.instance }))}
+            {list.state === 'none' && hint(t('wc.sendTo.noInstance'))}
+            {notInList && hint(t('wc.sendTo.notInList', { value: current }))}
+        </>
+    );
+}
+
 /** `root` of an objectId setting: that object and the ones below it only */
 function rootFilter(root: string | undefined): ((id: string) => boolean) | undefined {
     if (!root) return undefined;
@@ -201,6 +362,8 @@ interface Props {
     data: Record<string, unknown>;
     /** Language of the labels, options and help texts */
     lang: WebComponentLang;
+    /** The adapter that brings the component: a `selectSendTo` without `instance` asks its first instance */
+    adapter?: string;
     /**
      * A field changed; `undefined` for a number field that was cleared
      *
@@ -215,7 +378,7 @@ interface Props {
  * `onSet`, so the caller decides where they are kept (the widget options, the
  * state of a dialog).
  */
-export function WebComponentFields({ items, data, lang, onSet }: Props) {
+export function WebComponentFields({ items, data, lang, adapter = '', onSet }: Props) {
     const t = useT();
     const idPrefix = useId();
     const [picking, setPicking] = useState<string | null>(null);
@@ -389,6 +552,21 @@ export function WebComponentFields({ items, data, lang, onSet }: Props) {
                             <Database size={13} />
                         </button>
                     </div>
+                );
+                break;
+            case 'selectSendTo':
+            case 'autocompleteSendTo':
+                input = (
+                    <SendToField
+                        id={fieldId}
+                        item={item}
+                        value={value}
+                        data={data}
+                        adapter={adapter}
+                        lang={lang}
+                        disabled={disabled}
+                        onSet={(v) => onSet(key, v)}
+                    />
                 );
                 break;
             case 'instance':

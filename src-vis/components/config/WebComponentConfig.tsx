@@ -353,6 +353,7 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
                                 items={Object.fromEntries(own)}
                                 data={data}
                                 lang={lang}
+                                adapter={component.adapter}
                                 onSet={setValue}
                             />
                             {/* covered by the widget frame: shown greyed with the reason, never handed over */}

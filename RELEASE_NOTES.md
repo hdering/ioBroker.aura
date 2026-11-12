@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 
 - fix: Web components - after an adapter update the browser loads the new files of its components instead of cached ones (#954)
+- feat: Web components - settings can offer a list that the adapter provides (e.g. its locations or devices); without an answer from the instance a text field is shown
