@@ -871,6 +871,144 @@ check(
     ['a.0.b', 'a.0.c'],
 );
 
+// ── versioned URLs and a catalog read again ──────────────────────────────
+{
+    check(
+        'version: the adapter version as query of a URL',
+        [
+            m.versionedUrl('http://h/adapter/flow/wc/d.json', '1.2.0'),
+            m.versionedUrl('http://h/adapter/flow/wc/d.js?v=1.1.0&x=1', '1.2.0'),
+            m.versionedUrl('http://h/adapter/flow/wc/d.js', ''),
+            m.versionedUrl('not a url', '1.0.0'),
+        ],
+        [
+            'http://h/adapter/flow/wc/d.json?v=1.2.0',
+            'http://h/adapter/flow/wc/d.js?v=1.2.0&x=1',
+            'http://h/adapter/flow/wc/d.js',
+            'not a url',
+        ],
+    );
+
+    // the real loader of the package: the versioned manifest URL is read, the module URL
+    // (relative to the manifest, so without its query) gets the version as well
+    const pkg = await import('@iobroker/web-components');
+    const manifestOf = (tag, module) => ({
+        manifestVersion: 1,
+        tag,
+        name: 'D',
+        module,
+        icon: 'd.svg',
+        settings: { type: 'panel', items: {} },
+    });
+    const read = [];
+    const sources = m.versionedSources(
+        pkg.getWebComponentSources(
+            [{ _id: 'system.adapter.flow.0', common: { version: '1.2.0', webComponents: ['wc/d.json'] } }],
+            'http://h:8095/index.html',
+        ),
+    );
+    const loaded = (
+        await pkg.loadWebComponents(sources, {
+            readManifest: async (url) => {
+                read.push(url);
+                return manifestOf('iob-versioned-d', 'd.js');
+            },
+            log: { error() {}, warn() {} },
+        })
+    ).map(m.versionedModule);
+    check('version: the manifest is read under its versioned URL', read, [
+        'http://h:8095/adapter/flow/wc/d.json?v=1.2.0',
+    ]);
+    check(
+        'version: the module URL is versioned too',
+        loaded[0].moduleUrl,
+        'http://h:8095/adapter/flow/wc/d.js?v=1.2.0',
+    );
+    check(
+        'version: the icon still resolves next to the manifest',
+        m.webComponentPickerEntries(loaded, 'en')[0].iconUrl,
+        'http://h:8095/adapter/flow/wc/d.svg',
+    );
+    // importWebComponent: once per URL, and the tag check still holds
+    const defined = new Set();
+    globalThis.customElements ??= { get: (tag) => (defined.has(tag) ? class {} : undefined) };
+    const imported = [];
+    const importer = async (url) => {
+        imported.push(url);
+        defined.add('iob-versioned-d');
+        return {};
+    };
+    await pkg.importWebComponent(loaded[0], { importer });
+    await pkg.importWebComponent(loaded[0], { importer });
+    check('version: the versioned module is imported once', imported, ['http://h:8095/adapter/flow/wc/d.js?v=1.2.0']);
+    let rejected = '';
+    await pkg
+        .importWebComponent(
+            {
+                ...loaded[0],
+                moduleUrl: 'http://h:8095/adapter/flow/wc/other.js?v=1.2.0',
+                manifest: manifestOf('iob-x-none', 'other.js'),
+            },
+            { importer: async () => ({}) },
+        )
+        .catch((e) => (rejected = e.message));
+    check(
+        'version: a module that does not define its tag is still refused',
+        /does not define <iob-x-none>/.test(rejected),
+        true,
+    );
+    // an older component: a module exporting its manifest, imported at once under the versioned URL
+    const legacyImports = [];
+    const legacy = (
+        await pkg.loadWebComponents(
+            m.versionedSources([{ url: 'http://h:8095/adapter/old/wc/old.js', adapter: 'old', version: '0.2.0' }]),
+            {
+                importer: async (url) => {
+                    legacyImports.push(url);
+                    defined.add('iob-legacy-old');
+                    return { manifest: manifestOf('iob-legacy-old', undefined) };
+                },
+                log: { error() {}, warn() {} },
+            },
+        )
+    ).map(m.versionedModule);
+    check(
+        'version: a module that exports its manifest keeps one versioned URL',
+        [legacyImports, legacy[0].moduleUrl],
+        [['http://h:8095/adapter/old/wc/old.js?v=0.2.0'], 'http://h:8095/adapter/old/wc/old.js?v=0.2.0'],
+    );
+
+    // merging a catalog read again
+    const comp = (adapter, tag, version, extra = {}) => ({
+        url: `http://h/adapter/${adapter}/${tag}.json?v=${version}`,
+        adapter,
+        version,
+        moduleUrl: `http://h/adapter/${adapter}/${tag}.js?v=${version}`,
+        manifest: { ...manifestOf(tag, `${tag}.js`), ...extra },
+    });
+    const before = [comp('flow', 'iob-a', '1.0.0'), comp('flow', 'iob-b', '1.0.0'), comp('x', 'iob-c', '2.0.0')];
+    const after = [
+        comp('flow', 'iob-a', '1.1.0'), // updated, its element is defined
+        comp('flow', 'iob-b', '1.1.0'), // updated, never shown
+        comp('x', 'iob-c', '2.0.0'), // unchanged
+        comp('y', 'iob-d', '1.0.0'), // new
+    ];
+    const merged = m.mergeCatalog(after, before, (tag) => tag === 'iob-a');
+    check(
+        'merge: a defined element keeps the module it was imported from, the rest takes the new one',
+        merged.map((c) => c.moduleUrl.replace('http://h/adapter/', '')),
+        ['flow/iob-a.js?v=1.0.0', 'flow/iob-b.js?v=1.1.0', 'x/iob-c.js?v=2.0.0', 'y/iob-d.js?v=1.0.0'],
+    );
+    check('merge: the new manifest is taken all the same', merged[0].url, after[0].url);
+    check(
+        'merge: an unchanged component stays the same object, a changed one does not',
+        [merged[2] === before[2], merged[0] === before[0], merged[3] === after[3]],
+        [true, false, true],
+    );
+    const changedSettings = m.mergeCatalog([comp('x', 'iob-c', '2.0.0', { name: 'New name' })], before, () => true);
+    check('merge: a changed manifest of the same version is a new object', changedSettings[0] === before[2], false);
+}
+
 if (failed) {
     console.error(`\n${failed} check(s) failed`);
     process.exit(1);

@@ -13,6 +13,8 @@
  *   every installed component as an entry of its own in the "add widget" dialog.
  * - `KNOWN_WEB_COMPONENTS` / `findKnownWebComponent` - components offered even
  *   before their adapter is installed.
+ * - `versionedSources` / `versionedModule` / `mergeCatalog` - versioned URLs, so an
+ *   adapter update is not served from the browser cache, and a catalog read again.
  */
 import {
     getDefaultSettings,
@@ -613,4 +615,76 @@ export function webComponentGridSize(
 export function objectIdOfRow(row: { id: string; value?: unknown }): string {
     const own = (row.value as { _id?: unknown } | null | undefined)?._id;
     return typeof own === 'string' && own ? own : row.id;
+}
+
+// ── versioned URLs, a catalog read again ────────────────────────────────────
+
+/**
+ * A URL with the adapter version as query `v`. Manifests and modules lie under
+ * URLs without a version, so a browser could keep using cached files of an
+ * adapter after its update; with the version the next page load fetches the new
+ * ones. The servers (Aura's own, web) ignore the query.
+ *
+ * @param url absolute URL of a manifest or a module
+ * @param version version of the adapter that brings it
+ */
+export function versionedUrl(url: string, version: string): string {
+    if (!version) return url;
+    try {
+        const u = new URL(url);
+        u.searchParams.set('v', version);
+        return u.href;
+    } catch {
+        return url;
+    }
+}
+
+/**
+ * The sources of the catalog (`getWebComponentSources`) with versioned manifest URLs
+ *
+ * @param sources where the components are described
+ */
+export function versionedSources<T extends { url: string; version: string }>(sources: T[]): T[] {
+    return sources.map((s) => ({ ...s, url: versionedUrl(s.url, s.version) }));
+}
+
+/**
+ * A loaded component whose module URL is versioned as well: the manifest names its
+ * module relative to itself, and resolving that drops the query of the manifest
+ * URL. `importWebComponent` still imports every URL once and checks the tag.
+ *
+ * @param component as `loadWebComponents` gave it
+ */
+export function versionedModule(component: LoadedWebComponent): LoadedWebComponent {
+    return { ...component, moduleUrl: versionedUrl(component.moduleUrl, component.version) };
+}
+
+/**
+ * The catalog read again (↻, a reconnect, a short catalog), merged with the one before:
+ * - a component whose element is defined already keeps the module URL it was
+ *   imported from. A browser cannot define a tag twice, so the module of an update
+ *   would be loaded and run for nothing - it takes effect with the next page load;
+ * - a component that did not change stays the same object, so the widgets showing
+ *   it are left alone.
+ *
+ * @param next the components just read
+ * @param previous the components read before
+ * @param isDefined whether the element of a tag is defined in this page
+ */
+export function mergeCatalog(
+    next: LoadedWebComponent[],
+    previous: LoadedWebComponent[],
+    isDefined: (tag: string) => boolean,
+): LoadedWebComponent[] {
+    return next.map((c) => {
+        const before = previous.find((p) => p.adapter === c.adapter && p.manifest.tag === c.manifest.tag);
+        if (!before) return c;
+        const kept =
+            before.moduleUrl !== c.moduleUrl && isDefined(c.manifest.tag) ? { ...c, moduleUrl: before.moduleUrl } : c;
+        const same =
+            kept.url === before.url &&
+            kept.moduleUrl === before.moduleUrl &&
+            JSON.stringify(kept.manifest) === JSON.stringify(before.manifest);
+        return same ? before : kept;
+    });
 }
