@@ -547,6 +547,21 @@ function applyForwardedHeaders(headers, req) {
     if (req.headers['host']) headers['X-Forwarded-Host'] = req.headers['x-forwarded-host'] || req.headers['host'];
 }
 
+/**
+ * Does a state change of a watched datapoint count as a real value? Foreign states
+ * only once acknowledged; own states and user/script datapoints always.
+ *
+ * @param {string} id
+ * @param {ioBroker.State | null | undefined} state
+ * @param {string} namespace own namespace, e.g. aura.0
+ */
+function isConfirmedValue(id, state, namespace) {
+    if (!state || state.ack) {
+        return true;
+    }
+    return id.startsWith(`${namespace}.`) || id.startsWith('0_userdata.') || id.startsWith('javascript.');
+}
+
 function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, guard = false) {
     let targetUrl;
     try {
@@ -999,16 +1014,24 @@ class Aura extends utils.Adapter {
             return;
         }
 
+        // Values of watched datapoints (lists, announcements, remembered hints, countdown
+        // triggers) count once the owning adapter confirmed them (ack) — a command
+        // (ack=false) has not happened yet. Aura's own states and user/script datapoints
+        // (0_userdata, javascript), which scripts write with ack=false, count right away.
+        const confirmed = isConfirmedValue(id, state, this.namespace);
+
         // A datapoint a published list reads (#798). First and not returned: a list
         // may show aura's own states, and other features watch the same ids.
-        if (this._publish && this._publishSubscribed && this._publishSubscribed.has(id)) {
+        if (confirmed && this._publish && this._publishSubscribed && this._publishSubscribed.has(id)) {
             this._publish.update(id, state || null);
         }
 
         // Announcement rules (#834 phase 4): a datapoint they read (not returned —
         // other features may watch the same id) and the rules themselves.
         if (this._announcements) {
-            this._announcements.onStateChange(id, state);
+            if (confirmed) {
+                this._announcements.onStateChange(id, state);
+            }
             if (id === `${this.namespace}.config.announcements` && state) {
                 await this._announcements.load(state.val);
                 return;
@@ -1035,11 +1058,11 @@ class Aura extends utils.Adapter {
         }
         // A datapoint the remembered hints watch. Not returned: another feature may
         // have subscribed the same id.
-        if (this._statusLatch && state && this._statusSubscribed.has(id)) {
+        if (confirmed && this._statusLatch && state && this._statusSubscribed.has(id)) {
             this._statusLatch.update(id, state);
         }
         // A countdown's trigger datapoint (#796). Not returned either.
-        if (this._countdowns && state && this._countdownTriggerSubs?.has(id)) {
+        if (confirmed && this._countdowns && state && this._countdownTriggerSubs?.has(id)) {
             await this._countdowns.ingestTrigger(id, state.val);
         }
 

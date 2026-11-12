@@ -183,11 +183,14 @@ const write = (a, rel, val, ack = false) => a.onStateChange(`aura.0.${rel}`, { v
         await a.onStateChange(plug, { val: true, ack: true });
         assert.strictEqual(a._val('countdowns.t1.state'), 'idle');
         await a.onStateChange(plug, { val: false, ack: true });
+        // a command alone (ack=false) is not a switch-on yet
         await a.onStateChange(plug, { val: true, ack: false });
+        assert.strictEqual(a._val('countdowns.t1.state'), 'idle', 'unconfirmed command ignored');
+        await a.onStateChange(plug, { val: true, ack: true });
         assert.strictEqual(a._val('countdowns.t1.state'), 'running', 'switched on elsewhere → started');
         await write(a, 'countdowns.t1.cmd', 'end');
         assert.deepStrictEqual(a._foreign, [{ id: plug, val: false, ack: false }]);
-        await a.onStateChange(plug, { val: false, ack: false });
+        await a.onStateChange(plug, { val: false, ack: true });
         assert.strictEqual(a._val('countdowns.t1.state'), 'ended', 'own switch-off does not re-trigger');
 
         // config republish with the same trigger: nothing re-subscribed
