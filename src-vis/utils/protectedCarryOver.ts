@@ -34,6 +34,40 @@ function fill(stub: Node, local: Node, content: string[]): void {
 }
 
 /**
+ * Marker on a tab this editor knows only as a stub of a protected section — the
+ * adapter fills it from the vault on save. Must equal VAULT_KEEP_TAB in
+ * lib/security/dashboardVault.js.
+ */
+export const VAULT_KEEP_TAB = '_vaultKeep';
+
+/**
+ * The local tab list of a protected section, plus the tabs only the remote stub has.
+ *
+ * Another writer (the MCP) added them; their content sits in the vault, which this
+ * editor has not read yet. Taking the local list alone dropped them, and when the
+ * vault read did not follow (expired admin session) the next save deleted them from
+ * the vault too. They come back as marked stubs at their remote position; the vault
+ * read swaps in the content, and a save before that keeps what the vault holds.
+ */
+function withVaultOnlyTabs(localTabs: unknown, remoteTabs: unknown[]): unknown[] {
+    const local = Array.isArray(localTabs) ? (localTabs as unknown[]) : [];
+    const out: unknown[] = [];
+    const used = new Set<unknown>();
+    for (const rt of remoteTabs) {
+        if (!isObj(rt)) continue;
+        const lt = byId(local, rt.id);
+        if (lt) {
+            out.push(lt);
+            used.add(lt);
+        } else {
+            out.push({ ...rt, widgets: [], [VAULT_KEEP_TAB]: true });
+        }
+    }
+    for (const lt of local) if (!used.has(lt)) out.push(lt);
+    return out;
+}
+
+/**
  * Fill the stubs of `remoteLayouts` (parsed state, mutated in place) from
  * `localLayouts`. Returns true when at least one view was filled.
  */
@@ -49,7 +83,9 @@ export function carryProtectedContent(remoteLayouts: unknown[], localLayouts: re
             if (!localSec) continue;
             if (sec.pinProtected === true) {
                 if (holdsContent(localSec)) {
+                    const remoteTabs = Array.isArray(sec.tabs) ? (sec.tabs as unknown[]) : [];
                     fill(sec, localSec, ['tabs', 'conditions', 'badges', 'badgeAggregate']);
+                    sec.tabs = withVaultOnlyTabs(localSec.tabs, remoteTabs);
                     carried = true;
                 }
                 continue; // a section PIN covers its tabs

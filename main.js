@@ -43,6 +43,7 @@ const {
     exposeMarkers,
     buildVaultSections,
     keepStubEntries,
+    fillVaultKeptTabs,
     unredactView,
     restoreView,
     stampPinLengths,
@@ -1599,6 +1600,11 @@ class Aura extends utils.Adapter {
         for (const p of prot) {
             if (p.fromStub && data.sections && data.sections[p.key]) {
                 p.content = data.sections[p.key].content;
+            } else if (p.scope === 'section') {
+                // Tabs the editor knew only as stubs (added by the MCP meanwhile)
+                // keep the content the vault holds for them.
+                const prev = data.sections && data.sections[p.key];
+                fillVaultKeptTabs(p.content, prev && prev.content);
             }
         }
         // Shown markers (#944) come from the real view, not from the stub it arrived as.
