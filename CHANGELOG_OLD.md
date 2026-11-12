@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.100.1 (2026-11-01)
+- 🐛 **Bug fix:** iOS - Safari now also shows the Aura icon in the browser tab; the PNG favicon was missing from the 0.100.0 bundle ([#899](https://github.com/hdering/ioBroker.aura/issues/899))
+
 ## 0.100.0 (2026-11-01)
 - 🌟 **New feature:** Header items - text items support HTML (e.g. an image per moon phase); every item carries a CSS class by slot and position, e.g. .aura-header-item-r1-right-0 ([#883](https://github.com/hdering/ioBroker.aura/issues/883))
 - 🌟 **New feature:** Header editor - tapping a slot in the overview no longer creates an item; use "Add item" ([#883](https://github.com/hdering/ioBroker.aura/issues/883))
