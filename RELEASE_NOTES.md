@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: PIN protection - the "Editable via MCP" switch no longer turns itself off when the dashboard is saved, and a protected view no longer answers "wrong PIN" after a save that held it only as a locked placeholder
 - fix: PIN protection - a tab the MCP added to a protected area no longer disappears when the admin editor saves before it has loaded that tab
+- fix: Admin settings - the "Reachable on" option and its web-instance hint are now translated into all admin languages

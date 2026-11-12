@@ -39,20 +39,47 @@
       "noTranslation": true,
       "label": {
         "en": "Reachable on",
-        "de": "Erreichbar über"
+        "de": "Erreichbar über",
+        "es": "Accesible a través de",
+        "fr": "Accessible via",
+        "it": "Raggiungibile tramite",
+        "nl": "Bereikbaar via",
+        "pl": "Dostępny przez",
+        "pt": "Acessível através de",
+        "ru": "Доступен через",
+        "uk": "Доступний через",
+        "zh-cn": "访问方式"
       },
       "options": [
         {
           "label": {
             "en": "Network - all interfaces (default)",
-            "de": "Netzwerk – alle Schnittstellen (Standard)"
+            "de": "Netzwerk – alle Schnittstellen (Standard)",
+            "es": "Red: todas las interfaces (predeterminado)",
+            "fr": "Réseau – toutes les interfaces (par défaut)",
+            "it": "Rete – tutte le interfacce (predefinito)",
+            "nl": "Netwerk – alle interfaces (standaard)",
+            "pl": "Sieć – wszystkie interfejsy (domyślnie)",
+            "pt": "Rede – todas as interfaces (padrão)",
+            "ru": "Сеть – все интерфейсы (по умолчанию)",
+            "uk": "Мережа – усі інтерфейси (за замовчуванням)",
+            "zh-cn": "网络 - 所有接口（默认）"
           },
           "value": ""
         },
         {
           "label": {
             "en": "Only via the web instance (/aura/) - port not reachable in the network",
-            "de": "Nur über die Web-Instanz (/aura/) – Port im Netzwerk nicht erreichbar"
+            "de": "Nur über die Web-Instanz (/aura/) – Port im Netzwerk nicht erreichbar",
+            "es": "Solo a través de la instancia web (/aura/): puerto no accesible en la red",
+            "fr": "Uniquement via l'instance web (/aura/) – port non accessible sur le réseau",
+            "it": "Solo tramite l'istanza web (/aura/) – porta non raggiungibile in rete",
+            "nl": "Alleen via de webinstantie (/aura/) – poort niet bereikbaar in het netwerk",
+            "pl": "Tylko przez instancję web (/aura/) – port niedostępny w sieci",
+            "pt": "Apenas através da instância web (/aura/) – porta não acessível na rede",
+            "ru": "Только через веб-экземпляр (/aura/) – порт недоступен в сети",
+            "uk": "Лише через вебекземпляр (/aura/) – порт недоступний у мережі",
+            "zh-cn": "仅通过 Web 实例 (/aura/) - 端口在网络中不可访问"
           },
           "value": "127.0.0.1"
         }
