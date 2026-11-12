@@ -26,7 +26,7 @@ import { useConfigStore } from '../../store/configStore';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { hasScaleFromDatapoint, scaleOptionsFromDatapoint } from '../../utils/dpScale';
-import { useWebComponentCatalog } from '../../utils/webComponentRegistry';
+import { useRepoWebComponents, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { parseWebComponentKey, webComponentGridSize, webComponentPickerEntries } from '../../utils/webComponentHost';
 import type { LucideIcon } from 'lucide-react';
 
@@ -120,7 +120,12 @@ export function ManualWidgetDialog({
     const widgetPadding = useConfigStore((s) => s.frontend.widgetPadding);
     // Every installed web component is an entry of its own, like a widget
     const { components: webComponents, loading: webComponentsLoading } = useWebComponentCatalog();
-    const wcEntries = useMemo(() => webComponentPickerEntries(webComponents, lang), [webComponents, lang]);
+    // ... and those of adapters that are not installed, from the repository
+    const repoWebComponents = useRepoWebComponents();
+    const wcEntries = useMemo(
+        () => webComponentPickerEntries(webComponents, lang, repoWebComponents),
+        [webComponents, lang, repoWebComponents],
+    );
 
     const [type, setType] = useState<WidgetType>('value');
     const [templateId, setTemplateId] = useState<string>('');

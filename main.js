@@ -70,6 +70,7 @@ const { createStatusDiscovery } = require('./lib/statusDiscovery');
 const { adapterTimers } = require('./lib/timers');
 const { createAutoListSync } = require('./lib/autoListSync');
 const { compareVersions, usableRepoNames, bestRepoVersion, computeAdapterUpdates } = require('./lib/adapterUpdates');
+const { repoWebComponents } = require('./lib/repoWebComponents');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -3914,6 +3915,27 @@ class Aura extends utils.Adapter {
         return result;
     }
 
+    /**
+     * Web components of adapters that are not installed: the short forms of
+     * `common.webComponents` in the active repositories (lib/repoWebComponents),
+     * for the "add widget" dialog. Cached for ten minutes - system.repositories is
+     * several MB and changes only when admin refreshes it.
+     */
+    async _repoWebComponents() {
+        const now = Date.now();
+        if (this._repoWebComponentsCache && now - this._repoWebComponentsCache.at < 600_000) {
+            return this._repoWebComponentsCache.result;
+        }
+        const sys = await this.getForeignObjectAsync('system.config');
+        const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
+        const found = repoWebComponents({ activeRepo: sys?.common?.activeRepo, repos });
+        const result = found
+            ? { ok: true, repos: found.repos, components: found.components }
+            : { ok: false, error: 'no repository data', components: [] };
+        this._repoWebComponentsCache = { at: now, result };
+        return result;
+    }
+
     /** Language for the update notice. system.config decides, English otherwise. */
     async _systemLanguage() {
         if (this._sysLanguage === undefined) {
@@ -6590,6 +6612,13 @@ class Aura extends utils.Adapter {
             // (issue #962). { refresh: true } bypasses the one-minute cache.
             if (msg.command === 'adapterUpdates') {
                 reply(await this._adapterUpdates(!!(msg.message && msg.message.refresh === true)));
+                return;
+            }
+
+            // "Add widget" dialog: web components of adapters that are not installed,
+            // from the short forms in the active repositories
+            if (msg.command === 'webComponentsRepo') {
+                reply(await this._repoWebComponents());
                 return;
             }
 

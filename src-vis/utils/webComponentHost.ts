@@ -13,6 +13,8 @@
  *   every installed component as an entry of its own in the "add widget" dialog.
  * - `KNOWN_WEB_COMPONENTS` / `findKnownWebComponent` - components offered even
  *   before their adapter is installed.
+ * - `RepoWebComponent` / `findRepoWebComponent` - the same from the short forms in the
+ *   repository (`common.webComponents`, `@iobroker/web-components` 0.8), for any adapter.
  * - `versionedSources` / `versionedModule` / `mergeCatalog` - versioned URLs, so an
  *   adapter update is not served from the browser cache, and a catalog read again.
  */
@@ -523,6 +525,40 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
     },
 ];
 
+/**
+ * A component of the repository (backend command `webComponentsRepo`): the short form
+ * of its manifest in `common.webComponents` of the adapter, offered while the adapter
+ * is not installed or too old. Not tested with Aura unless it is known as well.
+ */
+export interface RepoWebComponent {
+    adapter: string;
+    /** The version of the adapter in the repository */
+    version: string;
+    tag: string;
+    /** As in the manifest: a text or texts per language; null without one */
+    name: string | Record<string, string> | null;
+    /** Absolute URL of its picture on the web (the repository of the adapter) */
+    iconUrl?: string;
+    size?: { width: number; height: number };
+}
+
+/** The repository's entry of a component: by tag, the adapter only as a tie-breaker */
+export function findRepoWebComponent(
+    repo: readonly RepoWebComponent[],
+    tag: unknown,
+    adapter?: unknown,
+): RepoWebComponent | undefined {
+    if (typeof tag !== 'string' || !tag) return undefined;
+    const withTag = repo.filter((r) => r.tag === tag);
+    return withTag.find((r) => r.adapter === adapter) ?? withTag[0];
+}
+
+/** The name of a repository component in the frontend's language (English, then any), '' without one */
+export function repoWebComponentName(component: RepoWebComponent | undefined, lang: string): string {
+    if (!component?.name) return '';
+    return getText(component.name, lang as Parameters<typeof getText>[1]) || '';
+}
+
 /** The known component of a widget: by tag, the adapter only as a tie-breaker */
 export function findKnownWebComponent(tag: unknown, adapter?: unknown): KnownWebComponent | undefined {
     if (typeof tag !== 'string' || !tag) return undefined;
@@ -606,12 +642,18 @@ export function parseWebComponentKey(key: unknown): { adapter: string; tag: stri
 /**
  * The installed components as entries of the dialog: once per adapter and tag,
  * named in the frontend's language (English, then the tag, as fallback). The known
- * components that are not installed follow, marked `missing`.
+ * components that are not installed follow, marked `missing`, then those of the
+ * repository that are neither installed nor known.
  *
  * @param components the catalog (`loadWebComponentCatalog`)
  * @param lang language of the frontend
+ * @param repo the components of the repository (`loadRepoWebComponents`)
  */
-export function webComponentPickerEntries(components: LoadedWebComponent[], lang: string): WebComponentPickerEntry[] {
+export function webComponentPickerEntries(
+    components: LoadedWebComponent[],
+    lang: string,
+    repo: readonly RepoWebComponent[] = [],
+): WebComponentPickerEntry[] {
     const entries: WebComponentPickerEntry[] = [];
     for (const c of components) {
         const tag = c?.manifest?.tag;
@@ -646,8 +688,23 @@ export function webComponentPickerEntries(components: LoadedWebComponent[], lang
             tag: k.tag,
             label: de ? k.name.de : k.name.en,
             hint: `${de ? k.description.de : k.description.en} – Adapter ${k.adapter} ${de ? '(nicht installiert)' : '(not installed)'}`,
+            iconUrl: findRepoWebComponent(repo, k.tag, k.adapter)?.iconUrl,
             size: k.size,
             missing: true,
+        });
+    }
+    for (const r of repo) {
+        if (!r?.tag || !r.adapter || entries.some((e) => e.tag === r.tag)) continue;
+        entries.push({
+            key: webComponentKey(r.adapter, r.tag),
+            adapter: r.adapter,
+            tag: r.tag,
+            label: repoWebComponentName(r, lang) || r.tag,
+            hint: `Adapter ${r.adapter} ${r.version} ${de ? '(nicht installiert)' : '(not installed)'}`,
+            iconUrl: r.iconUrl,
+            size: r.size,
+            missing: true,
+            untested: !isTestedWebComponent(r.tag, r.adapter),
         });
     }
     return entries;

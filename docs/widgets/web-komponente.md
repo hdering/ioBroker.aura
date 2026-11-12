@@ -21,7 +21,7 @@ je Komponente:
 | --- | --- |
 | Name + Adapter (z. B. **Kalender** · `fullcalendar`) | Komponente eines installierten Adapters, mit Aura getestet |
 | … · **nicht getestet** | automatisch aufgenommen, noch nicht mit Aura geprüft — funktioniert meist, ohne Gewähr |
-| … · **Adapter fehlt** (ausgegraut) | bekannte Komponente, Adapter nicht installiert oder zu alt — lässt sich trotzdem platzieren |
+| … · **Adapter fehlt** (ausgegraut) | Adapter nicht installiert oder zu alt — lässt sich trotzdem platzieren; die Komponente ist Aura bekannt oder steht im Repository (siehe unten) |
 | **Andere Web-Komponente …** | der Typ ohne Vorauswahl, die Komponente wird in den Einstellungen gewählt |
 
 Mit Aura getestet (auch ohne Adapter im Dialog): **Fluss-Diagramm** (`flow` ab 0.2.0),
@@ -39,6 +39,13 @@ anmeldet. Nach der Installation oder einem Update eines Adapters die Seite neu l
 Einstellungen mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort lässt sich auch auf eine
 andere Komponente umstellen. Nach einem Neustart von ioBroker liest Aura die Liste selbst neu; fehlt
 dabei noch eine Komponente (Upload läuft), versucht Aura es eine Minute lang alle 10 s erneut.
+
+**Noch nicht installiert:** Auch Komponenten von Adaptern, die noch fehlen, stehen im Dialog —
+ausgegraut mit **Adapter fehlt**, mit Name und Bild. Aura liest sie aus den aktiven Repositories
+(dieselben wie unter **Adapter** im Admin), sofern der Adapter dort die Kurzform seiner Komponenten
+mitliefert (Name, Bild, Größe; ab `@iobroker/web-components` 0.8). Ein so platziertes Widget nennt
+im Bearbeitungsmodus den Adapter und die Version, die installiert werden muss; danach zeigt es die
+Komponente. Die Liste liest Aura höchstens alle zehn Minuten neu.
 
 Eine **aktualisierte** Komponente, die bereits auf der Seite zu sehen ist, läuft bis zum
 nächsten Neuladen der Seite in der alten Version weiter — ein Browser kann ein Element nicht
@@ -136,7 +143,9 @@ nicht als Fenster des Browsers:
 ## Für Adapter-Entwickler
 
 Wie eine Komponente gebaut und angemeldet wird, beschreibt das Paket
-[`@iobroker/web-components`](https://github.com/ioBroker/web-components). Aura setzt die
+[`@iobroker/web-components`](https://github.com/ioBroker/web-components). Damit Aura eine
+Komponente schon vor der Installation anbietet, gehört die Kurzform ihres Manifests in
+`common.webComponents` — sie entsteht beim Build mit `iob-web-components sync-io-package`. Aura setzt die
 Eigenschaft `dialogs`: `openDialog()` der Basisklasse öffnet damit den Aura-Dialog, ein
 Element-Dialog schließt mit dem Ereignis `iob-dialog-close`. Mit dem Ereignis `iob-header`
 (`detail: { title?, icon? }`, `bubbles`, `composed`; bei jeder Änderung erneut) oder der
