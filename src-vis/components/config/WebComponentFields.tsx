@@ -206,6 +206,9 @@ function InstanceSelect({
 /** How long the settings wait for the options of a sendTo setting before they show a text field */
 const SEND_TO_TIMEOUT_MS = 10000;
 
+/** Pause after the last change of the request before the options are asked again (typing asks once) */
+const SEND_TO_DEBOUNCE_MS = 300;
+
 /**
  * Options of a `selectSendTo` / `autocompleteSendTo` setting, asked from the instance
  * whenever the request's key changes (instance, command, message, `alsoDependsOn`).
@@ -221,17 +224,26 @@ function useSendToOptions(
     const [answer, setAnswer] = useState<SendToAnswer | null>(null);
     const requestRef = useRef(request);
     requestRef.current = request;
+    const askedRef = useRef(false);
     useEffect(() => {
         const req = requestRef.current;
         if (!req) return;
         let alive = true;
-        void askSendToOptions(req, (instance, command, message) =>
-            sendToDirect(instance, command, message, SEND_TO_TIMEOUT_MS),
-        ).then((a) => {
-            if (alive) setAnswer(a);
-        });
+        // the first request goes out at once, later ones wait until typing pauses
+        const timer = setTimeout(
+            () => {
+                askedRef.current = true;
+                void askSendToOptions(req, (instance, command, message) =>
+                    sendToDirect(instance, command, message, SEND_TO_TIMEOUT_MS),
+                ).then((a) => {
+                    if (alive) setAnswer(a);
+                });
+            },
+            askedRef.current ? SEND_TO_DEBOUNCE_MS : 0,
+        );
         return () => {
             alive = false;
+            clearTimeout(timer);
         };
     }, [key]);
     return { request, answer: answer && answer.key === key ? answer : null };

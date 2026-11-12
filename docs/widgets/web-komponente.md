@@ -60,6 +60,12 @@ Unter der Auswahl zeigt der Editor die Einstellungen der gewählten Komponente: 
 Zahlen, Schalter, Farben, Auswahllisten, Datenpunkte, Objekte und Adapter-Instanzen — so, wie
 sie die Komponente beschreibt. Gespeichert wird nur, was vom Standard abweicht.
 
+Manche Auswahllisten kennt erst der Adapter, etwa seine Orte, Geräte oder Diagramme. Dann holt
+der Editor die Einträge beim Öffnen von der Instanz und holt sie neu, sobald sich eine Einstellung
+ändert, von der die Liste abhängt (zum Beispiel die gewählte Instanz). Liefert die Instanz keine
+Liste, etwa weil sie gestoppt ist, erscheint ein Textfeld mit Hinweis; der Wert lässt sich dann
+von Hand eintragen.
+
 ## Titel und Icon
 
 Titel und Icon zeichnet immer Aura in der Titelzeile des Widgets (`showTitle`, `showIcon`) — die
