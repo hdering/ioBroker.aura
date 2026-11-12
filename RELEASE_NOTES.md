@@ -8,3 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
+
+- fix: Web components - after an adapter update the browser loads the new files of its components instead of cached ones (#954)
