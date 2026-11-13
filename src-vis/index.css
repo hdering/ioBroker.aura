@@ -929,6 +929,15 @@ input[type='range']::-moz-range-thumb {
 .aura-widget .aura-widget .aura-devicecard-badge {
     --tw-translate-y: 3px;
 }
+/* The text only on hover (#981): the coloured frame already marks linked cards, and an
+   always-on label covered the first child's title. Innermost card only. */
+.aura-devicecard-badge {
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+.aura-widget-type-devicecard:hover:not(:has(.aura-widget-type-devicecard:hover)) .aura-devicecard-badge {
+    opacity: 1;
+}
 .aura-headerless-group > .aura-group-toolbar > * {
     border-color: var(--aura-nest-color) !important;
     color: var(--aura-nest-color) !important;

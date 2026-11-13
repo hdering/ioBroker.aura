@@ -281,16 +281,27 @@ for (const editMode of [true, false]) {
             'Klick auf leere Fläche in der Gruppe schließt das Menü',
         );
 
-        // "Aufbau geteilt mit …" must not be cut by the group's clipping grid.
-        const badge = await page.evaluate(() => {
+        // "Aufbau geteilt mit …": only on hover of that card, and not cut by the
+        // group's clipping grid. The pointer is in the gap between the cards now.
+        const BADGE = () => {
+            const op = (id) => {
+                const el = document.querySelector(`.aura-widget-${id} .aura-devicecard-badge`);
+                return el ? getComputedStyle(el).opacity : null;
+            };
             const el = document.querySelector('.aura-widget-card-1 .aura-devicecard-badge');
             const clip = el?.closest('.overflow-hidden');
-            if (!el || !clip) return null;
-            const r = el.getBoundingClientRect();
-            const c = clip.getBoundingClientRect();
-            return { top: Math.round(r.top), clipTop: Math.round(c.top) };
-        });
-        check(!!badge && badge.top >= badge.clipTop, 'Schild „Aufbau geteilt“ ganz sichtbar', JSON.stringify(badge));
+            const r = el?.getBoundingClientRect();
+            const c = clip?.getBoundingClientRect();
+            return { c1: op('card-1'), c2: op('card-2'), top: r && Math.round(r.top), clipTop: c && Math.round(c.top) };
+        };
+        await page.waitForTimeout(200);
+        const off = await page.evaluate(BADGE);
+        check(off.c1 === '0' && off.c2 === '0', 'Schild „Aufbau geteilt“ ohne Hover verborgen', JSON.stringify(off));
+        await page.mouse.move(inA.x + inA.width / 2, inA.y + inA.height / 2);
+        await page.waitForTimeout(300);
+        const on = await page.evaluate(BADGE);
+        check(on.c1 === '1' && on.c2 === '0', 'Schild nur an der Karte unter dem Zeiger', JSON.stringify(on));
+        check(on.top !== null && on.top >= on.clipTop, 'Schild in der Gruppe ganz sichtbar', JSON.stringify(on));
     }
     await context.close();
 }
