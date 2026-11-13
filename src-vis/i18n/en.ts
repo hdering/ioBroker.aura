@@ -1166,6 +1166,10 @@ export const en: Record<TranslationKey, string> = {
     'editor.layouts.custom': 'Custom',
 
     'editor.lock.on': 'Controls locked — click to unlock (widgets trigger nothing in the editor)',
+    'editor.fluidPreview.off':
+        'Scale like the frontend — show the fluid grid on the target size {w} × {h} (guidelines)',
+    'editor.fluidPreview.on': 'Scaled like the frontend on {w} × {h} — click for the fixed design grid',
+    'editor.fluidPreview.needsFluid': 'Scale like the frontend — only with the fluid grid (Settings → Grid)',
     'editor.lock.off': 'Controls unlocked — clicks switch real devices. Click to lock.',
     'editor.mobile.title': 'Mobile Order',
     'editor.mobile.hint': 'Single column below the mobile breakpoint',

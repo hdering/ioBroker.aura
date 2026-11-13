@@ -1175,6 +1175,10 @@ export const de = {
     'editor.layouts.custom': 'Custom',
 
     'editor.lock.on': 'Bedienelemente gesperrt — klicken zum Entsperren (Widgets lösen im Editor keine Aktionen aus)',
+    'editor.fluidPreview.off':
+        'Wie im Frontend skalieren — das fließende Raster auf der Zielgröße {w} × {h} (Hilfslinien) zeigen',
+    'editor.fluidPreview.on': 'Skaliert wie im Frontend auf {w} × {h} — klicken für das feste Design-Raster',
+    'editor.fluidPreview.needsFluid': 'Wie im Frontend skalieren — nur bei fließendem Raster (Einstellungen → Raster)',
     'editor.lock.off': 'Bedienelemente entsperrt — Klicks schalten echte Geräte. Klicken zum Sperren.',
     'editor.mobile.title': 'Mobile-Reihenfolge',
     'editor.mobile.hint': 'Einspaltig unterhalb des Mobile-Breakpoints',

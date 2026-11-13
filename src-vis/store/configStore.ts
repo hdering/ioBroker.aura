@@ -67,6 +67,10 @@ export interface FrontendSettings {
      *  width (widgets keep their aspect ratio); 'fill' stretches the rows until the tab's content
      *  reaches the bottom of the screen (never squeezes). Ignored on the fixed grid. */
     gridHeightMode: 'fixed' | 'scale' | 'fill';
+    /** Editor: lay the fluid grid out like the frontend on the guidelines' target size
+     *  (guidelinesWidth × guidelinesHeight) instead of the fixed design pitch. Display only —
+     *  positions and sizes are still stored in grid cells. Ignored on the fixed grid. */
+    editorFluidPreview: boolean;
     language: 'de' | 'en';
     /** Hide the draggable touch scroll indicator over the dashboard grid (mobile/coarse pointers). */
     hideGridScrollbar: boolean;
@@ -247,6 +251,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     fluidMinScale: 0.6,
     fluidMaxScale: 0,
     gridHeightMode: 'fixed',
+    editorFluidPreview: false,
     language: 'de',
     hideGridScrollbar: false,
     // Fresh installs show the guidelines + resolution readout in the frontend so

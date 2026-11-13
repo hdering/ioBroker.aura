@@ -4,7 +4,13 @@ import { Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { docsUrl } from '../../utils/docsUrl';
-import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset } from '../../utils/guidelinesInset';
+import {
+    GUIDELINES_CHROME,
+    guidelinesTopInset,
+    insetKeyFor,
+    readMeasuredInset,
+    storeMeasuredInset,
+} from '../../utils/guidelinesInset';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
 import { useIsProbe, useProbeFill } from '../../utils/probeContext';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
@@ -440,6 +446,10 @@ export function Dashboard({
     // Visible height of the scroller's content box — only the fluid grid's
     // vertical 'fill' reads it (#413). A zero is never believed, like the width.
     const [containerHeight, setContainerHeight] = useState(0);
+    // Width of the scroller's reserved scrollbar gutter (.aura-scroll: scrollbar-gutter
+    // stable) — the frontend loses it on the same browser, so the editor's fluid preview
+    // takes it off the target width too (#981).
+    const [scrollGutter, setScrollGutter] = useState(0);
     // The live scroll element, exposed so TouchScrollbar can mirror its scroll
     // position (native scrollbars are hidden / invisible on touch devices).
     const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
@@ -478,6 +488,7 @@ export function Dashboard({
             if (w > 0) setContainerWidth(w);
             const h = Math.floor(entry.contentRect.height);
             if (h > 0) setContainerHeight(h);
+            if (w > 0) setScrollGutter(Math.max(0, el.offsetWidth - el.clientWidth));
         });
         ro.observe(el);
         roRef.current = ro;
@@ -548,10 +559,29 @@ export function Dashboard({
             ),
         [tabs],
     );
-    const fluidMode = (settings.gridWidthMode ?? 'fixed') === 'fluid' && !editMode;
+    // Editor preview of the fluid grid (#981): laid out like the frontend, but on the
+    // guidelines' target device instead of the editor's own (smaller) area — otherwise
+    // the stretch would follow the admin window, not the wall tablet. Display only: the
+    // grid units (x/y/w/h) are the same on every pitch, so edits store as before.
+    const fluidPreview =
+        editMode &&
+        !embedded &&
+        (settings.editorFluidPreview ?? false) &&
+        (settings.gridWidthMode ?? 'fixed') === 'fluid';
+    // The scroller's padding (sm:p-4) sits inside the device as well.
+    const SCROLLER_PAD = 32;
+    const previewWidth = Math.max(200, guidelinesWidth - guidelinesMenuInset - SCROLLER_PAD - scrollGutter);
+    const previewHeight = Math.max(
+        120,
+        guidelinesHeight -
+            (readMeasuredInset(guidelinesInsetKey) ?? guidelinesFallbackInset) -
+            (tabBarVisible && tabBarResolved.position === 'bottom' ? GUIDELINES_CHROME.tabBar : 0) -
+            SCROLLER_PAD,
+    );
+    const fluidMode = (settings.gridWidthMode ?? 'fixed') === 'fluid' && (!editMode || fluidPreview);
     const gridCols = gridColumns({
         mode: fluidMode ? 'fluid' : 'fixed',
-        width: rglWidth,
+        width: fluidPreview ? previewWidth : rglWidth,
         snapX,
         gap: MARGIN,
         usedCols: minCols,
@@ -573,7 +603,7 @@ export function Dashboard({
             rowHeight: cellSize,
             gap: MARGIN,
             scaleX: gridCols.scale,
-            height: containerHeight,
+            height: fluidPreview ? previewHeight : containerHeight,
             usedRows,
             maxScale: settings.fluidMaxScale ?? 0,
         });
@@ -953,6 +983,7 @@ export function Dashboard({
                             className={`aura-scroll aura-scroll-touch absolute inset-0 overflow-auto ${embedded ? 'p-2' : 'p-2 sm:p-4'}`}
                             data-aura-grid-mode={gridCols.fluid ? 'fluid' : 'fixed'}
                             data-aura-grid-height-mode={heightMode}
+                            data-aura-fluid-preview={fluidPreview ? '' : undefined}
                             style={{
                                 ...scrollerStyle,
                                 ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),

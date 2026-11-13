@@ -139,7 +139,7 @@ Schriftart, Schriftgrößen und Abstände.
 | Tablet-Breakpoint          | Fensterbreite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken); das Bereichs-Menü hat dort seine eigene „Platzierung auf Tablets“ |
 | Tablet-Spalten             | Spaltenzahl im Tablet-Bereich (1–4); breite Widgets belegen anteilig mehrere Spalten |
 | Spalten füllen             | Wie Karten ohne feste Spalte verteilt werden, gilt für Tablet- und mehrspaltigen Mobile-Fluss (siehe unten) |
-| Fensterbreite füllen       | Aus = feste Spaltenbreite (breites Fenster lässt rechts Platz, schmales scrollt). An = Spaltenzahl bleibt, die Widgets strecken sich auf die volle Fensterbreite; Höhen bleiben. Der Editor zeigt die Entwurfsansicht |
+| Fensterbreite füllen       | Aus = feste Spaltenbreite (breites Fenster lässt rechts Platz, schmales scrollt). An = Spaltenzahl bleibt, die Widgets strecken sich auf die volle Fensterbreite; Höhen bleiben. Der Editor zeigt die Entwurfsansicht, mit [Wie im Frontend skalieren](./editor) die gestreckte |
 | Entwurfsbreite             | Breite, auf die das Layout gestreckt wird. Auto = belegte Breite des Bereichs (Inhalt füllt immer die volle Breite) |
 | Höchstens stauchen auf     | Schmaler als dieser Anteil der Entwurfsbreite wird nicht gestaucht, darunter wird gescrollt |
 | Höchstens strecken auf     | Obergrenze für sehr breite Bildschirme (Aus = unbegrenzt) |

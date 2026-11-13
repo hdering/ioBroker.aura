@@ -17,6 +17,7 @@ import {
     Settings,
     X,
     Ruler,
+    Scaling,
     Lock,
     LockOpen,
     ChevronDown,
@@ -1929,6 +1930,9 @@ export function AdminEditor() {
     // Effective settings for the edited layout/section so the editor preview honors
     // per-layout overrides (e.g. a layout that enables the menu while global is off).
     const editorSettings = useEffectiveSettings(activeLayoutId, activeSectionForEditor?.id);
+    // Target device of the fluid preview (#981) — the guidelines' size.
+    const guidelinesWidthEff = editorSettings.guidelinesWidth ?? 1280;
+    const guidelinesHeightEff = editorSettings.guidelinesHeight ?? 800;
 
     // Mirror the frontend's mobile behavior: a docked sidebar menu collapses on narrow
     // viewports (App.tsx). Without this the editor keeps rendering the full-width menu
@@ -2124,6 +2128,37 @@ export function AdminEditor() {
                 >
                     <Ruler size={15} />
                 </button>
+                {/* Fluid grid as in the frontend, on the guidelines' target size (#981).
+                    Greyed with the reason on the fixed grid, where there is nothing to scale. */}
+                {(() => {
+                    const fluidGrid = (editorSettings.gridWidthMode ?? 'fixed') === 'fluid';
+                    const on = fluidGrid && (frontend.editorFluidPreview ?? false);
+                    return (
+                        <button
+                            onClick={() =>
+                                updateFrontend({ editorFluidPreview: !(frontend.editorFluidPreview ?? false) })
+                            }
+                            disabled={!fluidGrid}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{
+                                background: on ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'var(--app-bg)',
+                                color: on ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                            title={
+                                !fluidGrid
+                                    ? t('editor.fluidPreview.needsFluid')
+                                    : on
+                                      ? t('editor.fluidPreview.on', { w: guidelinesWidthEff, h: guidelinesHeightEff })
+                                      : t('editor.fluidPreview.off', { w: guidelinesWidthEff, h: guidelinesHeightEff })
+                            }
+                            aria-pressed={on}
+                            data-aura-fluid-preview-toggle={on ? 'on' : 'off'}
+                        >
+                            <Scaling size={15} />
+                        </button>
+                    );
+                })()}
             </div>
 
             {/* Section switcher — pick/add the "Bereich" being edited */}

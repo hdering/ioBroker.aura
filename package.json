@@ -160,6 +160,7 @@
     "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:group-stretch": "node tools/tests/group-stretch.mjs",
     "test:group-frameless": "node tools/tests/group-frameless.mjs",
+    "test:editor-fluid-preview": "node tools/tests/editor-fluid-preview.mjs",
     "test:group-pullout": "node tools/tests/group-pullout.mjs",
     "test:group-header-items": "node tools/tests/group-header-items.mjs",
     "test:group-action-header": "node tools/tests/group-action-header.mjs",

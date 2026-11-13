@@ -17,6 +17,7 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | Blöcke | Je Block eigene Spaltenzahl (1–4) über die Zahlen im Kopf, darunter die Breiten der Spalten (z. B. 2:1 = links zwei Drittel, rechts ein Drittel); „+ Block“ zwischen den Blöcken = dort neuen leeren Block einfügen, ▲ ▼ am Spaltenende = in den Block darüber/darunter, Verbinden-Knopf = mit dem Block darüber zusammenlegen |
 | Schloss | Bedienelemente der Widgets sperren (Standard) oder freigeben |
 | Hilfslinien | Rote Ziellinien ein-/ausblenden |
+| Wie im Frontend skalieren | Nur bei „Fensterbreite füllen“: Raster gestreckt wie im Frontend auf der Zielgröße der Hilfslinien (Breite × Höhe). Gespeichert wird weiter in Rasterzellen |
 | Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |
 
 ## Bedienelemente sperren
