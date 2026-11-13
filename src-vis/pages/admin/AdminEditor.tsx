@@ -1933,6 +1933,20 @@ export function AdminEditor() {
     const editorSettings = useEffectiveSettings(activeLayoutId, activeSectionForEditor?.id);
     // Target device of the fluid preview (#981) — the guidelines' size.
     const guidelinesWidthEff = editorSettings.guidelinesWidth ?? 1280;
+    // Short-lived note after switching the scale preview on (see the toolbar).
+    const [fluidNote, setFluidNote] = useState(false);
+    const fluidNoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const showFluidNote = (show: boolean) => {
+        if (fluidNoteTimer.current) clearTimeout(fluidNoteTimer.current);
+        setFluidNote(show);
+        if (show) fluidNoteTimer.current = setTimeout(() => setFluidNote(false), 6000);
+    };
+    useEffect(
+        () => () => {
+            if (fluidNoteTimer.current) clearTimeout(fluidNoteTimer.current);
+        },
+        [],
+    );
     const guidelinesHeightEff = editorSettings.guidelinesHeight ?? 800;
 
     // Mirror the frontend's mobile behavior: a docked sidebar menu collapses on narrow
@@ -2136,48 +2150,65 @@ export function AdminEditor() {
                     const fluidGrid = (editorSettings.gridWidthMode ?? 'fixed') === 'fluid';
                     const on = fluidGrid && (frontend.editorFluidPreview ?? false);
                     return (
-                        <button
-                            onClick={() =>
-                                updateFrontend({ editorFluidPreview: !(frontend.editorFluidPreview ?? false) })
-                            }
-                            disabled={!fluidGrid}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
-                            style={{
-                                background: on ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'var(--app-bg)',
-                                color: on ? 'var(--accent)' : 'var(--text-secondary)',
-                                border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}
-                            title={
-                                !fluidGrid
-                                    ? t('editor.fluidPreview.needsFluid')
-                                    : on
-                                      ? t('editor.fluidPreview.on', { w: guidelinesWidthEff, h: guidelinesHeightEff })
-                                      : t('editor.fluidPreview.off', { w: guidelinesWidthEff, h: guidelinesHeightEff })
-                            }
-                            aria-pressed={on}
-                            data-aura-fluid-preview-toggle={on ? 'on' : 'off'}
-                        >
-                            <Scaling size={15} />
-                        </button>
+                        <div className="relative">
+                            <button
+                                onClick={() => {
+                                    const next = !(frontend.editorFluidPreview ?? false);
+                                    updateFrontend({ editorFluidPreview: next });
+                                    showFluidNote(next);
+                                }}
+                                disabled={!fluidGrid}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{
+                                    background: on
+                                        ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                        : 'var(--app-bg)',
+                                    color: on ? 'var(--accent)' : 'var(--text-secondary)',
+                                    border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                                title={
+                                    !fluidGrid
+                                        ? t('editor.fluidPreview.needsFluid')
+                                        : on
+                                          ? t('editor.fluidPreview.on', {
+                                                w: guidelinesWidthEff,
+                                                h: guidelinesHeightEff,
+                                            })
+                                          : t('editor.fluidPreview.off', {
+                                                w: guidelinesWidthEff,
+                                                h: guidelinesHeightEff,
+                                            })
+                                }
+                                aria-pressed={on}
+                                data-aura-fluid-preview-toggle={on ? 'on' : 'off'}
+                            >
+                                <Scaling size={15} />
+                            </button>
+                            {/* Switched on: a short note below the button, then gone — the preview
+                            recomputes row and content heights on the target size, so moving a
+                            widget can change the shown heights of others; the design units stay. */}
+                            {on && fluidNote && (
+                                <div
+                                    className="absolute top-full right-0 mt-2 z-50 w-72 px-3 py-2 rounded-lg text-xs leading-snug shadow-lg pointer-events-none"
+                                    style={{
+                                        background: 'var(--app-surface)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    role="status"
+                                    data-aura-fluid-preview-hint=""
+                                >
+                                    {t(
+                                        editorSettings.gridHeightMode === 'fill'
+                                            ? 'editor.fluidPreview.hintFill'
+                                            : 'editor.fluidPreview.hint',
+                                        { w: guidelinesWidthEff, h: guidelinesHeightEff },
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     );
                 })()}
-                {/* While the preview runs, row and content heights are recomputed on the
-                    target size — moving a widget can change the shown heights of others,
-                    the stored design units stay. Quiet note next to the switch. */}
-                {(editorSettings.gridWidthMode ?? 'fixed') === 'fluid' && (frontend.editorFluidPreview ?? false) && (
-                    <span
-                        className="text-xs leading-tight max-w-[22rem]"
-                        style={{ color: 'var(--text-secondary)' }}
-                        data-aura-fluid-preview-hint=""
-                    >
-                        {t(
-                            editorSettings.gridHeightMode === 'fill'
-                                ? 'editor.fluidPreview.hintFill'
-                                : 'editor.fluidPreview.hint',
-                            { w: guidelinesWidthEff, h: guidelinesHeightEff },
-                        )}
-                    </span>
-                )}
             </div>
 
             {/* Section switcher — pick/add the "Bereich" being edited */}
