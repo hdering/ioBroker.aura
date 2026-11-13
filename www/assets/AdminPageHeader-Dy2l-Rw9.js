@@ -1,1 +1,0 @@
-import{j as s}from"./react-Df8ylna5.js";const r="p-4 sm:p-6 space-y-6";function o({children:t,className:e=""}){return s.jsx("h1",{className:`text-xl font-bold ${e}`.trim(),style:{color:"var(--text-primary)"},children:t})}function m({children:t}){return s.jsx("p",{className:"text-sm mt-1",style:{color:"var(--text-secondary)"},children:t})}export{r as A,o as a,m as b};
