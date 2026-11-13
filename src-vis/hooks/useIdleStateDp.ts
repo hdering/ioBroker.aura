@@ -66,14 +66,16 @@ export function useIdleStateDp(opts: {
 
     // Feed the adapter's summary across all clients (#868): whether this device
     // takes part at all, and a heartbeat so a switched-off panel drops out.
+    // Reported values, not commands: written acknowledged (the states are write:false,
+    // js-controller warns about every unacknowledged write to them).
     useEffect(() => {
         if (!connected || !clientReady || !clientId) return;
-        setStateDirect(enabledId, effDelay > 0);
+        setStateDirect(enabledId, effDelay > 0, true);
     }, [connected, clientReady, clientId, enabledId, effDelay]);
     useEffect(() => {
         if (!connected || !clientReady || !clientId) return;
         const seenId = `${NS}.clients.${clientId}.info.lastSeen`;
-        const beat = () => setStateDirect(seenId, Date.now());
+        const beat = () => setStateDirect(seenId, Date.now(), true);
         beat();
         const timer = setInterval(beat, HEARTBEAT_MS);
         return () => clearInterval(timer);
@@ -84,7 +86,7 @@ export function useIdleStateDp(opts: {
         const write = (idle: boolean) => {
             if (shownRef.current === idle) return;
             shownRef.current = idle;
-            setStateDirect(activeId, idle);
+            setStateDirect(activeId, idle, true);
         };
         // Switched off (or a stale true from before a reload) → the device is not idle.
         if (shownRef.current) write(false);
