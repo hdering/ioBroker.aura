@@ -57,6 +57,7 @@ import { useFlowHeights } from '../../hooks/useFlowHeights';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
+import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
 import { reportMetric } from '../../utils/perfMetrics';
 import { resolveEmbedMobileHeight } from '../../utils/embedMobileHeight';
 import { cardPadding } from '../../utils/cardPadding';
@@ -516,7 +517,9 @@ export function Dashboard({
     // onDragStop persists new positions for *every* widget — silently wrecking a
     // layout arranged on desktop. The desktop grid can only be arranged sensibly
     // with a mouse anyway, so we disable drag/resize (and the writeback) whenever
-    // the primary pointer is coarse. Config edits and mobile ordering still work.
+    // the primary pointer is coarse — unless the user switches on the arrange mode
+    // in the editor toolbar (#699): then only the grip drags. Config edits and
+    // mobile ordering work either way.
     // Widget whose resize handle was grabbed although its height follows the content
     // (autoHeight): RGL pins minH = maxH, so the drag only changes the width. A small
     // hint at the handle says why (AutoHeightLockHint).
@@ -528,20 +531,11 @@ export function Dashboard({
         },
         [],
     );
-    const [coarsePointer, setCoarsePointer] = useState(
-        () =>
-            typeof window !== 'undefined' &&
-            typeof window.matchMedia === 'function' &&
-            window.matchMedia('(pointer: coarse)').matches,
-    );
-    useEffect(() => {
-        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
-        const mq = window.matchMedia('(pointer: coarse)');
-        const onChange = () => setCoarsePointer(mq.matches);
-        mq.addEventListener?.('change', onChange);
-        return () => mq.removeEventListener?.('change', onChange);
-    }, []);
-    const gridEditable = editMode && !coarsePointer;
+    // Locked on touch unless the arrange mode is on; there the grip is the only
+    // drag handle and only real drags persist (#699, useGridEditInteraction).
+    const gridEdit = useGridEditInteraction(editMode);
+    const coarsePointer = gridEdit.coarse;
+    const gridEditable = gridEdit.editable;
 
     // ── columns and render width of the desktop grid ─────────────────────
     // Keep cols ≥ the maximum column used across all tabs so RGL never clamps
@@ -568,6 +562,7 @@ export function Dashboard({
         !embedded &&
         (settings.editorFluidPreview ?? false) &&
         (settings.gridWidthMode ?? 'fixed') === 'fluid';
+    const t = useT();
     // The scroller's padding (sm:p-4) sits inside the device as well.
     const SCROLLER_PAD = 32;
     const previewWidth = Math.max(200, guidelinesWidth - guidelinesMenuInset - SCROLLER_PAD - scrollGutter);
@@ -978,6 +973,26 @@ export function Dashboard({
                 <ActiveSectionContext.Provider value={section?.id}>
                     <div className="flex-1 min-h-0 relative">
                         {renderFillTabOverlays()}
+                        {fluidPreview && (
+                            // The preview recomputes row and content heights on the target
+                            // size, so moving a widget can visibly resize others — the
+                            // stored design units stay as they are. Outside the scroller so
+                            // it stays in view (#981).
+                            <div
+                                className="aura-fluid-preview-hint pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 z-40 max-w-[90%] px-3 py-1 rounded-full text-xs font-medium text-center shadow"
+                                style={{
+                                    background: 'color-mix(in srgb, rgb(239,68,68) 14%, var(--app-surface))',
+                                    color: 'rgb(239,68,68)',
+                                    border: '1px solid rgb(239,68,68)',
+                                }}
+                                data-aura-fluid-preview-hint=""
+                            >
+                                {t(
+                                    heightMode === 'fill' ? 'editor.fluidPreview.hintFill' : 'editor.fluidPreview.hint',
+                                    { w: String(guidelinesWidth), h: String(guidelinesHeight) },
+                                )}
+                            </div>
+                        )}
                         <div
                             ref={containerRefCallback}
                             className={`aura-scroll aura-scroll-touch absolute inset-0 overflow-auto ${embedded ? 'p-2' : 'p-2 sm:p-4'}`}
@@ -1393,12 +1408,23 @@ export function Dashboard({
                                                                     isDraggable={isActive && gridEditable}
                                                                     isResizable={isActive && gridEditable}
                                                                     draggableCancel=".nodrag"
+                                                                    draggableHandle={gridEdit.draggableHandle}
+                                                                    onDragStart={(_nl, _o, _n, _p, e) =>
+                                                                        gridEdit.onInteractStart(e)
+                                                                    }
+                                                                    onDrag={(_nl, _o, _n, _p, e, node) =>
+                                                                        gridEdit.onInteract(e, node)
+                                                                    }
                                                                     onLayoutChange={(nl) => {
                                                                         if (isActive)
                                                                             onLayoutChange?.(buildTabUpdated(nl));
                                                                     }}
-                                                                    onDragStop={(nl, oldItem, newItem) => {
-                                                                        if (!isActive || readonly || coarsePointer)
+                                                                    onDragStop={(nl, oldItem, newItem, _p, e) => {
+                                                                        if (
+                                                                            !isActive ||
+                                                                            readonly ||
+                                                                            !gridEdit.mayPersist(e)
+                                                                        )
                                                                             return;
                                                                         if (!itemMoved(oldItem, newItem)) return;
                                                                         // Skip if nothing moved (a click without drag fires onDragStop
@@ -1414,7 +1440,8 @@ export function Dashboard({
                                                                         )
                                                                             updateLayouts(updated);
                                                                     }}
-                                                                    onResizeStart={(_nl, oldItem) => {
+                                                                    onResizeStart={(_nl, oldItem, _n, _p, e) => {
+                                                                        gridEdit.onInteractStart(e);
                                                                         if (!oldItem) return;
                                                                         const rw = tabGridWidgets.find(
                                                                             (x) => x.id === oldItem.i,
@@ -1424,15 +1451,16 @@ export function Dashboard({
                                                                             clearTimeout(heightLockTimer.current);
                                                                         setHeightLockHintId(oldItem.i);
                                                                     }}
-                                                                    onResize={(_nl, _o, newItem, _p, _e, node) =>
-                                                                        showResizeSize(node, newItem)
-                                                                    }
+                                                                    onResize={(_nl, _o, newItem, _p, e, node) => {
+                                                                        gridEdit.onInteract(e, node);
+                                                                        showResizeSize(node, newItem);
+                                                                    }}
                                                                     onResizeStop={(
                                                                         nl,
                                                                         oldItem,
                                                                         newItem,
                                                                         _p,
-                                                                        _e,
+                                                                        e,
                                                                         node,
                                                                     ) => {
                                                                         clearResizeSize(node);
@@ -1444,7 +1472,11 @@ export function Dashboard({
                                                                                 2500,
                                                                             );
                                                                         }
-                                                                        if (!isActive || readonly || coarsePointer)
+                                                                        if (
+                                                                            !isActive ||
+                                                                            readonly ||
+                                                                            !gridEdit.mayPersist(e)
+                                                                        )
                                                                             return;
                                                                         if (!itemMoved(oldItem, newItem)) return;
                                                                         const updated = buildTabUpdated(nl);

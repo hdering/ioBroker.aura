@@ -63,6 +63,7 @@ import { exportTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { AuraIcon } from '../../components/common/AuraIcon';
 import { ResizablePopover, usePanelWidth } from '../../components/common/ResizablePopover';
+import { TouchArrangeToggle } from '../../components/layout/TouchArrangeToggle';
 
 // TYPE_LABELS are now resolved via useT() inside components
 
@@ -2102,6 +2103,7 @@ export function AdminEditor() {
                         </button>
                     );
                 })}
+                <TouchArrangeToggle />
                 <button
                     onClick={() => setLockWidgets(!lockWidgets)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"

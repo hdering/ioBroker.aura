@@ -1174,7 +1174,16 @@ export const de = {
     'editor.layouts.agenda': 'Agenda',
     'editor.layouts.custom': 'Custom',
 
+    'editor.arrange.label': 'Anordnen',
+    'editor.arrange.off':
+        'Anordnen: Widgets auf dem Touch-Gerät verschieben und in der Größe ändern — antippen, dann am Griff ziehen',
+    'editor.arrange.on':
+        'Anordnen aktiv — Widget antippen, am Griff verschieben, an der Ecke die Größe ändern. Tippen zum Beenden.',
     'editor.lock.on': 'Bedienelemente gesperrt — klicken zum Entsperren (Widgets lösen im Editor keine Aktionen aus)',
+    'editor.fluidPreview.hint':
+        'Vorschau wie im Frontend ({w} × {h}) — angezeigte Größen sind skaliert, gespeichert wird das Design-Raster',
+    'editor.fluidPreview.hintFill':
+        'Vorschau wie im Frontend ({w} × {h}) — Höhen füllen den Bildschirm und ändern sich beim Verschieben mit; gespeichert wird das Design-Raster',
     'editor.fluidPreview.off':
         'Wie im Frontend skalieren — das fließende Raster auf der Zielgröße {w} × {h} (Hilfslinien) zeigen',
     'editor.fluidPreview.on': 'Skaliert wie im Frontend auf {w} × {h} — klicken für das feste Design-Raster',

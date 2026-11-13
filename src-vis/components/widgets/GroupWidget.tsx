@@ -48,6 +48,7 @@ import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContex
 import { copyWidget } from '../../utils/widgetCopy';
 import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
     return [...children].sort((a, b) => {
@@ -78,6 +79,8 @@ function GroupEmptyState({ loading }: { loading: boolean }) {
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const t = useT();
     const configLayout = config.layout ?? 'default';
+    // Same touch rules as the outer grid (#699): locked on touch unless arranging.
+    const gridEdit = useGridEditInteraction(editMode);
 
     // ── defId initialisation ───────────────────────────────────────────────────
     // Stable temp defId used between mount and the first onConfigChange round-trip
@@ -728,7 +731,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 // for badges. In the editor that spill used to raise the group's
                 // scrollbar while the frontend clipped it, so the two views disagreed.
                 // autoShrink keeps the classic p-1 inset and its scroll behaviour.
-                className={`flex-1 min-h-0 ${filled ? 'p-0 overflow-hidden' : 'overflow-auto p-1'}`}
+                // `nodrag` in the editor: touch drags reach the outer grid through
+                // native listeners that stopPropagation cannot stop, so a child's grip
+                // must also be a cancel area for the group's own item (#699).
+                className={`flex-1 min-h-0 ${filled ? 'p-0 overflow-hidden' : 'overflow-auto p-1'} ${editMode ? 'nodrag' : ''}`}
                 style={isCollapsed ? { display: 'none' } : undefined}
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
@@ -739,12 +745,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         cols={cols}
                         rowHeight={rowHeight}
                         width={width}
-                        isDraggable={editMode}
-                        isResizable={editMode}
+                        isDraggable={gridEdit.editable}
+                        isResizable={gridEdit.editable}
                         compactType={editMode ? 'vertical' : null}
                         draggableCancel=".nodrag"
-                        onDragStop={(newLayout) => {
-                            if (!editMode) return;
+                        draggableHandle={gridEdit.draggableHandle}
+                        onDragStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                        onDrag={(_l, _o, _n, _p, e, node) => gridEdit.onInteract(e, node)}
+                        onResizeStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                        onDragStop={(newLayout, _o, _n, _p, e) => {
+                            if (!editMode || !gridEdit.mayPersist(e)) return;
                             let changed = false;
                             const updated = children.map((c) => {
                                 const pos = newLayout.find((l) => l.i === c.id);
@@ -766,10 +776,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 shrinkToFit(updated);
                             }
                         }}
-                        onResize={(_l, _o, newItem, _p, _e, node) => showResizeSize(node, newItem)}
-                        onResizeStop={(newLayout, _o, _n, _p, _e, node) => {
+                        onResize={(_l, _o, newItem, _p, e, node) => {
+                            gridEdit.onInteract(e, node);
+                            showResizeSize(node, newItem);
+                        }}
+                        onResizeStop={(newLayout, _o, _n, _p, e, node) => {
                             clearResizeSize(node);
-                            if (!editMode) return;
+                            if (!editMode || !gridEdit.mayPersist(e)) return;
                             let changed = false;
                             const updated = children.map((c) => {
                                 const pos = newLayout.find((l) => l.i === c.id);

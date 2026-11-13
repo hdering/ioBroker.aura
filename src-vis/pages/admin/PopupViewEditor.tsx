@@ -35,6 +35,8 @@ import { findPopupPreviewTriggers } from '../../utils/popupPreviewTriggers';
 import { WIDGET_BY_TYPE, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
 import type { WidgetConfig } from '../../types';
+import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
+import { TouchArrangeToggle } from '../../components/layout/TouchArrangeToggle';
 
 const DEFAULT_MARGIN = 10;
 
@@ -105,6 +107,8 @@ const OPTION_PLACEHOLDER_KEYS = ALL_POPUP_PLACEHOLDER_KEYS.filter((k) => !['dp',
 export function PopupViewEditor() {
     const { viewId } = useParams<{ viewId: string }>();
     const navigate = useNavigate();
+    // Touch devices: locked unless arranging, grip-only drags (#699).
+    const gridEdit = useGridEditInteraction(true);
     const {
         views,
         addWidgetToView,
@@ -410,6 +414,7 @@ export function PopupViewEditor() {
                             }}
                         />
                     </label>
+                    <TouchArrangeToggle />
                     <button
                         onClick={() => setShowAdd(true)}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
@@ -648,11 +653,18 @@ export function PopupViewEditor() {
                                             cols={cols}
                                             rowHeight={cellSize}
                                             width={containerWidth}
-                                            isDraggable
-                                            isResizable
+                                            isDraggable={gridEdit.editable}
+                                            isResizable={gridEdit.editable}
                                             draggableCancel=".nodrag"
-                                            onDragStop={syncLayout}
-                                            onResizeStop={syncLayout}
+                                            draggableHandle={gridEdit.draggableHandle}
+                                            onDragStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                                            onDrag={(_l, _o, _n, _p, e, node) => gridEdit.onInteract(e, node)}
+                                            onResizeStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                                            onResize={(_l, _o, _n, _p, e, node) => gridEdit.onInteract(e, node)}
+                                            onDragStop={(nl, _o, _n, _p, e) => gridEdit.mayPersist(e) && syncLayout(nl)}
+                                            onResizeStop={(nl, _o, _n, _p, e) =>
+                                                gridEdit.mayPersist(e) && syncLayout(nl)
+                                            }
                                             margin={[MARGIN, MARGIN]}
                                             containerPadding={[0, 0]}
                                         >

@@ -1165,7 +1165,14 @@ export const en: Record<TranslationKey, string> = {
     'editor.layouts.agenda': 'Agenda',
     'editor.layouts.custom': 'Custom',
 
+    'editor.arrange.label': 'Arrange',
+    'editor.arrange.off': 'Arrange: move and resize widgets on this touch device — tap a widget, then drag its grip',
+    'editor.arrange.on': 'Arranging — tap a widget, drag the grip to move it, the corner to resize. Tap to finish.',
     'editor.lock.on': 'Controls locked — click to unlock (widgets trigger nothing in the editor)',
+    'editor.fluidPreview.hint':
+        'Preview like the frontend ({w} × {h}) — sizes shown are scaled, the design grid is what gets saved',
+    'editor.fluidPreview.hintFill':
+        'Preview like the frontend ({w} × {h}) — heights fill the screen and change as you move widgets; the design grid is what gets saved',
     'editor.fluidPreview.off':
         'Scale like the frontend — show the fluid grid on the target size {w} × {h} (guidelines)',
     'editor.fluidPreview.on': 'Scaled like the frontend on {w} × {h} — click for the fixed design grid',

@@ -74,6 +74,7 @@
     "test:countdown-trigger-ui": "node tools/tests/countdown-trigger-ui.mjs",
     "test:countdown-font-sizes": "node tools/tests/countdown-font-sizes.mjs",
     "test:edit-history": "node tools/tests/edit-history.mjs",
+    "test:touch-arrange": "node tools/tests/touch-arrange.mjs",
     "test:edit-history-ui": "node tools/tests/edit-history-ui.mjs",
     "test:editor-drop-perf": "node tools/tests/editor-drop-perf.mjs",
     "test:frontend-widget-edit-tab": "node tools/tests/frontend-widget-edit-tab.mjs",

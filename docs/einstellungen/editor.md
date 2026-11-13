@@ -15,9 +15,10 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | Mobile-Reihenfolge | Reihenfolge der Widgets in der Einspaltenansicht; bei mehreren Mobile-Spalten wie die Tablet-Reihenfolge |
 | Tablet-Reihenfolge | Spalten wie im Tablet-Bereich: Widgets per Drag oder Pfeilen in Spalte und Reihenfolge setzen, ⤢ = volle Breite über alle Spalten; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge |
 | Blöcke | Je Block eigene Spaltenzahl (1–4) über die Zahlen im Kopf, darunter die Breiten der Spalten (z. B. 2:1 = links zwei Drittel, rechts ein Drittel); „+ Block“ zwischen den Blöcken = dort neuen leeren Block einfügen, ▲ ▼ am Spaltenende = in den Block darüber/darunter, Verbinden-Knopf = mit dem Block darüber zusammenlegen |
+| Anordnen | Nur auf Touch-Geräten: Widgets verschieben und in der Größe ändern, siehe [Auf dem Tablet anordnen](#auf-dem-tablet-anordnen) |
 | Schloss | Bedienelemente der Widgets sperren (Standard) oder freigeben |
 | Hilfslinien | Rote Ziellinien ein-/ausblenden |
-| Wie im Frontend skalieren | Nur bei „Fensterbreite füllen“: Raster gestreckt wie im Frontend auf der Zielgröße der Hilfslinien (Breite × Höhe). Gespeichert wird weiter in Rasterzellen |
+| Wie im Frontend skalieren | Nur bei „Fensterbreite füllen“: Raster gestreckt wie im Frontend auf der Zielgröße der Hilfslinien (Breite × Höhe). Gespeichert wird weiter in Rasterzellen; ein roter Hinweis über dem Raster zeigt, dass die Vorschau aktiv ist. Bei Höhe „Bildschirm füllen“ ändern sich beim Verschieben die angezeigten Höhen aller Widgets mit |
 | Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |
 
 ## Bedienelemente sperren
@@ -30,6 +31,20 @@ Mit dem Schloss in der Toolbar sind die Widgets im Editor taub: ein Klick auf ei
 | Offen (rot) | Widgets verhalten sich wie im Frontend, Klicks schalten echte Geräte |
 
 Gruppen und Panel-Stapel bleiben bedienbar, damit ihre Kinder auswählbar und verschiebbar sind — die Kinder selbst sind einzeln gesperrt.
+
+## Auf dem Tablet anordnen
+
+Auf Touch-Geräten ist das Raster gegen versehentliches Verschieben gesperrt, bis *Anordnen* aktiv ist.
+
+| Geste | |
+| --- | --- |
+| Widget antippen | auswählen (blauer Rahmen) |
+| Griff in der Mitte ziehen | verschieben |
+| Ecke unten rechts ziehen | Größe ändern |
+| Wischen auf dem Widget | Seite scrollen |
+| Leere Rasterfläche antippen | Auswahl aufheben |
+
+Kinder einer Gruppe werden einzeln angetippt; die Gruppe selbst über ihre Kopfzeile.
 
 ## Neues Widget
 

@@ -56,6 +56,7 @@ import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { htmlCanReportHeight, supportsAutoHeight } from '../../utils/autoHeight';
 import { Unavailable } from '../config/Unavailable';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
+import { TOUCH_DRAG_HANDLE } from '../../hooks/useGridEditInteraction';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { WidgetWriteLockContext, useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { exportWidget } from '../../utils/widgetExportImport';
@@ -8638,6 +8639,15 @@ function WidgetFrameInner({
                         <EyeOff size={11} />
                         {t('wf.menu.hidden')}
                     </div>
+                </div>
+            )}
+
+            {editMode && (
+                // Touch grip (#699): the only drag handle while arranging on a touch
+                // device (useGridEditInteraction). Hidden by CSS unless this widget is
+                // the selected one in arrange mode, so it costs nothing elsewhere.
+                <div className={TOUCH_DRAG_HANDLE} aria-hidden="true" title={t('wf.menu.move')}>
+                    <GripVertical size={18} />
                 </div>
             )}
 

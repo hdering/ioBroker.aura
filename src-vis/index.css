@@ -872,8 +872,71 @@ input[type='range']::-moz-range-thumb {
     opacity: 0 !important;
     pointer-events: none !important;
 }
-.aura-peek .react-resizable-handle {
+.aura-peek .react-resizable-handle,
+.aura-peek .aura-drag-handle {
     display: none !important;
+}
+
+/* ── Arranging on touch devices (#699) ───────────────────────────────────────
+   hooks/useGridEditInteraction: with the arrange mode on, a tap selects a widget
+   (data-aura-selected on the grid item and its .aura-widget) and only that one
+   shows a grip (the grid's sole drag handle) and a finger-sized resize corner.
+   Both refuse touch panning; everywhere else a swipe keeps scrolling the page. */
+.aura-drag-handle {
+    display: none;
+}
+.aura-touch-arrange .aura-widget[data-aura-selected] > .aura-drag-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 9999px;
+    background: var(--accent, #3b82f6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: move;
+    touch-action: none;
+}
+.aura-touch-arrange .aura-drag-handle::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] {
+    outline: 2px solid var(--accent, #3b82f6);
+    outline-offset: 2px;
+    border-radius: var(--widget-radius, 12px);
+}
+.aura-touch-arrange .react-grid-item > .react-resizable-handle {
+    display: none;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] > .react-resizable-handle {
+    display: block;
+    z-index: 40;
+    width: 32px;
+    height: 32px;
+    opacity: 1;
+    border-radius: 9999px 0 9999px 0;
+    background: var(--accent, #3b82f6);
+    touch-action: none;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] > .react-resizable-handle::after {
+    right: 7px;
+    bottom: 7px;
+    width: 9px;
+    height: 9px;
+    border-color: #fff;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] > .react-resizable-handle::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
 }
 
 /* Header-less group: its config controls live in a hover-reveal toolbar (top-left)

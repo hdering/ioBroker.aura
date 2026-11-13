@@ -74,6 +74,7 @@ import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager'
 import { startEditHistory, stopEditHistory, undo, redo, historyEntries } from '../store/editHistory';
 import { installUndoRedoShortcuts } from '../store/editHistorySetup';
 import { NS } from '../utils/namespace';
+import { attachTouchArrangeDom, useTouchArrangeStore } from '../hooks/useGridEditInteraction';
 import type { AuraMessage, MessageSeverity, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
 
 type MockValue = boolean | number | string | null | Partial<ioBrokerState>;
@@ -180,6 +181,7 @@ function aggregateRaw(
 }
 
 let uninstallShortcuts: (() => void) | null = null;
+let touchArrangeDetach: (() => void) | null = null;
 const sendToLog: { target: string; command: string; payload: unknown }[] = [];
 
 function installScreenshotApi(): void {
@@ -309,6 +311,14 @@ function installScreenshotApi(): void {
 
         setEditMode(on: boolean): void {
             withSuppressedDirty(() => useDashboardStore.setState({ editMode: on }));
+        },
+
+        /** Arrange mode on touch devices (#699) — what the editor toolbar switch does
+         *  (store flag + root class + tap-to-select), without the admin page. */
+        setTouchArrange(on: boolean): void {
+            useTouchArrangeStore.getState().setArrange(on);
+            touchArrangeDetach?.();
+            touchArrangeDetach = on ? attachTouchArrangeDom() : null;
         },
 
         /** Seed a full multi-layout demo config (for admin-area screenshots). */
