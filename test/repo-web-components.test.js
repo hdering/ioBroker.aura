@@ -90,9 +90,10 @@ const repos = {
     assert.strictEqual(y.size, undefined, 'a size of 0 is none');
 }
 
-// ── No active repository with data: every known one; none at all: null ──
+// ── Only the chosen channel: an active repository without data falls back to none ──
 {
-    assert.deepStrictEqual(repoWebComponents({ activeRepo: 'never', repos }).repos, ['stable', 'beta']);
+    assert.strictEqual(repoWebComponents({ activeRepo: 'never', repos }), null, 'no fallback to other channels');
+    assert.deepStrictEqual(repoWebComponents({ activeRepo: 'beta', repos }).repos, ['beta']);
     assert.strictEqual(repoWebComponents({ activeRepo: 'stable', repos: {} }), null);
 }
 
