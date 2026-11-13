@@ -32,6 +32,7 @@ import {
     Copy,
     Layers2,
     Minimize2,
+    ArrowUpLeft,
     Maximize2,
     Smartphone,
     GripVertical,
@@ -6686,6 +6687,19 @@ const isPickerOptionTarget = (t: string): t is PickerOptionTarget =>
 /** Stable "no children" for store selectors (a fresh [] re-renders on every update). */
 const NO_CHILDREN: WidgetConfig[] = [];
 
+/** "↖ parent group": show the nearest header-less ancestor's toolbar until the pointer leaves it. */
+function revealParentToolbar(from: HTMLElement) {
+    const own = from.closest('.aura-headerless-group');
+    const parent = own?.parentElement?.closest('.aura-headerless-group') as HTMLElement | null | undefined;
+    if (!parent) return;
+    parent.classList.add('aura-toolbar-parent');
+    const done = () => {
+        parent.classList.remove('aura-toolbar-parent');
+        parent.removeEventListener('mouseleave', done);
+    };
+    parent.addEventListener('mouseleave', done);
+}
+
 function WidgetFrameInner({
     config,
     editMode,
@@ -8477,7 +8491,7 @@ function WidgetFrameInner({
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''} ${condDisabled ? 'aura-cond-disabled' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''} ${condDisabled ? 'aura-cond-disabled' : ''} ${isHeaderlessGroup ? 'aura-headerless-group' : ''}`}
             aria-disabled={condDisabled || undefined}
             onClick={handleWidgetClick}
             onContextMenu={
@@ -8512,7 +8526,9 @@ function WidgetFrameInner({
                           borderWidth: isBareHeader || isFrameless ? 0 : editMode ? 1 : 'var(--widget-border-width)',
                           borderStyle: 'dashed',
                           borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
-                          ...(isFrameless && editMode ? { outline: '1px dashed var(--app-border)' } : {}),
+                          ...(isFrameless && editMode
+                              ? { outline: '1px dashed var(--aura-nest-color, var(--app-border))' }
+                              : {}),
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
@@ -8648,39 +8664,64 @@ function WidgetFrameInner({
                             <GripVertical size={13} />
                         </div>
                     )}
-                    <div
-                        draggable
-                        onMouseDown={stopDrag}
-                        onPointerDown={stopDrag}
-                        onDragStart={(e) => {
-                            e.stopPropagation();
-                            setDragBridge({ widget: config, remove: onRemove });
-                            e.dataTransfer.effectAllowed = 'move';
-                        }}
-                        onDragEnd={() => setDragBridge(null)}
-                        // A child's grip reads "pull out of group", so a plain click does
-                        // exactly that — onto the active tab, the same step a drop on the
-                        // tab performs (the drop position is not used there either). The
-                        // drag stays for moving the child into ANOTHER group or panels.
-                        onClick={
-                            onDuplicate
-                                ? (e) => {
-                                      e.stopPropagation();
-                                      getTabDropAccept()?.(config, onRemove);
-                                  }
-                                : undefined
-                        }
-                        className="nodrag cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                        title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        <Layers2 size={12} />
-                    </div>
-                    {isGroup && (
+                    {isHeaderlessGroup && inGroup && (
+                        <button
+                            data-aura-parent-toolbar=""
+                            onMouseDown={stopDrag}
+                            onPointerDown={stopDrag}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                revealParentToolbar(e.currentTarget);
+                            }}
+                            className="nodrag w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            title={t('group.parentToolbar')}
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <ArrowUpLeft size={13} />
+                        </button>
+                    )}
+                    {/* A header-less group keeps grip + menu only (#981) — next to the
+                        first child's chrome it has to fit narrow boxes; these two are
+                        in its menu instead. */}
+                    {!isHeaderlessGroup && (
+                        <div
+                            draggable
+                            onMouseDown={stopDrag}
+                            onPointerDown={stopDrag}
+                            onDragStart={(e) => {
+                                e.stopPropagation();
+                                setDragBridge({ widget: config, remove: onRemove });
+                                e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragEnd={() => setDragBridge(null)}
+                            // A child's grip reads "pull out of group", so a plain click does
+                            // exactly that — onto the active tab, the same step a drop on the
+                            // tab performs (the drop position is not used there either). The
+                            // drag stays for moving the child into ANOTHER group or panels.
+                            onClick={
+                                onDuplicate
+                                    ? (e) => {
+                                          e.stopPropagation();
+                                          getTabDropAccept()?.(config, onRemove);
+                                      }
+                                    : undefined
+                            }
+                            className="nodrag cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <Layers2 size={12} />
+                        </div>
+                    )}
+                    {isGroup && !isHeaderlessGroup && (
                         <button
                             onClick={fitGroupHeight}
                             onMouseDown={stopDrag}
@@ -9268,6 +9309,39 @@ function WidgetFrameInner({
                                     <Smartphone size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                                     {t('group.mobileOrder')}
                                 </button>
+                                {/* Header-less group: its hover toolbar only keeps grip + menu (#981),
+                                    so "fit height" and "pull out of group" live here. */}
+                                {isHeaderlessGroup && (
+                                    <button
+                                        data-aura-menu-fit=""
+                                        onClick={() => {
+                                            fitGroupHeight();
+                                            openPanelFor(null);
+                                        }}
+                                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        <Minimize2
+                                            size={13}
+                                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                        />
+                                        {t('group.fitHeight')}
+                                    </button>
+                                )}
+                                {isHeaderlessGroup && onDuplicate && (
+                                    <button
+                                        data-aura-menu-pullout=""
+                                        onClick={() => {
+                                            openPanelFor(null);
+                                            getTabDropAccept()?.(config, onRemove);
+                                        }}
+                                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        <Layers2 size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                        {t('wf.menu.dragOutOfGroup')}
+                                    </button>
+                                )}
                                 <div className="my-0.5 mx-1 border-t" style={{ borderColor: 'var(--app-border)' }} />
                             </>
                         )}

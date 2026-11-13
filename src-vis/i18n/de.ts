@@ -2955,6 +2955,7 @@ export const de = {
     'group.masterPlaceholder': 'Gruppen-Schalter aktiv – erscheint, sobald steuerbare Datenpunkte konfiguriert sind',
     'group.masterPlaceholderShort': 'DPs nötig',
     'group.fitHeight': 'Höhe an Inhalt anpassen',
+    'group.parentToolbar': 'Übergeordnete Gruppe',
 
     // ── Panels Widget (Slide-of-Widgets) ──────────────────────────────────────────
     'panels.noSlides': 'Keine Panels',

@@ -153,6 +153,126 @@ for (const editMode of [true, false]) {
         await context.close();
     }
 }
+
+// Nested: frameless device cards in a frameless group (the report's export). Both
+// are header-less, so both draw a hover toolbar top-left; the card's must not sit
+// under the group's, or the card's settings cannot be reached.
+{
+    console.log('\nGerätekarte in Gruppe · Editor · Werkzeugleisten');
+    const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+    const page = await context.newPage();
+    page.on('pageerror', (e) => console.log('  [pageerror]', e.message));
+    await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    const head = { frameless: true, showIcon: false, showTitle: false };
+    const defs = {
+        'def-outer': [
+            {
+                id: 'card-1',
+                type: 'devicecard',
+                title: 'K1',
+                datapoint: 'demo.temp',
+                layout: 'default',
+                options: { defId: 'def-card', ...head },
+                gridPos: { x: 0, y: 0, w: 7, h: 7 },
+            },
+            {
+                id: 'card-2',
+                type: 'devicecard',
+                title: 'K2',
+                datapoint: 'demo.temp',
+                layout: 'default',
+                options: { defId: 'def-card', ...head },
+                gridPos: { x: 7, y: 0, w: 8, h: 7 },
+            },
+        ],
+        'def-card': [value('in-a', { x: 0, y: 0, w: 10, h: 2 }), value('in-b', { x: 0, y: 2, w: 10, h: 5 })],
+    };
+    const widgets = [
+        {
+            id: 'outer',
+            type: 'group',
+            title: 'Gruppe',
+            datapoint: '',
+            layout: 'default',
+            options: { defId: 'def-outer', ...head },
+            gridPos: { x: 0, y: 0, w: 16, h: 7 },
+        },
+    ];
+    await page.evaluate(
+        ({ widgets, defs, grid }) => {
+            localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+            window.__auraShot.mock({ 'demo.temp': 21 });
+            window.__auraShot.groupDefs(defs);
+            window.__auraShot.showWidgets(widgets, { editMode: true, ...grid });
+        },
+        { widgets, defs, grid: GRID },
+    );
+    await page.waitForSelector('.aura-widget-card-1 .aura-widget-in-a', { timeout: 15000 });
+    await page.waitForTimeout(500);
+    // Hover the card's first child: only the innermost header-less group (the card)
+    // shows its toolbar.
+    const inA = await page.locator('.aura-widget-card-1 .aura-widget-in-a').first().boundingBox();
+    await page.mouse.move(inA.x + inA.width / 2, inA.y + inA.height / 2);
+    await page.waitForTimeout(300);
+    const BARS = () => {
+        const bar = (id) => {
+            const el = document.querySelector(`.aura-widget-${id} > .aura-group-toolbar`);
+            if (!el) return null;
+            const r = el.getBoundingClientRect();
+            const grip = el.firstElementChild.getBoundingClientRect();
+            const hit = document.elementFromPoint(grip.x + grip.width / 2, grip.y + grip.height / 2);
+            return {
+                left: Math.round(r.left),
+                right: Math.round(r.right),
+                shown: getComputedStyle(el).opacity === '1',
+                gripOwn: !!hit && el.contains(hit),
+                buttons: el.children.length,
+                parentBtn: !!el.querySelector('[data-aura-parent-toolbar]'),
+                color: getComputedStyle(el.firstElementChild).borderTopColor,
+            };
+        };
+        const chrome = document.querySelector('.aura-widget-in-a > .aura-edit-chrome')?.getBoundingClientRect();
+        return { outer: bar('outer'), card: bar('card-1'), chromeLeft: chrome ? Math.round(chrome.left) : null };
+    };
+    const a = await page.evaluate(BARS);
+    check(!!a.outer && !!a.card, 'beide Werkzeugleisten vorhanden', JSON.stringify(a));
+    if (a.outer && a.card) {
+        check(a.card.shown && a.card.gripOwn, 'Leiste der Karte sichtbar und erreichbar');
+        check(!a.outer.shown, 'Leiste der Gruppe dabei verborgen');
+        check(a.card.parentBtn && !a.outer.parentBtn, 'nur die Karte hat „übergeordnete Gruppe“');
+        check(
+            a.card.buttons === 3 && a.outer.buttons === 2,
+            'Leisten nur Greifen (+ ↖) + Menü',
+            `${a.card.buttons} / ${a.outer.buttons}`,
+        );
+        check(
+            a.chromeLeft !== null && a.card.right < a.chromeLeft,
+            'Kartenleiste neben der Kindleiste',
+            `${a.card.right} < ${a.chromeLeft}`,
+        );
+        check(a.card.color !== a.outer.color, 'Farbe je Ebene', `${a.card.color} vs ${a.outer.color}`);
+
+        // "parent group": the group's toolbar comes back, the card's steps aside.
+        await page.locator('.aura-widget-card-1 > .aura-group-toolbar [data-aura-parent-toolbar]').click();
+        await page.waitForTimeout(300);
+        const b = await page.evaluate(BARS);
+        check(b.outer.shown && b.outer.gripOwn, 'nach ↖: Leiste der Gruppe sichtbar und erreichbar');
+        check(!b.card.shown, 'nach ↖: Leiste der Karte verborgen');
+
+        // The card's menu carries what left its toolbar.
+        await page.mouse.move(inA.x + inA.width / 2, inA.y + inA.height / 2 + 30);
+        await page.mouse.move(inA.x + inA.width / 2, inA.y + inA.height / 2);
+        await page.mouse.move(5, 880);
+        await page.mouse.move(inA.x + inA.width / 2, inA.y + inA.height / 2);
+        await page.waitForTimeout(300);
+        await page.locator('.aura-widget-card-1 > .aura-group-toolbar > button').last().click();
+        await page.waitForTimeout(300);
+        check((await page.locator('[data-aura-menu-fit]').count()) === 1, 'Menü der Karte: Höhe anpassen');
+        check((await page.locator('[data-aura-menu-pullout]').count()) === 1, 'Menü der Karte: aus Gruppe ziehen');
+    }
+    await context.close();
+}
 await browser.close();
 console.log(`\n${passed} ok, ${failed} fehlgeschlagen`);
 process.exit(failed ? 1 : 0);

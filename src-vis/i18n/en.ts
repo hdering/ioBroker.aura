@@ -2929,6 +2929,7 @@ export const en: Record<TranslationKey, string> = {
     'group.masterPlaceholder': 'Group switch enabled – appears once controllable datapoints are configured',
     'group.masterPlaceholderShort': 'needs DPs',
     'group.fitHeight': 'Fit height to content',
+    'group.parentToolbar': 'Parent group',
 
     // ── Panels Widget (slide of widgets) ──────────────────────────────────────────
     'panels.noSlides': 'No panels',

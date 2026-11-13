@@ -884,10 +884,48 @@ input[type='range']::-moz-range-thumb {
     pointer-events: none;
     transition: opacity 0.12s ease;
 }
-.aura-widget:hover > .aura-group-toolbar,
-.aura-widget:focus-within > .aura-group-toolbar {
+.aura-widget:not(.aura-headerless-group):hover > .aura-group-toolbar,
+.aura-widget:not(.aura-headerless-group):focus-within > .aura-group-toolbar {
     opacity: 1;
     pointer-events: auto;
+}
+/* Nested header-less groups (#981, e.g. a frameless device card in a frameless
+   group): both toolbars sit top-left, so only the INNERMOST header-less group under
+   the pointer (or holding focus) shows its own. The outer one comes back through
+   the inner toolbar's "parent group" button, which sets .aura-toolbar-parent on it
+   until the pointer leaves it — and hides the toolbars inside meanwhile. */
+.aura-headerless-group:hover:not(:has(.aura-headerless-group:hover)) > .aura-group-toolbar,
+.aura-headerless-group:focus-within:not(:has(.aura-headerless-group:focus-within)) > .aura-group-toolbar,
+.aura-headerless-group.aura-toolbar-parent > .aura-group-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+}
+/* The "parent group" button only where a header-less group is the parent: a group
+   with a header shows its own controls there anyway. */
+.aura-group-toolbar > [data-aura-parent-toolbar] {
+    display: none;
+}
+.aura-headerless-group .aura-headerless-group > .aura-group-toolbar > [data-aura-parent-toolbar] {
+    display: flex;
+}
+.aura-toolbar-parent .aura-headerless-group > .aura-group-toolbar {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+/* One colour per nesting level: the frameless outline and the toolbar buttons of a
+   level share it, so a toolbar reads as belonging to its box. */
+.aura-headerless-group {
+    --aura-nest-color: var(--accent, #3b82f6);
+}
+.aura-headerless-group .aura-headerless-group {
+    --aura-nest-color: #f59e0b;
+}
+.aura-headerless-group .aura-headerless-group .aura-headerless-group {
+    --aura-nest-color: #10b981;
+}
+.aura-headerless-group > .aura-group-toolbar > * {
+    border-color: var(--aura-nest-color) !important;
+    color: var(--aura-nest-color) !important;
 }
 
 /* Editor control lock (issue #655). While designing, a widget body must not
