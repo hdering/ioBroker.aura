@@ -61,6 +61,19 @@ export function useIdleStateDp(opts: {
         });
     }, [clientId, activeId]);
 
+    // The adapter creates this client's datapoints on registration and sets info.name
+    // last. Writing before that makes js-controller warn "has no existing object" on a
+    // device's very first visit, so hold every write until the name is there.
+    const [registered, setRegistered] = useState(false);
+    useEffect(() => {
+        setRegistered(false);
+        if (!clientId) return;
+        return subscribeDpValue(`${NS}.clients.${clientId}.info.name`, (v) => {
+            if (v != null && String(v).length > 0) setRegistered(true);
+        });
+    }, [clientId]);
+    const ready = clientReady && registered;
+
     const effDelay = override ?? (enabled ? delaySec : 0);
     const enabledId = `${NS}.clients.${clientId}.idle.enabled`;
 
@@ -69,20 +82,20 @@ export function useIdleStateDp(opts: {
     // Reported values, not commands: written acknowledged (the states are write:false,
     // js-controller warns about every unacknowledged write to them).
     useEffect(() => {
-        if (!connected || !clientReady || !clientId) return;
+        if (!connected || !ready || !clientId) return;
         setStateDirect(enabledId, effDelay > 0, true);
-    }, [connected, clientReady, clientId, enabledId, effDelay]);
+    }, [connected, ready, clientId, enabledId, effDelay]);
     useEffect(() => {
-        if (!connected || !clientReady || !clientId) return;
+        if (!connected || !ready || !clientId) return;
         const seenId = `${NS}.clients.${clientId}.info.lastSeen`;
         const beat = () => setStateDirect(seenId, Date.now(), true);
         beat();
         const timer = setInterval(beat, HEARTBEAT_MS);
         return () => clearInterval(timer);
-    }, [connected, clientReady, clientId]);
+    }, [connected, ready, clientId]);
 
     useEffect(() => {
-        if (!connected || !clientReady || !clientId) return;
+        if (!connected || !ready || !clientId) return;
         const write = (idle: boolean) => {
             if (shownRef.current === idle) return;
             shownRef.current = idle;
@@ -111,5 +124,5 @@ export function useIdleStateDp(opts: {
             window.removeEventListener('scroll', reset, { capture: true });
             window.removeEventListener(IDLE_RESTART_EVENT, reset);
         };
-    }, [connected, clientReady, clientId, activeId, effDelay]);
+    }, [connected, ready, clientId, activeId, effDelay]);
 }
