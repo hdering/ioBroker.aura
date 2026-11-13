@@ -562,7 +562,6 @@ export function Dashboard({
         !embedded &&
         (settings.editorFluidPreview ?? false) &&
         (settings.gridWidthMode ?? 'fixed') === 'fluid';
-    const t = useT();
     // The scroller's padding (sm:p-4) sits inside the device as well.
     const SCROLLER_PAD = 32;
     const previewWidth = Math.max(200, guidelinesWidth - guidelinesMenuInset - SCROLLER_PAD - scrollGutter);
@@ -973,26 +972,6 @@ export function Dashboard({
                 <ActiveSectionContext.Provider value={section?.id}>
                     <div className="flex-1 min-h-0 relative">
                         {renderFillTabOverlays()}
-                        {fluidPreview && (
-                            // The preview recomputes row and content heights on the target
-                            // size, so moving a widget can visibly resize others — the
-                            // stored design units stay as they are. Outside the scroller so
-                            // it stays in view (#981).
-                            <div
-                                className="aura-fluid-preview-hint pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 z-40 max-w-[90%] px-3 py-1 rounded-full text-xs font-medium text-center shadow"
-                                style={{
-                                    background: 'color-mix(in srgb, rgb(239,68,68) 14%, var(--app-surface))',
-                                    color: 'rgb(239,68,68)',
-                                    border: '1px solid rgb(239,68,68)',
-                                }}
-                                data-aura-fluid-preview-hint=""
-                            >
-                                {t(
-                                    heightMode === 'fill' ? 'editor.fluidPreview.hintFill' : 'editor.fluidPreview.hint',
-                                    { w: String(guidelinesWidth), h: String(guidelinesHeight) },
-                                )}
-                            </div>
-                        )}
                         <div
                             ref={containerRefCallback}
                             className={`aura-scroll aura-scroll-touch absolute inset-0 overflow-auto ${embedded ? 'p-2' : 'p-2 sm:p-4'}`}

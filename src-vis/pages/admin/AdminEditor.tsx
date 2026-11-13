@@ -2161,6 +2161,23 @@ export function AdminEditor() {
                         </button>
                     );
                 })()}
+                {/* While the preview runs, row and content heights are recomputed on the
+                    target size — moving a widget can change the shown heights of others,
+                    the stored design units stay. Quiet note next to the switch. */}
+                {(editorSettings.gridWidthMode ?? 'fixed') === 'fluid' && (frontend.editorFluidPreview ?? false) && (
+                    <span
+                        className="text-xs leading-tight max-w-[22rem]"
+                        style={{ color: 'var(--text-secondary)' }}
+                        data-aura-fluid-preview-hint=""
+                    >
+                        {t(
+                            editorSettings.gridHeightMode === 'fill'
+                                ? 'editor.fluidPreview.hintFill'
+                                : 'editor.fluidPreview.hint',
+                            { w: guidelinesWidthEff, h: guidelinesHeightEff },
+                        )}
+                    </span>
+                )}
             </div>
 
             {/* Section switcher — pick/add the "Bereich" being edited */}

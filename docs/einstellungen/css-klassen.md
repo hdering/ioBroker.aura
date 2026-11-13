@@ -245,7 +245,6 @@ Ist die Verbindung zu ioBroker länger als 5 s weg, trägt die Seite `[data-aura
 | `.aura-peek` | am `<body>`, solange `Strg`+`Alt` die Editor-Elemente ausblendet |
 | `.aura-touch-arrange` | am `<html>`, solange auf einem Touch-Gerät *Anordnen* aktiv ist |
 | `.aura-drag-handle` | Griff zum Verschieben am ausgewählten Widget (nur bei *Anordnen*) |
-| `.aura-fluid-preview-hint` | Hinweis über dem Raster bei „Wie im Frontend skalieren“ |
 | `.aura-config-modal` | Konfigurations-Popup |
 | `.aura-widget-edit-modal` | Widget-Bearbeiten-Popup |
 | `.aura-dp-picker` | Datenpunkt-Auswahl |

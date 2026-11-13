@@ -18,7 +18,7 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | Anordnen | Nur auf Touch-Geräten: Widgets verschieben und in der Größe ändern, siehe [Auf dem Tablet anordnen](#auf-dem-tablet-anordnen) |
 | Schloss | Bedienelemente der Widgets sperren (Standard) oder freigeben |
 | Hilfslinien | Rote Ziellinien ein-/ausblenden |
-| Wie im Frontend skalieren | Nur bei „Fensterbreite füllen“: Raster gestreckt wie im Frontend auf der Zielgröße der Hilfslinien (Breite × Höhe). Gespeichert wird weiter in Rasterzellen; ein roter Hinweis über dem Raster zeigt, dass die Vorschau aktiv ist. Bei Höhe „Bildschirm füllen“ ändern sich beim Verschieben die angezeigten Höhen aller Widgets mit |
+| Wie im Frontend skalieren | Nur bei „Fensterbreite füllen“: Raster gestreckt wie im Frontend auf der Zielgröße der Hilfslinien (Breite × Höhe). Gespeichert wird weiter in Rasterzellen; daneben steht ein Hinweis, solange die Vorschau aktiv ist. Bei Höhe „Bildschirm füllen“ ändern sich beim Verschieben die angezeigten Höhen aller Widgets mit |
 | Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |
 
 ## Bedienelemente sperren
