@@ -20764,7 +20764,6 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
-        "confirmAction",
         "confirmText",
         "customGrid",
         "defaultCollapsed",
@@ -20874,6 +20873,11 @@
         "circleTriggerSize": {
           "type": "number",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
+        "confirmAction": {
+          "type": "boolean",
+          "default": false,
+          "description": "Vor jeder Fahrt (Auf/Zu, Regler, Voreinstellung, Kreismenü) und jeder Lamellenänderung eine Rückfrage mit dem Ziel (\"Schließen\", \"40% geöffnet\") anzeigen. Stopp fragt nie. Erzwingt Senden beim Loslassen (#977)."
         },
         "controlMode": {
           "type": "string",
@@ -23831,7 +23835,6 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
-        "confirmAction",
         "confirmText",
         "customGrid",
         "decimals",
@@ -23923,6 +23926,11 @@
         "circleTriggerSize": {
           "type": "number",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
+        "confirmAction": {
+          "type": "boolean",
+          "default": false,
+          "description": "Vor jeder Änderung der Solltemperatur (±, Voreinstellung, Rundskala, Kreismenü) eine Rückfrage mit dem Zielwert anzeigen (#977)."
         },
         "dialColor": {
           "type": "string",

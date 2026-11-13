@@ -71,6 +71,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `positionLivePreview` | `false` | Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen |
 | `positionPresets` | — | Schnellwahl-Tasten unter dem Regler (Default-Layout, Custom-Komponente `presets`): Liste aus `pos` (%, gelesen wie die Anzeige), optional `label` und `tilt` (% Lamellen, nur mit `tiltDp`). Ohne `pos` nur Lamellen; steht der Behang schon auf `pos`, wird nur `tilt` geschrieben |
 
+### Sicherheitsabfrage
+
+Blendet vor jeder Fahrt (Auf/Zu, Regler, Schnellwahl, Kreismenü) und jeder Lamellenänderung eine Bestätigung über dem Widget ein, mit dem Ziel als zweiter Zeile. Erst **Ja** schreibt. **Stopp** fragt nie.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `confirmAction` | `false` | Bestätigung vor dem Schreiben; Regler senden dann immer erst beim Loslassen |
+| `confirmText` | — | Abfragetext, leer = „Wirklich ausführen?“ |
+
+![](./assets/rollladen/sicherheitsabfrage.png)
+
 ### Lamellen / Neigung
 
 Nur aktiv mit `tiltDp`. Feste Skala: **0 % = Lamellen geschlossen, 100 % = offen/waagerecht** — Geräteabweichungen über Bereich und Invertierung abbilden.

@@ -176,6 +176,7 @@
     "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",
     "test:enum-confirm": "node tools/tests/enum-confirm.mjs",
+    "test:shutter-thermostat-confirm": "node tools/tests/shutter-thermostat-confirm.mjs",
     "test:switch-checkbox": "node tools/tests/switch-checkbox.mjs",
     "test:switch-button-image": "node tools/tests/switch-button-image.mjs",
     "test:enum-select-size": "node tools/tests/enum-select-size.mjs",

@@ -9,6 +9,9 @@ import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useReleaseCommit } from '../../hooks/useReleaseCommit';
+import { useConfirmGate } from '../../hooks/useConfirmAction';
+import { ConfirmOverlay } from './ConfirmOverlay';
+import { useT } from '../../i18n';
 import { ShutterViz } from './ShutterViz';
 import { applyCircleOrder, CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
 import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons } from './TiltControls';
@@ -163,7 +166,11 @@ export function ShutterWidget({ config }: WidgetProps) {
     const layout = config.layout ?? 'default';
 
     const showClosedPercent = !!(opts.showClosedPercent as boolean);
-    const sendOnRelease = opts.sendOnRelease !== false;
+    // Optional security confirmation (#977). With it, the regulators always send on
+    // release — one question per gesture, not one per pixel of the drag.
+    const confirmAction = !!(opts.confirmAction as boolean);
+    const confirmText = (opts.confirmText as string) ?? '';
+    const sendOnRelease = opts.sendOnRelease !== false || confirmAction;
     // Whether the graphic (and the percentage) already follow the regulator while
     // dragging. Off for the position — that is how the widget always behaved —
     // and on for the slats, where the point of the vertical slider is that they
@@ -175,6 +182,10 @@ export function ShutterWidget({ config }: WidgetProps) {
     const [dragTilt, setDragTilt] = useState<number | null>(null);
     const [tiltOpen, setTiltOpen] = useState(false);
     const tiltBtnRef = useRef<HTMLButtonElement>(null);
+    // Every drive and slat change passes through here; Stop deliberately does not —
+    // halting a blind must never wait for a question.
+    const t = useT();
+    const gate = useConfirmGate(confirmAction);
 
     // Normalize position: 0 = closed, 100 = open.
     // Actuators like HmIP-BROLL report the real position on a read-only DP of a
@@ -304,24 +315,28 @@ export function ShutterWidget({ config }: WidgetProps) {
         keepTiltAcrossMove(wantedTilt, raw);
         setValue(raw);
     };
-    const openFully = () => {
-        if (commands?.upDp) {
-            preMoveRawRef.current = rawPos;
-            keepTiltAcrossMove();
-            setState(commands.upDp, commands.upValue);
-        } else {
-            writePos(100);
-        }
-    };
-    const closeFully = () => {
-        if (commands?.downDp) {
-            preMoveRawRef.current = rawPos;
-            keepTiltAcrossMove();
-            setState(commands.downDp, commands.downValue);
-        } else {
-            writePos(0);
-        }
-    };
+    const openFully = () =>
+        gate.guard(() => {
+            if (commands?.upDp) {
+                preMoveRawRef.current = rawPos;
+                keepTiltAcrossMove();
+                setState(commands.upDp, commands.upValue);
+            } else {
+                writePos(100);
+            }
+        }, 'Öffnen');
+    const closeFully = () =>
+        gate.guard(() => {
+            if (commands?.downDp) {
+                preMoveRawRef.current = rawPos;
+                keepTiltAcrossMove();
+                setState(commands.downDp, commands.downValue);
+            } else {
+                writePos(0);
+            }
+        }, 'Schließen');
+    /** "40% geöffnet" / "60% geschlossen" — the target as the widget would show it. */
+    const posDetail = (p: number) => (showClosedPercent ? `${100 - p}% geschlossen` : `${p}% geöffnet`);
     const stop = () => {
         const stopDp = opts.stopDp as string | undefined;
         if (stopDp) {
@@ -368,8 +383,9 @@ export function ShutterWidget({ config }: WidgetProps) {
     };
     const handleSliderRelease = () => {
         if (sendOnRelease && dragPos !== null) {
-            writePos(dragPos);
+            const p = dragPos;
             setDragPos(null);
+            gate.guard(() => writePos(p), posDetail(p));
         }
     };
 
@@ -382,10 +398,16 @@ export function ShutterWidget({ config }: WidgetProps) {
         if (sendOnRelease) setDragTilt(v);
         else writeTilt(v);
     };
+    /** Slat change through the confirmation; the popover makes way for the question. */
+    const guardTilt = (pct: number) => {
+        if (confirmAction) setTiltOpen(false);
+        gate.guard(() => writeTilt(pct), `${tiltLabel} ${Math.round(pct)}%`);
+    };
     const handleTiltRelease = () => {
         if (sendOnRelease && dragTilt !== null) {
-            writeTilt(dragTilt);
+            const v = dragTilt;
             setDragTilt(null);
+            guardTilt(v);
         }
     };
     // A drag that ends off the slider (cancelled touch, keyboard) must still commit,
@@ -394,7 +416,7 @@ export function ShutterWidget({ config }: WidgetProps) {
     useReleaseCommit(dragTilt !== null, handleTiltRelease);
     const pickTilt = (v: number) => {
         setDragTilt(null);
-        writeTilt(clampPct(v));
+        guardTilt(clampPct(v));
     };
     const stepTilt = (dir: 1 | -1) => pickTilt(Math.round(tiltSliderPct + dir * tiltStep));
 
@@ -406,8 +428,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         () => readPresets(opts.positionPresets).filter((p) => p.pos !== undefined || tiltActive),
         [opts.positionPresets, tiltActive],
     );
-    const applyPreset = (p: ShutterPreset) => {
-        setDragPos(null);
+    const runPreset = (p: ShutterPreset) => {
         const tilt = tiltActive ? p.tilt : undefined;
         const target = p.pos === undefined ? undefined : showClosedPercent ? 100 - p.pos : p.pos;
         // Already there: many actuators re-drive on a repeated position and put
@@ -428,6 +449,10 @@ export function ShutterWidget({ config }: WidgetProps) {
         (!tiltActive || p.tilt === undefined || Math.abs(tiltPct - p.tilt) < 2);
     const presetText = (p: ShutterPreset) =>
         p.pos === undefined ? `${tiltLabel} ${Math.round(p.tilt ?? 0)}%` : `${Math.round(p.pos)}%`;
+    const applyPreset = (p: ShutterPreset) => {
+        setDragPos(null);
+        gate.guard(() => runPreset(p), p.label ? `${p.label}: ${presetText(p)}` : presetText(p));
+    };
     const presetRow =
         presets.length > 0 ? (
             <div
@@ -571,6 +596,15 @@ export function ShutterWidget({ config }: WidgetProps) {
             onChange={handleTiltChange}
             onRelease={handleTiltRelease}
             onPick={pickTilt}
+        />
+    ) : null;
+
+    const confirmOverlay = gate.pending ? (
+        <ConfirmOverlay
+            text={confirmText || t('widget.confirm.defaultAction')}
+            detail={gate.detail}
+            onConfirm={gate.confirm}
+            onCancel={gate.cancel}
         />
     ) : null;
 
@@ -750,7 +784,7 @@ export function ShutterWidget({ config }: WidgetProps) {
             cursor: 'pointer',
         });
         return (
-            <>
+            <div className="relative w-full h-full">
                 <CustomGridView
                     config={config}
                     value={`${pos}`}
@@ -934,7 +968,8 @@ export function ShutterWidget({ config }: WidgetProps) {
                     }}
                 />
                 {tiltPopover}
-            </>
+                {confirmOverlay}
+            </div>
         );
     }
 
@@ -959,6 +994,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                 )}
                 <StatusBadges config={config} />
                 {tiltPopover}
+                {confirmOverlay}
             </div>
         );
     }
@@ -1036,6 +1072,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                 )}
                 <StatusBadges config={config} />
                 {tiltPopover}
+                {confirmOverlay}
             </div>
         );
     }
@@ -1089,6 +1126,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                 {tiltAside(false)}
                 <StatusBadges config={config} />
                 {tiltPopover}
+                {confirmOverlay}
             </div>
         );
     }
@@ -1224,6 +1262,7 @@ export function ShutterWidget({ config }: WidgetProps) {
             </div>
             <StatusBadges config={config} />
             {tiltPopover}
+            {confirmOverlay}
         </div>
     );
 }

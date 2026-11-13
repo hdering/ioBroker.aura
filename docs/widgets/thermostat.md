@@ -76,6 +76,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showPresets` | `true` | Preset-Buttons anzeigen |
 | `presets` | `[18,20,22,24]` | Soll-Temperatur-Presets (°C) |
 
+### Sicherheitsabfrage
+
+Blendet vor jeder Änderung der Solltemperatur (+/−, Presets, Rundskala, Kreismenü) eine Bestätigung mit dem Zielwert über dem Widget ein. Erst **Ja** schreibt.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `confirmAction` | `false` | Bestätigung vor dem Schreiben |
+| `confirmText` | — | Abfragetext, leer = „Wirklich ausführen?“ |
+
+![](./assets/thermostat/sicherheitsabfrage.png)
+
 ### Schwellwerte
 
 Färbt die angezeigte Temperatur abhängig vom Ist- (bzw. Soll-)Wert.

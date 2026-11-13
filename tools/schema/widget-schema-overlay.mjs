@@ -474,6 +474,11 @@ export const WIDGET_OPTION_NOTES = {
         offIcon: { description: 'Icon im ausgeschalteten Zustand. Leer = wie icon.' },
     },
     thermostat: {
+        confirmAction: {
+            description:
+                'Vor jeder Änderung der Solltemperatur (±, Voreinstellung, Rundskala, Kreismenü) eine Rückfrage mit dem ' +
+                'Zielwert anzeigen (#977).',
+        },
         actualDatapoint: { description: 'Datenpunkt der Ist-Temperatur (der Haupt-DP ist die Soll-Temperatur).' },
         statusDp: {
             description:
@@ -921,6 +926,11 @@ export const WIDGET_OPTION_NOTES = {
         pointer3Label: { description: 'Beschriftung des dritten Zeigers.' },
     },
     shutter: {
+        confirmAction: {
+            description:
+                'Vor jeder Fahrt (Auf/Zu, Regler, Voreinstellung, Kreismenü) und jeder Lamellenänderung eine Rückfrage ' +
+                'mit dem Ziel ("Schließen", "40% geöffnet") anzeigen. Stopp fragt nie. Erzwingt Senden beim Loslassen (#977).',
+        },
         controlMode: {
             enum: ['position', 'taster', 'move'],
             description:

@@ -11,6 +11,8 @@ import { useT } from '../../i18n';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { useConfirmGate } from '../../hooks/useConfirmAction';
+import { ConfirmOverlay } from './ConfirmOverlay';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
@@ -205,7 +207,24 @@ export function ThermostatWidget({ config }: WidgetProps) {
 
     const displayTitle = resolveTitle(config);
 
-    const setTemp = (v: number) => setState(config.datapoint, clamp(v, minTemp, maxTemp, step));
+    // Optional security confirmation (#977): every setpoint write — ±, presets, the
+    // dial, the circle menu — asks first and names the temperature it will set.
+    const confirmAction = !!(o.confirmAction as boolean);
+    const confirmText = (o.confirmText as string) ?? '';
+    // A cancelled dial drag must not keep showing the rejected value.
+    const gate = useConfirmGate(confirmAction, () => setDialDrag(null));
+    const setTemp = (v: number) => {
+        const next = clamp(v, minTemp, maxTemp, step);
+        gate.guard(() => setState(config.datapoint, next), `${formatNum(next, decimals, numFmt)} °C`);
+    };
+    const confirmOverlay = gate.pending ? (
+        <ConfirmOverlay
+            text={confirmText || t('widget.confirm.defaultAction')}
+            detail={gate.detail}
+            onConfirm={gate.confirm}
+            onCancel={gate.cancel}
+        />
+    ) : null;
 
     const PlusMinus = () => (
         <div className="aura-widget-action flex flex-col gap-1 shrink-0">
@@ -320,7 +339,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
             e.stopPropagation();
             dialDragging.current = false;
             setDialHeld(false);
-            if (dialDrag !== null) setState(config.datapoint, dialDrag);
+            if (dialDrag !== null) setTemp(dialDrag);
         };
 
         // Centre stack — only the enabled fields, vertically centred as a block so
@@ -562,92 +581,101 @@ export function ThermostatWidget({ config }: WidgetProps) {
             justifyContent: 'center',
         };
         return (
-            <CustomGridView
-                config={config}
-                value={setpointText}
-                rawValue={setpoint}
-                cssVars={{
-                    '--aura-state-color': accentColor,
-                    '--aura-actual-color': thresholdColor ?? 'var(--text-secondary)',
-                }}
-                extraFields={{
-                    setpoint: setpointText,
-                    actual: actual !== null ? formatNum(actual, decimals, numFmt) : '–',
-                    actualTemp: actual !== null ? `${formatNum(actual, decimals, numFmt)}°C` : '',
-                    actualSlash: actual !== null ? `/ ${formatNum(actual, decimals, numFmt)}°C` : '',
-                    actualLine: actual !== null ? `${t('thermo.actual')} ${formatNum(actual, decimals, numFmt)}°C` : '',
-                    status: isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
-                    battery,
-                    reach,
-                    window: windowText,
-                }}
-                extraComponents={{
-                    icon: showIcon ? (
-                        <ThermoIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ '--aura-icon-color': `var(--aura-cell-color, ${accentColor})`, flexShrink: 0 }}
-                        />
-                    ) : null,
-                    'btn-plus': (
-                        <button
-                            className="aura-widget-action nodrag"
-                            style={btnSty}
-                            onClick={() => setTemp(target + step)}
-                        >
-                            +
-                        </button>
-                    ),
-                    'btn-minus': (
-                        <button
-                            className="aura-widget-action nodrag"
-                            style={btnSty}
-                            onClick={() => setTemp(target - step)}
-                        >
-                            −
-                        </button>
-                    ),
-                    // Round variants — the minimal layout's buttons.
-                    'btn-plus-round': (
-                        <button
-                            className="aura-widget-action nodrag"
-                            style={{ ...btnSty, borderRadius: '50%' }}
-                            onClick={() => setTemp(target + step)}
-                        >
-                            +
-                        </button>
-                    ),
-                    'btn-minus-round': (
-                        <button
-                            className="aura-widget-action nodrag"
-                            style={{ ...btnSty, borderRadius: '50%' }}
-                            onClick={() => setTemp(target - step)}
-                        >
-                            −
-                        </button>
-                    ),
-                    // "Ist: 20,5°C" as the default layout draws it — label grey, reading in
-                    // its threshold colour.
-                    'actual-line':
-                        actual !== null ? (
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                                {t('thermo.actual')}:{' '}
-                                <span style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
-                                    {formatNum(actual, decimals, numFmt)}°C
-                                </span>
-                            </span>
+            <div className="relative w-full h-full">
+                <CustomGridView
+                    config={config}
+                    value={setpointText}
+                    rawValue={setpoint}
+                    cssVars={{
+                        '--aura-state-color': accentColor,
+                        '--aura-actual-color': thresholdColor ?? 'var(--text-secondary)',
+                    }}
+                    extraFields={{
+                        setpoint: setpointText,
+                        actual: actual !== null ? formatNum(actual, decimals, numFmt) : '–',
+                        actualTemp: actual !== null ? `${formatNum(actual, decimals, numFmt)}°C` : '',
+                        actualSlash: actual !== null ? `/ ${formatNum(actual, decimals, numFmt)}°C` : '',
+                        actualLine:
+                            actual !== null ? `${t('thermo.actual')} ${formatNum(actual, decimals, numFmt)}°C` : '',
+                        status: isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
+                        battery,
+                        reach,
+                        window: windowText,
+                    }}
+                    extraComponents={{
+                        icon: showIcon ? (
+                            <ThermoIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ '--aura-icon-color': `var(--aura-cell-color, ${accentColor})`, flexShrink: 0 }}
+                            />
                         ) : null,
-                    'battery-icon': batteryIcon,
-                    'reach-icon': reachIcon,
-                    'window-icon': windowIcon,
-                    'status-badges': statusBadges,
-                    ...statusItemCells,
-                    dial: <div className="w-full h-full min-h-0 flex items-center justify-center">{renderDial()}</div>,
-                    presets: presets.length > 0 ? <PresetButtons /> : null,
-                    'circle-menu': <div className="w-full h-full min-h-0">{renderCircle()}</div>,
-                    'status-icon': <StatusIcon />,
-                }}
-            />
+                        'btn-plus': (
+                            <button
+                                className="aura-widget-action nodrag"
+                                style={btnSty}
+                                onClick={() => setTemp(target + step)}
+                            >
+                                +
+                            </button>
+                        ),
+                        'btn-minus': (
+                            <button
+                                className="aura-widget-action nodrag"
+                                style={btnSty}
+                                onClick={() => setTemp(target - step)}
+                            >
+                                −
+                            </button>
+                        ),
+                        // Round variants — the minimal layout's buttons.
+                        'btn-plus-round': (
+                            <button
+                                className="aura-widget-action nodrag"
+                                style={{ ...btnSty, borderRadius: '50%' }}
+                                onClick={() => setTemp(target + step)}
+                            >
+                                +
+                            </button>
+                        ),
+                        'btn-minus-round': (
+                            <button
+                                className="aura-widget-action nodrag"
+                                style={{ ...btnSty, borderRadius: '50%' }}
+                                onClick={() => setTemp(target - step)}
+                            >
+                                −
+                            </button>
+                        ),
+                        // "Ist: 20,5°C" as the default layout draws it — label grey, reading in
+                        // its threshold colour.
+                        'actual-line':
+                            actual !== null ? (
+                                <span
+                                    className="text-xs"
+                                    style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}
+                                >
+                                    {t('thermo.actual')}:{' '}
+                                    <span style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+                                        {formatNum(actual, decimals, numFmt)}°C
+                                    </span>
+                                </span>
+                            ) : null,
+                        'battery-icon': batteryIcon,
+                        'reach-icon': reachIcon,
+                        'window-icon': windowIcon,
+                        'status-badges': statusBadges,
+                        ...statusItemCells,
+                        dial: (
+                            <div className="w-full h-full min-h-0 flex items-center justify-center">{renderDial()}</div>
+                        ),
+                        presets: presets.length > 0 ? <PresetButtons /> : null,
+                        'circle-menu': <div className="w-full h-full min-h-0">{renderCircle()}</div>,
+                        'status-icon': <StatusIcon />,
+                    }}
+                />
+                {confirmOverlay}
+            </div>
         );
     }
 
@@ -707,6 +735,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         </div>
                     )}
                     <StatusBadges config={config} />
+                    {confirmOverlay}
                 </div>
             </>
         );
@@ -764,6 +793,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         </div>
                     )}
                     <StatusBadges config={config} />
+                    {confirmOverlay}
                 </div>
             </>
         );
@@ -789,6 +819,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     ) : null,
                 )}
                 <StatusBadges config={config} />
+                {confirmOverlay}
             </div>
         );
     }
@@ -810,6 +841,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     </div>
                 )}
                 <StatusBadges config={config} />
+                {confirmOverlay}
             </div>
         );
     }
@@ -876,6 +908,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 {/* Quick-select presets */}
                 {showPresets && presets.length > 0 && <PresetButtons />}
                 <StatusBadges config={config} />
+                {confirmOverlay}
             </div>
         </>
     );

@@ -26,6 +26,7 @@ export const en: Record<TranslationKey, string> = {
     'common.off': 'Off',
     'common.confirm': 'Confirm',
     'widget.confirm.defaultPrompt': 'Really switch?',
+    'widget.confirm.defaultAction': 'Really do this?',
     'widget.group.mixedPrompt': 'What should happen?',
     'widget.group.allOn': 'All on',
     'widget.group.allOff': 'All off',

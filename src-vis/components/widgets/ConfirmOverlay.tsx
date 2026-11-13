@@ -16,8 +16,11 @@ export function ConfirmOverlay({
     popup,
     anchorRef,
     choices,
+    detail,
 }: {
     text?: string;
+    /** Second, bold line naming what will be written (e.g. "21,5 °C", "Schließen"). */
+    detail?: string;
     onConfirm: () => void;
     onCancel: () => void;
     /** Render as a small floating popup near `anchorRef` via portal — for use in tiny containers (e.g. universal-widget cells). */
@@ -53,6 +56,14 @@ export function ConfirmOverlay({
             <p className="text-xs text-center px-3 font-medium" style={{ color: 'var(--text-primary)' }}>
                 {prompt}
             </p>
+            {detail && (
+                <p
+                    className="aura-confirm-detail text-sm text-center px-3 font-bold tabular-nums leading-tight"
+                    style={{ color: 'var(--text-primary)', marginTop: -4 }}
+                >
+                    {detail}
+                </p>
+            )}
             <div className="flex gap-2">
                 <button
                     onClick={onConfirm}

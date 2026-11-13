@@ -24,6 +24,7 @@ export const de = {
     'common.off': 'Aus',
     'common.confirm': 'Bestätigen',
     'widget.confirm.defaultPrompt': 'Wirklich schalten?',
+    'widget.confirm.defaultAction': 'Wirklich ausführen?',
     'widget.group.mixedPrompt': 'Was soll passieren?',
     'widget.group.allOn': 'Alle an',
     'widget.group.allOff': 'Alle aus',

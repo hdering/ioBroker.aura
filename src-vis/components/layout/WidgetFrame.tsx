@@ -230,6 +230,7 @@ import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
 import { HistoryTableConfig } from '../config/HistoryTableConfig';
 import { SlideshowConfig } from '../config/SlideshowConfig';
 import { FillTabToggle } from '../config/FillTabToggle';
+import { ConfirmActionFields } from '../config/ConfirmActionFields';
 import { FeedConfig } from '../config/FeedConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
@@ -18659,36 +18660,54 @@ function WidgetFrameInner({
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                                                 <>
+                                                    {/* Sicherheitsabfrage (#977) */}
+                                                    <ConfirmActionFields
+                                                        options={o}
+                                                        setO={setO}
+                                                        hintText="Bestätigung vor jeder Fahrt und Lamellenänderung. Stopp fragt nie nach."
+                                                        placeholder="Wirklich ausführen?"
+                                                    />
                                                     {/* Erst bei Loslassen senden */}
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div>
-                                                            <label className="text-[11px] block" style={hint}>
-                                                                Erst bei Loslassen senden
-                                                            </label>
-                                                            <p className="text-[10px]" style={hint}>
-                                                                Slider-Wert wird erst beim Loslassen übertragen.
-                                                            </p>
-                                                        </div>
-                                                        <button
-                                                            onClick={() =>
-                                                                setO({ sendOnRelease: !(o.sendOnRelease !== false) })
-                                                            }
-                                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
-                                                            style={{
-                                                                background:
-                                                                    o.sendOnRelease !== false
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    <Unavailable
+                                                        reason={
+                                                            o.confirmAction === true
+                                                                ? 'Mit Sicherheitsabfrage wird immer erst beim Loslassen gesendet.'
+                                                                : undefined
+                                                        }
+                                                    >
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div>
+                                                                <label className="text-[11px] block" style={hint}>
+                                                                    Erst bei Loslassen senden
+                                                                </label>
+                                                                <p className="text-[10px]" style={hint}>
+                                                                    Slider-Wert wird erst beim Loslassen übertragen.
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() =>
+                                                                    setO({
+                                                                        sendOnRelease: !(o.sendOnRelease !== false),
+                                                                    })
+                                                                }
+                                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
                                                                 style={{
-                                                                    left: o.sendOnRelease !== false ? '18px' : '2px',
+                                                                    background:
+                                                                        o.sendOnRelease !== false
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-border)',
                                                                 }}
-                                                            />
-                                                        </button>
-                                                    </div>
+                                                            >
+                                                                <span
+                                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                    style={{
+                                                                        left:
+                                                                            o.sendOnRelease !== false ? '18px' : '2px',
+                                                                    }}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </Unavailable>
 
                                                     {/* Position live mitzeichnen */}
                                                     {toggleRow(
@@ -19914,6 +19933,15 @@ function WidgetFrameInner({
                                                     </SubGroup>
                                                 )}
                                                 {renderThresholds()}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                                {/* Sicherheitsabfrage (#977) */}
+                                                <ConfirmActionFields
+                                                    options={o}
+                                                    setO={setO}
+                                                    hintText="Bestätigung vor jeder Änderung der Solltemperatur."
+                                                    placeholder="Wirklich ausführen?"
+                                                />
                                             </ConfigSection>
                                         </>
                                     );
