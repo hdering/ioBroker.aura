@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.113.3",
+    "auraVersion": "0.114.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -11792,14 +11792,14 @@
         "transparent"
       ],
       "options": {
-        "autoShrink": {
-          "type": "boolean",
-          "default": false,
-          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
-        },
         "defId": {
           "type": "string",
           "description": "Verweis auf den Aufbau (Kinderliste) in aura-group-defs — wie bei group, aber GETEILT: jede Gerätekarte mit derselben defId zeigt dieselben Kinder, nur mit ihrem eigenen Datenpunkt. Für ein weiteres gleiches Gerät eine Karte mit derselben defId und anderem `datapoint` anlegen, ohne groupDefs. Eine neue defId nur für einen neuen Aufbau (dann mit groupDefs)."
+        },
+        "frameless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ohne Rahmen (#981): kein Hintergrund, kein Rand, kein Innenabstand. Die Kinder liegen im Raster des Tabs (dessen Zeilenhöhe und Abstand), also bündig mit den Widgets neben der Gruppe; ein Kind mit h Zeilen ist so hoch wie dasselbe Widget außerhalb. Ohne Kopfzeile ist die Gruppe genau so viele Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei devicecard."
         },
         "groupActionType": {
           "type": "string",
@@ -15411,14 +15411,14 @@
         "transparent"
       ],
       "options": {
-        "autoShrink": {
-          "type": "boolean",
-          "default": false,
-          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
-        },
         "defId": {
           "type": "string",
           "description": "Verweis auf die Kinderliste in aura-group-defs. Beim Import wird sie aus dem Feld \"groupDefs\" der Import-JSON angelegt — nicht von Hand vergeben."
+        },
+        "frameless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ohne Rahmen (#981): kein Hintergrund, kein Rand, kein Innenabstand. Die Kinder liegen im Raster des Tabs (dessen Zeilenhöhe und Abstand), also bündig mit den Widgets neben der Gruppe; ein Kind mit h Zeilen ist so hoch wie dasselbe Widget außerhalb. Ohne Kopfzeile ist die Gruppe genau so viele Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei devicecard."
         },
         "groupActionType": {
           "type": "string",
