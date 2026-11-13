@@ -2766,11 +2766,6 @@ class Aura extends utils.Adapter {
             common: { name: 'Info' },
             native: {},
         });
-        await this.setObjectNotExistsAsync(`${base}.info.name`, {
-            type: 'state',
-            common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: name },
-            native: {},
-        });
         await this.setObjectNotExistsAsync(`${base}.info.lastSeen`, {
             type: 'state',
             common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: false, def: 0 },
@@ -2855,6 +2850,13 @@ class Aura extends utils.Adapter {
         await this._ensureIdleReturnDps(cId);
         await this._ensureIdleStateDps(cId);
         await this._ensureSpeechDps(cId);
+        // Last: its default value is what the frontend waits for before it writes
+        // heartbeat and idle state — every other datapoint has to exist by then.
+        await this.setObjectNotExistsAsync(`${base}.info.name`, {
+            type: 'state',
+            common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: name },
+            native: {},
+        });
         this.log.debug(`[clients] completed object tree for ${cId}`);
         return true;
     }
