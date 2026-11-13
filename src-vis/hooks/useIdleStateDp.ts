@@ -64,15 +64,16 @@ export function useIdleStateDp(opts: {
     // The adapter creates this client's datapoints on registration and sets info.name
     // last. Writing before that makes js-controller warn "has no existing object" on a
     // device's very first visit, so hold every write until the name is there.
-    const [registered, setRegistered] = useState(false);
+    // Remember WHICH id has a name: a twin moved to a fresh id (#844) renders once with
+    // the new id before any effect could reset a plain flag, and would write right away.
+    const [registeredId, setRegisteredId] = useState<string | null>(null);
     useEffect(() => {
-        setRegistered(false);
         if (!clientId) return;
         return subscribeDpValue(`${NS}.clients.${clientId}.info.name`, (v) => {
-            if (v != null && String(v).length > 0) setRegistered(true);
+            if (v != null && String(v).length > 0) setRegisteredId(clientId);
         });
     }, [clientId]);
-    const ready = clientReady && registered;
+    const ready = clientReady && !!clientId && registeredId === clientId;
 
     const effDelay = override ?? (enabled ? delaySec : 0);
     const enabledId = `${NS}.clients.${clientId}.idle.enabled`;
