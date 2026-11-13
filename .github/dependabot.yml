@@ -46,6 +46,13 @@ updates:
       # (#585). Revisit once typescript-eslint supports TS 7.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # react-grid-layout 2.3.0 (with react-draggable 4.7 / react-resizable 3.2)
+      # made dragging in the editor stutter; 2.2.4 with react-draggable 4.5.0 is
+      # smooth in a side-by-side test. Pinned exactly (package.json + overrides).
+      # A newer version needs that A/B drag test first, not a dependency bump.
+      - dependency-name: "react-grid-layout"
+      - dependency-name: "react-draggable"
+      - dependency-name: "react-resizable"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
