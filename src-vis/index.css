@@ -923,6 +923,12 @@ input[type='range']::-moz-range-thumb {
 .aura-headerless-group .aura-headerless-group .aura-headerless-group {
     --aura-nest-color: #10b981;
 }
+/* "Aufbau geteilt mit …" sits half above a device card's top edge. Inside a group the
+   inner grid clips there (overflow hidden) — without a frame there is no inset left
+   to absorb it, so the text was cut in half (#981). In a group it moves inside the card. */
+.aura-widget .aura-widget .aura-devicecard-badge {
+    --tw-translate-y: 3px;
+}
 .aura-headerless-group > .aura-group-toolbar > * {
     border-color: var(--aura-nest-color) !important;
     color: var(--aura-nest-color) !important;

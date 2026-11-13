@@ -270,6 +270,27 @@ for (const editMode of [true, false]) {
         await page.waitForTimeout(300);
         check((await page.locator('[data-aura-menu-fit]').count()) === 1, 'Menü der Karte: Höhe anpassen');
         check((await page.locator('[data-aura-menu-pullout]').count()) === 1, 'Menü der Karte: aus Gruppe ziehen');
+
+        // A click on an empty spot INSIDE the group (the gap between the cards) closes
+        // the menu — the group's grid stops mousedown in the editor.
+        const c1 = await page.locator('.aura-widget-card-1').first().boundingBox();
+        await page.mouse.click(c1.x + c1.width + 4, c1.y + c1.height / 2);
+        await page.waitForTimeout(200);
+        check(
+            (await page.locator('[data-aura-menu-fit]').count()) === 0,
+            'Klick auf leere Fläche in der Gruppe schließt das Menü',
+        );
+
+        // "Aufbau geteilt mit …" must not be cut by the group's clipping grid.
+        const badge = await page.evaluate(() => {
+            const el = document.querySelector('.aura-widget-card-1 .aura-devicecard-badge');
+            const clip = el?.closest('.overflow-hidden');
+            if (!el || !clip) return null;
+            const r = el.getBoundingClientRect();
+            const c = clip.getBoundingClientRect();
+            return { top: Math.round(r.top), clipTop: Math.round(c.top) };
+        });
+        check(!!badge && badge.top >= badge.clipTop, 'Schild „Aufbau geteilt“ ganz sichtbar', JSON.stringify(badge));
     }
     await context.close();
 }

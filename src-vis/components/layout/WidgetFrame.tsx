@@ -2616,14 +2616,19 @@ function PortalDropdown({
         panel.style.visibility = 'visible';
     });
 
+    // Capture phase: a group's inner grid stops mousedown in the editor (so the outer
+    // grid does not take a drag meant for it), and a bubbling listener on document never
+    // saw a click on an empty spot inside a group or device card — the menu stayed open
+    // (#981). The panel and the anchor are excluded here instead of by stopPropagation.
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
-                onClose();
-            }
+            const target = e.target as Node;
+            if (!anchorRef.current || anchorRef.current.contains(target)) return;
+            if (panelRef.current?.contains(target)) return;
+            onClose();
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        document.addEventListener('mousedown', handler, true);
+        return () => document.removeEventListener('mousedown', handler, true);
     }, [anchorRef, onClose]);
 
     return createPortal(
