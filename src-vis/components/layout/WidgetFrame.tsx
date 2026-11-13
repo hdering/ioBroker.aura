@@ -8472,6 +8472,11 @@ function WidgetFrameInner({
                           // its parent's menu as well. Without a menu button to
                           // anchor the dropdown to, leave the browser menu alone.
                           e.stopPropagation();
+                          // React bubbles events out of portals (edit dialog, pickers,
+                          // popovers) along the component tree. A right-click in one of
+                          // their fields must keep the browser menu (copy/paste) instead
+                          // of opening the widget menu, which would replace the dialog.
+                          if (!e.currentTarget.contains(e.target as Node)) return;
                           if (!menuBtnRef.current) return;
                           e.preventDefault();
                           setConfirmDelete(false);

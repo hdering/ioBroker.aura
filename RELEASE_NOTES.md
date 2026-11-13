@@ -14,3 +14,4 @@
 - fix: Client datapoints - reported values (lastSeen, screen resolution, idle.active, idle.enabled, speech.playing) are now read-only, and the auto-return and idle delays use the role level.timer
 - feat: Instance settings - all texts of the adapter configuration are now available in all eleven admin languages
 - fix: Speech output - SayIt's default browser instance FFFFFFFF now plays on every dashboard instead of on none
+- fix: Widget editor - a right-click in a field of the edit dialog (e.g. the datapoint field) no longer closes the dialog; the browser's copy/paste menu opens instead

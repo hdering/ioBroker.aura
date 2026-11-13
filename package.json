@@ -269,6 +269,7 @@
     "test:dp-picker-tree": "node tools/tests/dp-picker-tree.mjs",
     "test:dp-picker-preselect": "node tools/tests/dp-picker-preselect.mjs",
     "test:escape-layers": "node tools/tests/editor-escape-layers.mjs",
+    "test:contextmenu-dialog": "node tools/tests/editor-contextmenu-keeps-dialog.mjs",
     "test:evcc-scale": "node tools/tests/evcc-scale.mjs",
     "test:evcc-modes": "node tools/tests/evcc-modes.mjs",
     "test:evcc-instance": "node tools/tests/evcc-instance.mjs",
