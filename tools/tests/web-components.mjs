@@ -715,6 +715,63 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check('known: found by tag', m.findKnownWebComponent('iob-flow-diagram')?.adapter, 'flow');
     check('known: unknown tag', m.findKnownWebComponent('iob-other-tile'), undefined);
 
+    // Components of the repository (short forms in common.webComponents) for adapters that are not installed
+    const repo = [
+        {
+            adapter: 'flow',
+            version: '0.3.0',
+            tag: 'iob-flow-diagram',
+            name: { en: 'Flow diagram', de: 'Fluss-Diagramm' },
+            iconUrl: 'https://raw.example/flow/admin/flow.svg',
+        },
+        {
+            adapter: 'sonos',
+            version: '4.7.0',
+            tag: 'iob-sonos-player',
+            name: { en: 'Player', de: 'Wiedergabe' },
+            iconUrl: 'https://raw.example/sonos/admin/player.png',
+            size: { width: 400, height: 240 },
+        },
+        { adapter: 'other', version: '2.0.0', tag: 'iob-other-tile', name: 'Other' },
+        { adapter: 'nameless', version: '1.0.0', tag: 'iob-nameless', name: null },
+    ];
+    const withRepo = m.webComponentPickerEntries([bare], 'de', repo);
+    check(
+        'repo: after the installed and the known ones, an installed tag not again',
+        withRepo.map((e) => e.tag),
+        [
+            'iob-other-tile',
+            'iob-flow-diagram',
+            'iob-fullcalendar',
+            'iob-cameras-rtsp',
+            'iob-cameras-snapshot',
+            'iob-sonos-player',
+            'iob-nameless',
+        ],
+    );
+    const sonos = withRepo.find((e) => e.tag === 'iob-sonos-player');
+    check(
+        'repo: key, name in the language, missing and untested',
+        [sonos.key, sonos.label, sonos.missing, sonos.untested],
+        ['wc:sonos|iob-sonos-player', 'Wiedergabe', true, true],
+    );
+    check(
+        'repo: icon and size of the short form',
+        [sonos.iconUrl, sonos.size],
+        ['https://raw.example/sonos/admin/player.png', { width: 400, height: 240 }],
+    );
+    check('repo: hint names adapter and version', sonos.hint, 'Adapter sonos 4.7.0 (nicht installiert)');
+    check('repo: no name - the tag', withRepo.find((e) => e.tag === 'iob-nameless').label, 'iob-nameless');
+    check(
+        'repo: a known component keeps its texts, gets the icon',
+        [withRepo[1].label, withRepo[1].iconUrl, withRepo[1].untested],
+        ['Fluss-Diagramm', 'https://raw.example/flow/admin/flow.svg', undefined],
+    );
+    check('repo: found by tag', m.findRepoWebComponent(repo, 'iob-sonos-player')?.adapter, 'sonos');
+    check('repo: name, English frontend', m.repoWebComponentName(repo[1], 'en'), 'Player');
+    check('repo: name as plain text', m.repoWebComponentName(repo[2], 'de'), 'Other');
+    check('repo: no entry - no name', m.repoWebComponentName(undefined, 'de'), '');
+
     // Title and "open large" of the flow diagram belong to Aura's widget frame
     check(
         'host settings: dropped for the flow diagram',

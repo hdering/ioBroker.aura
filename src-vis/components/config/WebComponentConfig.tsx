@@ -3,6 +3,8 @@ import { getSettingsGroups, getText, resolveManifestUrl } from '@iobroker/web-co
 import { useConfigStore } from '../../store/configStore';
 import {
     findKnownWebComponent,
+    findRepoWebComponent,
+    repoWebComponentName,
     headerSource,
     hostOwnedSettings,
     hostSettingReasonKey,
@@ -10,7 +12,7 @@ import {
     typedSettings,
     webComponentClick,
 } from '../../utils/webComponentHost';
-import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
+import { findWebComponent, useRepoWebComponents, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { useT } from '../../i18n';
 import { Unavailable } from './Unavailable';
 import {
@@ -50,9 +52,11 @@ export function WebComponentTypeLabel({
     const { components } = useWebComponentCatalog();
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
     const known = findKnownWebComponent(o.wcTag, o.wcAdapter);
+    const repo = useRepoWebComponents(!component && !known && typeof o.wcTag === 'string' && !!o.wcTag);
     const name =
         (component && getText(component.manifest.name, lang)) ||
         (known && (lang === 'de' ? known.name.de : known.name.en)) ||
+        repoWebComponentName(findRepoWebComponent(repo, o.wcTag, o.wcAdapter), lang) ||
         fallback;
     return <>{children ? children(name) : name}</>;
 }
@@ -70,12 +74,20 @@ export function WebComponentInfoCard({ options: o }: { options: Record<string, u
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
     const known = findKnownWebComponent(o.wcTag, o.wcAdapter);
     const chosen = typeof o.wcTag === 'string' && !!o.wcTag;
+    // not installed: name and picture from the repository
+    const repo = findRepoWebComponent(useRepoWebComponents(chosen && !loading && !component), o.wcTag, o.wcAdapter);
     const name =
         (component && getText(component.manifest.name, lang)) ||
         (known && (lang === 'de' ? known.name.de : known.name.en)) ||
+        repoWebComponentName(repo, lang) ||
         (chosen ? String(o.wcTag) : '');
-    const adapter = component?.adapter ?? known?.adapter ?? (typeof o.wcAdapter === 'string' ? o.wcAdapter : '');
-    const iconUrl = component?.manifest.icon ? resolveManifestUrl(component.manifest.icon, component.url) : undefined;
+    const adapter =
+        component?.adapter ?? known?.adapter ?? repo?.adapter ?? (typeof o.wcAdapter === 'string' ? o.wcAdapter : '');
+    const iconUrl = component?.manifest.icon
+        ? resolveManifestUrl(component.manifest.icon, component.url)
+        : component
+          ? undefined
+          : repo?.iconUrl;
     const missing = chosen && !loading && !component;
     const untested = !!component && !isTestedWebComponent(component.manifest.tag, component.adapter);
     const color = '#0ea5e9'; // the colour of the widget type (widgetRegistry)
@@ -141,7 +153,12 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
     // Placed from the dialog before its adapter was installed: say which one is missing
     const known = component ? undefined : findKnownWebComponent(o.wcTag, o.wcAdapter);
-    const knownName = known ? (lang === 'de' ? known.name.de : known.name.en) : '';
+    const repo = useRepoWebComponents(!component && !known && typeof o.wcTag === 'string' && !!o.wcTag);
+    const knownName = known
+        ? lang === 'de'
+            ? known.name.de
+            : known.name.en
+        : repoWebComponentName(findRepoWebComponent(repo, o.wcTag, o.wcAdapter), lang);
     // Title and "open large" come from the widget frame, not from the component
     const hostKeys = component ? hostOwnedSettings(component.manifest.tag, component.adapter, component.manifest) : [];
     const stored = (o.wcSettings && typeof o.wcSettings === 'object' ? o.wcSettings : {}) as Record<string, unknown>;

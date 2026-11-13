@@ -38,7 +38,9 @@ import {
     versionedModule,
     versionedSources,
     type HostState,
+    type RepoWebComponent,
 } from './webComponentHost';
+import { NS } from './namespace';
 
 let catalog: Promise<LoadedWebComponent[]> | null = null;
 const catalogListeners = new Set<() => void>();
@@ -125,6 +127,56 @@ onDisconnectedSinceChange(() => {
     }
     wasOffline = offline;
 });
+
+let repoCatalog: Promise<RepoWebComponent[]> | null = null;
+
+/**
+ * The components of adapters that are not installed, from the short forms in the
+ * active repositories - asked from Aura's backend (`webComponentsRepo`) once per
+ * page. Without an answer (older backend, no repository) the list is empty and the
+ * next caller asks again.
+ */
+export function loadRepoWebComponents(): Promise<RepoWebComponent[]> {
+    if (!repoCatalog) {
+        repoCatalog = sendToDirect(NS, 'webComponentsRepo', {}, 15_000).then(
+            (answer) => {
+                const list = (answer as { components?: unknown } | null)?.components;
+                if (!Array.isArray(list)) {
+                    repoCatalog = null;
+                    return [];
+                }
+                return list.filter(
+                    (c): c is RepoWebComponent =>
+                        !!c && typeof c === 'object' && typeof c.tag === 'string' && typeof c.adapter === 'string',
+                );
+            },
+            (e: unknown) => {
+                console.warn('[webcomponent] reading the components of the repository failed:', e);
+                repoCatalog = null;
+                return [];
+            },
+        );
+    }
+    return repoCatalog;
+}
+
+/**
+ * React access to the repository's components: empty until they are read
+ *
+ * @param enabled ask only when needed (a widget only for a missing component)
+ */
+export function useRepoWebComponents(enabled = true): RepoWebComponent[] {
+    const [list, setList] = useState<RepoWebComponent[]>([]);
+    useEffect(() => {
+        if (!enabled) return;
+        let alive = true;
+        void loadRepoWebComponents().then((l) => alive && setList(l));
+        return () => {
+            alive = false;
+        };
+    }, [enabled]);
+    return list;
+}
 
 /** The component of a widget: by tag, the adapter only as a tie-breaker */
 export function findWebComponent(

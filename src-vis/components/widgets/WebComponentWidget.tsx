@@ -16,6 +16,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfigStore } from '../../store/configStore';
 import {
     findKnownWebComponent,
+    findRepoWebComponent,
+    repoWebComponentName,
     findTabForView,
     HEADER_EVENT,
     headerSource,
@@ -27,7 +29,12 @@ import {
     webComponentClick,
     withoutHostSettings,
 } from '../../utils/webComponentHost';
-import { findWebComponent, getWebComponentSocket, useWebComponentCatalog } from '../../utils/webComponentRegistry';
+import {
+    findWebComponent,
+    getWebComponentSocket,
+    useRepoWebComponents,
+    useWebComponentCatalog,
+} from '../../utils/webComponentRegistry';
 import type { WidgetProps } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { useWebComponentDialogs } from './WebComponentDialog';
@@ -61,6 +68,12 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const component = findWebComponent(components, tag, opts.wcAdapter);
     const known = component ? undefined : findKnownWebComponent(tag, opts.wcAdapter);
     const lang = useConfigStore((s) => s.frontend.language ?? 'de');
+    // in the editor, a component that is neither installed nor known: its name from the repository
+    const repo = findRepoWebComponent(
+        useRepoWebComponents(!!editMode && !!tag && !loading && !component && !known),
+        tag,
+        opts.wcAdapter,
+    );
 
     const [status, setStatus] = useState<Status>(tag ? 'loading' : 'unset');
     const [error, setError] = useState('');
@@ -217,7 +230,13 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
                             adapter: known.adapter,
                             version: known.minVersion,
                         })
-                      : t('wc.missing', { tag })
+                      : repo
+                        ? t('wc.missingAdapter', {
+                              name: repoWebComponentName(repo, lang) || tag,
+                              adapter: repo.adapter,
+                              version: repo.version,
+                          })
+                        : t('wc.missing', { tag })
                   : status === 'failed'
                     ? t('wc.failed', { tag, error })
                     : t('common.loading');
