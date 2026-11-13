@@ -709,14 +709,15 @@ iframe {
 }
 
 /* ── React-Grid-Layout position transitions ───────────────────────────────────
-   Only animate item positions when an actual drag is in progress.
-   Without this guard, switching tabs (display:none → visible) triggers
-   the 200ms transform transition on all grid items, causing visible flickering.
+   No glide at all. Outside a drag it made tabs flicker (display:none → visible
+   ran the 200 ms transform transition on every item). During a drag the widgets
+   that make room glided 200 ms to their new place, which at a low frame rate
+   (30 fps: six steps) looked like the drag stuttering - they jump there now.
+   Also replaces the former `:has(.react-draggable-dragging)` guard, whose flip
+   at every drag start restyled the whole grid.
    ─────────────────────────────────────────────────────────────────────────── */
-.react-grid-layout:not(:has(.react-draggable-dragging)) .react-grid-item.cssTransforms {
-    transition: none !important;
-}
-.react-grid-layout:not(:has(.react-draggable-dragging)) {
+.react-grid-layout,
+.react-grid-layout .react-grid-item {
     transition: none !important;
 }
 

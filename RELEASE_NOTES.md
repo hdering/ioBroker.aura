@@ -8,4 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- fix: Editor - dragging a widget no longer stutters: its text is not selected any more, picking a widget up no longer restyles the whole page, and returning to the browser window no longer re-reads every datapoint while the first drag runs
+- fix: Editor - dragging a widget no longer stutters: its text is not selected any more, picking a widget up no longer restyles the whole page, widgets making room jump to their place instead of gliding, and returning to the browser window no longer re-reads every datapoint while the first drag runs
