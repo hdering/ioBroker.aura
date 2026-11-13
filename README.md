@@ -122,6 +122,19 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.114.0 (2026-11-13)
+- 🐛 **Bug fix:** Datapoints - object names of timers, status overview and published lists are now English, and popup.close is a write-only button
+- 🐛 **Bug fix:** Security - the built-in proxy (iframes, HTTP requests, feeds) no longer reaches services on the ioBroker host itself (localhost) or link-local addresses, and proxy and file routes refuse requests from foreign web pages; LAN devices stay reachable - use the LAN IP instead of localhost
+- 🐛 **Bug fix:** Countdowns, announcements, status overview and published lists - a command to a device datapoint (not yet confirmed by its adapter) no longer counts as a value; script datapoints under 0_userdata and javascript still count right away
+- 🐛 **Bug fix:** Client datapoints - reported values (lastSeen, screen resolution, idle.active, idle.enabled, speech.playing) are now read-only, and the auto-return and idle delays use the role level.timer
+- 🌟 **New feature:** Instance settings - all texts of the adapter configuration are now available in all eleven admin languages
+- 🐛 **Bug fix:** Speech output - SayIt's default browser instance FFFFFFFF now plays on every dashboard instead of on none
+- 🐛 **Bug fix:** Widget editor - a right-click in a field of the edit dialog (e.g. the datapoint field) no longer closes the dialog; the browser's copy/paste menu opens instead
+- 🌟 **New feature:** Tab bar / section bar - when the active tab or section changes (swipe, address, auto-return, click), a scrolling bar now centres it; on page load without animation, a bar moved by hand stays put until the active entry changes; the active entry carries aria-current ([#979](https://github.com/hdering/ioBroker.aura/issues/979))
+- 🌟 **New feature:** Shutter and thermostat - optional security prompt (Behavior › Sicherheitsabfrage): every drive, slat change or setpoint change asks first and shows the target (e.g. "Close", "40% open", "21.5 °C"); Stop never asks, and the sliders then always send on release ([#977](https://github.com/hdering/ioBroker.aura/issues/977))
+- 🌟 **New feature:** Web components - the "add widget" dialog also lists the components of adapters that are not installed yet, with name and picture from the repository (adapters with @iobroker/web-components 0.8 or newer)
+
+
 ### 0.113.3 (2026-11-12)
 - 🐛 **Bug fix:** PIN protection - the "Editable via MCP" switch no longer turns itself off when the dashboard is saved, and a protected view no longer answers "wrong PIN" after a save that held it only as a locked placeholder
 - 🐛 **Bug fix:** PIN protection - a tab the MCP added to a protected area no longer disappears when the admin editor saves before it has loaded that tab
@@ -265,23 +278,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Date picker - in the compact layout without a title the field no longer sticks out past the right edge of narrow tiles; new option 'Field alignment' places the field left, centered or right in every layout ([#917](https://github.com/hdering/ioBroker.aura/issues/917))
 
 
-### 0.102.0 (2026-11-03)
-- 🌟 **New feature:** Distribution chart - per-entry value conversion (e.g. Wh → kWh), converted before delta/consumption is differenced; the group reference datapoint gets its own factor
-- 🌟 **New feature:** Distribution chart - optional automatic unit (850 Wh, 1.25 kWh, 3.4 MWh) for values and totals
-- 🌟 **New feature:** Value conversion - new preset Wh → MWh
-- 🌟 **New feature:** News - adjustable ticker text size: default, fixed px, or automatic from the widget height ([#906](https://github.com/hdering/ioBroker.aura/issues/906))
-- 🌟 **New feature:** Sections - conditions like on tabs: colour the icon/text/background, pulse/blink, hide or disable the menu entry ([#907](https://github.com/hdering/ioBroker.aura/issues/907))
-- 🐛 **Bug fix:** Section bar - markers sit on the entry's corner instead of widening it, so entries no longer get pushed out of the bar on phones ([#907](https://github.com/hdering/ioBroker.aura/issues/907))
-- 🌟 **New feature:** Tabs - a condition's accent colour now also colours the icon of an inactive tab ([#907](https://github.com/hdering/ioBroker.aura/issues/907))
-- 🌟 **New feature:** Tab bar - new switch to hide the tab bar in the frontend (global, per layout or per section); tabs stay reachable through their address ([#910](https://github.com/hdering/ioBroker.aura/issues/910))
-- 🌟 **New feature:** Navigation - swipe gestures on touch devices: left/right and up/down switch tab or section (configurable per direction, globally, per layout or per section); widgets with a swipe of their own keep it ([#908](https://github.com/hdering/ioBroker.aura/issues/908))
-- 🐛 **Bug fix:** Weather - the comma after the condition text sits directly behind the word instead of after a gap ("Overcast, 3°C") ([#913](https://github.com/hdering/ioBroker.aura/issues/913))
-- 🌟 **New feature:** Alarm - optional touch keypad in a popup for the PIN instead of the input field, for wall tablets ([#911](https://github.com/hdering/ioBroker.aura/issues/911))
-- 🌟 **New feature:** Alarm - new option "Arm only with PIN": Armed and delayed arming ask for the alarm adapter's password ([#911](https://github.com/hdering/ioBroker.aura/issues/911))
-- 🌟 **New feature:** Weather - optional air pressure (hPa) next to humidity, also available as a field in the custom layout ([#909](https://github.com/hdering/ioBroker.aura/issues/909))
-- 🐛 **Bug fix:** Group - the group action now also controls mirrored widgets inside the group ([#912](https://github.com/hdering/ioBroker.aura/issues/912))
-
-
 ## License
 
 MIT License
@@ -293,6 +289,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
