@@ -720,6 +720,24 @@ iframe {
     transition: none !important;
 }
 
+/* ── No text selection on draggable grid items (editor) ──────────────────────
+   react-draggable does not prevent the browser's own text selection: mousedown
+   keeps its default, the selection starts at once and is extended on every move
+   of the drag (react-grid-layout only takes over after its 3 px threshold). Its
+   "user select hack" merely paints the selection transparent, which not every
+   setup honours - the widget texts showed up marked and the browser tracked a
+   live selection for the whole drag. `react-draggable` is only on items that can
+   be dragged, i.e. in the editor; fields stay selectable.
+   ─────────────────────────────────────────────────────────────────────────── */
+.react-grid-item.react-draggable {
+    -webkit-user-select: none;
+    user-select: none;
+}
+.react-grid-item.react-draggable :is(input, textarea, [contenteditable='true']) {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 /* ── Corner badges vs. the next grid item ────────────────────────────────────
    A corner badge sits ON the widget edge and overflows outward. Grid items are
    placed with a transform, so every item is its own stacking context: a z-index
