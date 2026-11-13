@@ -443,6 +443,7 @@
     "test:tab-bar-indicator": "node tools/tests/tab-bar-indicator.mjs",
     "test:nav-stretch": "node tools/tests/nav-stretch.mjs",
     "test:tab-bar-item-width": "node tools/tests/tab-bar-item-width.mjs",
+    "test:tab-bar-autoscroll": "node tools/tests/tab-bar-autoscroll.mjs",
     "test:image-source": "node tools/tests/image-source.mjs",
     "test:image-reload-trigger": "node tools/tests/image-reload-trigger.mjs",
     "test:webfs-files": "node tools/tests/webfs-adapter-files.mjs",

@@ -395,6 +395,8 @@ export function TabBar({
                         <div
                             className={`aura-tab-btn${isActive ? ' aura-tab-active' : ''} group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? underlineCls : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''} ${condLocked ? 'aura-tab-cond-disabled' : ''}`}
                             aria-disabled={condLocked || undefined}
+                            aria-current={isActive ? 'page' : undefined}
+                            data-aura-active={isActive || undefined}
                             style={{
                                 ...(cssVars as React.CSSProperties),
                                 ...ts,
@@ -957,6 +959,7 @@ export function TabBar({
                     <ScrollRow
                         isMobile={isMobile}
                         hideIndicator={hideMobileScrollbar}
+                        activeKey={activeTabId}
                         outerClassName="min-w-0"
                         scrollClassName="flex items-center w-full"
                     >
@@ -978,6 +981,7 @@ export function TabBar({
                     <ScrollRow
                         isMobile={isMobile}
                         hideIndicator={hideMobileScrollbar}
+                        activeKey={activeTabId}
                         scrollClassName="flex items-center justify-center w-full"
                     >
                         <div className="flex items-center gap-1 px-2">
@@ -997,6 +1001,7 @@ export function TabBar({
                     <ScrollRow
                         isMobile={isMobile}
                         hideIndicator={hideMobileScrollbar}
+                        activeKey={activeTabId}
                         outerClassName="min-w-0"
                         scrollClassName="flex items-center justify-end w-full"
                     >
@@ -1026,6 +1031,7 @@ export function TabBar({
                 <ScrollRow
                     isMobile={isMobile}
                     hideIndicator={hideMobileScrollbar}
+                    activeKey={activeTabId}
                     outerClassName="flex-1 min-w-0"
                     scrollClassName="flex items-center w-full"
                 >

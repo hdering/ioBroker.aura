@@ -579,6 +579,8 @@ export function LayoutDrawer({
                                     if (!cond.disabled) goToSection(section);
                                 }}
                                 aria-disabled={cond.disabled || undefined}
+                                aria-current={isActive ? 'page' : undefined}
+                                data-aura-active={isActive || undefined}
                                 title={entryStyle === 'iconOnly' ? section.name : undefined}
                                 className={`relative w-full flex items-center gap-3 px-3 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''} ${conditionEntryClass(cond)}`}
                                 style={{
@@ -783,6 +785,8 @@ export function LayoutDrawer({
                                 if (!cond.disabled) goToSection(section);
                             }}
                             aria-disabled={cond.disabled || undefined}
+                            aria-current={isActive ? 'page' : undefined}
+                            data-aura-active={isActive || undefined}
                             title={entryStyle === 'iconOnly' ? section.name : undefined}
                             className={`relative flex items-center gap-2 whitespace-nowrap transition-colors hover:opacity-90 ${
                                 entryStyle === 'iconOnly' ? 'justify-center px-2.5' : 'px-3'
@@ -898,6 +902,7 @@ export function LayoutDrawer({
                     <ScrollRow
                         isMobile={isBarMobile}
                         hideIndicator={hideMobileScrollbar}
+                        activeKey={activeSection?.id}
                         outerClassName="min-w-0"
                         scrollClassName="flex items-center w-full"
                     >
@@ -912,6 +917,7 @@ export function LayoutDrawer({
                     <ScrollRow
                         isMobile={isBarMobile}
                         hideIndicator={hideMobileScrollbar}
+                        activeKey={activeSection?.id}
                         scrollClassName="flex items-center justify-center w-full"
                     >
                         <div className="flex items-center gap-1 px-2">{alignment === 'center' && sectionButtons}</div>
@@ -921,6 +927,7 @@ export function LayoutDrawer({
                     <ScrollRow
                         isMobile={isBarMobile}
                         hideIndicator={hideMobileScrollbar}
+                        activeKey={activeSection?.id}
                         outerClassName="min-w-0"
                         scrollClassName="flex items-center justify-end w-full"
                     >
@@ -940,6 +947,7 @@ export function LayoutDrawer({
                 <ScrollRow
                     isMobile={isBarMobile}
                     hideIndicator={hideMobileScrollbar}
+                    activeKey={activeSection?.id}
                     outerClassName="flex-1 min-w-0"
                     scrollClassName="flex items-center w-full"
                 >

@@ -15,3 +15,4 @@
 - feat: Instance settings - all texts of the adapter configuration are now available in all eleven admin languages
 - fix: Speech output - SayIt's default browser instance FFFFFFFF now plays on every dashboard instead of on none
 - fix: Widget editor - a right-click in a field of the edit dialog (e.g. the datapoint field) no longer closes the dialog; the browser's copy/paste menu opens instead
+- feat: Tab bar / section bar - when the active tab or section changes (swipe, address, auto-return, click), a scrolling bar now centres it; on page load without animation, a bar moved by hand stays put until the active entry changes; the active entry carries aria-current (#979)
