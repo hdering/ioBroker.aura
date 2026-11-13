@@ -559,7 +559,38 @@ if (typeof document !== 'undefined') {
         if (document.visibilityState === 'visible') checkConnectionAlive();
     });
     window.addEventListener('online', () => checkConnectionAlive({ ignoreVisibility: true }));
-    window.addEventListener('focus', () => checkConnectionAlive());
+    // A window that only lost the focus (another app, DevTools, an iframe) kept its
+    // socket and its stateChanges - nothing to catch up. Probing on every focus
+    // re-read every cached datapoint (thousands in the admin) just as the click that
+    // focused the window started a drag in the editor, which made it stutter. Only a
+    // longer absence is worth a probe; sleep and tab freezing have their own triggers.
+    const FOCUS_PROBE_AFTER_MS = 60_000;
+    let blurredAt = 0;
+    // The focusing click may be the start of a drag (focus fires before its
+    // mousedown): ask once the button is up again, not in the middle of the move.
+    let pointersDown = 0;
+    window.addEventListener('blur', () => {
+        blurredAt = Date.now();
+        // A button released outside the window never sends its pointerup here.
+        pointersDown = 0;
+    });
+    window.addEventListener('pointerdown', () => pointersDown++, true);
+    const pointerUp = () => {
+        pointersDown = Math.max(0, pointersDown - 1);
+    };
+    window.addEventListener('pointerup', pointerUp, true);
+    window.addEventListener('pointercancel', pointerUp, true);
+    const probeWhenIdle = () => {
+        if (pointersDown > 0) {
+            window.addEventListener('pointerup', () => globalThis.setTimeout(probeWhenIdle, 300), { once: true });
+            return;
+        }
+        checkConnectionAlive();
+    };
+    window.addEventListener('focus', () => {
+        const away = blurredAt ? Date.now() - blurredAt : Infinity;
+        if (away >= FOCUS_PROBE_AFTER_MS) globalThis.setTimeout(probeWhenIdle, 50);
+    });
 
     // Page Lifecycle API — not in the TS DOM lib, hence the string event names.
     document.addEventListener('resume', () => {
