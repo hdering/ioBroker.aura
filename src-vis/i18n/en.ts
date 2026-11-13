@@ -1338,6 +1338,12 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.fsPos.tr': 'top right',
     'wf.edit.fsPos.tl': 'top left',
     'wf.edit.fsPos.br': 'bottom right',
+    'wf.edit.group.frameless': 'No frame',
+    'wf.edit.group.framelessHint':
+        'No background, no border, no inner spacing: the widgets inside sit on the tab grid – same edges, same gaps and same height as outside.',
+    'wf.edit.group.framelessTransparent': 'Without a frame the group is always fully transparent.',
+    'wf.edit.group.framelessAutoShrink':
+        'Without a frame the group shrinks to its visible widgets in the frontend anyway.',
     'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',

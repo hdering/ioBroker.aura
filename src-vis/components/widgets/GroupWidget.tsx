@@ -31,7 +31,15 @@ import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
-import { GROUP_GAP, groupRowHeight, groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
+import {
+    groupAutoShrink,
+    groupPitch,
+    groupRows,
+    heightsForScope,
+    isFramelessGroup,
+    withContentHeights,
+} from '../../utils/groupLayout';
+import { clearResizeSize, showResizeSize } from '../../utils/resizeSizeBadge';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -123,13 +131,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     );
     // autoShrink groups keep their own scroll-based height logic and the classic
     // p-1 grid inset — the uniform-fill spacing below applies only to normal groups.
-    const autoShrink = !!config.options?.autoShrink;
+    const autoShrink = groupAutoShrink(config.options);
+    // "Ohne Rahmen" (#981): no card, children on the tab's own pitch.
+    const frameless = isFramelessGroup(config.options);
     // On a fluid tab with stretched rows the filled box grows with them, so the
     // content-sized rows are counted on the stretched pitch — the same one the
     // Dashboard hugs this group on (#759). autoShrink draws on the design pitch.
     const stretchedRowPx = useStretchedRowHeight();
     const childRowPx = !autoShrink && stretchedRowPx ? stretchedRowPx : cellSize;
-    const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap);
+    const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap, frameless);
     const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
@@ -332,9 +342,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // groupRowHeight, so a child is never shorter than on the tab grid.
     // Truncated to 1/100 px so the rows can never sum a hair ABOVE the box — the
     // editor's overflow-auto would answer that with a scrollbar.
+    // Frameless (#981) runs the same fill on the outer pitch: on a hugged box the
+    // row comes out at exactly cellSize, so the children match the tab grid.
+    const pitch = groupPitch(cellSize, gridGap, frameless);
     const fillRowHeight =
         filled && height > 0 && maxRow > 0
-            ? Math.max(8, Math.floor(((height - (maxRow + 1) * GROUP_GAP) / maxRow) * 100) / 100)
+            ? Math.max(8, Math.floor(((height - (maxRow - 1) * pitch.gap - 2 * pitch.inset) / maxRow) * 100) / 100)
             : null;
 
     // keepGrid uses square cells (rowHeight = colWidth) so width AND height scale
@@ -342,7 +355,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const rowHeight =
         keepGrid && width > 0
             ? Math.max(8, Math.floor((width - gridGap * (cols - 1)) / cols))
-            : (fillRowHeight ?? (filled ? groupRowHeight(cellSize, gridGap) : cellSize));
+            : (fillRowHeight ?? (filled ? pitch.rowPx : cellSize));
 
     const setChildren = (next: WidgetConfig[]) => useGroupDefsStore.getState().setDef(defId, next);
 
@@ -352,9 +365,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const computeH = (next: WidgetConfig[]) => {
         if (next.length === 0) return config.gridPos.h;
         // Packed, like the grid draws them — see gridChildren (#680).
-        const fitted = withContentHeights(next, contentHeights, widgetPad, cellSize, gridGap);
+        const fitted = withContentHeights(next, contentHeights, widgetPad, cellSize, gridGap, frameless);
         const maxBottom = Math.max(...verticalCompact(fitted).map((c) => c.gridPos.y + c.gridPos.h));
-        return groupRows(maxBottom, hasHeaderContent, showTitle && !!config.title, cellSize, gridGap);
+        return groupRows(
+            maxBottom,
+            hasHeaderContent,
+            showTitle && !!config.title,
+            cellSize,
+            gridGap,
+            undefined,
+            frameless,
+        );
     };
 
     const fitHeightToChildren = (next: WidgetConfig[]) => {
@@ -498,7 +519,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 // Same when the bar is just an empty editor drag strip (no
                 // header content) — a divider would read as a real header.
                 borderBottom:
-                    transparent || isCollapsed || !hasHeaderContent ? 'none' : '1px solid var(--widget-border)',
+                    transparent || frameless || isCollapsed || !hasHeaderContent
+                        ? 'none'
+                        : '1px solid var(--widget-border)',
                 minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
                 cursor: collapsible ? 'pointer' : undefined,
             }}
@@ -743,7 +766,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 shrinkToFit(updated);
                             }
                         }}
-                        onResizeStop={(newLayout) => {
+                        onResize={(_l, _o, newItem, _p, _e, node) => showResizeSize(node, newItem)}
+                        onResizeStop={(newLayout, _o, _n, _p, _e, node) => {
+                            clearResizeSize(node);
                             if (!editMode) return;
                             let changed = false;
                             const updated = children.map((c) => {
@@ -766,8 +791,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 shrinkToFit(updated);
                             }
                         }}
-                        margin={filled ? [GROUP_GAP, GROUP_GAP] : [gridGap, gridGap]}
-                        containerPadding={filled ? [GROUP_GAP, GROUP_GAP] : [0, 0]}
+                        margin={filled ? [pitch.gap, pitch.gap] : [gridGap, gridGap]}
+                        containerPadding={filled ? [pitch.inset, pitch.inset] : [0, 0]}
                     >
                         {gridChildren.map((child) => (
                             <div key={child.id}>

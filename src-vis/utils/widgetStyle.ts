@@ -74,6 +74,7 @@ const EXTRA_STYLE_KEYS = new Set([
     // Frame
     'transparent',
     'transparency',
+    'frameless',
     'styleOverride',
     'bgImage',
     // The card's own padding (#928) — `paddingY` misses the `…Padding` suffix

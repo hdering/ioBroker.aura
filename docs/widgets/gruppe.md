@@ -28,6 +28,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `transparent` | `false` | Rahmen/Trennlinie ausblenden |
+| `frameless` | `false` | **Ohne Rahmen**: kein Hintergrund, kein Rand, kein Innenabstand — die Widgets liegen im Raster des Tabs, bündig und gleich hoch wie außerhalb |
 | `defaultCollapsed` | `false` | startet eingeklappt, die Kopfzeile klappt auf — siehe [Einklappen](../einstellungen/editor#einklappen) |
 
 ### Master-Aktion

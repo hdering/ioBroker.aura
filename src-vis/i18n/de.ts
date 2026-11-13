@@ -1349,6 +1349,12 @@ export const de = {
     'wf.edit.fsPos.tr': 'rechts oben',
     'wf.edit.fsPos.tl': 'links oben',
     'wf.edit.fsPos.br': 'rechts unten',
+    'wf.edit.group.frameless': 'Ohne Rahmen',
+    'wf.edit.group.framelessHint':
+        'Kein Hintergrund, kein Rand, kein Innenabstand: Die Widgets darin liegen im Raster des Tabs – gleiche Kanten, gleiche Abstände und gleiche Höhe wie außerhalb.',
+    'wf.edit.group.framelessTransparent': 'Ohne Rahmen ist die Gruppe immer ganz transparent.',
+    'wf.edit.group.framelessAutoShrink':
+        'Ohne Rahmen schrumpft die Gruppe im Frontend ohnehin auf die sichtbaren Widgets.',
     'wf.edit.group.autoShrink': 'Bei versteckten Widgets schrumpfen',
     'wf.edit.group.autoShrinkHint':
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',

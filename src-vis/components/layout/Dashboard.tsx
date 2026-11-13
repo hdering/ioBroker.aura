@@ -33,7 +33,14 @@ import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
+import {
+    groupAutoShrink,
+    groupRows,
+    heightsForScope,
+    isFramelessGroup,
+    withContentHeights,
+} from '../../utils/groupLayout';
+import { clearResizeSize, showResizeSize } from '../../utils/resizeSizeBadge';
 import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { isGroupType } from '../../utils/groupTypes';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
@@ -1022,7 +1029,8 @@ export function Dashboard({
                                                     // runtime id (#743) — the card renders them under its own id.
                                                     // Inside a tab mirror every scope sits below the mirror's own.
                                                     const childScope = gw.type === 'devicecard' ? rid(gw.id) : scope;
-                                                    const autoShrink = isGroup && !!gw.options?.autoShrink;
+                                                    const autoShrink = isGroup && groupAutoShrink(gw.options);
+                                                    const frameless = isGroup && isFramelessGroup(gw.options);
                                                     const defId = isGroup
                                                         ? (gw.options?.defId as string | undefined)
                                                         : undefined;
@@ -1042,6 +1050,7 @@ export function Dashboard({
                                                             widgetPadding,
                                                             px,
                                                             MARGIN,
+                                                            frameless,
                                                         );
                                                     const groupChildren = childrenAt(autoShrink ? cellSize : rowPx);
 
@@ -1089,6 +1098,7 @@ export function Dashboard({
                                                             px,
                                                             MARGIN,
                                                             groupHeaderHeights[gw.id],
+                                                            frameless,
                                                         );
                                                     };
                                                     // The floor counts EVERY child (the editor keeps hidden ones mounted), and
@@ -1383,7 +1393,18 @@ export function Dashboard({
                                                                             clearTimeout(heightLockTimer.current);
                                                                         setHeightLockHintId(oldItem.i);
                                                                     }}
-                                                                    onResizeStop={(nl, oldItem, newItem) => {
+                                                                    onResize={(_nl, _o, newItem, _p, _e, node) =>
+                                                                        showResizeSize(node, newItem)
+                                                                    }
+                                                                    onResizeStop={(
+                                                                        nl,
+                                                                        oldItem,
+                                                                        newItem,
+                                                                        _p,
+                                                                        _e,
+                                                                        node,
+                                                                    ) => {
+                                                                        clearResizeSize(node);
                                                                         if (oldItem && heightLockHintId === oldItem.i) {
                                                                             if (heightLockTimer.current)
                                                                                 clearTimeout(heightLockTimer.current);

@@ -49,7 +49,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows, withContentHeights } from '../../utils/groupLayout';
+import { groupRows, isFramelessGroup, withContentHeights } from '../../utils/groupLayout';
 import { CARD_PAD_MAX, cardPadding } from '../../utils/cardPadding';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { htmlCanReportHeight, supportsAutoHeight } from '../../utils/autoHeight';
@@ -7432,7 +7432,11 @@ function WidgetFrameInner({
     const isBareHeader = isHeader && (config.layout ?? 'default') !== 'framed';
     const isGroup = isGroupType(config.type);
     const isButton = config.type === 'button';
-    const isTransparent = !!config.options?.transparent;
+    // "Ohne Rahmen" (#981): a group without its card — fully transparent and no
+    // border at all, so its children sit flush on the tab grid. The editor marks the
+    // box with an outline, which takes no space.
+    const isFrameless = isGroup && isFramelessGroup(config.options);
+    const isTransparent = !!config.options?.transparent || isFrameless;
     // Background image (#442): its own layer above the card colour, so a
     // transparent card shows the image alone. Not on the bare section title,
     // which has no card.
@@ -7477,9 +7481,11 @@ function WidgetFrameInner({
           : isButton
             ? 'var(--button-border, var(--widget-border))'
             : 'var(--widget-border)';
-    const transparencyStrength = isTransparent
-        ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
-        : 100;
+    const transparencyStrength = isFrameless
+        ? 100
+        : isTransparent
+          ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
+          : 100;
     const transparentBg =
         transparencyStrength >= 100
             ? 'transparent'
@@ -7533,6 +7539,7 @@ function WidgetFrameInner({
             effectiveSettings.widgetPadding ?? 16,
             groupCellSize,
             groupGridGap,
+            isFrameless,
         );
         const maxBottom = Math.max(...verticalCompact(fitted).map((c) => c.gridPos.y + c.gridPos.h));
         const hasHeader = !isHeaderlessGroup;
@@ -7544,6 +7551,7 @@ function WidgetFrameInner({
             groupCellSize,
             groupGridGap,
             useAutoHeightStore.getState().groupHeaders[rid],
+            isFrameless,
         );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
     };
@@ -7575,6 +7583,7 @@ function WidgetFrameInner({
             groupCellSize,
             groupGridGap,
             useAutoHeightStore.getState().groupHeaders[rid],
+            isFrameless,
         );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
         setShowGroupTypePicker(false);
@@ -8500,9 +8509,10 @@ function WidgetFrameInner({
                               isTransparent && (editMode || transparencyStrength < 100) ? 'var(--widget-radius)' : 0,
                           boxShadow: 'none',
                           backdropFilter: 'none',
-                          borderWidth: isBareHeader ? 0 : editMode ? 1 : 'var(--widget-border-width)',
+                          borderWidth: isBareHeader || isFrameless ? 0 : editMode ? 1 : 'var(--widget-border-width)',
                           borderStyle: 'dashed',
                           borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
+                          ...(isFrameless && editMode ? { outline: '1px dashed var(--app-border)' } : {}),
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
@@ -10076,85 +10086,92 @@ function WidgetFrameInner({
                                         </p>
                                     </div>
                                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <label
-                                                className="text-[11px] font-medium"
-                                                style={{ color: 'var(--text-secondary)' }}
+                                    <Unavailable
+                                        reason={isFrameless ? t('wf.edit.group.framelessTransparent') : undefined}
+                                        className="space-y-2.5"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Transparenz-Modus
+                                                </label>
+                                                <p
+                                                    className="text-[10px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    Hintergrund, Rahmen und Schatten entfernen
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...o, transparent: !o.transparent },
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: o.transparent ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
                                             >
-                                                Transparenz-Modus
-                                            </label>
-                                            <p
-                                                className="text-[10px] mt-0.5"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                            >
-                                                Hintergrund, Rahmen und Schatten entfernen
-                                            </p>
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: o.transparent ? '18px' : '2px' }}
+                                                />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    options: { ...o, transparent: !o.transparent },
-                                                })
-                                            }
-                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                            style={{
-                                                background: o.transparent ? 'var(--accent)' : 'var(--app-border)',
-                                            }}
-                                        >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: o.transparent ? '18px' : '2px' }}
-                                            />
-                                        </button>
-                                    </div>
-                                    {!!o.transparent &&
-                                        (() => {
-                                            const displayTransparency =
-                                                draftTransparency ??
-                                                Math.max(0, Math.min(100, Number(o.transparency ?? 100)));
-                                            return (
-                                                <div>
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <label
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Transparenz-Stärke
-                                                        </label>
-                                                        <span
-                                                            className="text-[11px] tabular-nums"
-                                                            style={{ color: 'var(--text-primary)' }}
-                                                        >
-                                                            {displayTransparency} %
-                                                        </span>
+                                        {!!o.transparent &&
+                                            (() => {
+                                                const displayTransparency =
+                                                    draftTransparency ??
+                                                    Math.max(0, Math.min(100, Number(o.transparency ?? 100)));
+                                                return (
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <label
+                                                                className="text-[11px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Transparenz-Stärke
+                                                            </label>
+                                                            <span
+                                                                className="text-[11px] tabular-nums"
+                                                                style={{ color: 'var(--text-primary)' }}
+                                                            >
+                                                                {displayTransparency} %
+                                                            </span>
+                                                        </div>
+                                                        <input
+                                                            type="range"
+                                                            min={0}
+                                                            max={100}
+                                                            step={5}
+                                                            value={displayTransparency}
+                                                            onChange={(e) =>
+                                                                setDraftTransparency(Number(e.target.value))
+                                                            }
+                                                            onPointerUp={(e) => {
+                                                                onConfigChange({
+                                                                    ...config,
+                                                                    options: {
+                                                                        ...o,
+                                                                        transparency: Number(
+                                                                            (e.target as HTMLInputElement).value,
+                                                                        ),
+                                                                    },
+                                                                });
+                                                                setDraftTransparency(null);
+                                                            }}
+                                                            className="w-full h-1"
+                                                            style={{ accentColor: 'var(--accent)' }}
+                                                        />
                                                     </div>
-                                                    <input
-                                                        type="range"
-                                                        min={0}
-                                                        max={100}
-                                                        step={5}
-                                                        value={displayTransparency}
-                                                        onChange={(e) => setDraftTransparency(Number(e.target.value))}
-                                                        onPointerUp={(e) => {
-                                                            onConfigChange({
-                                                                ...config,
-                                                                options: {
-                                                                    ...o,
-                                                                    transparency: Number(
-                                                                        (e.target as HTMLInputElement).value,
-                                                                    ),
-                                                                },
-                                                            });
-                                                            setDraftTransparency(null);
-                                                        }}
-                                                        className="w-full h-1"
-                                                        style={{ accentColor: 'var(--accent)' }}
-                                                    />
-                                                </div>
-                                            );
-                                        })()}
+                                                );
+                                            })()}
+                                    </Unavailable>
                                     {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). In a
                                         group too: the group sizes the child from it (#741). */}
                                     {supportsAutoHeight(config.type, config.layout) && (
@@ -10864,6 +10881,7 @@ function WidgetFrameInner({
                         (() => {
                             const o = config.options ?? {};
                             const autoShrink = !!o.autoShrink;
+                            const frameless = !!o.frameless;
                             return (
                                 <div
                                     className="space-y-2.5 rounded-lg px-3 py-3"
@@ -10884,33 +10902,71 @@ function WidgetFrameInner({
                                                 className="text-[11px] font-medium"
                                                 style={{ color: 'var(--text-primary)' }}
                                             >
-                                                {t('wf.edit.group.autoShrink')}
+                                                {t('wf.edit.group.frameless')}
                                             </label>
                                             <p
                                                 className="text-[10px] mt-0.5"
                                                 style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                             >
-                                                {t('wf.edit.group.autoShrinkHint')}
+                                                {t('wf.edit.group.framelessHint')}
                                             </p>
                                         </div>
                                         <button
+                                            data-aura-frameless-toggle=""
                                             onClick={() =>
                                                 onConfigChange({
                                                     ...config,
-                                                    options: { ...o, autoShrink: !autoShrink },
+                                                    options: { ...o, frameless: !frameless },
                                                 })
                                             }
                                             className="relative w-9 h-5 rounded-full transition-colors shrink-0"
                                             style={{
-                                                background: autoShrink ? 'var(--accent)' : 'var(--app-border)',
+                                                background: frameless ? 'var(--accent)' : 'var(--app-border)',
                                             }}
                                         >
                                             <span
                                                 className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: autoShrink ? '18px' : '2px' }}
+                                                style={{ left: frameless ? '18px' : '2px' }}
                                             />
                                         </button>
                                     </div>
+                                    <Unavailable
+                                        reason={frameless ? t('wf.edit.group.framelessAutoShrink') : undefined}
+                                    >
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {t('wf.edit.group.autoShrink')}
+                                                </label>
+                                                <p
+                                                    className="text-[10px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    {t('wf.edit.group.autoShrinkHint')}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...o, autoShrink: !autoShrink },
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: autoShrink ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: autoShrink ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                    </Unavailable>
                                 </div>
                             );
                         })()}

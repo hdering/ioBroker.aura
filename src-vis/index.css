@@ -708,6 +708,25 @@ iframe {
     }
 }
 
+/* ── Live size while resizing (#981) ─────────────────────────────────────────
+   utils/resizeSizeBadge sets data-aura-size on the item being resized. */
+.react-grid-item[data-aura-size]::after {
+    content: attr(data-aura-size);
+    position: absolute;
+    right: 4px;
+    bottom: 22px;
+    z-index: 60;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--accent, #3b82f6);
+    color: #fff;
+    font-size: 11px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 /* ── React-Grid-Layout position transitions ───────────────────────────────────
    No glide at all. Outside a drag it made tabs flicker (display:none → visible
    ran the 200 ms transform transition on every item). During a drag the widgets

@@ -2595,6 +2595,17 @@ export const EXTRA_OPTIONS = {
                 'Verweis auf die Kinderliste in aura-group-defs. Beim Import wird sie aus dem Feld "groupDefs" der ' +
                 'Import-JSON angelegt — nicht von Hand vergeben.',
         },
+        // Read via isFramelessGroup / groupPitch (utils/groupLayout), not the options binding.
+        frameless: {
+            type: 'boolean',
+            default: false,
+            description:
+                'Ohne Rahmen (#981): kein Hintergrund, kein Rand, kein Innenabstand. Die Kinder liegen im Raster des ' +
+                'Tabs (dessen Zeilenhöhe und Abstand), also bündig mit den Widgets neben der Gruppe; ein Kind mit h ' +
+                'Zeilen ist so hoch wie dasselbe Widget außerhalb. Ohne Kopfzeile ist die Gruppe genau so viele ' +
+                'Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei ' +
+                'devicecard.',
+        },
     },
     panels: {
         defId: {
