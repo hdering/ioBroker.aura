@@ -8,5 +8,3 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- feat: Editor - arrange mode on touch devices: tap a widget, drag its grip to move it and its corner to resize it on tablets and phones (#699)
-- feat: Editor - a short note when "scale like the frontend" is switched on, explaining that the shown heights follow the preview while the design grid is saved
