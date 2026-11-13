@@ -226,7 +226,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
         />
     ) : null;
 
-    const PlusMinus = () => (
+    // Plain JSX values, not components declared in render: a component type made
+    // anew on every render remounted its whole subtree each time.
+    const plusMinus = (
         <div className="aura-widget-action flex flex-col gap-1 shrink-0">
             <button
                 onClick={(e) => {
@@ -251,7 +253,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
         </div>
     );
 
-    const PresetButtons = () => (
+    const presetButtons = (
         <div className="aura-widget-action nodrag flex gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
             {presets.map((v) => {
                 const active = Math.abs(target - v) < 0.1;
@@ -272,14 +274,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
         </div>
     );
 
-    const StatusIcon = () =>
-        isHeating ? (
-            <Flame size={14} style={{ color: 'var(--climate-heat, var(--accent-red))', flexShrink: 0 }} />
-        ) : isCooling ? (
-            <Snowflake size={14} style={{ color: 'var(--climate-cool, var(--accent))', flexShrink: 0 }} />
-        ) : (
-            <Wind size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0, opacity: 0.5 }} />
-        );
+    const statusIcon = isHeating ? (
+        <Flame size={14} style={{ color: 'var(--climate-heat, var(--accent-red))', flexShrink: 0 }} />
+    ) : isCooling ? (
+        <Snowflake size={14} style={{ color: 'var(--climate-cool, var(--accent))', flexShrink: 0 }} />
+    ) : (
+        <Wind size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0, opacity: 0.5 }} />
+    );
 
     const layout = config.layout ?? 'default';
     const {
@@ -669,9 +670,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         dial: (
                             <div className="w-full h-full min-h-0 flex items-center justify-center">{renderDial()}</div>
                         ),
-                        presets: presets.length > 0 ? <PresetButtons /> : null,
+                        presets: presets.length > 0 ? presetButtons : null,
                         'circle-menu': <div className="w-full h-full min-h-0">{renderCircle()}</div>,
-                        'status-icon': <StatusIcon />,
+                        'status-icon': statusIcon,
                     }}
                 />
                 {confirmOverlay}
@@ -788,9 +789,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         </div>
                     )}
                     {showPresets && presets.length > 0 && (
-                        <div className="flex justify-center mt-1">
-                            <PresetButtons />
-                        </div>
+                        <div className="flex justify-center mt-1">{presetButtons}</div>
                     )}
                     <StatusBadges config={config} />
                     {confirmOverlay}
@@ -835,11 +834,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 data-aura-header-above=""
             >
                 <div className="flex-1 min-h-0 flex items-center justify-center">{renderDial()}</div>
-                {showPresets && presets.length > 0 && (
-                    <div className="flex justify-center">
-                        <PresetButtons />
-                    </div>
-                )}
+                {showPresets && presets.length > 0 && <div className="flex justify-center">{presetButtons}</div>}
                 <StatusBadges config={config} />
                 {confirmOverlay}
             </div>
@@ -874,7 +869,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                                     </p>
                                 )}
                             </div>
-                            <StatusIcon />
+                            {statusIcon}
                             <HeaderSlotsInline />
                         </TitleRow>
                     )}
@@ -898,15 +893,11 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             </p>
                         )}
                     </div>
-                    {showControls && (
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <PlusMinus />
-                        </div>
-                    )}
+                    {showControls && <div onClick={(e) => e.stopPropagation()}>{plusMinus}</div>}
                 </div>
 
                 {/* Quick-select presets */}
-                {showPresets && presets.length > 0 && <PresetButtons />}
+                {showPresets && presets.length > 0 && presetButtons}
                 <StatusBadges config={config} />
                 {confirmOverlay}
             </div>
