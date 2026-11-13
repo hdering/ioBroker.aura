@@ -6683,6 +6683,9 @@ type PickerOptionTarget = keyof typeof PICKER_OPTION_KEYS;
 const isPickerOptionTarget = (t: string): t is PickerOptionTarget =>
     Object.prototype.hasOwnProperty.call(PICKER_OPTION_KEYS, t);
 
+/** Stable "no children" for store selectors (a fresh [] re-renders on every update). */
+const NO_CHILDREN: WidgetConfig[] = [];
+
 function WidgetFrameInner({
     config,
     editMode,
@@ -7484,7 +7487,9 @@ function WidgetFrameInner({
 
     // ── Group-specific hooks (always called, conditionally used) ───────────────
     const groupDefId = isGroup ? (config.options?.defId as string | undefined) : undefined;
-    const groupChildren = useGroupDefsStore((s) => (groupDefId ? (s.defs[groupDefId] ?? []) : []));
+    // A constant for "no children": a fresh [] per call made every frame re-render on
+    // every group-defs store update.
+    const groupChildren = useGroupDefsStore((s) => (groupDefId ? (s.defs[groupDefId] ?? NO_CHILDREN) : NO_CHILDREN));
     // Candidates for the group-action target checklist (config UI).
     const groupActionType = (config.options?.groupActionType ?? 'switch') as GroupActionType;
     // Warm the datapoint cache so list entries without an explicit label show
