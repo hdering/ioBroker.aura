@@ -10,7 +10,7 @@
  * masked before the machine sees them and put back afterwards; a text whose
  * tokens do not come back intact keeps the English text and is reported.
  *
- * Usage: node tools/i18n/translate-jsonconfig.mjs [admin/jsonConfig.json]
+ * Usage: node tools/translate/translate-jsonconfig.mjs [admin/jsonConfig.json]
  */
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
