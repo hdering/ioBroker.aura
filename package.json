@@ -255,6 +255,7 @@
     "test:flow-fill": "node tools/tests/flow-fill.mjs",
     "test:mobile-embed": "node tools/tests/mobile-embed-aspect.mjs",
     "test:mobile-nested-group": "node tools/tests/mobile-nested-group.mjs",
+    "test:mobile-group-mirror": "node tools/tests/mobile-group-mirror.mjs",
     "test:mobile-devicecard-mediaplayer": "node tools/tests/mobile-devicecard-mediaplayer.mjs",
     "test:mediaplayer-marquee": "node tools/tests/mediaplayer-marquee.mjs",
     "test:header-subtitle": "node tools/tests/header-subtitle.mjs",

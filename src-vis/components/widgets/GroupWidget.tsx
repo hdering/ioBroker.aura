@@ -42,6 +42,8 @@ import {
 import { clearResizeSize, showResizeSize } from '../../utils/resizeSizeBadge';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
+import { findDashboardWidget, mirrorTargetWidgetId } from '../../utils/mirrorSource';
+import { useDashboardStore } from '../../store/dashboardStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
@@ -144,6 +146,21 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const childRowPx = !autoShrink && stretchedRowPx ? stretchedRowPx : cellSize;
     const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap, frameless);
     const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
+    // A mirror renders its SOURCE, so in the phone stack it must size like the
+    // source: a mirrored device card or group takes its natural height instead of
+    // a fixed gridPos.h box it can only scroll in (#988) — same rule as the tab's
+    // own stack (#513). A joined id string keeps the selector's result stable.
+    const contentMirrorKey = useDashboardStore((s) => {
+        let key = '';
+        for (const c of children) {
+            const tid = mirrorTargetWidgetId(c);
+            if (!tid) continue;
+            const src = findDashboardWidget(s.layouts, tid);
+            if (src && src.type !== 'mirror' && stacksToContent(src)) key += `${c.id}|`;
+        }
+        return key;
+    });
+    const stacksInMobile = (c: WidgetConfig) => stacksToContent(c) || contentMirrorKey.includes(`${c.id}|`);
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
 
@@ -663,7 +680,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                     // A nested group, an auto-height child … takes its natural
                                     // height in the stack, as on the tab's own stack (#897).
                                     style={
-                                        stacksToContent(child)
+                                        stacksInMobile(child)
                                             ? undefined
                                             : { height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }
                                     }
