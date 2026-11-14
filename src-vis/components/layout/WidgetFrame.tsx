@@ -7273,7 +7273,9 @@ function WidgetFrameInner({
           : t('wf.mirrorBadge');
 
     // Last-change timestamp overlay (sourced from the mirror's target when applicable)
-    const lcConfig = mirrorLcSource ?? config;
+    // Resolved like the body: inside a device card the datapoint is `{{parent}}.SET` & co.
+    // until the card's transform rewrites it (#989).
+    const lcConfig = mirrorBase ?? baseConfig;
     const showLastChange = !!lcConfig.options?.showLastChange;
     const lastChangePos = (lcConfig.options?.lastChangePosition as string | undefined) ?? 'left';
     const lastChangeSource = lcConfig.options?.lastChangeSource as string | undefined;

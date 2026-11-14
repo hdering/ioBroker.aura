@@ -670,10 +670,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
                 {!isCollapsed && (
                     <div
-                        className="aura-scroll flex-1 overflow-auto min-h-0 p-1"
-                        style={{ scrollbarGutter: 'stable both-edges' }}
+                        // Frameless (#981): no inset, no scrollbar gutter and the tab's own gap
+                        // between children, so a frameless group (device card) stacks exactly
+                        // like the same widgets outside it — the classic p-1 inset showed as a
+                        // phantom border on tablet/phone (#989).
+                        className={`aura-scroll flex-1 overflow-auto min-h-0 ${frameless ? '' : 'p-1'}`}
+                        style={frameless ? undefined : { scrollbarGutter: 'stable both-edges' }}
                     >
-                        <div className="flex flex-col gap-1.5">
+                        <div
+                            className={`flex flex-col ${frameless ? '' : 'gap-1.5'}`}
+                            style={frameless ? { gap: gridGap } : undefined}
+                        >
                             {sorted.map((child) => (
                                 <div
                                     key={child.id}

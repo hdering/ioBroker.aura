@@ -154,6 +154,115 @@ for (const editMode of [true, false]) {
     }
 }
 
+// Phone/tablet stack (#989): a frameless device card stacks to its content. It must
+// be exactly as tall as the same widget outside — the classic p-1 inset of the group
+// stack used to show as a phantom border (4 px offset, 8 px taller, wider gaps).
+{
+    console.log('\nGerätekarte ohne Rahmen · Frontend · Phone-Stack');
+    const context = await browser.newContext({ viewport: { width: 400, height: 900 } });
+    const page = await context.newPage();
+    page.on('pageerror', (e) => console.log('  [pageerror]', e.message));
+    await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    const children = [value('st-a', { x: 0, y: 0, w: 8, h: 3 }), value('st-b', { x: 0, y: 3, w: 8, h: 2 })];
+    const widgets = [
+        {
+            id: 'st-card',
+            type: 'devicecard',
+            title: 'Karte',
+            datapoint: 'demo.temp',
+            layout: 'default',
+            options: { defId: 'def-st', frameless: true, showTitle: false, showIcon: false },
+            gridPos: { x: 0, y: 0, w: 8, h: 5 },
+        },
+        value('st-out', { x: 0, y: 5, w: 8, h: 3 }),
+    ];
+    await page.evaluate(
+        ({ widgets, children, grid }) => {
+            localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+            window.__auraShot.mock({ 'demo.temp': 21 });
+            window.__auraShot.groupDefs({ 'def-st': children });
+            window.__auraShot.showWidgets(widgets, { editMode: false, ...grid });
+        },
+        { widgets, children, grid: GRID },
+    );
+    await page.waitForSelector('.aura-widget-st-b', { timeout: 15000 });
+    await page.waitForTimeout(600);
+    const m = await page.evaluate(MEASURE, ['st-card', 'st-a', 'st-b', 'st-out']);
+    check(
+        Math.abs(m['st-a'].top - m['st-card'].top) <= 1,
+        'Kind 1 ohne Versatz oben',
+        `${m['st-a'].top} vs ${m['st-card'].top}`,
+    );
+    check(
+        Math.abs(m['st-a'].h - m['st-out'].h) <= 1,
+        'Kind 1 so hoch wie Widget außerhalb',
+        `${m['st-a'].h} vs ${m['st-out'].h}`,
+    );
+    const gapIn = m['st-b'].top - (m['st-a'].top + m['st-a'].h);
+    check(Math.abs(gapIn - GRID.gridGap) <= 1, 'Abstand zwischen Kindern = Rasterabstand', `${gapIn}`);
+    const cardBottom = m['st-card'].top + m['st-card'].h;
+    check(
+        Math.abs(cardBottom - (m['st-b'].top + m['st-b'].h)) <= 1,
+        'Karte endet mit dem letzten Kind',
+        `${cardBottom} vs ${m['st-b'].top + m['st-b'].h}`,
+    );
+    await context.close();
+}
+
+// Last-change overlay of a card child whose datapoint is `{{parent}}.SET` (#989): it
+// must read the RESOLVED id, like the body does.
+{
+    console.log('\nGerätekarte · Letzte Änderung mit {{parent}}');
+    const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+    const page = await context.newPage();
+    page.on('pageerror', (e) => console.log('  [pageerror]', e.message));
+    await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    const lc = Date.now() - 3 * 86400_000;
+    const child = {
+        id: 'lc-dim',
+        type: 'dimmer',
+        title: 'Dimmer',
+        datapoint: '{{parent}}.SET',
+        layout: 'default',
+        options: { showLastChange: true },
+        gridPos: { x: 0, y: 0, w: 8, h: 4 },
+    };
+    const widgets = [
+        {
+            id: 'lc-card',
+            type: 'devicecard',
+            title: 'Karte',
+            datapoint: 'demo.lamp.LEVEL',
+            layout: 'default',
+            options: { defId: 'def-lc', frameless: true, showTitle: false, showIcon: false },
+            gridPos: { x: 0, y: 0, w: 8, h: 4 },
+        },
+    ];
+    await page.evaluate(
+        ({ widgets, child, lc, grid }) => {
+            localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+            window.__auraShot.mock({ 'demo.lamp.SET': { val: 40, ts: lc, lc }, 'demo.lamp.LEVEL': 40 });
+            // The overlay reads via getStateDirect — offline only the server mock answers it.
+            window.__auraShot.mockServerState({ 'demo.lamp.SET': { val: 40, ts: lc, lc } });
+            window.__auraShot.groupDefs({ 'def-lc': [child] });
+            window.__auraShot.showWidgets(widgets, { editMode: false, ...grid });
+        },
+        { widgets, child, lc, grid: GRID },
+    );
+    await page.waitForSelector('.aura-widget-lc-dim', { timeout: 15000 });
+    let text = null;
+    for (let i = 0; i < 20 && !text; i++) {
+        await page.waitForTimeout(150);
+        text = await page.evaluate(
+            () => document.querySelector('.aura-widget-lc-dim .aura-last-change')?.textContent ?? null,
+        );
+    }
+    check(!!text, 'Letzte Änderung wird angezeigt', String(text));
+    await context.close();
+}
+
 // Nested: frameless device cards in a frameless group (the report's export). Both
 // are header-less, so both draw a hover toolbar top-left; the card's must not sit
 // under the group's, or the card's settings cannot be reached.
