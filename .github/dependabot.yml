@@ -53,6 +53,13 @@ updates:
       - dependency-name: "react-grid-layout"
       - dependency-name: "react-draggable"
       - dependency-name: "react-resizable"
+      # Release freeze (2026-11-14): no dependency changes right before the
+      # release. Remove these entries after the next stable release.
+      - dependency-name: "suncalc"
+      - dependency-name: "globals"
+      - dependency-name: "@iconify/react"
+      - dependency-name: "lucide-react"
+      - dependency-name: "@modelcontextprotocol/sdk"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
