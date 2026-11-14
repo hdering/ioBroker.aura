@@ -8,5 +8,3 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- fix: Device card - a frameless card no longer shows a phantom border (offset and wider gaps) on tablet and phone (#989)
-- fix: Device card - the last-change timestamp of a child whose datapoint uses {{parent}} is shown again (#989)
