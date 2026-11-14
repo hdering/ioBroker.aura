@@ -13,6 +13,7 @@ import {
     wasTabSuspended,
     onTabSuspended,
     chromiumFlavour,
+    useRefreshing,
 } from './hooks/useIoBroker';
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
@@ -126,9 +127,25 @@ function ConnectionBadge() {
 // Always rendered; visible/hidden via opacity so it never shifts layout.
 // When the full badge is active it already shows "Getrennt" – the dot is
 // then suppressed for disconnects to avoid duplication.
+// While connected but re-reading the datapoints after a wake-up or reconnect
+// (useRefreshing) it shows a small spinner instead: the values on screen may
+// still be the old ones. Delayed so a quick refresh does not flicker.
+
+const REFRESH_SPINNER_DELAY_MS = 300;
 
 function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
     const { connected } = useIoBroker();
+    const t = useT();
+    const refreshing = useRefreshing();
+    const [spinner, setSpinner] = useState(false);
+    useEffect(() => {
+        if (!refreshing) {
+            setSpinner(false);
+            return;
+        }
+        const t = setTimeout(() => setSpinner(true), REFRESH_SPINNER_DELAY_MS);
+        return () => clearTimeout(t);
+    }, [refreshing]);
     const [startupVisible, setStartupVisible] = useState(true);
     const wasConnectedRef = useRef(false);
     const [everConnected, setEverConnected] = useState(false);
@@ -151,6 +168,25 @@ function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
     const color = startupVisible && connected ? 'var(--accent-green)' : 'var(--accent-red)';
     // Suppress startup dot if badge covers it and we're connected (badge shows "Verbunden")
     const suppressed = startupVisible && connected && showBadge;
+
+    if (spinner && connected) {
+        return (
+            <div
+                className="fixed top-3 right-3 z-50 pointer-events-none"
+                role="status"
+                aria-label={t('connection.refreshing')}
+                title={t('connection.refreshing')}
+            >
+                <span
+                    className="block w-3.5 h-3.5 rounded-full animate-spin"
+                    style={{
+                        border: '2px solid var(--accent)',
+                        borderTopColor: 'transparent',
+                    }}
+                />
+            </div>
+        );
+    }
 
     if (!visible || suppressed) return null;
 

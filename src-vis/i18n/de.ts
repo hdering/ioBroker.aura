@@ -3325,6 +3325,7 @@ export const de = {
     'preview.cal.birthday': 'Geburtstag Lisa',
 
     // ── Tab-Standby-Hinweis ───────────────────────────────────────────────────────
+    'connection.refreshing': 'Werte werden aktualisiert …',
     'tabSleep.title': 'Browser hat diesen Tab schlafen gelegt',
     'tabSleep.body':
         'Die Werte wurden gerade aktualisiert. Damit das Dashboard dauerhaft live bleibt, kannst du den Standby für diese Seite abschalten:',

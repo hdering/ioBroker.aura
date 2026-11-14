@@ -3295,6 +3295,7 @@ export const en: Record<TranslationKey, string> = {
     'preview.cal.birthday': 'Birthday Lisa',
 
     // ── Tab sleep hint ────────────────────────────────────────────────────────────
+    'connection.refreshing': 'Refreshing values …',
     'tabSleep.title': 'The browser put this tab to sleep',
     'tabSleep.body':
         'The values have just been refreshed. To keep the dashboard live permanently, exclude this page from tab sleeping:',

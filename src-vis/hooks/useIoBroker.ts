@@ -101,6 +101,52 @@ export function onDisconnectedSinceChange(fn: () => void): () => void {
     };
 }
 
+// ── Refresh state ───────────────────────────────────────────────────────────
+// True from the moment we suspect the values on screen may be outdated (wake-up
+// probe, reconnect) until every cached datapoint has been read again. The socket
+// can report `connected` the whole time — a tab coming back from the background
+// shows the old values for a second or more, and nothing told the user so.
+// The connection indicator shows a spinner while this is set.
+let refreshing = false;
+let refreshGen = 0;
+let refreshFailsafe: ReturnType<typeof setTimeout> | null = null;
+const refreshListeners = new Set<(refreshing: boolean) => void>();
+/** Never spin longer than this — a lost reply must not leave the spinner up for good. */
+const REFRESH_FAILSAFE_MS = 15_000;
+
+function setRefreshing(on: boolean): void {
+    if (refreshFailsafe) {
+        clearTimeout(refreshFailsafe);
+        refreshFailsafe = null;
+    }
+    if (on) refreshFailsafe = globalThis.setTimeout(() => setRefreshing(false), REFRESH_FAILSAFE_MS);
+    if (refreshing === on) return;
+    refreshing = on;
+    refreshListeners.forEach((fn) => fn(on));
+}
+
+/** True while the values on screen are being re-read after a wake-up or reconnect. */
+export function isRefreshing(): boolean {
+    return refreshing;
+}
+
+export function onRefreshingChange(fn: (refreshing: boolean) => void): () => void {
+    refreshListeners.add(fn);
+    return () => {
+        refreshListeners.delete(fn);
+    };
+}
+
+/** React binding for {@link isRefreshing}. */
+export function useRefreshing(): boolean {
+    const [value, setValue] = useState(refreshing);
+    useEffect(() => {
+        setValue(refreshing);
+        return onRefreshingChange(setValue);
+    }, []);
+    return value;
+}
+
 // Perf: time from (re)connect to the first live stateChange — a proxy for how
 // quickly the dashboard receives usable data. Reported once per connection.
 let connectPerfMark = 0;
@@ -458,7 +504,17 @@ function revalidateStates(s: IoBrokerSocket): void {
     const ids = [...new Set([...subscribers.keys(), ...stateCache.keys()])].filter(
         (id) => isValidStateId(id) && !ownRevalidation.has(id) && !isIdPattern(id),
     );
-    if (ids.length === 0) return;
+    // A pass for a newer socket supersedes this one; its answers end the refresh.
+    const gen = ++refreshGen;
+    if (ids.length === 0) {
+        setRefreshing(false);
+        return;
+    }
+    setRefreshing(true);
+    let pending = ids.length;
+    const settle = (): void => {
+        if (--pending === 0 && gen === refreshGen) setRefreshing(false);
+    };
     const CHUNK = 50;
     const emitChunk = (from: number): void => {
         // A socket swapped out mid-pass (reconnect / bounce) makes the rest of
@@ -466,6 +522,7 @@ function revalidateStates(s: IoBrokerSocket): void {
         if (socket !== s) return;
         for (const id of ids.slice(from, from + CHUNK)) {
             s.emit('getState', id, (_err: unknown, state: unknown) => {
+                settle();
                 if (!state) return;
                 const next = state as ioBrokerState;
                 const prev = stateCache.get(id);
@@ -501,6 +558,9 @@ function checkConnectionAlive(opts?: { ignoreVisibility?: boolean }): void {
 
     const s = socket;
     if (!s) return; // nothing mounted yet — getSocket() will connect on demand
+    // From here on the values on screen are unconfirmed until the probe answers
+    // and revalidateStates() has read them again (or a reconnect does so).
+    setRefreshing(true);
     if (!s.connected) {
         bounceSocket();
         return;
