@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.115.0",
+    "version": "0.115.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.115.1": {
+        "en": "🐛 Bug fix: Group - a mirrored device card or group no longer scrolls inside a group on phones and tablets (#988)",
+        "de": "🐛 Fehlerbehebung: Gruppe – eine gespiegelte Gerätekarte oder -gruppe scrollt auf Telefonen und Tablets nicht mehr innerhalb einer Gruppe (#988)",
+        "ru": "🐛 Исправлена ​​ошибка: Группа — зеркальная карточка устройства или группа больше не прокручивается внутри группы на телефонах и планшетах (#988).",
+        "pt": "🐛 Correção de bug: Grupo - um cartão ou grupo de dispositivo espelhado não rola mais dentro de um grupo em telefones e tablets (#988)",
+        "nl": "🐛 Bugfix: Groep - een gespiegelde apparaatkaart of groep scrollt niet langer binnen een groep op telefoons en tablets (#988)",
+        "fr": "🐛 Correction d'un bug : Groupe - une carte ou un groupe d'appareil en miroir ne défile plus à l'intérieur d'un groupe sur les téléphones et les tablettes (#988)",
+        "it": "🐛 Correzione bug: Gruppo: una scheda o un gruppo di un dispositivo con mirroring non scorre più all'interno di un gruppo su telefoni e tablet (#988)",
+        "es": "🐛 Corrección de errores: Grupo: una tarjeta de dispositivo reflejada o un grupo ya no se desplaza dentro de un grupo en teléfonos y tabletas (#988)",
+        "pl": "🐛 Poprawka błędu: Grupa — lustrzana karta urządzenia lub grupa nie przewija się już wewnątrz grupy na telefonach i tabletach (#988)",
+        "uk": "🐛 Виправлено помилку: група – дзеркальна картка пристрою або група більше не прокручується всередині групи на телефонах і планшетах (#988)",
+        "zh-cn": "🐛 错误修复：组 - 镜像设备卡或组不再在手机和平​​板电脑上的组内滚动 (#988)"
+      },
       "0.115.0": {
         "en": "🌟 New feature: Editor - arrange mode on touch devices: tap a widget, drag its grip to move it and its corner to resize it on tablets and phones (#699)\n🌟 New feature: Editor - a short note when \"scale like the frontend\" is switched on, explaining that the shown heights follow the preview while the design grid is saved",
         "de": "🌟 Neue Funktion: Editor – Anordnungsmodus auf Touch-Geräten: Tippen Sie auf ein Widget, ziehen Sie seinen Griff, um es zu verschieben, und seine Ecke, um die Größe auf Tablets und Telefonen zu ändern (#699)\n🌟 Neue Funktion: Editor – ein kurzer Hinweis, wenn „Skalieren wie das Frontend“ aktiviert ist, der erklärt, dass die angezeigten Höhen der Vorschau folgen, während das Designraster gespeichert wird",
@@ -185,19 +198,6 @@
         "pl": "🐛 Poprawka błędu: komponenty internetowe - po aktualizacji adaptera przeglądarka ładuje nowe pliki swoich komponentów zamiast plików z pamięci podręcznej (#954)\n🐛 Poprawka błędu: Termostat - z punktem danych Homematic MANU_MODE widżet pokazuje teraz wartość zadaną z SET_TEMPERATURE, więc pojawiają się zmiany wprowadzone na samym urządzeniu (#973)\n🌟 Nowa funkcja: Akcje timera i grupowe - opcjonalne opóźnienie pomiędzy docelowymi punktami danych, więc np. kilka okiennic uruchamia się jedna po drugiej, a nie wszystkie na raz; adapter uruchamia sekwencję, a zatrzymanie zawsze działa na wszystkie jednocześnie (#974)\n🌟 Nowa funkcja: Komponenty sieciowe - ustawienia typuselectSendTo i autocompleteSendTo (@iobroker/web-components 0.8) pokazują wybory zwracane przez adapter zamiast zwykłego pola tekstowego, np. lokalizacja openmeteo-notify (#975)",
         "uk": "🐛 Виправлено помилку: веб-компоненти - після оновлення адаптера браузер завантажує нові файли своїх компонентів замість кешованих (#954)\n🐛 Виправлено помилку: Термостат — із точкою даних Homematic MANU_MODE віджет тепер показує задану температуру від SET_TEMPERATURE, тому відображаються зміни, зроблені на самому пристрої (#973)\n🌟 Нова функція: таймер і групові дії - додаткова затримка між цільовими точками даних, тому, напр. кілька стулок запускаються одна за одною, а не всі одночасно; адаптер виконує послідовність і зупинка завжди діє на всіх одночасно (#974)\n🌟 Нова функція: веб-компоненти – налаштування типу selectSendTo та autocompleteSendTo (@iobroker/web-components 0.8) показують варіанти, які повертає адаптер, замість простого текстового поля, напр. розташування openmeteo-notify (#975)",
         "zh-cn": "🐛 错误修复：Web 组件 - 适配器更新后，浏览器加载其组件的新文件而不是缓存的文件 (#954)\n🐛 错误修复：恒温器 - 使用 Homematic MANU_MODE 数据点，小部件现在显示 SET_TEMPERATURE 的设定值，因此会显示设备本身所做的更改 (#973)\n🌟 新功能：计时器和组操作 - 目标数据点之间的可选延迟，例如多个百叶窗相继启动，而不是同时启动；适配器运行序列并停止总是同时起作用 (#974)\n🌟 新功能：Web 组件 - selectSendTo 和 autocompleteSendTo 类型的设置（@iobroker/web-components 0.8）显示适配器返回的选择而不是纯文本字段，例如openmeteo-notify 的位置 (#975)"
-      },
-      "0.113.1": {
-        "en": "🐛 Bug fix: PIN-protected sections - an unlocked view now picks up changes made via MCP (edited widgets, new tabs) without a page reload",
-        "de": "🐛 Fehlerbehebung: PIN-geschützte Abschnitte – eine entsperrte Ansicht übernimmt jetzt über MCP vorgenommene Änderungen (bearbeitete Widgets, neue Tabs), ohne dass die Seite neu geladen werden muss",
-        "ru": "🐛 Исправлена ​​ошибка: разделы, защищенные PIN-кодом: разблокированный вид теперь учитывает изменения, внесенные через MCP (отредактированные виджеты, новые вкладки), без перезагрузки страницы.",
-        "pt": "🐛 Correção de bug: seções protegidas por PIN – uma visualização desbloqueada agora coleta alterações feitas via MCP (widgets editados, novas guias) sem recarregar a página",
-        "nl": "🐛 Bugfix: met een pincode beveiligde secties - een ontgrendelde weergave pikt nu wijzigingen op die zijn aangebracht via MCP (bewerkte widgets, nieuwe tabbladen) zonder dat de pagina opnieuw hoeft te worden geladen",
-        "fr": "🐛 Correction d'un bug : sections protégées par code PIN - une vue déverrouillée récupère désormais les modifications apportées via MCP (widgets modifiés, nouveaux onglets) sans rechargement de page",
-        "it": "🐛 Correzione del bug: sezioni protette da PIN: una vista sbloccata ora rileva le modifiche apportate tramite MCP (widget modificati, nuove schede) senza ricaricare la pagina",
-        "es": "🐛 Corrección de errores: secciones protegidas con PIN: una vista desbloqueada ahora recoge los cambios realizados a través de MCP (widgets editados, pestañas nuevas) sin recargar la página",
-        "pl": "🐛 Poprawka błędu: sekcje chronione kodem PIN - odblokowany widok wyświetla teraz zmiany wprowadzone za pomocą MCP (edytowane widżety, nowe karty) bez ponownego ładowania strony",
-        "uk": "🐛 Виправлено помилку: розділи, захищені PIN-кодом, тепер у розблокованому режимі перегляду відображаються зміни, внесені через MCP (відредаговані віджети, нові вкладки), без перезавантаження сторінки",
-        "zh-cn": "🐛 错误修复：PIN 保护的部分 - 解锁视图现在可以拾取通过 MCP 所做的更改（编辑的小部件、新选项卡），而无需重新加载页面"
       }
     }
   },
