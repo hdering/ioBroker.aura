@@ -145,6 +145,7 @@ export function CircleMenuSettings({
     iconPlaceholder,
     widgetIconFallback = true,
     extra,
+    centerToggle,
 }: {
     o: Record<string, unknown>;
     setO: (patch: Record<string, unknown>) => void;
@@ -158,6 +159,8 @@ export function CircleMenuSettings({
     widgetIconFallback?: boolean;
     /** Widget-specific rows right below the intro. */
     extra?: ReactNode;
+    /** Offer `circleCenter` — the setpoint in the middle of the open menu (thermostat, room climate). */
+    centerToggle?: boolean;
 }) {
     const widgetIcon = widgetIconFallback ? (o.icon as string) || undefined : undefined;
     const triggerSize = (o.circleTriggerSize as number) || TRIGGER_MAX;
@@ -191,6 +194,16 @@ export function CircleMenuSettings({
                     entries={entries}
                     order={o.circleOrder}
                     onChange={(circleOrder) => setO({ circleOrder })}
+                    hidden={o.circleHidden}
+                    onHiddenChange={(circleHidden) => setO({ circleHidden })}
+                />
+            )}
+            {centerToggle && (
+                <ToggleRow
+                    label="Sollwert in der Mitte"
+                    text="Zeigt im geöffneten Menü den Sollwert in der Mitte; aus = Schließen-Kreuz."
+                    on={o.circleCenter !== false}
+                    toggle={() => setO({ circleCenter: o.circleCenter === false ? undefined : false })}
                 />
             )}
             <div>

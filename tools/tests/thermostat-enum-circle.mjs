@@ -132,6 +132,23 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(150);
 check('thermostat: Escape closes', (await itemCount()) === 0);
 
+// #993: hide entries, no setpoint in the middle
+await show(thermostat({ circleHidden: ['minus', 'plus'], circleCenter: false }));
+await open();
+check(
+    'thermostat: circleHidden drops − and +',
+    JSON.stringify(await itemTitles()) === '["17°","19°","21°"]',
+    JSON.stringify(await itemTitles()),
+);
+check(
+    'thermostat: circleCenter false shows the close cross',
+    !((await page.locator(CENTER).textContent()) ?? '').includes('19') &&
+        (await page.locator(`${CENTER} svg`).count()) === 1,
+    (await page.locator(CENTER).innerHTML()).slice(0, 80),
+);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+
 // ── Enum ─────────────────────────────────────────────────────────────────────
 await show(enumW({}));
 check('enum: trigger shows the active label', ((await page.locator(TRIGGER).textContent()) ?? '').includes('Stufe 1'));
@@ -192,6 +209,22 @@ for (const [label, widget] of [
         `${label}: order list only where the widget has its own entries`,
         (await dlg.locator('[data-aura-circle-order]').count()) === (label === 'thermostat' ? 1 : 0),
     );
+    if (label === 'thermostat') {
+        // #993: the eye hides an entry; the "Sollwert in der Mitte" switch exists
+        await dlg.locator('[data-aura-circle-entry="minus"] [data-aura-circle-eye]').click();
+        await page.waitForTimeout(300);
+        const opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), widget.id);
+        check(
+            'thermostat: eye stores circleHidden',
+            JSON.stringify(opts?.circleHidden) === '["minus"]' &&
+                (await dlg.locator('[data-aura-circle-entry="minus"][data-aura-circle-hidden]').count()) === 1,
+            JSON.stringify(opts?.circleHidden),
+        );
+        check(
+            'thermostat: center switch offered',
+            (await dlg.locator('.aura-circle-settings').getByText('Sollwert in der Mitte', { exact: true }).count()) === 1,
+        );
+    }
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
     await page.evaluate(() => window.__auraShot.setEditMode(false));

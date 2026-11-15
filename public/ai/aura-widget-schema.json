@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.114.1",
+    "auraVersion": "1.0.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -10709,6 +10709,11 @@
           "description": "Farbe der Mittelwertlinie.",
           "color": true
         },
+        "circleCenter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz."
+        },
         "circleDirection": {
           "type": "string",
           "ref": "CircleDirection",
@@ -10722,6 +10727,9 @@
             "left"
           ],
           "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleHidden": {
+          "description": "Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen. Leer = alle Einträge sichtbar."
         },
         "circleIcon": {
           "type": "string",
@@ -20848,6 +20856,9 @@
           ],
           "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
         },
+        "circleHidden": {
+          "description": "Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. [\"stop\"] für nur Öffnen, Schnellwahl und Schließen. Leer = alle Einträge sichtbar."
+        },
         "circleIcon": {
           "type": "string",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Icon im runden Knopf (Iconify-Name, z. B. \"mdi:window-shutter\"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik."
@@ -23887,6 +23898,11 @@
           "description": "Datenpunkt der Ist-Temperatur (der Haupt-DP ist die Soll-Temperatur).",
           "datapoint": true
         },
+        "circleCenter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz, z. B. wenn der Knopf den Sollwert ohnehin zeigt oder − und + ausgeblendet sind."
+        },
         "circleDirection": {
           "type": "string",
           "ref": "CircleDirection",
@@ -23900,6 +23916,9 @@
             "left"
           ],
           "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleHidden": {
+          "description": "Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. [\"minus\",\"plus\"] für nur die Schnellwahl. Leer = alle Einträge sichtbar."
         },
         "circleIcon": {
           "type": "string",

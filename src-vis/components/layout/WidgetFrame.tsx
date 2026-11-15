@@ -20015,6 +20015,7 @@ function WidgetFrameInner({
                                                         entries={thermostatCircleEntries(o)}
                                                         iconPlaceholder="Thermometer"
                                                         extra={<PrimaryValueSelect o={o} setO={setO} />}
+                                                        centerToggle
                                                     />
                                                 )}
                                                 {config.layout === 'dial' && (

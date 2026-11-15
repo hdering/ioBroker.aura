@@ -506,6 +506,16 @@ export const WIDGET_OPTION_NOTES = {
                 '"preset-<Wert>" (z. B. "preset-21.5", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, ' +
                 'Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard.',
         },
+        circleHidden: {
+            description:
+                'Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. ["minus","plus"] für nur die Schnellwahl. ' +
+                'Leer = alle Einträge sichtbar.',
+        },
+        circleCenter: {
+            description:
+                'Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz, ' +
+                'z. B. wenn der Knopf den Sollwert ohnehin zeigt oder − und + ausgeblendet sind.',
+        },
     },
     slider: {
         min: { description: 'Kleinster einstellbarer Wert.' },
@@ -989,6 +999,11 @@ export const WIDGET_OPTION_NOTES = {
                 'in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; ' +
                 'Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard.',
         },
+        circleHidden: {
+            description:
+                'Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. ["stop"] für nur Öffnen, ' +
+                'Schnellwahl und Schließen. Leer = alle Einträge sichtbar.',
+        },
     },
     dimmer: {
         valueFactor: {
@@ -1178,6 +1193,14 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Nur Kreismenü: Reihenfolge der Einträge als Liste von Schlüsseln — "minus", "plus" und "preset-<Wert>" ' +
                 '(Wert aus presets). Standard: minus, presets, plus. Leer = Standard.',
+        },
+        circleHidden: {
+            description:
+                'Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen. Leer = alle Einträge sichtbar.',
+        },
+        circleCenter: {
+            description:
+                'Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz.',
         },
         humidityDatapoint: { description: 'Datenpunkt der Luftfeuchte.' },
         pressureDatapoint: { description: 'Datenpunkt des Luftdrucks.' },

@@ -121,6 +121,7 @@ export function ClimateSetpointConfig({
                     entries={setpointCircleEntries(true, presets)}
                     iconPlaceholder="Thermometer"
                     extra={<PrimaryValueSelect o={o} setO={set} />}
+                    centerToggle
                 />
             )}
         </>

@@ -724,7 +724,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                 triggerRef={tiltBtnRef}
                 triggerTitle={`${config.title ? `${config.title}: ` : ''}${statusText}`}
                 triggerStyle={{ borderColor: accentColor }}
-                items={applyCircleOrder(items, opts.circleOrder)}
+                items={applyCircleOrder(items, opts.circleOrder, opts.circleHidden)}
                 direction={(opts.circleDirection as CircleDirection) || 'auto'}
                 itemSize={(opts.circleItemSize as number) || 48}
                 keepOpen={!!opts.circleKeepOpen}

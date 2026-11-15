@@ -167,6 +167,16 @@ check(
 );
 await page.keyboard.press('Escape');
 
+// ── 5c. circleHidden (#993) ─────────────────────────────────────────────────
+await show({ positionPresets: [{ pos: 75 }], circleHidden: ['stop', 'gone'] });
+await open();
+check(
+    'circleHidden: stop left out, unknown key ignored',
+    JSON.stringify(await itemTitles()) === '["Öffnen","75%","Schließen"]',
+    JSON.stringify(await itemTitles()),
+);
+await page.keyboard.press('Escape');
+
 // ── 6. Near the window edge: still inside ────────────────────────────────────
 for (const [name, vp] of [
     ['top-left corner', { width: 1280, height: 900 }],

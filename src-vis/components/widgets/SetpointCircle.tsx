@@ -83,6 +83,10 @@ export function setpointCircleItems({
  */
 export interface SetpointCircleSettings {
     order: unknown;
+    /** Entry keys left out of the circle (`circleHidden`, #993). */
+    hidden?: unknown;
+    /** Setpoint in the middle of the open menu instead of the close cross (`circleCenter`, #993). */
+    center?: boolean;
     direction: CircleDirection;
     itemSize: number;
     keepOpen: boolean;
@@ -148,14 +152,14 @@ export function SetpointCircleMenu({
         <CircleMenu
             triggerTitle={setpointText !== null ? `${title}: ${setpointText}°C` : title}
             triggerStyle={{ borderColor: accentColor }}
-            items={applyCircleOrder(items, settings.order)}
+            items={applyCircleOrder(items, settings.order, settings.hidden)}
             direction={settings.direction}
             itemSize={settings.itemSize}
             keepOpen={settings.keepOpen}
             shade={settings.shade}
             triggerSize={settings.triggerSize}
             // The setpoint stays visible in the middle while +/− step it.
-            center={setpointText !== null ? `${setpointText}°` : undefined}
+            center={settings.center !== false && setpointText !== null ? `${setpointText}°` : undefined}
             trigger={
                 <>
                     {Icon && (
