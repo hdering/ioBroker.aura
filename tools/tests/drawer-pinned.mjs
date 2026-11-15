@@ -6,8 +6,9 @@
 // Handy-Breite, Platzierung „In Tab-Leiste“, viele Tabs, ein Tab ganz hinten aktiv:
 // ohne Option scrollt der Hamburger mit den Tabs aus dem Bild, mit Option bleibt er
 // am linken Rand stehen und öffnet weiterhin das Menü. Gilt für die einfache Leiste
-// und die Raster-Leiste. Bei zentrierten/rechten Tabs steht der Hamburger immer
-// fest, und die ersten Tabs bleiben per Scrollen erreichbar.
+// und die Raster-Leiste. Bei zentrierten/rechten Tabs scrollt die ganze Leiste: ohne
+// Option taucht der Hamburger ganz links wieder auf, die ersten Tabs bleiben erreichbar.
+// Passen die Tabs, stehen sie weiter mittig bzw. rechts.
 //
 // Läuft offline, fasst keine Instanz an.
 /* global window, document */
@@ -116,21 +117,19 @@ const scrollTabsToStart = (page) =>
     page.$$eval('.aura-tabs .aura-scroll', (els) => els.forEach((e) => (e.scrollLeft = 0)));
 
 const clock = { id: 'clk', type: 'clock', clockDisplay: 'time', position: 'right' };
-for (const [label, tabBar, scrollsAway] of [
+for (const [label, tabBar] of [
     ['einfach', undefined, true],
     // Linke Tabs + Element rechts = Raster-Leiste, Hamburger und Tabs teilen Zone 1.
     ['Raster links', { items: [clock] }, true],
-    // Zentrierte / rechte Tabs: Hamburger steht immer fest – Zone 1 wurde dort von
-    // überlaufenden Tabs auf 0 px gedrückt und schnitt ihn komplett ab.
-    ['zentriert', { tabsAlignment: 'center' }, false],
-    ['rechts', { tabsAlignment: 'right' }, false],
+    // Zentrierte / rechte Tabs: früher drückten überlaufende Tabs die Hamburger-Zone
+    // auf 0 px – er war dann gar nicht mehr zu sehen.
+    ['zentriert', { tabsAlignment: 'center' }],
+    ['rechts', { tabsAlignment: 'right' }],
 ]) {
     {
         const { ctx, page } = await open(false, tabBar);
         check(`${label}, ohne Option: aktiver Tab sichtbar`, await onScreen(tabLabel(page, 12)));
-        if (scrollsAway) {
-            check(`${label}, ohne Option: Hamburger scrollt mit weg`, !(await onScreen(burger(page))));
-        }
+        check(`${label}, ohne Option: Hamburger scrollt mit weg`, !(await onScreen(burger(page))));
         await scrollTabsToStart(page);
         await page.waitForTimeout(150);
         check(`${label}, ohne Option: ganz links Hamburger sichtbar`, await onScreen(burger(page)));

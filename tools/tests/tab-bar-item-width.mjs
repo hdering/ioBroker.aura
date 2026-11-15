@@ -89,7 +89,9 @@ const goto = async (slug) => {
 const measure = () =>
     page.evaluate((text) => {
         const bar = document.querySelector('.aura-tabs');
-        const zones = [...(bar?.children ?? [])].map((z) => Math.round(z.getBoundingClientRect().width));
+        // Centred / right tabs scroll as one row: the zones sit in an inner grid there.
+        const grid = bar?.querySelector('[data-aura-tab-zones]') ?? bar;
+        const zones = [...(grid?.children ?? [])].map((z) => Math.round(z.getBoundingClientRect().width));
         // Das innerste Element mit dem Text — die Zonen selbst enthalten ihn auch.
         const item = [...bar.querySelectorAll('div')].filter((d) => d.textContent?.trim() === text).at(-1);
         const br = bar?.getBoundingClientRect();

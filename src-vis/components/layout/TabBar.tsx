@@ -885,10 +885,8 @@ export function TabBar({
     const hideMobileScrollbar = tbSettings?.hideMobileScrollbar ?? false;
     const needsGrid = hasExtras || tabsAlignment !== 'left';
     // Pinned hamburger: outside the scroll row, so opening a tab further along does
-    // not scroll the section menu out of reach (mainly on phones). Centred / right
-    // tabs always get it: there zone 1 is a 1fr / shrinkable column that overflowing
-    // tabs squeeze to 0 px, which clipped the hamburger entirely.
-    const pinSlot = Boolean(headerSlot) && (pinHeaderSlot || (needsGrid && tabsAlignment !== 'left'));
+    // not scroll the section menu out of reach (mainly on phones).
+    const pinSlot = pinHeaderSlot && Boolean(headerSlot);
     const scrollSlot = pinSlot ? null : headerSlot;
     const pinnedSlot = pinSlot ? (
         <div className="aura-tabs-pinned flex items-center shrink-0 pl-2">{headerSlot}</div>
@@ -957,6 +955,79 @@ export function TabBar({
               ? 'minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr)'
               : 'minmax(0, 1fr) minmax(0, max-content) minmax(0, max-content)';
 
+    // Centred / right tabs: the whole bar scrolls as one row. Per-zone scrolling
+    // squeezed the 1fr zone of the hamburger and left items to 0 px as soon as the
+    // tabs overflowed, so they were clipped for good. Here the grid is at least as
+    // wide as the bar (tabs centred / right-aligned while they fit) and grows past
+    // it when they do not — then hamburger and items scroll with the tabs and come
+    // back at the start. Fixed in place only with the pin option.
+    // Right tabs with a centre item keep the zone grid below: there the item must sit
+    // in the true middle (#820), and zone 1 owns half the bar, so nothing is clipped.
+    if (tabsAlignment === 'center' || (tabsAlignment === 'right' && centerItems.length === 0)) {
+        const flowColumns =
+            tabsAlignment === 'center' || centerItems.length > 0
+                ? 'minmax(max-content, 1fr) max-content minmax(max-content, 1fr)'
+                : 'max-content max-content minmax(max-content, 1fr)';
+        return (
+            <>
+                <div className={`aura-tabs ${barPosClass} shrink-0 flex`} style={containerStyle}>
+                    {pinnedSlot}
+                    <ScrollRow
+                        isMobile={isMobile}
+                        hideIndicator={hideMobileScrollbar}
+                        activeKey={activeTabId}
+                        outerClassName="flex-1 min-w-0"
+                        scrollClassName="flex items-center w-full"
+                    >
+                        <div
+                            className="shrink-0"
+                            data-aura-tab-zones=""
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: flowColumns,
+                                alignItems: 'center',
+                                width: 'max-content',
+                                minWidth: '100%',
+                            }}
+                        >
+                            {/* Zone 1: hamburger + left items */}
+                            <div className="flex items-center gap-1 px-2">
+                                {scrollSlot}
+                                {renderTabBarItems(leftItems)}
+                            </div>
+                            {/* Zone 2: tabs when alignment=center + center items */}
+                            <div className="flex items-center gap-1 px-2 justify-center">
+                                {tabsAlignment === 'center' && renderTabs()}
+                                {tabsAlignment === 'center' && addTabBtn}
+                                {tabsAlignment === 'center' && centerItems.length > 0 && (
+                                    <div
+                                        className="w-px self-stretch mx-2 shrink-0"
+                                        style={{ background: 'var(--app-border)' }}
+                                    />
+                                )}
+                                {renderTabBarItems(centerItems)}
+                            </div>
+                            {/* Zone 3: tabs when alignment=right + right items */}
+                            <div className="flex items-center gap-1 px-2 justify-end">
+                                {tabsAlignment === 'right' && renderTabs()}
+                                {tabsAlignment === 'right' && addTabBtn}
+                                {tabsAlignment === 'right' && rightItems.length > 0 && (
+                                    <div
+                                        className="w-px self-stretch mx-2 shrink-0"
+                                        style={{ background: 'var(--app-border)' }}
+                                    />
+                                )}
+                                {renderTabBarItems(rightItems)}
+                            </div>
+                        </div>
+                    </ScrollRow>
+                </div>
+                {settingsPanel}
+                {iconPickerModal}
+            </>
+        );
+    }
+
     if (needsGrid) {
         return (
             <>
@@ -992,7 +1063,7 @@ export function TabBar({
                         </div>
                     </ScrollRow>
 
-                    {/* Zone 2: center items + tabs when alignment=center */}
+                    {/* Zone 2: center items (centred tabs use the flow bar above) */}
                     <ScrollRow
                         isMobile={isMobile}
                         hideIndicator={hideMobileScrollbar}
@@ -1000,18 +1071,8 @@ export function TabBar({
                         scrollClassName="flex items-center w-full"
                     >
                         {/* mx-auto instead of justify-center: auto margins drop to 0 on
-                            overflow, so the first tabs stay reachable by scrolling. */}
-                        <div className="flex items-center gap-1 px-2 mx-auto">
-                            {tabsAlignment === 'center' && renderTabs()}
-                            {tabsAlignment === 'center' && addTabBtn}
-                            {tabsAlignment === 'center' && centerItems.length > 0 && (
-                                <div
-                                    className="w-px self-stretch mx-2 shrink-0"
-                                    style={{ background: 'var(--app-border)' }}
-                                />
-                            )}
-                            {renderTabBarItems(centerItems)}
-                        </div>
+                            overflow, so the start stays reachable by scrolling. */}
+                        <div className="flex items-center gap-1 px-2 mx-auto">{renderTabBarItems(centerItems)}</div>
                     </ScrollRow>
 
                     {/* Zone 3: right items + tabs when alignment=right */}
