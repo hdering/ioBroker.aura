@@ -52,6 +52,8 @@ const MEASURE = (ids) => {
         out[id] = {
             top: Math.round(r.top * 10) / 10,
             h: Math.round(r.height * 10) / 10,
+            left: Math.round(r.left * 10) / 10,
+            w: Math.round(r.width * 10) / 10,
             border: cs.borderTopWidth,
             bg: cs.backgroundColor,
         };
@@ -198,6 +200,14 @@ for (const editMode of [true, false]) {
         Math.abs(m['st-a'].h - m['st-out'].h) <= 1,
         'Kind 1 so hoch wie Widget außerhalb',
         `${m['st-a'].h} vs ${m['st-out'].h}`,
+    );
+    // Classic (non-overlay) scrollbars — desktop Chromium here, Fully Kiosk's WebView in
+    // the report: the card's stack scroller must not reserve a scrollbar gutter, or its
+    // children end that much short of the widget outside (#989).
+    check(
+        Math.abs(m['st-a'].left - m['st-out'].left) <= 1 && Math.abs(m['st-a'].w - m['st-out'].w) <= 1,
+        'Kind 1 so breit wie Widget außerhalb',
+        `${m['st-a'].left}+${m['st-a'].w} vs ${m['st-out'].left}+${m['st-out'].w}`,
     );
     const gapIn = m['st-b'].top - (m['st-a'].top + m['st-a'].h);
     check(Math.abs(gapIn - GRID.gridGap) <= 1, 'Abstand zwischen Kindern = Rasterabstand', `${gapIn}`);

@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: Clients - a client delete via clients.deleteRequest written with ack=true is now ignored and logged instead of executed; write it without ack
 - fix: Network requests to the WebSocket proxy and through the web extension now time out instead of hanging
+- fix: Device card - without frame, its widgets no longer end short on the right in the phone/tablet stack in browsers with classic scrollbars such as Fully Kiosk (#989)

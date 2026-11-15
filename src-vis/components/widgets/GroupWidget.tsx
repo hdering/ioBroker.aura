@@ -673,9 +673,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         // Frameless (#981): no inset, no scrollbar gutter and the tab's own gap
                         // between children, so a frameless group (device card) stacks exactly
                         // like the same widgets outside it — the classic p-1 inset showed as a
-                        // phantom border on tablet/phone (#989).
+                        // phantom border on tablet/phone (#989). The gutter has to be switched
+                        // off explicitly: `.aura-scroll` reserves one, which costs nothing with
+                        // overlay scrollbars (Chrome on Android) but cut the children short on
+                        // the right where scrollbars take space (Fully Kiosk's WebView, desktop).
                         className={`aura-scroll flex-1 overflow-auto min-h-0 ${frameless ? '' : 'p-1'}`}
-                        style={frameless ? undefined : { scrollbarGutter: 'stable both-edges' }}
+                        style={{ scrollbarGutter: frameless ? 'auto' : 'stable both-edges' }}
                     >
                         <div
                             className={`flex flex-col ${frameless ? '' : 'gap-1.5'}`}
