@@ -603,7 +603,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, 
 
     const proxyReq = lib.request(opts);
     let upgraded = false;
-    // Only the handshake is bounded: after the upgrade setTimeout(0) below clears it.
+    // Only the handshake is bounded: after the upgrade the socket timeout is cleared below.
     proxyReq.on('timeout', () => {
         if (!upgraded) proxyReq.destroy(new Error(`no upgrade within ${WS_HANDSHAKE_TIMEOUT_MS} ms`));
     });
