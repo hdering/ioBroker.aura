@@ -885,8 +885,10 @@ export function TabBar({
     const hideMobileScrollbar = tbSettings?.hideMobileScrollbar ?? false;
     const needsGrid = hasExtras || tabsAlignment !== 'left';
     // Pinned hamburger: outside the scroll row, so opening a tab further along does
-    // not scroll the section menu out of reach (mainly on phones).
-    const pinSlot = pinHeaderSlot && Boolean(headerSlot);
+    // not scroll the section menu out of reach (mainly on phones). Centred / right
+    // tabs always get it: there zone 1 is a 1fr / shrinkable column that overflowing
+    // tabs squeeze to 0 px, which clipped the hamburger entirely.
+    const pinSlot = Boolean(headerSlot) && (pinHeaderSlot || (needsGrid && tabsAlignment !== 'left'));
     const scrollSlot = pinSlot ? null : headerSlot;
     const pinnedSlot = pinSlot ? (
         <div className="aura-tabs-pinned flex items-center shrink-0 pl-2">{headerSlot}</div>
@@ -948,7 +950,9 @@ export function TabBar({
     // (#791): a lone button on the right used to claim half the bar on a phone.
     const gridColumns =
         tabsAlignment === 'center' || centerItems.length > 0
-            ? 'minmax(0, 1fr) auto minmax(0, 1fr)'
+            ? // minmax(0, max-content) instead of auto: too many centred tabs used to grow
+              // the column past the bar, so they never scrolled (the active one stayed off-screen).
+              'minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr)'
             : tabsAlignment === 'right'
               ? 'minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr)'
               : 'minmax(0, 1fr) minmax(0, max-content) minmax(0, max-content)';
@@ -993,9 +997,11 @@ export function TabBar({
                         isMobile={isMobile}
                         hideIndicator={hideMobileScrollbar}
                         activeKey={activeTabId}
-                        scrollClassName="flex items-center justify-center w-full"
+                        scrollClassName="flex items-center w-full"
                     >
-                        <div className="flex items-center gap-1 px-2">
+                        {/* mx-auto instead of justify-center: auto margins drop to 0 on
+                            overflow, so the first tabs stay reachable by scrolling. */}
+                        <div className="flex items-center gap-1 px-2 mx-auto">
                             {tabsAlignment === 'center' && renderTabs()}
                             {tabsAlignment === 'center' && addTabBtn}
                             {tabsAlignment === 'center' && centerItems.length > 0 && (
@@ -1014,9 +1020,9 @@ export function TabBar({
                         hideIndicator={hideMobileScrollbar}
                         activeKey={activeTabId}
                         outerClassName="min-w-0"
-                        scrollClassName="flex items-center justify-end w-full"
+                        scrollClassName="flex items-center w-full"
                     >
-                        <div className="flex items-center gap-1 px-2">
+                        <div className="flex items-center gap-1 px-2 ml-auto">
                             {tabsAlignment === 'right' && renderTabs()}
                             {tabsAlignment === 'right' && addTabBtn}
                             {tabsAlignment === 'right' && rightItems.length > 0 && (
