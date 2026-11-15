@@ -563,6 +563,9 @@ function isConfirmedValue(id, state, namespace) {
     return id.startsWith(`${namespace}.`) || id.startsWith('0_userdata.') || id.startsWith('javascript.');
 }
 
+/** Upstream must answer the WebSocket upgrade within this; the open socket has no timeout. */
+const WS_HANDSHAKE_TIMEOUT_MS = 15000;
+
 function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, guard = false) {
     let targetUrl;
     try {
@@ -589,6 +592,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, 
             'Sec-WebSocket-Key': req.headers['sec-websocket-key'],
         },
         rejectUnauthorized: false,
+        timeout: WS_HANDSHAKE_TIMEOUT_MS,
     };
     // User-supplied iframe targets (/proxyws): nothing on the ioBroker host itself.
     if (guard) opts.lookup = guardedLookup;
@@ -598,7 +602,13 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, 
     if (sendForwardedFor) applyForwardedHeaders(opts.headers, req);
 
     const proxyReq = lib.request(opts);
+    let upgraded = false;
+    // Only the handshake is bounded: after the upgrade setTimeout(0) below clears it.
+    proxyReq.on('timeout', () => {
+        if (!upgraded) proxyReq.destroy(new Error(`no upgrade within ${WS_HANDSHAKE_TIMEOUT_MS} ms`));
+    });
     proxyReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
+        upgraded = true;
         const lines = [
             'HTTP/1.1 101 Switching Protocols',
             'Upgrade: websocket',
@@ -1172,10 +1182,18 @@ class Aura extends utils.Adapter {
 
         // Client delete relay: write a clientId here → the adapter tears down that
         // client's whole object tree. Documented in docs/einstellungen/settings.md.
-        // Acknowledged writes count too: the adapter's own clear is empty, so the value
-        // check already tells the two apart — and a manual write from the Admin object
-        // tree with "Bestätigt" ticked used to be swallowed without a word (#624).
+        // A command is a write with ack=false (ioBroker rule for own states). An
+        // acknowledged write — "Bestätigt" ticked in the Admin object tree — is not
+        // executed, but no longer swallowed without a word either (#624): it is
+        // logged and cleared, so the next try starts from an empty relay.
         if (id.endsWith('clients.deleteRequest') && state && state.val) {
+            if (state.ack) {
+                this.log.warn(
+                    `[clients] deleteRequest "${state.val}" was written with ack=true and is ignored — write it without ack`,
+                );
+                await this.setStateAsync('clients.deleteRequest', '', true);
+                return;
+            }
             const clientId = sanitizeClientId(state.val);
             if (clientId) await this._deleteClientTree(clientId);
             else this.log.warn(`[clients] deleteRequest: "${state.val}" is not a valid client id`);
@@ -1186,9 +1204,14 @@ class Aura extends utils.Adapter {
         // A client rename writes clients.<id>.info.name (Admin → Verbundene Geräte, or a
         // script). Mirror it onto the channel so the object tree shows the same name —
         // it otherwise keeps whatever the client was called when it first registered.
-        if (/\.clients\.[^.]+\.info\.name$/.test(id) && state && state.val) {
+        // Only commands (ack=false); the register relay renames the channel itself
+        // and writes the name acknowledged.
+        if (/\.clients\.[^.]+\.info\.name$/.test(id) && state && !state.ack && state.val) {
             const cId = id.split('.')[3];
-            if (cId) await this._setClientChannelName(cId, String(state.val));
+            if (cId) {
+                await this._setClientChannelName(cId, String(state.val));
+                await this.setStateAsync(`clients.${cId}.info.name`, { val: String(state.val), ack: true });
+            }
             return;
         }
 
