@@ -42,6 +42,8 @@ interface TabBarProps {
     sectionId?: string;
     /** Optional leading slot rendered before any left items / tabs (used for inline LayoutDrawer). */
     headerSlot?: React.ReactNode;
+    /** Keep headerSlot fixed at the bar's leading edge instead of scrolling with the tabs. */
+    pinHeaderSlot?: boolean;
 }
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -179,6 +181,7 @@ export function TabBar({
     layoutId,
     sectionId,
     headerSlot,
+    pinHeaderSlot = false,
 }: TabBarProps) {
     const t = useT();
     const activeLayout = useActiveLayout();
@@ -881,6 +884,13 @@ export function TabBar({
     const tabsAlignment = tbSettings?.tabsAlignment ?? 'left';
     const hideMobileScrollbar = tbSettings?.hideMobileScrollbar ?? false;
     const needsGrid = hasExtras || tabsAlignment !== 'left';
+    // Pinned hamburger: outside the scroll row, so opening a tab further along does
+    // not scroll the section menu out of reach (mainly on phones).
+    const pinSlot = pinHeaderSlot && Boolean(headerSlot);
+    const scrollSlot = pinSlot ? null : headerSlot;
+    const pinnedSlot = pinSlot ? (
+        <div className="aura-tabs-pinned flex items-center shrink-0 pl-2">{headerSlot}</div>
+    ) : null;
 
     const addTabBtn = !readonly && editMode && (
         <>
@@ -951,10 +961,11 @@ export function TabBar({
                     style={{
                         ...containerStyle,
                         display: 'grid',
-                        gridTemplateColumns: gridColumns,
+                        gridTemplateColumns: pinSlot ? `auto ${gridColumns}` : gridColumns,
                         alignItems: 'stretch',
                     }}
                 >
+                    {pinnedSlot}
                     {/* Zone 1: left items + tabs when alignment=left */}
                     <ScrollRow
                         isMobile={isMobile}
@@ -964,7 +975,7 @@ export function TabBar({
                         scrollClassName="flex items-center w-full"
                     >
                         <div className="flex items-center gap-1 px-2">
-                            {headerSlot}
+                            {scrollSlot}
                             {renderTabBarItems(leftItems)}
                             {tabsAlignment === 'left' && leftItems.length > 0 && (
                                 <div
@@ -1028,6 +1039,7 @@ export function TabBar({
     return (
         <>
             <div className={`aura-tabs ${barPosClass} shrink-0 flex`} style={containerStyle}>
+                {pinnedSlot}
                 <ScrollRow
                     isMobile={isMobile}
                     hideIndicator={hideMobileScrollbar}
@@ -1036,7 +1048,7 @@ export function TabBar({
                     scrollClassName="flex items-center w-full"
                 >
                     <div className="flex items-center gap-1 px-4">
-                        {headerSlot}
+                        {scrollSlot}
                         {renderTabBarItems(leftItems)}
                         {leftItems.length > 0 && (
                             <div

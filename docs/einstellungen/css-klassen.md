@@ -16,6 +16,7 @@ Custom CSS wirkt im Frontend, im Editor nur mit der Option „CSS auch im Editor
 | `.aura-tabs` | Tab-Leiste, oben wie unten |
 | `.aura-tabs-top` | Tab-Leiste über dem Dashboard |
 | `.aura-tabs-bottom` | Tab-Leiste als Fußzeile |
+| `.aura-tabs-pinned` | Fixierter Hamburger des Bereichs-Menüs am Anfang der Tab-Leiste |
 | `.aura-section-bar` | Bereichsleiste |
 | `.aura-nav-stretch` | Eintragsreihe einer Leiste mit Menü-Position `Gleichmäßig` |
 | `.aura-menu-widget` | Widget-Platz in einer Menüleiste |

@@ -98,6 +98,7 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
         'layoutDrawerTabs',
         'layoutDrawerBarAlignment',
         'layoutDrawerHideMobileScrollbar',
+        'layoutDrawerPinned',
         'layoutDrawerItems',
     ],
     icons: ['iconsOffline'],

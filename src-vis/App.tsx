@@ -1525,6 +1525,7 @@ export default function App() {
                 navigate(viewBase ? `${viewBase}/tab/${slug}` : `/tab/${slug}`);
             }}
             layoutUrlBase={layoutUrlBase}
+            pinHeaderSlot={effectiveSettings.layoutDrawerPinned ?? false}
             headerSlot={
                 drawerInTabBar ? (
                     <LayoutDrawer

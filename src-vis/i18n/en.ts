@@ -137,6 +137,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerAutoHideHint':
         'Button appears only when the mouse is near the top edge (or after a top-area touch). Applies only when the header is hidden.',
     'settings.frontend.layoutDrawerPlacement': 'Placement',
+    'settings.frontend.layoutDrawerPinned': 'Pin hamburger in the tab bar',
+    'settings.frontend.layoutDrawerPinnedHint':
+        'The hamburger stays at the start of the tab bar instead of scrolling away with the tabs — handy on phones when a tab further along is open.',
+    'settings.frontend.layoutDrawerPinnedReason': 'Only with placement "In tab bar" (on at least one screen size).',
     'settings.frontend.layoutDrawerPlacementFloating': 'Floating',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In tab bar',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Docked sidebar',

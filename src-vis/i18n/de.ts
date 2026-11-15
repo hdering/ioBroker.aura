@@ -136,6 +136,11 @@ export const de = {
     'settings.frontend.layoutDrawerAutoHideHint':
         'Button erscheint nur, wenn die Maus oben am Rand ist (oder bei Touch nach Tipp im oberen Bereich). Wirkt nur wenn der Header ausgeblendet ist.',
     'settings.frontend.layoutDrawerPlacement': 'Platzierung',
+    'settings.frontend.layoutDrawerPinned': 'Hamburger in der Tab-Leiste fixieren',
+    'settings.frontend.layoutDrawerPinnedHint':
+        'Der Hamburger bleibt am Anfang der Tab-Leiste stehen und scrollt nicht mit den Tabs weg – hilfreich auf dem Handy, wenn ein Tab weiter hinten geöffnet ist.',
+    'settings.frontend.layoutDrawerPinnedReason':
+        'Nur bei Platzierung „In Tab-Leiste“ (auf mindestens einer Bildschirmgröße).',
     'settings.frontend.layoutDrawerPlacementFloating': 'Schwebend',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In Tab-Leiste',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Feste Seitenleiste',

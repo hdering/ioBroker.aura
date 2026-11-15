@@ -138,6 +138,8 @@ export interface FrontendSettings {
     layoutDrawerBarAlignment: 'left' | 'center' | 'right' | 'stretch';
     /** Horizontal-bar placement (top/bottom): hide the custom scroll indicator on mobile. */
     layoutDrawerHideMobileScrollbar: boolean;
+    /** Tab-bar placement: keep the hamburger fixed at the bar's leading edge instead of scrolling away with the tabs. */
+    layoutDrawerPinned: boolean;
     /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */
     layoutDrawerItems: LayoutMenuItem[];
     // Idle return — auto-switch back to default tab after inactivity
@@ -286,6 +288,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerTabs: 'off',
     layoutDrawerBarAlignment: 'left',
     layoutDrawerHideMobileScrollbar: false,
+    layoutDrawerPinned: false,
     layoutDrawerItems: [],
     idleReturnEnabled: false,
     idleReturnDelay: 30,

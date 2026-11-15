@@ -37,6 +37,7 @@ const DRAWER_KEYS: (keyof LayoutSettings)[] = [
     'layoutDrawerTabs',
     'layoutDrawerBarAlignment',
     'layoutDrawerHideMobileScrollbar',
+    'layoutDrawerPinned',
     'layoutDrawerItems',
 ];
 
@@ -264,6 +265,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         layoutDrawerTabs: eff('layoutDrawerTabs')[0],
         layoutDrawerBarAlignment: eff('layoutDrawerBarAlignment')[0],
         layoutDrawerHideMobileScrollbar: eff('layoutDrawerHideMobileScrollbar')[0],
+        layoutDrawerPinned: eff('layoutDrawerPinned')[0],
         layoutDrawerItems: eff('layoutDrawerItems')[0],
         showHeader: eff('showHeader')[0],
     };
@@ -294,6 +296,15 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                 isBar(narrowPl(frontend.layoutDrawerTabletPlacement))
               ? t('settings.frontend.layoutDrawerTabsBarReason')
               : undefined;
+    // Pinning only concerns the hamburger in the tab bar: greyed out unless some
+    // screen size resolves to that placement ('auto' turns a sidebar into it).
+    const narrowCanBeTabbar = (p?: string) => p === 'tabbar' || ((!p || p === 'auto') && desktopPl === 'sidebar');
+    const drawerPinnedReason =
+        desktopPl === 'tabbar' ||
+        narrowCanBeTabbar(frontend.layoutDrawerMobilePlacement) ||
+        narrowCanBeTabbar(frontend.layoutDrawerTabletPlacement)
+            ? undefined
+            : t('settings.frontend.layoutDrawerPinnedReason');
 
     const items = frontend.layoutDrawerItems ?? [];
     const itemHost = sectionMenuItemHost(frontend.layoutDrawerPlacement, frontend.layoutDrawerWidth);
@@ -589,6 +600,17 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                             {t('settings.frontend.layoutDrawerTabletPlacementHint')}
                         </p>
                     </OverrideField>
+                    <Unavailable reason={drawerPinnedReason}>
+                        <ToggleRow
+                            label={t('settings.frontend.layoutDrawerPinned')}
+                            {...mark('layoutDrawerPinned', 'settings.frontend.layoutDrawerPinned')}
+                            value={frontend.layoutDrawerPinned ?? false}
+                            onChange={(v) => updateFrontend({ layoutDrawerPinned: v })}
+                        />
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {t('settings.frontend.layoutDrawerPinnedHint')}
+                        </p>
+                    </Unavailable>
                     {/* Placement-dependent options as an indented sub-group directly under the
                         placement chooser — makes clear which settings depend on the chosen placement.
                         Docked bar placements (top / bottom) have no extra options, so the group is

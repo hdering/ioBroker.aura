@@ -81,6 +81,7 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'layoutDrawerTabs',
     'layoutDrawerBarAlignment',
     'layoutDrawerHideMobileScrollbar',
+    'layoutDrawerPinned',
     'layoutDrawerItems',
     // Header
     'showHeader',

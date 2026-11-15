@@ -236,6 +236,8 @@ export interface LayoutSettings {
     // whether the mobile scroll indicator is hidden — mirrors the tab bar.
     layoutDrawerBarAlignment?: 'left' | 'center' | 'right' | 'stretch';
     layoutDrawerHideMobileScrollbar?: boolean;
+    // Tab-bar placement: hamburger stays fixed instead of scrolling with the tabs.
+    layoutDrawerPinned?: boolean;
     layoutDrawerItems?: LayoutMenuItem[];
     // Header
     showHeader?: boolean;
