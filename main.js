@@ -4131,10 +4131,33 @@ class Aura extends utils.Adapter {
             debug.forEach((line) => this.log.debug(line));
             if (changed) {
                 await this.setForeignObjectAsync(obj._id, obj);
+                return true;
             }
         } catch (e) {
             this.log.warn(`Could not update instance object: ${e.message}`);
         }
+        return false;
+    }
+
+    /**
+     * After a write to the own instance object js-controller restarts this
+     * instance within moments. Starting everything up in that window only ends
+     * in "adapter is shutting down" warnings and rejected DB calls once the
+     * connection closes. Wait for the terminate instead; if none comes (the
+     * controller does not restart on every change), carry on with the start.
+     *
+     * @returns {Promise<boolean>} true when the instance is being unloaded
+     */
+    _awaitRestartAfterOwnWrite() {
+        return new Promise((resolve) => {
+            const done = (unloading) => {
+                clearTimeout(timer);
+                this._onUnloadStarted = null;
+                resolve(unloading);
+            };
+            const timer = setTimeout(() => done(false), 5000);
+            this._onUnloadStarted = () => done(true);
+        });
     }
 
     async onReady() {
@@ -4143,7 +4166,12 @@ class Aura extends utils.Adapter {
         // The PIN vault first: a pending "reset admin PIN" runs there, and the one
         // write below then clears its flag together with everything else.
         await this._initPinVault();
-        await this._syncOwnInstanceObject();
+        if (await this._syncOwnInstanceObject()) {
+            this.log.info('aura: instance object updated - waiting for js-controller to restart the instance');
+            if (await this._awaitRestartAfterOwnWrite()) {
+                return;
+            }
+        }
 
         await this.setObjectNotExistsAsync('config', {
             type: 'channel',
@@ -4808,7 +4836,9 @@ class Aura extends utils.Adapter {
         // browser announcements until SayIt can address Aura itself.
         this._sayit = createSayitBridge(this, { announce: (p) => this._announce(p) });
         this.on('fileChange', (id, fileName, size) => this._sayit?.onFileChange(id, fileName, size));
-        this.subscribeForeignObjects(`${SAYIT_PREFIX}*`);
+        this.subscribeForeignObjectsAsync(`${SAYIT_PREFIX}*`).catch((e) =>
+            this.log.warn(`[sayit] could not subscribe: ${e.message}`),
+        );
         await this._sayit.scan();
 
         // Announcement rules of Admin → Ansagen (#834 phase 4), run here so a lock
@@ -7229,6 +7259,7 @@ class Aura extends utils.Adapter {
     }
 
     onUnload(callback) {
+        this._onUnloadStarted?.();
         const finish = () => {
             try {
                 if (this._httpServer) {
