@@ -81,6 +81,8 @@ export default [
             // types get in, not redundant, and `any` marks gaps in the ioBroker typings.
             'jsdoc/check-tag-names': ['warn', { typed: false }],
             'jsdoc/reject-any-type': 'off',
+            // Adapter-Checker W500x: timers must go through the adapter (cleared on unload).
+            'no-restricted-globals': ['error', ...['setTimeout', 'setInterval', 'clearTimeout', 'clearInterval'].map((name) => ({ name, message: 'Use this.' + name + '() (Adapter-Checker W500x).' }))],
         },
     },
 ];

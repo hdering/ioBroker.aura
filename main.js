@@ -4151,11 +4151,11 @@ class Aura extends utils.Adapter {
     _awaitRestartAfterOwnWrite() {
         return new Promise((resolve) => {
             const done = (unloading) => {
-                clearTimeout(timer);
+                this.clearTimeout(timer);
                 this._onUnloadStarted = null;
                 resolve(unloading);
             };
-            const timer = setTimeout(() => done(false), 5000);
+            const timer = this.setTimeout(() => done(false), 5000);
             this._onUnloadStarted = () => done(true);
         });
     }
