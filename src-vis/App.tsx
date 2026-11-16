@@ -127,26 +127,35 @@ function ConnectionBadge() {
 // Always rendered; visible/hidden via opacity so it never shifts layout.
 // When the full badge is active it already shows "Getrennt" – the dot is
 // then suppressed for disconnects to avoid duplication.
-// While connected but re-reading the datapoints after a wake-up or reconnect
-// (useRefreshing) it shows a thin bar across the top edge instead
-// (.aura-refresh-bar): the values on screen may still be the old ones.
+// While re-reading the datapoints after a wake-up or reconnect (useRefreshing),
+// and while there is no connection yet but the offline banner is still within its
+// grace period, it shows a thin bar across the top edge instead (.aura-refresh-bar):
+// the values on screen may still be the old ones. So the page always says something
+// until it is current: the bar while loading, the banner once offline.
 // Delayed so a quick refresh does not flicker.
 
 const REFRESH_BAR_DELAY_MS = 300;
 
-function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
+function ConnectionIndicator({ showBadge, offline }: { showBadge: boolean; offline: boolean }) {
     const { connected } = useIoBroker();
     const t = useT();
     const refreshing = useRefreshing();
+    // The bar also runs while there is no connection yet, until the offline banner
+    // takes over (CONNECTION_LOST_GRACE_MS): on start-up and during a reconnect the
+    // values on screen are not current either, and a page without any hint would
+    // look as if it had finished loading.
+    // The screenshot harness runs against a dead proxy target on purpose (see
+    // useConnectionLost) — no endless bar there.
+    const loading = connected ? refreshing : !offline && !isScreenshotMode();
     const [bar, setBar] = useState(false);
     useEffect(() => {
-        if (!refreshing) {
+        if (!loading) {
             setBar(false);
             return;
         }
         const timer = setTimeout(() => setBar(true), REFRESH_BAR_DELAY_MS);
         return () => clearTimeout(timer);
-    }, [refreshing]);
+    }, [loading]);
     const [startupVisible, setStartupVisible] = useState(true);
     const wasConnectedRef = useRef(false);
     const [everConnected, setEverConnected] = useState(false);
@@ -170,7 +179,7 @@ function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
     // Suppress startup dot if badge covers it and we're connected (badge shows "Verbunden")
     const suppressed = startupVisible && connected && showBadge;
 
-    if (bar && connected) {
+    if (bar && loading) {
         return <div className="aura-refresh-bar" role="status" aria-label={t('connection.refreshing')} />;
     }
 
@@ -1631,7 +1640,7 @@ export default function App() {
             className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`}
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >
-            <ConnectionIndicator showBadge={showBadge} />
+            <ConnectionIndicator showBadge={showBadge} offline={connectionLostSince !== null} />
             <TabSleepHint />
             {connectionLostSince !== null && <ConnectionLostBanner since={connectionLostSince} />}
             {showClientIdBadge && <ClientIdBadge />}

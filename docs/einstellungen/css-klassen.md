@@ -21,7 +21,7 @@ Custom CSS wirkt im Frontend, im Editor nur mit der Option „CSS auch im Editor
 | `.aura-nav-stretch` | Eintragsreihe einer Leiste mit Menü-Position `Gleichmäßig` |
 | `.aura-menu-widget` | Widget-Platz in einer Menüleiste |
 | `.aura-pin-prompt` | PIN-Abfrage vor einem gesperrten Tab |
-| `.aura-refresh-bar` | Ladeleiste am oberen Rand, solange die Werte nach dem Aufwachen oder einem Reconnect neu gelesen werden |
+| `.aura-refresh-bar` | Ladeleiste am oberen Rand, solange die Werte nach dem Aufwachen oder einem Reconnect neu gelesen werden – und solange noch keine Verbindung besteht, bis das Offline-Banner erscheint |
 
 ## Tabs
 
