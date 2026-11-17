@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.109.0 (2026-11-08)
+- 🌟 **New feature:** Dynamic list / status overview - name rules: a typed ">" now also matches the "›" separator, plus one-click presets "device only", "datapoint only" and "› to space" ([#950](https://github.com/hdering/ioBroker.aura/issues/950))
+- 🌟 **New feature:** evcc - selectable power unit: kW (default), W or automatic (W below 1000 W) ([#947](https://github.com/hdering/ioBroker.aura/issues/947))
+
 ## 0.108.0 (2026-11-07)
 - 🐛 **Bug fix:** PIN-protected tabs and sections can show their conditions and markers while locked - new option "Show markers and conditions while locked" in the PIN settings ([#944](https://github.com/hdering/ioBroker.aura/issues/944))
 - 🐛 **Bug fix:** Mirror - a mirrored widget now shows its source's conditions, markers and click action; settings of the mirror itself still take precedence ([#945](https://github.com/hdering/ioBroker.aura/issues/945))
