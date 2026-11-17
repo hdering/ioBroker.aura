@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.109.1 (2026-11-08)
+- 🐛 **Bug fix:** Values written by widgets now follow the datapoint type - e.g. a shutter command "1" reaches a string datapoint (Mediola gateway) as text instead of being rejected as a number
+
 ## 0.109.0 (2026-11-08)
 - 🌟 **New feature:** Dynamic list / status overview - name rules: a typed ">" now also matches the "›" separator, plus one-click presets "device only", "datapoint only" and "› to space" ([#950](https://github.com/hdering/ioBroker.aura/issues/950))
 - 🌟 **New feature:** evcc - selectable power unit: kW (default), W or automatic (W below 1000 W) ([#947](https://github.com/hdering/ioBroker.aura/issues/947))
