@@ -55,9 +55,19 @@ function isReachableRole(r: string): boolean {
     );
 }
 
-/** Roles that mark a window/door contact directly. */
+/**
+ * Roles that mark a window/door contact directly. `value.window`/`value.door` is what
+ * hm-rega gives a classic HomeMatic contact (HM-Sec-SCo: number 0/1, CLOSED/OPEN).
+ */
 function isWindowRole(r: string): boolean {
-    return r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door';
+    return (
+        r === 'sensor.window' ||
+        r === 'window' ||
+        r === 'sensor.door' ||
+        r === 'door' ||
+        r === 'value.window' ||
+        r === 'value.door'
+    );
 }
 
 export type ContactLevel = 'closed' | 'tilted' | 'open';
@@ -171,6 +181,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     contentAlign?: 'left' | 'center' | 'right';
     namePattern?: string; // device label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>
     nameFilters?: NameFilterRule[]; // text rules applied to the token values before substitution
+    deviceNames?: Record<string, string>; // own display names: device id (adapter.instance.device) or datapoint id → name; replaces the detected name before namePattern/nameFilters run
     showTitle?: boolean; // show the widget title in the header (default true)
     showCount?: boolean; // show the hint-count chip in the header top-right (default true)
     /**
@@ -617,6 +628,17 @@ export interface RowTemplateCtx {
 export function deviceIdFallback(id: string): string {
     const parts = id.split('.');
     return parts.slice(0, Math.min(3, Math.max(1, parts.length - 1))).join('.');
+}
+
+/**
+ * The user's own name for a row (option deviceNames): the datapoint's own entry wins,
+ * else the one of its device, so one entry renames the battery, offline and window rows
+ * of a device alike. Blank entries count as unset.
+ */
+export function customDeviceName(id: string, names: Record<string, string> | undefined): string | undefined {
+    if (!names) return undefined;
+    const own = names[id]?.trim() || names[deviceIdFallback(id)]?.trim();
+    return own || undefined;
 }
 
 /** Fills {id} {device} {serial} {name} {room} in a row-action template. */
@@ -1109,6 +1131,34 @@ export function reopenCommand(e: HistoryEntry): string {
     return `reopen:${e.id}@${e.closedAt}`;
 }
 
+/**
+ * A window state that only mirrors real contacts: the WINDOW_STATE a thermostat or a
+ * heating group derives, or any window datapoint of a HomeMatic virtual group (serial
+ * INT…). It says "a window in this room is open" but not which one.
+ */
+export function isDerivedWindow(dp: DatapointEntry): boolean {
+    const parts = dp.id.toLowerCase().split('.');
+    if (parts[parts.length - 1] === 'window_state') return true;
+    return HM_ADAPTERS.has(parts[0] ?? '') && /^int\d+/.test(parts[2] ?? '');
+}
+
+/**
+ * Drops derived window states (isDerivedWindow) from a room that has a real contact of
+ * its own — otherwise every open window shows twice, once by itself and once as the
+ * group, and the group row cannot tell which window it means. A derived state in a room
+ * without any contact stays: it is the only hint there is.
+ */
+export function dedupeDerivedWindows<T extends { dp: DatapointEntry; cat: CategoryKey }>(found: T[]): T[] {
+    const contactRooms = new Set<string>();
+    for (const c of found) {
+        if (c.cat === 'window' && !isDerivedWindow(c.dp)) c.dp.rooms.forEach((r) => contactRooms.add(r));
+    }
+    if (!contactRooms.size) return found;
+    return found.filter(
+        (c) => c.cat !== 'window' || !isDerivedWindow(c.dp) || !c.dp.rooms.some((r) => contactRooms.has(r)),
+    );
+}
+
 /** A datapoint that structurally belongs to a category; whether it alerts is decided live. */
 export interface StatusCandidate {
     dp: DatapointEntry;
@@ -1141,7 +1191,7 @@ export function discoverStatusCandidates(
             ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
         });
     }
-    return dedupeHmLowbat(dedupeLights(found));
+    return dedupeDerivedWindows(dedupeHmLowbat(dedupeLights(found)));
 }
 
 /** The options discoverStatusCandidates reads — all the adapter needs to discover (#882). */

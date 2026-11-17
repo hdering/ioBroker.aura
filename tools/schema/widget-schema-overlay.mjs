@@ -106,6 +106,10 @@ export const KEY_DESCRIPTIONS = {
         'Fenster offen); der Sperr-Badge entfällt. Wirkt nur mit showStatusBadges.',
     namePattern:
         'Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>; {{dpname}} / {{parentname}} / {{parent2name}} … = common.name des Datenpunkts bzw. der Objekte darüber (Kanal, Gerät).',
+    deviceNames:
+        'Eigene Anzeigenamen: Schlüssel = Geräte-ID (adapter.instanz.gerät, z. B. "hm-rpc.0.00109A498FCE8F") oder ' +
+        'eine einzelne Datenpunkt-ID, Wert = Name. Ersetzt den erkannten Namen aller Zeilen des Geräts (Batterie, ' +
+        'Fenster, offline) und gilt auch für Merkliste und Verlauf; namePattern/nameFilters laufen danach.',
     showRoom: 'Raum des Geräts mit anzeigen.',
     showCount: 'Anzahl-Chip in der Kopfzeile anzeigen.',
     rowDensity:

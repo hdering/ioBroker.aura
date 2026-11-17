@@ -137,6 +137,86 @@ test('answer survives the trip through sendTo (JSON)', async () => {
     d.stop();
 });
 
+/** Objects from the forum report: classic HM contacts (value.window), a HM group, a Shelly. */
+function forumObjects() {
+    const s = (id, common) => obj(id, 'state', common);
+    const views = {
+        state: [
+            // HM-Sec-SCo via hm-rega: number 0/1, CLOSED/OPEN, role value.window.
+            s('hm-rpc.0.00109A498FCE8F.1.STATE', {
+                name: 'EG_Küche_Fenster:1.STATE',
+                role: 'value.window',
+                type: 'number',
+                states: { 0: 'CLOSED', 1: 'OPEN' },
+            }),
+            s('hm-rpc.0.00109A498FCE90.1.STATE', {
+                name: 'EG_Küche_Fenster2:1.STATE',
+                role: 'value.window',
+                type: 'number',
+                states: { 0: 'CLOSED', 1: 'OPEN' },
+            }),
+            // HmIP heating group of the same room: only mirrors the contacts.
+            s('hm-rpc.1.INT0000001.1.WINDOW_STATE', {
+                name: 'Küche Gruppe',
+                role: 'sensor.window',
+                type: 'number',
+                states: { 0: 'CLOSED', 1: 'OPEN' },
+            }),
+            // Group in a room without its own contact: the only hint there is.
+            s('hm-rpc.1.INT0000002.1.WINDOW_STATE', {
+                name: 'Bad Gruppe',
+                role: 'sensor.window',
+                type: 'number',
+                states: { 0: 'CLOSED', 1: 'OPEN' },
+            }),
+            // Shelly flood sensor: generic channel name, real name on the device.
+            s('shelly.0.SHWT-1#abc#1.Sensor.flood', { name: 'Flood', role: 'sensor.alarm.flood', type: 'boolean' }),
+        ],
+        channel: [
+            obj('hm-rpc.0.00109A498FCE8F.1', 'channel', { name: 'EG_Küche_Fenster:1' }),
+            obj('hm-rpc.0.00109A498FCE90.1', 'channel', { name: 'EG_Küche_Fenster2:1' }),
+            obj('shelly.0.SHWT-1#abc#1.Sensor', 'channel', { name: 'Channel sensor' }),
+        ],
+        device: [obj('shelly.0.SHWT-1#abc#1', 'device', { name: 'Wassermelder Keller' })],
+        enum: [
+            obj('enum.rooms.kitchen', 'enum', {
+                name: 'Küche',
+                members: ['hm-rpc.0.00109A498FCE8F', 'hm-rpc.0.00109A498FCE90', 'hm-rpc.1.INT0000001'],
+            }),
+            obj('enum.rooms.bath', 'enum', { name: 'Bad', members: ['hm-rpc.1.INT0000002'] }),
+        ],
+        instance: [],
+    };
+    return {
+        getObjectView: async (type, startkey) =>
+            type === 'state' && startkey === 'alias.' ? { rows: [] } : { rows: views[type] ?? [] },
+    };
+}
+
+test('value.window contacts are found, one row per window', async () => {
+    const d = createStatusDiscovery(forumObjects());
+    const m = byId(await d.discover({}, {}));
+    assert.strictEqual(m.get('hm-rpc.0.00109A498FCE8F.1.STATE')?.cat, 'window');
+    assert.strictEqual(m.get('hm-rpc.0.00109A498FCE90.1.STATE')?.cat, 'window');
+    d.stop();
+});
+
+test('a group window state gives way to the contacts of its room', async () => {
+    const d = createStatusDiscovery(forumObjects());
+    const m = byId(await d.discover({}, {}));
+    assert.ok(!m.has('hm-rpc.1.INT0000001.1.WINDOW_STATE'), 'kitchen group duplicates its contacts');
+    assert.strictEqual(m.get('hm-rpc.1.INT0000002.1.WINDOW_STATE')?.cat, 'window', 'bath has no contact');
+    d.stop();
+});
+
+test('names: repeated channel prefix dropped, generic channel gives way to the device', async () => {
+    const d = createStatusDiscovery(forumObjects());
+    const m = byId(await d.discover({}, {}));
+    assert.strictEqual(m.get('hm-rpc.0.00109A498FCE8F.1.STATE')?.dp.name, 'EG_Küche_Fenster:1 › STATE');
+    assert.strictEqual(m.get('shelly.0.SHWT-1#abc#1.Sensor.flood')?.dp.name, 'Wassermelder Keller › Flood');
+    d.stop();
+});
+
 (async () => {
     for (const t of tests) {
         try {

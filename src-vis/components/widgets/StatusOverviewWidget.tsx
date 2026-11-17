@@ -50,6 +50,7 @@ import {
 
 const EMPTY_HIDDEN: string[] = [];
 import {
+    customDeviceName,
     discoverStatusCandidates,
     discoveryOptions,
     STATUS_DISCOVERY_KEYS,
@@ -357,6 +358,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // role, so the resolver looks it up in the datapoint cache this widget already loads.
     const rowPopup = useRowPopup(config, opts, editMode);
     const hiddenKey = hiddenDevices.join(',');
+    const deviceNamesKey = JSON.stringify(opts.deviceNames ?? {});
     const hiddenSet = useMemo(() => new Set(hiddenDevices), [hiddenKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -595,7 +597,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     id: c.dp.id,
                     kind,
                     ...(kind === 'pct' ? { threshold: opts.batteryThreshold ?? 20 } : {}),
-                    name: bi?.deviceName || c.dp.name,
+                    name: customDeviceName(c.dp.id, opts.deviceNames) ?? (bi?.deviceName || c.dp.name),
                     ...(c.dp.rooms[0] ? { room: c.dp.rooms[0] } : {}),
                     ...(c.level ? { levelId: c.level.id, levelUnit: c.level.unit } : {}),
                 });
@@ -619,6 +621,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         opts.batteryThreshold,
         opts.latchRecheckDays,
         opts.latchAutoClose,
+        deviceNamesKey,
         config.id,
     ]);
 
@@ -639,7 +642,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             .map((c) => ({
                 id: c.dp.id,
                 cat: c.cat,
-                name: c.dp.name,
+                name: customDeviceName(c.dp.id, opts.deviceNames) ?? c.dp.name,
                 ...(c.dp.rooms[0] ? { room: c.dp.rooms[0] } : {}),
                 ...(c.dp.role ? { role: c.dp.role } : {}),
                 ...(c.dp.type ? { type: c.dp.type } : {}),
@@ -667,6 +670,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         candidateKey,
         batteryInfo,
         hiddenKey,
+        deviceNamesKey,
         config.id,
     ]);
 
@@ -793,16 +797,22 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         items.map((i) => i.id),
         fillCount ? undefined : opts.namePattern,
     );
+    // The user's own device name (deviceNames) replaces the detected one before the pattern runs.
+    const baseName = (item: StatusItem) => customDeviceName(item.id, opts.deviceNames) ?? item.name;
     const rawLabel = (item: StatusItem) =>
         fillCount
             ? item.name
-            : formatItemName({ ...item, nameVars: nameVars[item.id] }, opts.namePattern, opts.nameFilters);
+            : formatItemName(
+                  { ...item, name: baseName(item), nameVars: nameVars[item.id] },
+                  opts.namePattern,
+                  opts.nameFilters,
+              );
     const resolveDpTokens = useDpTokenResolver(items.map(rawLabel));
     const labelFor = (item: StatusItem) => {
         const raw = rawLabel(item);
         if (!hasLiveToken(raw)) return raw;
         // 'Ergebnis' rules were deferred until the value was in — see finishItemName.
-        return finishItemName(resolveDpTokens(raw, item.name), opts.nameFilters, item.name);
+        return finishItemName(resolveDpTokens(raw, baseName(item)), opts.nameFilters, baseName(item));
     };
 
     // Alerts drive the chip / all-clear; "all" mode additionally lists healthy devices.
@@ -1612,9 +1622,10 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
         rows.map((e) => e.id),
         opts.namePattern,
     );
+    const baseName = (e: HistoryRow) => customDeviceName(e.id, opts.deviceNames) ?? (e.name || e.id);
     const rawLabel = (e: HistoryRow) =>
         formatItemName(
-            { id: e.id, name: e.name || e.id, room: e.room, nameVars: nameVars[e.id] },
+            { id: e.id, name: baseName(e), room: e.room, nameVars: nameVars[e.id] },
             opts.namePattern,
             opts.nameFilters,
         );
@@ -1622,7 +1633,7 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
     const labelFor = (e: HistoryRow) => {
         const raw = rawLabel(e);
         if (!hasLiveToken(raw)) return raw;
-        return finishItemName(resolveDpTokens(raw, e.name || e.id), opts.nameFilters, e.name || e.id);
+        return finishItemName(resolveDpTokens(raw, baseName(e)), opts.nameFilters, baseName(e));
     };
 
     const { fit: autoHeight, measureRef } = useContentAutoHeight(config);

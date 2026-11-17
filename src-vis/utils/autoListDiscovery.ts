@@ -4,6 +4,7 @@
  * #893, via lib/shared/auraShared.js) run the very same search.
  */
 import { isRelevantDp } from './dpRelevance';
+import { composeDpName } from './datapointEntry';
 import { buildEnumMemberIndex, enumIdsForObject, matchesEnumFilter, splitEnumFilter } from './enumFilter';
 
 export interface DiscoveredDp {
@@ -221,24 +222,7 @@ export function discoverFromRows(rows: DiscoveryRows, opts: AutoListDiscoveryOpt
             const role = common.role as string | undefined;
             const type = common.type as string | undefined;
             const stateName = resolveName(common.name as string | Record<string, string>, '');
-            let parentName = '';
-            for (let i = parts.length - 1; i >= 2; i--) {
-                const pName = parentNames.get(parts.slice(0, i).join('.'));
-                if (pName) {
-                    parentName = pName;
-                    break;
-                }
-            }
-            let name: string;
-            if (parentName && stateName && parentName !== stateName) {
-                name = `${parentName} › ${stateName}`;
-            } else if (stateName) {
-                name = stateName;
-            } else if (parentName) {
-                name = `${parentName} › ${parts[parts.length - 1]}`;
-            } else {
-                name = parts[parts.length - 1] ?? id;
-            }
+            const name = composeDpName(id, stateName, parentNames);
             return {
                 id,
                 name,
