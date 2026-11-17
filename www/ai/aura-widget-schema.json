@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.0.1",
+    "auraVersion": "1.1.0-next.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -22219,6 +22219,11 @@
             "minimal",
             "count"
           ]
+        },
+        "deviceNames": {
+          "type": "object",
+          "tsType": "Record<string, string>",
+          "description": "Eigene Anzeigenamen: Schlüssel = Geräte-ID (adapter.instanz.gerät, z. B. \"hm-rpc.0.00109A498FCE8F\") oder eine einzelne Datenpunkt-ID, Wert = Name. Ersetzt den erkannten Namen aller Zeilen des Geräts (Batterie, Fenster, offline) und gilt auch für Merkliste und Verlauf; namePattern/nameFilters laufen danach."
         },
         "excludeIdPatterns": {
           "type": "string",
