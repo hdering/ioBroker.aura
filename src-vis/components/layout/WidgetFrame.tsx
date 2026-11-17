@@ -10715,15 +10715,20 @@ function WidgetFrameInner({
                                                     </div>
                                                 </div>
                                             )}
-                                            {showLastChange && !config.datapoint && (
+                                            {/* Shown with a main datapoint too: the override wins over it, and a
+                                                stale absolute id hidden here made every device card show the same
+                                                timestamp (#996). */}
+                                            {showLastChange && (
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Datenpunkt{' '}
+                                                        {t('wf.edit.lastChangeDp')}{' '}
                                                         <span style={{ opacity: 0.6 }}>
-                                                            (für Zeitstempel, da kein Haupt-Datenpunkt)
+                                                            {config.datapoint
+                                                                ? t('wf.edit.lastChangeDpOverride')
+                                                                : t('wf.edit.lastChangeDpNoMain')}
                                                         </span>
                                                     </label>
                                                     <input
@@ -10738,7 +10743,8 @@ function WidgetFrameInner({
                                                                 },
                                                             })
                                                         }
-                                                        placeholder="z.B. evcc.0.status.pvPower"
+                                                        placeholder={config.datapoint || 'z.B. evcc.0.status.pvPower'}
+                                                        data-last-change-dp=""
                                                         className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
                                                         style={{
                                                             background: 'var(--app-bg)',

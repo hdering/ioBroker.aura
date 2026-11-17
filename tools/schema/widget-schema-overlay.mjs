@@ -2789,7 +2789,8 @@ export const UNIVERSAL_OPTIONS = {
         description:
             'Datenpunkt-Id, deren Zeitstempel showLastChange zeigt. Leer = der Datenpunkt des Widgets. ' +
             'Pflicht für Widgets ohne eigenen Datenpunkt (universal, group, panels …): ohne sie ' +
-            'erscheint dort nichts.',
+            'erscheint dort nichts. Gewinnt gegen den Datenpunkt des Widgets — in Kindern einer ' +
+            'Gerätekarte daher {{parent}}.… statt einer festen Id, sonst zeigen alle Karten denselben Zeitstempel.',
     },
     fullscreenWidget: {
         ts: 'boolean',

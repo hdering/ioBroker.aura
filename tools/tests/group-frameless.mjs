@@ -273,6 +273,61 @@ for (const editMode of [true, false]) {
     await context.close();
 }
 
+// A last-change override next to a main datapoint (#996): the override wins, so the
+// editor must show it — hidden, a fixed id left there made every device card show
+// the same timestamp, with no way to see or clear it.
+{
+    console.log('\nLetzte Änderung · Override-Feld neben Haupt-Datenpunkt');
+    const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+    const page = await context.newPage();
+    page.on('pageerror', (e) => console.log('  [pageerror]', e.message));
+    await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    const w = {
+        id: 'lc-ovr',
+        type: 'value',
+        title: 'Wert',
+        datapoint: 'demo.temp',
+        layout: 'default',
+        options: { showLastChange: true, lastChangeDatapoint: 'demo.fixed' },
+        gridPos: { x: 0, y: 0, w: 6, h: 4 },
+    };
+    await page.evaluate(
+        ({ w, grid }) => {
+            localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+            window.__auraShot.mock({ 'demo.temp': 21 });
+            window.__auraShot.showWidgets([w], { editMode: true, ...grid });
+            window.__auraShot.unfoldSections();
+        },
+        { w, grid: GRID },
+    );
+    const card = page.locator('[data-aura-widget="lc-ovr"]');
+    await card.waitFor({ timeout: 15000 });
+    await page.waitForTimeout(600);
+    await card.hover();
+    await card.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    await page.waitForTimeout(600);
+    const field = page.locator('.aura-widget-edit-modal [data-last-change-dp]');
+    const visible = (await field.count()) === 1;
+    check(visible, 'Feld sichtbar trotz Haupt-Datenpunkt');
+    if (visible) {
+        await field.evaluate((el) => {
+            for (let d = el.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
+        });
+        await page.waitForTimeout(200);
+        const val = await field.inputValue();
+        check(val === 'demo.fixed', 'Feld zeigt den Override', val);
+        const ph = await field.getAttribute('placeholder');
+        check(ph === 'demo.temp', 'Platzhalter = Haupt-Datenpunkt', String(ph));
+        await field.fill('');
+        await page.waitForTimeout(300);
+        const opts = await page.evaluate(() => window.__auraShot.widgetOptions('lc-ovr'));
+        check(!!opts && opts.lastChangeDatapoint === undefined, 'Leeren entfernt den Override', JSON.stringify(opts));
+    }
+    await context.close();
+}
+
 // Nested: frameless device cards in a frameless group (the report's export). Both
 // are header-less, so both draw a hover toolbar top-left; the card's must not sit
 // under the group's, or the card's settings cannot be reached.
