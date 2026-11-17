@@ -552,8 +552,8 @@ function applyForwardedHeaders(headers, req) {
  * Does a state change of a watched datapoint count as a real value? Foreign states
  * only once acknowledged; own states and user/script datapoints always.
  *
- * @param {string} id
- * @param {ioBroker.State | null | undefined} state
+ * @param {string} id datapoint ID of the change
+ * @param {ioBroker.State | null | undefined} state new state, null when deleted
  * @param {string} namespace own namespace, e.g. aura.0
  */
 function isConfirmedValue(id, state, namespace) {
