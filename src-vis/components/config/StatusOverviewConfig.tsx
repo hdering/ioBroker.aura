@@ -7,9 +7,22 @@ import {
     customDeviceName,
     discoverStatusCandidates,
     CATEGORY_ORDER,
+    BATTERY_KINDS,
+    DEFAULT_BATTERY_KINDS,
+    DEFAULT_BATTERY_VOLT_THRESHOLD,
+    type BatteryKind,
     type StatusOverviewOptions,
     type CategoryKey,
 } from '../../utils/statusOverview';
+import { Unavailable } from './Unavailable';
+
+/** Labels of the battery datapoint kinds (option batteryKinds, #1000). */
+const BATTERY_KIND_LABELS: Record<BatteryKind, string> = {
+    bool: 'Boolesch (LOWBAT)',
+    percent: 'Prozent (%)',
+    volt: 'Spannung (V)',
+    millivolt: 'Spannung (mV)',
+};
 import { DeviceNamesEditor, deviceRowsOf, type DeviceNameRow } from './StatusDeviceNamesEditor';
 import type { NameSource } from '../../utils/nameFilter';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -162,6 +175,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         return own ? { ...s, name: own } : s;
     });
     const namedCount = Object.values(o.deviceNames ?? {}).filter((v) => v.trim()).length;
+    const batteryKinds = o.batteryKinds ?? DEFAULT_BATTERY_KINDS;
+    const hasVoltKind = batteryKinds.includes('volt') || batteryKinds.includes('millivolt');
     const scopeKey = JSON.stringify([
         o.catBattery,
         o.catWindow,
@@ -169,6 +184,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.catUnreach,
         o.catAlarm,
         o.includeLowbatBoolean,
+        o.batteryKinds,
         o.lightRoleScope,
         o.lightsOnlyFunction,
         o.lightIncludeDimmers,
@@ -404,30 +420,91 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         onChange={(v) => set({ catBattery: v })}
                         label="Schwache Batterien"
                     >
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Berücksichtigte Datenpunkte
+                            </label>
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                {BATTERY_KINDS.map((k) => (
+                                    <Toggle
+                                        key={k}
+                                        checked={batteryKinds.includes(k)}
+                                        onChange={(v) => {
+                                            const next = BATTERY_KINDS.filter((x) =>
+                                                x === k ? v : batteryKinds.includes(x),
+                                            );
+                                            const isDefault =
+                                                next.length === DEFAULT_BATTERY_KINDS.length &&
+                                                next.every((x) => DEFAULT_BATTERY_KINDS.includes(x));
+                                            set({ batteryKinds: isDefault ? undefined : next });
+                                        }}
+                                        label={BATTERY_KIND_LABELS[k]}
+                                    />
+                                ))}
+                            </div>
+                            <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Hat ein Gerät mehrere, zählt Prozent vor Spannung und Spannung vor LOWBAT.
+                            </p>
+                        </div>
                         <div className="flex gap-3 items-start">
                             <div className="flex-1">
-                                <label className={labelCls} style={labelStyle}>
-                                    Warnschwelle (%)
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={100}
-                                    value={o.batteryThreshold ?? 20}
-                                    onChange={(e) =>
-                                        set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
+                                <Unavailable
+                                    reason={
+                                        batteryKinds.includes('percent') ? undefined : 'Nur mit Prozent-Datenpunkten'
                                     }
-                                    className={inputCls}
-                                    style={inputStyle}
-                                />
+                                >
+                                    <label className={labelCls} style={labelStyle}>
+                                        Warnschwelle (%)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={100}
+                                        value={o.batteryThreshold ?? 20}
+                                        onChange={(e) =>
+                                            set({
+                                                batteryThreshold: e.target.value ? Number(e.target.value) : undefined,
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    />
+                                </Unavailable>
+                            </div>
+                            <div className="flex-1">
+                                <Unavailable reason={hasVoltKind ? undefined : 'Nur mit Spannungs-Datenpunkten'}>
+                                    <label className={labelCls} style={labelStyle}>
+                                        Warnschwelle (V)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0.1}
+                                        max={60}
+                                        step={0.05}
+                                        value={o.batteryVoltThreshold ?? DEFAULT_BATTERY_VOLT_THRESHOLD}
+                                        onChange={(e) =>
+                                            set({
+                                                batteryVoltThreshold: e.target.value
+                                                    ? Number(e.target.value)
+                                                    : undefined,
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    />
+                                </Unavailable>
                             </div>
                             <CatColor cat="battery" />
                         </div>
-                        <Toggle
-                            checked={o.includeLowbatBoolean !== false}
-                            onChange={(v) => set({ includeLowbatBoolean: v })}
-                            label="Boolesche LOWBAT-Datenpunkte einbeziehen"
-                        />
+                        <Unavailable
+                            reason={batteryKinds.includes('bool') ? undefined : 'Nur mit booleschen Datenpunkten'}
+                        >
+                            <Toggle
+                                checked={o.includeLowbatBoolean !== false}
+                                onChange={(v) => set({ includeLowbatBoolean: v })}
+                                label="Auch LOWBAT-Datenpunkte ohne Batterie-Rolle (nach Name)"
+                            />
+                        </Unavailable>
                         <Toggle
                             checked={o.batteryTypeEnabled !== false}
                             onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}

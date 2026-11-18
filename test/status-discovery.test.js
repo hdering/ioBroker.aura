@@ -284,6 +284,82 @@ test('forum dumps: HmIP heating group yields to the contact, Shelly battery name
     d.stop();
 });
 
+/** Battery voltages (#1000): HmIP OPERATING_VOLTAGE + LOWBAT, Zigbee mV + %, a 230 V plug. */
+function voltageObjects() {
+    const s = (id, common) => obj(id, 'state', common);
+    const views = {
+        state: [
+            s('hm-rpc.1.HMIP01.0.LOW_BAT', { name: 'LOW_BAT', role: 'indicator.lowbat', type: 'boolean' }),
+            s('hm-rpc.1.HMIP01.0.OPERATING_VOLTAGE', {
+                name: 'OPERATING_VOLTAGE',
+                role: 'value.voltage',
+                type: 'number',
+                unit: 'V',
+            }),
+            s('zigbee.0.00158d01.voltage', {
+                name: 'Battery voltage',
+                role: 'battery.voltage',
+                type: 'number',
+                unit: 'mV',
+            }),
+            s('zigbee.0.00158d02.voltage', {
+                name: 'Battery voltage',
+                role: 'battery.voltage',
+                type: 'number',
+                unit: 'mV',
+            }),
+            s('zigbee.0.00158d02.battery', { name: 'Battery', role: 'value.battery', type: 'number', unit: '%' }),
+            s('shelly.0.PLUG01.Relay0.Voltage', { name: 'Voltage', role: 'value.voltage', type: 'number', unit: 'V' }),
+        ],
+        channel: [],
+        device: [
+            obj('hm-rpc.1.HMIP01', 'device', { name: 'Fensterkontakt Bad' }),
+            obj('zigbee.0.00158d01', 'device', { name: 'Taster Flur' }),
+            obj('zigbee.0.00158d02', 'device', { name: 'Klima Küche' }),
+        ],
+        enum: [],
+        instance: [],
+    };
+    return {
+        getObjectView: async (type, startkey) =>
+            type === 'state' && startkey === 'alias.' ? { rows: [] } : { rows: views[type] ?? [] },
+    };
+}
+
+test('battery kinds: voltages only when chosen, one row per device, mains voltage stays out', async () => {
+    const d = createStatusDiscovery(voltageObjects());
+    const def = byId(await d.discover({}, {}));
+    assert.ok(def.has('hm-rpc.1.HMIP01.0.LOW_BAT'), 'default keeps LOWBAT');
+    assert.ok(!def.has('hm-rpc.1.HMIP01.0.OPERATING_VOLTAGE'), 'default leaves voltages out');
+    assert.ok(!def.has('zigbee.0.00158d01.voltage'));
+
+    const all = byId(await d.discover({ batteryKinds: ['bool', 'percent', 'volt', 'millivolt'] }, {}));
+    assert.ok(all.has('hm-rpc.1.HMIP01.0.OPERATING_VOLTAGE'), 'voltage row');
+    assert.ok(!all.has('hm-rpc.1.HMIP01.0.LOW_BAT'), 'voltage replaces the flag of the same device');
+    assert.ok(all.has('zigbee.0.00158d01.voltage'), 'mV of a device without %');
+    assert.ok(all.has('zigbee.0.00158d02.battery'), 'percent stays');
+    assert.ok(!all.has('zigbee.0.00158d02.voltage'), 'percent wins over the voltage');
+    assert.ok(!all.has('shelly.0.PLUG01.Relay0.Voltage'), 'mains voltage is no battery');
+
+    const voltOnly = byId(await d.discover({ batteryKinds: ['volt'] }, {}));
+    assert.deepStrictEqual([...voltOnly.keys()].sort(), ['hm-rpc.1.HMIP01.0.OPERATING_VOLTAGE']);
+    d.stop();
+});
+
+test('battery kinds: voltage rows are judged against the volt threshold', () => {
+    const shared = require('../lib/shared/auraShared');
+    const dp = (id, unit) => ({ id, name: 'x', type: 'number', unit, role: 'value.voltage', rooms: [], funcs: [] });
+    const v = dp('hm-rpc.1.A.0.OPERATING_VOLTAGE', 'V');
+    const mv = { ...dp('zigbee.0.b.voltage', 'mV'), role: 'battery.voltage' };
+    assert.strictEqual(shared.evaluateItem(v, 2.9, 'battery', {}, 0, true).severity, 'ok');
+    assert.strictEqual(shared.evaluateItem(v, 2.9, 'battery', {}, 0, true).label, '2,9 V');
+    assert.strictEqual(shared.evaluateItem(v, 2.3, 'battery', {}).severity, 'warn');
+    assert.strictEqual(shared.evaluateItem(v, 2.3, 'battery', { batteryVoltThreshold: 2.2 }), null);
+    assert.strictEqual(shared.evaluateItem(mv, 2950, 'battery', {}, 0, true).label, '2,95 V');
+    assert.strictEqual(shared.evaluateItem(mv, 2300, 'battery', {}).severity, 'warn');
+    assert.strictEqual(shared.evaluateItem(v, 0, 'battery', {}), null, '0 V measures nothing');
+});
+
 (async () => {
     for (const t of tests) {
         try {

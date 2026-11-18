@@ -62,6 +62,8 @@ import {
     LATCH_CATEGORIES,
     latchEnabled,
     latchKind,
+    batteryLimit,
+    batteryLevelUnit,
     parseLatchList,
     applyLatch,
     countsAsHint,
@@ -596,7 +598,9 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 watch.push({
                     id: c.dp.id,
                     kind,
-                    ...(kind === 'pct' ? { threshold: opts.batteryThreshold ?? 20 } : {}),
+                    // Voltages watch in their own unit (V / mV) against the volt threshold (#1000).
+                    ...(kind === 'pct' ? { threshold: batteryLimit(c.dp, opts) } : {}),
+                    ...(kind === 'pct' && batteryLevelUnit(c.dp) !== '%' ? { levelUnit: batteryLevelUnit(c.dp) } : {}),
                     name: customDeviceName(c.dp.id, opts.deviceNames) ?? (bi?.deviceName || c.dp.name),
                     ...(c.dp.rooms[0] ? { room: c.dp.rooms[0] } : {}),
                     ...(c.level ? { levelId: c.level.id, levelUnit: c.level.unit } : {}),
@@ -619,6 +623,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         batteryInfo,
         hiddenKey,
         opts.batteryThreshold,
+        opts.batteryVoltThreshold,
         opts.latchRecheckDays,
         opts.latchAutoClose,
         deviceNamesKey,

@@ -1058,6 +1058,8 @@ export const WIDGET_OPTION_NOTES = {
             'catLight',
             'batteryThreshold',
             'includeLowbatBoolean',
+            'batteryKinds',
+            'batteryVoltThreshold',
             'lightRoleScope',
             'lightsOnlyFunction',
             'batteryTypeEnabled',

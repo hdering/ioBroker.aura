@@ -29,6 +29,19 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 
 `LOWBAT` in Kanal 0 und 1 desselben Geräts ergibt eine Zeile (Kanal 0).
 
+### Welche Datenpunkte zählen (`batteryKinds`)
+
+| Art | Vorgabe | erkannt an | schwach bei |
+| --- | --- | --- | --- |
+| `bool` – Boolesch (LOWBAT) | an | Rolle `indicator.lowbat` oder Name | `true` |
+| `percent` – Prozent (%) | an | Rolle `value.battery` | ≤ `batteryThreshold` (20 %) |
+| `volt` – Spannung (V) | aus | Einheit `V` und `OPERATING_VOLTAGE` oder „batt“ in Id, Rolle, Name | ≤ `batteryVoltThreshold` (2,4 V) |
+| `millivolt` – Spannung (mV) | aus | dasselbe mit Einheit `mV` | ≤ `batteryVoltThreshold` × 1000 |
+
+- Ein Gerät, eine Zeile: Prozent vor Spannung, Spannung vor LOWBAT.
+- Netzspannung (`Voltage` einer Steckdose) zählt nicht. 0 V gilt als „kein Messwert“.
+- Mit „Welche Geräte anzeigen: alle“ stehen die Spannungen auch ohne Warnung in der Liste („2,95 V“).
+
 | Fall | Abhilfe |
 | --- | --- |
 | Tote Doubletten: dieselben HmIP-Seriennummern (`000…`) zusätzlich unter einer alten `hm-rpc`-Instanz, Werte eingefroren | `excludeIdPatterns` (Teilstring oder `/regex/`, z. B. `/^hm-rpc.2.000/`) – sonst werden sie mitüberwacht |

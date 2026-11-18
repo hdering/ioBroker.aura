@@ -18,6 +18,11 @@ import type { RowPopupOptions } from './rowClickAction';
 
 export type Severity = 'crit' | 'warn' | 'ok';
 export type CategoryKey = 'battery' | 'window' | 'light' | 'unreach' | 'alarm';
+/** Kinds of battery datapoints (option batteryKinds, #1000). */
+export type BatteryKind = 'bool' | 'percent' | 'volt' | 'millivolt';
+export const BATTERY_KINDS: BatteryKind[] = ['bool', 'percent', 'volt', 'millivolt'];
+export const DEFAULT_BATTERY_KINDS: BatteryKind[] = ['bool', 'percent'];
+export const DEFAULT_BATTERY_VOLT_THRESHOLD = 2.4;
 
 // Ordered by urgency: safety alarms and open contacts first, maintenance last.
 export const CATEGORY_ORDER: CategoryKey[] = ['alarm', 'window', 'unreach', 'battery', 'light'];
@@ -155,6 +160,14 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     // Battery
     batteryThreshold?: number; // % (default 20)
     includeLowbatBoolean?: boolean; // also match boolean LOWBAT-style DPs (default true)
+    /**
+     * Which battery datapoints count (default ['bool', 'percent']): 'bool' = LOWBAT-style
+     * flags, 'percent' = value.battery in %, 'volt' / 'millivolt' = battery voltage
+     * (OPERATING_VOLTAGE, voltage of a battery device) in V / mV. A device with a percent
+     * value shows that; else its voltage row replaces its LOWBAT flag (#1000).
+     */
+    batteryKinds?: BatteryKind[];
+    batteryVoltThreshold?: number; // V (default 2.4): voltage at or below counts as weak; mV datapoints compare x1000
     // Lights
     lightRoleScope?: 'light' | 'all'; // which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers
     lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum for the switches
@@ -373,22 +386,117 @@ export function categoryOf(
         }
     }
     if (opts.catBattery !== false) {
-        if (r === 'value.battery' && dp.type === 'number') return 'battery';
-        // LOWBAT: HomeMatic mains devices also expose it → require a real battery signal
-        // (OPERATING_VOLTAGE or a battery model, see collectHmBatterySerials) first.
-        const isHm = HM_ADAPTERS.has(id.split('.')[0] ?? '');
-        const hmOk = !isHm || !hmBatterySerials || hmBatterySerials.has(hmSerialKey(id));
-        if (r === 'indicator.lowbat' || r === 'indicator.battery') return hmOk ? 'battery' : null;
-        if (
-            opts.includeLowbatBoolean !== false &&
-            dp.type === 'boolean' &&
-            LOWBAT_ID_FRAGMENTS.some((f) => id.includes(f))
-        )
-            return hmOk ? 'battery' : null;
+        const kinds = batteryKindsOf(opts);
+        const kind = batteryKindOf(dp);
+        if (kind === 'volt' || kind === 'millivolt') return kinds.has(kind) ? 'battery' : null;
+        if (r === 'value.battery' && dp.type === 'number') return kinds.has('percent') ? 'battery' : null;
+        if (kinds.has('bool') || (dp.type === 'number' && kinds.has('percent'))) {
+            // LOWBAT: HomeMatic mains devices also expose it → require a real battery signal
+            // (OPERATING_VOLTAGE or a battery model, see collectHmBatterySerials) first.
+            const isHm = HM_ADAPTERS.has(id.split('.')[0] ?? '');
+            const hmOk = !isHm || !hmBatterySerials || hmBatterySerials.has(hmSerialKey(id));
+            if (r === 'indicator.lowbat' || r === 'indicator.battery') {
+                if (dp.type !== 'number' && !kinds.has('bool')) return null;
+                return hmOk ? 'battery' : null;
+            }
+            if (
+                kinds.has('bool') &&
+                opts.includeLowbatBoolean !== false &&
+                dp.type === 'boolean' &&
+                LOWBAT_ID_FRAGMENTS.some((f) => id.includes(f))
+            )
+                return hmOk ? 'battery' : null;
+        }
     }
     if (opts.catLight !== false && matchLight(dp, opts)) return 'light';
 
     return null;
+}
+
+/** The battery kinds a widget counts (option batteryKinds; unset = bool + percent). */
+export function batteryKindsOf(opts: StatusOverviewOptions): Set<BatteryKind> {
+    return new Set(opts.batteryKinds ?? DEFAULT_BATTERY_KINDS);
+}
+
+/**
+ * A number in V or mV that is a battery voltage, not a mains or solar reading: the
+ * HomeMatic OPERATING_VOLTAGE, or a datapoint whose id, role or own name mentions the
+ * battery (Zigbee: "voltage", named "Battery voltage"; HomeMatic: BATTERY_STATE).
+ */
+function isBatteryVoltage(dp: DatapointEntry): boolean {
+    const lid = dp.id.toLowerCase();
+    if (lid.endsWith('.operating_voltage')) return true;
+    const leaf = lid.slice(lid.lastIndexOf('.') + 1);
+    const ownName = (dp.name.split(' › ').pop() ?? '').toLowerCase();
+    return /batt/.test(`${leaf} ${(dp.role ?? '').toLowerCase()} ${ownName}`);
+}
+
+/**
+ * Which kind of battery datapoint this is, or null when it is none. Structural only —
+ * whether the widget counts that kind is batteryKindsOf's business.
+ */
+export function batteryKindOf(dp: DatapointEntry): BatteryKind | null {
+    const r = (dp.role ?? '').toLowerCase();
+    if (dp.type === 'number') {
+        const unit = (dp.unit ?? '').trim();
+        if ((unit === 'V' || unit === 'mV') && isBatteryVoltage(dp)) return unit === 'V' ? 'volt' : 'millivolt';
+        if (r === 'value.battery' || r === 'indicator.lowbat' || r === 'indicator.battery') return 'percent';
+        return null;
+    }
+    if (r === 'indicator.lowbat' || r === 'indicator.battery') return 'bool';
+    if (dp.type === 'boolean' && LOWBAT_ID_FRAGMENTS.some((f) => dp.id.toLowerCase().includes(f))) return 'bool';
+    return null;
+}
+
+/** Weak-battery limit in the datapoint's own unit: % for percent, V or mV for voltages. */
+export function batteryLimit(dp: DatapointEntry, opts: StatusOverviewOptions): number {
+    const kind = batteryKindOf(dp);
+    const volt = opts.batteryVoltThreshold ?? DEFAULT_BATTERY_VOLT_THRESHOLD;
+    if (kind === 'volt') return volt;
+    if (kind === 'millivolt') return volt * 1000;
+    return opts.batteryThreshold ?? 20;
+}
+
+/** Unit of a numeric battery datapoint for the latch (mV compares in mV). */
+export function batteryLevelUnit(dp: DatapointEntry): '%' | 'V' | 'mV' {
+    const kind = batteryKindOf(dp);
+    return kind === 'volt' ? 'V' : kind === 'millivolt' ? 'mV' : '%';
+}
+
+/** "2,95 V" — mV shown in V, two decimals at most. */
+function formatVolt(v: number): string {
+    return `${String(Math.round(v * 100) / 100).replace('.', ',')} V`;
+}
+
+/**
+ * One battery row per device once voltages count (#1000): a percent value wins over a
+ * voltage, a voltage over the LOWBAT flag of the same device. Without voltage rows
+ * nothing changes, so the default keeps its rows.
+ */
+export function dedupeBatteryKinds<T extends { dp: DatapointEntry; cat: CategoryKey }>(found: T[]): T[] {
+    const rank = (c: T) => {
+        const k = batteryKindOf(c.dp);
+        return k === 'volt' || k === 'millivolt' ? 2 : k === 'percent' ? 3 : 1;
+    };
+    const device = (c: T) => deviceIdFallback(c.dp.id).toLowerCase();
+    const best = new Map<string, number>();
+    let anyVolt = false;
+    for (const c of found) {
+        if (c.cat !== 'battery') continue;
+        const rk = rank(c);
+        if (rk === 2) anyVolt = true;
+        best.set(device(c), Math.max(best.get(device(c)) ?? 0, rk));
+    }
+    if (!anyVolt) return found;
+    return found.filter((c) => {
+        if (c.cat !== 'battery') return true;
+        const rk = rank(c);
+        const top = best.get(device(c)) ?? 0;
+        // Only what a voltage displaces (the flag), or a voltage a percent value displaces.
+        if (top === 2 && rk === 1) return false;
+        if (top === 3 && rk === 2) return false;
+        return true;
+    });
 }
 
 /** Roles of a dimmer level that can stand for a lamp. */
@@ -512,6 +620,15 @@ export function evaluateItem(
 
     if (cat === 'battery') {
         const r = (dp.role ?? '').toLowerCase();
+        const kind = batteryKindOf(dp);
+        if (kind === 'volt' || kind === 'millivolt') {
+            const raw = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
+            // 0 V: a mains device that carries the datapoint but measures nothing.
+            if (isNaN(raw) || raw <= 0) return ok('–');
+            const label = formatVolt(kind === 'millivolt' ? raw / 1000 : raw);
+            if (raw > batteryLimit(dp, opts)) return ok(label);
+            return { ...base, severity: 'warn', label, color: SEVERITY_COLOR.warn };
+        }
         const isPercent = r === 'value.battery' || dp.type === 'number';
         if (isPercent) {
             const num = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
@@ -781,7 +898,7 @@ export interface LatchWatch {
     name?: string;
     room?: string;
     levelId?: string;
-    levelUnit?: 'V' | '%';
+    levelUnit?: 'V' | 'mV' | '%';
 }
 
 export function latchEnabled(opts: StatusOverviewOptions, cat: CategoryKey): boolean {
@@ -1119,8 +1236,11 @@ export function lifetimeSpan(e: HistoryEntry): number | null {
 /** "1,1 V → 1,5 V" — the levels around the change, when the adapter saw them. */
 export function formatLevels(e: HistoryEntry): string | null {
     if (!e.unit || (!Number.isFinite(e.levelBefore) && !Number.isFinite(e.levelAfter))) return null;
+    // mV datapoints are remembered in mV and read in V.
+    const mv = e.unit === 'mV';
+    const unit = mv ? 'V' : e.unit;
     const f = (n: number) =>
-        `${n.toLocaleString('de-DE', { maximumFractionDigits: e.unit === '%' ? 0 : 2 })} ${e.unit}`;
+        `${(mv ? n / 1000 : n).toLocaleString('de-DE', { maximumFractionDigits: unit === '%' ? 0 : 2 })} ${unit}`;
     if (Number.isFinite(e.levelBefore) && Number.isFinite(e.levelAfter))
         return `${f(e.levelBefore!)} → ${f(e.levelAfter!)}`;
     return Number.isFinite(e.levelAfter) ? `jetzt ${f(e.levelAfter!)}` : `zuletzt ${f(e.levelBefore!)}`;
@@ -1191,7 +1311,7 @@ export function discoverStatusCandidates(
             ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
         });
     }
-    return dedupeDerivedWindows(dedupeHmLowbat(dedupeLights(found)));
+    return dedupeDerivedWindows(dedupeBatteryKinds(dedupeHmLowbat(dedupeLights(found))));
 }
 
 /** The options discoverStatusCandidates reads — all the adapter needs to discover (#882). */
@@ -1202,6 +1322,7 @@ export const STATUS_DISCOVERY_KEYS = [
     'catUnreach',
     'catAlarm',
     'includeLowbatBoolean',
+    'batteryKinds',
     'lightRoleScope',
     'lightsOnlyFunction',
     'lightIncludeDimmers',
