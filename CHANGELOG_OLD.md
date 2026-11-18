@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.110.0 (2026-11-08)
+- 🌟 **New feature:** Advanced chart - a series can get its own y scale (e.g. valve position 0-100 % next to temperatures), hidden or shown on the far left or right in the series colour ([#959](https://github.com/hdering/ioBroker.aura/issues/959))
+- 🌟 **New feature:** Advanced chart - reference lines and bands at a fixed value or a datapoint value (e.g. setpoint, comfort range), with label and value ([#959](https://github.com/hdering/ioBroker.aura/issues/959))
+
 ## 0.109.1 (2026-11-08)
 - 🐛 **Bug fix:** Values written by widgets now follow the datapoint type - e.g. a shutter command "1" reaches a string datapoint (Mediola gateway) as text instead of being rejected as a number
 
