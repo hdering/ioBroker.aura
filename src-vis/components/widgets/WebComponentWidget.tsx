@@ -38,6 +38,7 @@ import {
     useWebComponentCatalog,
 } from '../../utils/webComponentRegistry';
 import type { WidgetProps } from '../../types';
+import { useWebComponentValue } from '../../hooks/useWebComponentValue';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { useWebComponentDialogs } from './WebComponentDialog';
 
@@ -64,6 +65,7 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const click = webComponentClick(opts.wcClick);
     const inert = !editMode && click === 'off';
     const titleAlign = (opts.titleAlign as string) ?? 'left';
+    const valueDp = typeof opts.wcValueDp === 'string' ? opts.wcValueDp : '';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Puzzle);
 
     const { components, loading } = useWebComponentCatalog();
@@ -217,6 +219,8 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
         component ? resolveManifestUrl(component.manifest.icon, component.url) : undefined,
         (url) => (component ? resolveManifestUrl(url, component.url) : url),
     );
+    // value: bound to a datapoint (wcValueDp) - state -> element.value, iob-change -> state
+    useWebComponentValue(elRef, status === 'ready', valueDp, editMode);
 
     let body: React.ReactNode;
     if (status === 'ready' && component) {

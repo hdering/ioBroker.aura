@@ -52,6 +52,7 @@ export const DP_KEY_LABELS: Record<string, string> = {
     unreachDp: 'Erreichbarkeit',
     windowDp: 'Fenster',
     lastChangeDatapoint: 'Letzte Änderung',
+    wcValueDp: 'Wert der Komponente',
 };
 
 export interface DpSlot {

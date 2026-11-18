@@ -62,6 +62,7 @@ Adressen von Manifest und Modul, damit keine alte Datei aus dem Browser-Cache ko
 | `wcTitleSource` | Titel aus | `aura` (Standard) = Widget-Titel · `component` = Name, den die Komponente meldet |
 | `wcIconSource` | Icon aus | `aura` (Standard) = Widget-Icon · `component` = Bild der Komponente bzw. ihres Manifests |
 | `wcClick` | Klick auf die Komponente | `off` · `component` — siehe [Klick](#klick) |
+| `wcValueDp` | Wert-Datenpunkt | Datenpunkt für den Wert, den die Komponente bearbeitet — siehe [Wert-Datenpunkt](#wert-datenpunkt); leer = keiner |
 
 Unter der Auswahl zeigt der Editor die Einstellungen der gewählten Komponente: Textfelder,
 Zahlen, Schalter, Farben, Auswahllisten, Datenpunkte, Objekte und Adapter-Instanzen — so, wie
@@ -97,6 +98,29 @@ Stand in einem älteren Widget noch ein Name in den Einstellungen der Komponente
 | --- | --- |
 | **Aus** (Standard) | Die Komponente bekommt weder Klicks noch Tasten. Ein Klick gehört dem Widget: es gilt seine **Aktion** wie bei jedem Widget — ohne Aktion passiert nichts. |
 | **Komponente** | Die Komponente bedient sich selbst (Knöpfe, eigener Dialog). Eine **Aktion** des Widgets bleibt still. Nötig für bedienbare Komponenten wie Kalender oder Fluss-Diagramm. |
+
+## Wert-Datenpunkt
+
+Manche Komponenten bearbeiten einen Wert — zum Beispiel einen Zeitplan, eine Liste von Zeiten
+oder eine Farbe. Diesen Wert hält ein Datenpunkt: in den Einstellungen des Widgets unter
+**Wert-Datenpunkt** (`wcValueDp`) wählen. Das Feld erscheint nur bei Komponenten, die das in
+ihrem Manifest angeben (`editsValue: true`), oder wenn bereits ein Datenpunkt eingetragen ist.
+
+- Aura gibt der Komponente den Wert des Datenpunkts. JSON-Text kommt als Objekt bzw. Liste an —
+  bei einem Datenpunkt vom Typ `json`, `object` oder `array` immer, sonst, wenn der Text ein
+  JSON-Objekt oder eine JSON-Liste ist. Zahlen und Wahrheitswerte bleiben, wie sie sind.
+- Ändert der Nutzer den Wert in der Komponente, schreibt Aura ihn in den Datenpunkt (als Befehl,
+  `ack = false`) — Objekte und Listen als JSON-Text.
+- Ändert sich der Datenpunkt von außen (Skript, anderes Gerät), zeigt die Komponente den neuen
+  Wert. Das Echo der eigenen Änderung setzt sie nicht zurück.
+- Nichts geschrieben wird im Bearbeitungsmodus und bei schreibgeschützten Datenpunkten
+  (`common.write: false`); die Komponente behält dann ihren bisherigen Wert.
+- Gelesen und geschrieben wird immer der ganze Datenpunkt; ein JSON-Pfad (`…?pfad`) wird
+  ignoriert.
+
+Die meisten Komponenten lesen ihre Datenpunkte über die eigenen Einstellungen und brauchen das
+Feld nicht — dann leer lassen. Für Entwickler: Das sind die Eigenschaft `value` und das Ereignis
+`iob-change` des Vertrags; Aura nimmt das Ereignis mit `preventDefault()` an.
 
 ## Verhalten
 

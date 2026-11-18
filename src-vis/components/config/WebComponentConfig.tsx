@@ -12,9 +12,11 @@ import {
     typedSettings,
     webComponentClick,
 } from '../../utils/webComponentHost';
+import { editsValue } from '../../utils/webComponentValue';
 import { findWebComponent, useRepoWebComponents, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { useT } from '../../i18n';
 import { Unavailable } from './Unavailable';
+import { WebComponentValueField } from './WebComponentValueField';
 import {
     WebComponentFields,
     wcHintStyle as hintSty,
@@ -254,6 +256,9 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
                     </div>
                 )}
             </div>
+            {((component && editsValue(component.manifest)) || !!o.wcValueDp) && (
+                <WebComponentValueField value={o.wcValueDp} onChange={(dp) => onChange({ wcValueDp: dp })} />
+            )}
 
             {component && (
                 <div className="grid grid-cols-2 gap-2">
