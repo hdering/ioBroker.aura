@@ -40,7 +40,7 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 
 - Ein Gerät, eine Zeile: Prozent vor Spannung, Spannung vor LOWBAT.
 - Netzspannung (`Voltage` einer Steckdose) zählt nicht. 0 V gilt als „kein Messwert“.
-- Mit „Welche Geräte anzeigen: alle“ stehen die Spannungen auch ohne Warnung in der Liste („2,95 V“).
+- Mit Optik → „Welche Geräte anzeigen: Alle gefundenen Geräte“ (`valueFilter: all`) stehen die Spannungen auch ohne Warnung in der Liste („2,95 V“).
 
 | Fall | Abhilfe |
 | --- | --- |
