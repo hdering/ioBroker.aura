@@ -553,7 +553,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </div>
                         <div>
                             <label className={labelCls} style={labelStyle}>
-                                Adapter (Komma-getrennt, z. B. zigbee.0)
+                                Nur diese Adapter (Komma-getrennt, leer = alle)
                             </label>
                             <input
                                 type="text"
@@ -566,13 +566,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </div>
                         <div>
                             <label className={labelCls} style={labelStyle}>
-                                Ausschluss-Muster (Text oder /regex/)
+                                Ausschluss-Muster (Text oder /regex/, z. B. homee.0. blendet einen Adapter aus)
                             </label>
                             <input
                                 type="text"
                                 value={o.excludeIdPatterns ?? ''}
                                 onChange={(e) => set({ excludeIdPatterns: e.target.value || undefined })}
-                                placeholder=".info., _REMOTE_"
+                                placeholder="homee.0., .info., _REMOTE_"
                                 className={inputCls}
                                 style={inputStyle}
                             />
