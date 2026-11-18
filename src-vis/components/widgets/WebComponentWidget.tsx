@@ -15,6 +15,7 @@ import { useNavigationStore } from '../../store/navigationStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfigStore } from '../../store/configStore';
 import {
+    diagnoseWebComponentLoad,
     findKnownWebComponent,
     findRepoWebComponent,
     repoWebComponentName,
@@ -26,6 +27,7 @@ import {
     themeFromVars,
     type ComponentHeader,
     typedSettings,
+    type WebComponentLoadProblem,
     webComponentClick,
     withoutHostSettings,
 } from '../../utils/webComponentHost';
@@ -77,6 +79,8 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
 
     const [status, setStatus] = useState<Status>(tag ? 'loading' : 'unset');
     const [error, setError] = useState('');
+    // why it failed, when the module or the shared React it imports is not served
+    const [problem, setProblem] = useState<WebComponentLoadProblem | null>(null);
     useEffect(() => {
         if (!tag) {
             setStatus('unset');
@@ -88,6 +92,7 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
         }
         let alive = true;
         setStatus('loading');
+        setProblem(null);
         // The module first: the element must have its class before it gets its properties
         importWebComponent(component).then(
             () => alive && setStatus('ready'),
@@ -95,6 +100,8 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
                 if (!alive) return;
                 setError(e instanceof Error ? e.message : String(e));
                 setStatus('failed');
+                // the browser names neither the file nor the reason: look for it
+                void diagnoseWebComponentLoad(component.moduleUrl).then((p) => alive && setProblem(p));
             },
         );
         return () => {
@@ -238,7 +245,11 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
                           })
                         : t('wc.missing', { tag })
                   : status === 'failed'
-                    ? t('wc.failed', { tag, error })
+                    ? problem?.kind === 'module'
+                        ? t('wc.failedModule', { tag, adapter: component?.adapter ?? '', status: problem.status })
+                        : problem?.kind === 'react'
+                          ? t('wc.failedReact', { tag, file: problem.file, status: problem.status })
+                          : t('wc.failed', { tag, error })
                     : t('common.loading');
         body = (
             <div

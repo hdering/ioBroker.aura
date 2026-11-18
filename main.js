@@ -1884,6 +1884,7 @@ class Aura extends utils.Adapter {
                 listening: !!this._httpServer?.listening,
             },
             probe: (at) => this.probeBackend(at),
+            ownReact: !!reactEsmFile('/lib/esm/react-19.js'),
             meta: { version, checkedAt: new Date().toISOString().replace('T', ' ').slice(0, 19) },
         });
 

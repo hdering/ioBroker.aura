@@ -3663,6 +3663,10 @@ export const en: Record<TranslationKey, string> = {
     'wc.missing': 'Component <{tag}> is not installed',
     'wc.missingAdapter': '{name}: adapter "{adapter}" is missing (version {version} or newer)',
     'wc.failed': 'Component <{tag}> could not be loaded: {error}',
+    'wc.failedModule':
+        'Component <{tag}> could not be loaded: its file is not served ({status}). Upload the adapter files again: iobroker upload {adapter}',
+    'wc.failedReact':
+        'Component <{tag}> could not be loaded: {file} is missing ({status}). Behind the web extension (…/aura/) the web adapter serves this file only from version 9.2.0 on - update web or open Aura on its own port.',
     'wc.noObjects': 'No objects found',
     'wc.objectNotFound': '{id} (not found)',
     'wc.pickDatapoint': 'Pick from ioBroker',

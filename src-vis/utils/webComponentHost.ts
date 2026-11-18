@@ -17,6 +17,7 @@
  *   repository (`common.webComponents`, `@iobroker/web-components` 0.8), for any adapter.
  * - `versionedSources` / `versionedModule` / `mergeCatalog` - versioned URLs, so an
  *   adapter update is not served from the browser cache, and a catalog read again.
+ * - `diagnoseWebComponentLoad` - why a module did not load (the module or the shared React missing).
  */
 import {
     getDefaultSettings,
@@ -816,4 +817,79 @@ export function mergeCatalog(
             JSON.stringify(kept.manifest) === JSON.stringify(before.manifest);
         return same ? before : kept;
     });
+}
+
+// ── why a module did not load ───────────────────────────────────────────────
+
+/**
+ * What stopped a component's module from loading, found after the import failed.
+ * The browser only says "Failed to fetch dynamically imported module", whether the
+ * module itself or one of its imports is missing.
+ * - `module`: the module file is not served (not uploaded, or an HTML page instead)
+ * - `react`: the shared React it imports (`<base>/lib/esm/react-19.js`) is not
+ *   served - behind the web adapter extension that needs web 9.2.0 or newer
+ */
+export type WebComponentLoadProblem =
+    | { kind: 'module'; url: string; status: number }
+    | { kind: 'react'; url: string; status: number; file: string };
+
+/** The shared React files a module imports, as written in it (relative or absolute) */
+export function reactImportsOf(source: string): string[] {
+    const out: string[] = [];
+    const re = /["'`]((?:\.{1,2}\/|\/)(?:[^"'`\s]*\/)?lib\/esm\/react-\d+\.js)["'`]/g;
+    for (let m = re.exec(source); m; m = re.exec(source)) {
+        if (!out.includes(m[1])) out.push(m[1]);
+    }
+    return out;
+}
+
+type MiniResponse = {
+    ok: boolean;
+    status: number;
+    headers: { get(name: string): string | null };
+    text(): Promise<string>;
+};
+
+/** A JavaScript file answered: not an error, not an HTML page (a SPA fallback) */
+function servesScript(r: MiniResponse): boolean {
+    return r.ok && !/text\/html/i.test(r.headers.get('content-type') ?? '');
+}
+
+/**
+ * Look for the reason a component's module did not load: fetch the module, and
+ * the shared React it imports. Null when both are served (the reason lies in the
+ * module's code then, the browser's message says it) or nothing answered at all.
+ *
+ * @param moduleUrl absolute URL of the module
+ * @param fetchFn `fetch`, injected for the tests
+ */
+export async function diagnoseWebComponentLoad(
+    moduleUrl: string,
+    fetchFn: (url: string, init?: { method?: string }) => Promise<MiniResponse> = fetch,
+): Promise<WebComponentLoadProblem | null> {
+    let source: string;
+    try {
+        const r = await fetchFn(moduleUrl);
+        if (!servesScript(r)) return { kind: 'module', url: moduleUrl, status: r.status };
+        source = await r.text();
+    } catch {
+        return null;
+    }
+    for (const spec of reactImportsOf(source)) {
+        let url: string;
+        try {
+            url = new URL(spec, moduleUrl).href;
+        } catch {
+            continue;
+        }
+        try {
+            const r = await fetchFn(url, { method: 'HEAD' });
+            if (!servesScript(r)) {
+                return { kind: 'react', url, status: r.status, file: spec.replace(/^.*\/(lib\/esm\/)/, '/$1') };
+            }
+        } catch {
+            return { kind: 'react', url, status: 0, file: spec.replace(/^.*\/(lib\/esm\/)/, '/$1') };
+        }
+    }
+    return null;
 }

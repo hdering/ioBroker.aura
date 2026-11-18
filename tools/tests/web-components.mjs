@@ -1145,6 +1145,54 @@ check(
     check('autocomplete: empty text clears', m.autocompleteValue('', opts, false, 'de'), { value: undefined });
 }
 
+// ── why a module did not load (forum, 1.0.2) ────────────────────────────────
+{
+    const src =
+        'import{a as b}from"../../../lib/esm/react-19.js";import x from "../../../lib/esm/react-19.js";export{}';
+    check('React imports of a module, each once', m.reactImportsOf(src), ['../../../lib/esm/react-19.js']);
+    check('absolute React import', m.reactImportsOf("import r from '/lib/esm/react-18.js'"), ['/lib/esm/react-18.js']);
+    check('no React import', m.reactImportsOf('export const a = "lib/esm/react-19.js.map"'), []);
+
+    const MOD = 'http://h:8082/aura/adapter/flow/webcomponents/flow.js?v=1.2.0';
+    const REACT = 'http://h:8082/aura/lib/esm/react-19.js';
+    const res = (status, body = '', type = 'application/javascript') => ({
+        ok: status >= 200 && status < 300,
+        status,
+        headers: { get: (n) => (n.toLowerCase() === 'content-type' ? type : null) },
+        text: async () => body,
+    });
+    const server = (files) => async (url) => files[url] ?? res(404);
+    const body = 'import{jsx}from"../../../lib/esm/react-19.js";';
+
+    check('module missing', await m.diagnoseWebComponentLoad(MOD, server({})), {
+        kind: 'module',
+        url: MOD,
+        status: 404,
+    });
+    check(
+        'an HTML page instead of the module is missing too',
+        (await m.diagnoseWebComponentLoad(MOD, server({ [MOD]: res(200, '<html>', 'text/html') })))?.kind,
+        'module',
+    );
+    check(
+        'React missing: resolved against the module, below the path prefix',
+        await m.diagnoseWebComponentLoad(MOD, server({ [MOD]: res(200, body) })),
+        { kind: 'react', url: REACT, status: 404, file: '/lib/esm/react-19.js' },
+    );
+    check(
+        'both served: no verdict',
+        await m.diagnoseWebComponentLoad(MOD, server({ [MOD]: res(200, body), [REACT]: res(200) })),
+        null,
+    );
+    check(
+        'nothing answers: no verdict',
+        await m.diagnoseWebComponentLoad(MOD, async () => {
+            throw new TypeError('Failed to fetch');
+        }),
+        null,
+    );
+}
+
 if (failed) {
     console.error(`\n${failed} check(s) failed`);
     process.exit(1);
