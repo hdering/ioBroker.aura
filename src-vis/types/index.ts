@@ -363,7 +363,7 @@ export interface CustomCell {
     bg?: string; // cell background (CSS color, may carry alpha, e.g. #00000080); '' / undefined = none. A matched condition's bg replaces it
     bgMode?: 'cell' | 'content'; // where `bg` sits: 'cell' fills the whole grid cell (default), 'content' hugs the text as a label (title/value/unit/text/field/dp/state-text/lastchange cells; others always fill the cell)
     conditions?: CellConditionRule[]; // per-cell conditional formatting (Universal Widget) — reacts to the cell's own or a foreign DP value
-    align?: CustomCellAlign; // default: 'left'
+    align?: CustomCellAlign; // default: 'center' (input cells: the field itself is left-aligned)
     valign?: CustomCellValign; // default: 'middle'. 'baseline' sits at the bottom like 'bottom' but lines the text baseline up with every other 'baseline' cell of the same grid row (e.g. a 40 px value next to an 18 px unit); text cells only (title/value/unit/text/field/dp/state-text/lastchange), other cells and vertical text treat it as 'bottom'. The cell then hugs its content, so a cell-wide bg only covers the content
     allowOverflow?: boolean; // allow text to overflow into adjacent cells
     wrap?: boolean; // wrap long text onto multiple lines instead of ellipsis (default false)

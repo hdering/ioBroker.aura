@@ -1684,7 +1684,7 @@
         "align": {
           "type": "string",
           "ref": "CustomCellAlign",
-          "description": "default: 'left'"
+          "description": "default: 'center' (input cells: the field itself is left-aligned)"
         },
         "valign": {
           "type": "string",
