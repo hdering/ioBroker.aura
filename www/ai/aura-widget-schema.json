@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.1.0-next.1",
+    "auraVersion": "1.1.0-next.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6642,6 +6642,15 @@
         "top-right",
         "bottom-left",
         "bottom-right"
+      ]
+    },
+    "BatteryKind": {
+      "type": "string",
+      "enum": [
+        "bool",
+        "percent",
+        "volt",
+        "millivolt"
       ]
     },
     "CategoryKey": {
@@ -22083,6 +22092,22 @@
             "count"
           ]
         },
+        "batteryKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "ref": "BatteryKind"
+          },
+          "description": "Which battery datapoints count (default ['bool', 'percent']): 'bool' = LOWBAT-style flags, 'percent' = value.battery in %, 'volt' / 'millivolt' = battery voltage (OPERATING_VOLTAGE, voltage of a battery device) in V / mV. A device with a percent value shows that; else its voltage row replaces its LOWBAT flag (#1000).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
         "batteryThreshold": {
           "type": "number",
           "description": "% (default 20)",
@@ -22098,6 +22123,18 @@
         "batteryTypeEnabled": {
           "type": "boolean",
           "description": "show physical battery type (· CR2032) next to low batteries",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
+        "batteryVoltThreshold": {
+          "type": "number",
+          "description": "V (default 2.4): voltage at or below counts as weak; mV datapoints compare x1000",
           "onlyLayouts": [
             "default",
             "compact",
