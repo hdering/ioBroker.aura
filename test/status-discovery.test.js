@@ -217,6 +217,73 @@ test('names: repeated channel prefix dropped, generic channel gives way to the d
     d.stop();
 });
 
+/** Real dumps from the forum (#424): HmIP heating group device, Shelly Flood battery and name state. */
+function forumDumpObjects() {
+    const s = (id, common) => obj(id, 'state', common);
+    const views = {
+        state: [
+            s('hm-rpc.1.INT0000002.1.WINDOW_STATE', {
+                name: 'EG_Heizung_WZ INT0000002:1.WINDOW_STATE',
+                role: 'sensor.window',
+                type: 'number',
+                states: { 0: 'CLOSED', 1: 'OPEN' },
+            }),
+            s('hm-rpc.0.00109A498FCE8F.1.STATE', {
+                name: 'EG_WZ_Fenster:1.STATE',
+                role: 'value.window',
+                type: 'number',
+                states: { 0: 'CLOSED', 1: 'OPEN' },
+            }),
+            s('shelly.0.SHWT-1#C8AA63#1.sensor.battery', {
+                name: 'Battery capacity',
+                role: 'value.battery',
+                type: 'number',
+                unit: '%',
+                min: 0,
+                max: 100,
+            }),
+            s('shelly.0.SHWT-1#C8AA63#1.name', {
+                name: 'Channel name',
+                role: 'info.name',
+                type: 'string',
+                write: true,
+            }),
+        ],
+        channel: [obj('hm-rpc.0.00109A498FCE8F.1', 'channel', { name: 'EG_WZ_Fenster:1' })],
+        device: [
+            obj('hm-rpc.1.INT0000002', 'device', { name: 'EG_Heizung_WZ INT0000002' }),
+            obj('shelly.0.SHWT-1#C8AA63#1', 'device', {
+                name: 'Flood Heizraum',
+                desc: 'Gen 1',
+                statusStates: { onlineId: 'shelly.0.SHWT-1#C8AA63#1.online' },
+            }),
+        ],
+        enum: [
+            obj('enum.rooms.living', 'enum', {
+                name: 'Wohnzimmer',
+                members: ['hm-rpc.1.INT0000002', 'hm-rpc.0.00109A498FCE8F'],
+            }),
+        ],
+        instance: [],
+    };
+    return {
+        getObjectView: async (type, startkey) =>
+            type === 'state' && startkey === 'alias.' ? { rows: [] } : { rows: views[type] ?? [] },
+    };
+}
+
+test('forum dumps: HmIP heating group yields to the contact, Shelly battery named after the device', async () => {
+    const d = createStatusDiscovery(forumDumpObjects());
+    const m = byId(await d.discover({}, {}));
+    assert.ok(!m.has('hm-rpc.1.INT0000002.1.WINDOW_STATE'), 'group duplicates the room contact');
+    assert.strictEqual(m.get('hm-rpc.0.00109A498FCE8F.1.STATE')?.cat, 'window');
+    const bat = m.get('shelly.0.SHWT-1#C8AA63#1.sensor.battery');
+    assert.strictEqual(bat?.cat, 'battery');
+    assert.strictEqual(bat?.dp.name, 'Flood Heizraum › Battery capacity');
+    assert.ok(!m.has('shelly.0.SHWT-1#C8AA63#1.name'), 'info.name is no status');
+    d.stop();
+});
+
 (async () => {
     for (const t of tests) {
         try {
