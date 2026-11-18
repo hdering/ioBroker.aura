@@ -7,6 +7,8 @@ import { useDashboardStore } from '../../../../store/dashboardStore';
 import { DEFAULT_FRONTEND } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
 import { OVERRIDE_COLOR, OVERRIDE_TINT } from '../shared/scopeBands';
+import { Unavailable } from '../../../../components/config/Unavailable';
+import { FLOW_FILLS, normalizeFlowFill, type FlowFill } from '../../../../utils/flowOrder';
 
 interface GridSectionProps {
     contextId: string | null;
@@ -20,6 +22,7 @@ const GRID_KEYS = [
     'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
+    'flowFill',
     'gridWidthMode',
     'fluidDesignWidth',
     'fluidMinScale',
@@ -74,6 +77,24 @@ export function GridSection({ contextId }: GridSectionProps) {
     const effectiveTabCols = (tabCols ?? 2) as number;
     const effectiveMob = (mob ?? 600) as number;
     const effectiveMobCols = (mobCols ?? 1) as number;
+    const [fill, fillOv] = eff('flowFill');
+    const effectiveFill = normalizeFlowFill(fill);
+    const fillLabel = (m: FlowFill) =>
+        t(
+            m === 'height'
+                ? 'settings.grid.flowFillHeight'
+                : m === 'compact'
+                  ? 'settings.grid.flowFillCompact'
+                  : 'settings.grid.flowFillCount',
+        );
+    const fillHint = (m: FlowFill) =>
+        t(
+            m === 'height'
+                ? 'settings.grid.flowFillHeightHint'
+                : m === 'compact'
+                  ? 'settings.grid.flowFillCompactHint'
+                  : 'settings.grid.flowFillCountHint',
+        );
 
     function resetDefaults() {
         // Column snap drives widget widths — keep them visually stable, exactly
@@ -419,6 +440,32 @@ export function GridSection({ contextId }: GridSectionProps) {
                     />
                 </div>
             </div>
+            {/* How the column flows deal their cards (#939) — one switch for tablet and
+                phone. Greyed out while neither flow has more than one column. */}
+            <Unavailable
+                reason={
+                    (effectiveTab > effectiveMob && effectiveTabCols > 1) || effectiveMobCols > 1
+                        ? undefined
+                        : t('settings.grid.flowFillUnavailable')
+                }
+            >
+                <ChoiceSetting
+                    label={t('settings.grid.flowFill')}
+                    hint={fillHint(effectiveFill)}
+                    value={effectiveFill}
+                    options={FLOW_FILLS.map((m) => ({ value: m, label: fillLabel(m), hint: fillHint(m) }))}
+                    onChange={(v) => set('flowFill', v)}
+                    isOverridden={fillOv}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['flowFill']}
+                            label={t('settings.grid.flowFill')}
+                            format={(_, v) => fillLabel(normalizeFlowFill(v))}
+                        />
+                    }
+                />
+            </Unavailable>
         </div>
     );
 }

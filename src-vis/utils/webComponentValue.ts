@@ -1,3 +1,5 @@
+import type { WebComponentManifest } from '@iobroker/web-components';
+
 /**
  * The value of an ioBroker web component bound to a datapoint (`wcValueDp` of the
  * webcomponent widget): the state becomes the `value` property of the element, the
@@ -16,12 +18,12 @@
 
 /**
  * Whether a component declares in its manifest that it edits a value. Missing means
- * no. The cast goes once `@iobroker/web-components` with `editsValue` is released.
+ * no.
  *
  * @param manifest the manifest of the component
  */
-export function editsValue(manifest: object): boolean {
-    return (manifest as { editsValue?: unknown }).editsValue === true;
+export function editsValue(manifest: Pick<WebComponentManifest, 'editsValue'>): boolean {
+    return manifest.editsValue === true;
 }
 
 /** `common.type` of a state whose value is JSON text */

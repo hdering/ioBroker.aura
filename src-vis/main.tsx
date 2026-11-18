@@ -33,6 +33,18 @@ console.warn = (...args: unknown[]) => {
 
 installChunkErrorRecovery();
 
+// react-draggable (twice inside react-grid-layout) marks <body> with a class on every
+// drag start and adds `.react-draggable-transparent-selection *::selection` - a rule
+// on EVERY element, so toggling that body class restyles the whole page (13 000
+// elements, ~100 ms twice per drag in the admin editor). It only creates that style
+// element when it is missing: an empty one with its id disarms the rule. Text
+// selection on grid items is suppressed in index.css instead.
+if (typeof document !== 'undefined' && !document.getElementById('react-draggable-style-el')) {
+    const el = document.createElement('style');
+    el.id = 'react-draggable-style-el';
+    document.head.appendChild(el);
+}
+
 // DEV-only screenshot harness: enabled with ?shot=1 so the documentation
 // tooling can render widgets in controlled states. Never bundled in prod.
 if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('shot')) {

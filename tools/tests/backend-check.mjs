@@ -21,6 +21,9 @@ const {
     serverFindings,
     worstLevel,
     formatReport,
+    runBackendCheck,
+    webComponentAdapters,
+    webComponentFindings,
 } = require(join(process.cwd(), 'lib', 'backendCheck.js'));
 
 const results = [];
@@ -240,6 +243,87 @@ const REPORTED = {
         {},
     );
     check('an all-green run says so', clean.startsWith('aura backend check — Everything checks out.'));
+}
+
+// ── 7. Web components: the shared React (forum, 1.0.2) ──────────────────────
+{
+    const wcObjects = {
+        ...instance('web', 0, { port: 8082, bind: '0.0.0.0', secure: false }),
+        'system.adapter.web.0': {
+            common: { name: 'web', enabled: true, version: '7.0.4' },
+            native: { port: 8082, bind: '0.0.0.0', secure: false },
+        },
+        'system.adapter.flow.0': { common: { name: 'flow', webComponents: ['webcomponents/flow.json'] } },
+        'system.adapter.flow.1': { common: { name: 'flow', webComponents: ['webcomponents/flow.json'] } },
+        'system.adapter.tr-064.0': { common: { name: 'tr-064', webComponents: ['wc/tr.json'] } },
+        'system.adapter.history.0': { common: { name: 'history' } },
+    };
+    eq('adapters with components, each once', webComponentAdapters(wcObjects).join(','), 'flow,tr-064');
+    eq('no components, no findings', webComponentFindings({ adapters: [], ownReact: false }).length, 0);
+
+    const own = webComponentFindings({ adapters: ['flow'], ownReact: true });
+    check('own port with React: ok', has(own, 'wc-react-own') && worstLevel(own) === 'ok');
+    check(
+        'own port without React: error',
+        has(webComponentFindings({ adapters: ['flow'], ownReact: false }), 'wc-react-own-missing'),
+    );
+    const old = webComponentFindings({
+        adapters: ['flow'],
+        ownReact: true,
+        webInstance: 'web.0',
+        webVersion: '7.0.4',
+        webReact: { status: 404 },
+    });
+    check('old web behind the extension: warn', byId(old, 'wc-react-web-missing')?.level === 'warn');
+    check('the warning names the web version', /web 7\.0\.4/.test(byId(old, 'wc-react-web-missing')?.title || ''));
+    check(
+        'a login is no verdict',
+        byId(
+            webComponentFindings({
+                adapters: ['flow'],
+                ownReact: true,
+                webInstance: 'web.0',
+                webReact: { status: 302 },
+            }),
+            'wc-react-web-auth',
+        )?.level === 'info',
+    );
+    check(
+        'new web behind the extension: ok',
+        has(
+            webComponentFindings({
+                adapters: ['flow'],
+                ownReact: true,
+                webInstance: 'web.0',
+                webReact: { status: 200 },
+            }),
+            'wc-react-web',
+        ),
+    );
+
+    // the whole run: the extension's instance is probed on its own port
+    const asked = [];
+    const run = await runBackendCheck({
+        objects: wcObjects,
+        config: { socketPort: 8082, webInstance: 'web.0' },
+        probe: async (at) => {
+            asked.push(`${at.port}${at.path}`);
+            return { status: at.path === '/lib/esm/react-19.js' ? 404 : 200 };
+        },
+        ownReact: true,
+    });
+    check('the React file is probed on the web instance', asked.includes('8082/lib/esm/react-19.js'));
+    check('and the run warns', has(run.findings, 'wc-react-web-missing'));
+    const noExt = await runBackendCheck({
+        objects: wcObjects,
+        config: { socketPort: 8082 },
+        probe: async (at) => {
+            asked.push(`noext:${at.path}`);
+            return { status: 200 };
+        },
+    });
+    check('without the extension no React probe', !asked.includes('noext:/lib/esm/react-19.js'));
+    check('without the extension only the own port', has(noExt.findings, 'wc-react-own'));
 }
 
 const failed = results.filter((r) => !r.ok);

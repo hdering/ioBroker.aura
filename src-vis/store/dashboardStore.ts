@@ -189,6 +189,7 @@ export interface LayoutSettings {
     mobileCols?: number;
     tabletBreakpoint?: number;
     tabletCols?: number;
+    flowFill?: 'count' | 'height' | 'compact';
     gridWidthMode?: 'fixed' | 'fluid';
     fluidDesignWidth?: number;
     fluidMinScale?: number;
@@ -228,10 +229,15 @@ export interface LayoutSettings {
     layoutDrawerIndicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
     layoutDrawerFontSize?: number;
     layoutDrawerIconSize?: number;
+    // Tabs as sub-entries in the stacked section menu (#951). Layout-wide; a section
+    // may set its own value in section.settings, read per entry by the menu itself.
+    layoutDrawerTabs?: 'off' | 'collapsible' | 'expanded';
     // Horizontal-bar placement only (top/bottom): where the section entries sit and
     // whether the mobile scroll indicator is hidden — mirrors the tab bar.
     layoutDrawerBarAlignment?: 'left' | 'center' | 'right' | 'stretch';
     layoutDrawerHideMobileScrollbar?: boolean;
+    // Tab-bar placement: hamburger stays fixed instead of scrolling with the tabs.
+    layoutDrawerPinned?: boolean;
     layoutDrawerItems?: LayoutMenuItem[];
     // Header
     showHeader?: boolean;
@@ -943,9 +949,16 @@ export const useDashboardStore = create<DashboardState>()(
                                       }
                                     | undefined;
                                 if (sContent && Array.isArray(sContent.tabs)) {
+                                    // The vault's tabs, plus any tab only the stub has
+                                    // (created next to the vault, e.g. by an older MCP).
+                                    // Dropping those made the editor's tab list differ
+                                    // from the frontend's tab bar, and the next save
+                                    // deleted the tab without a word.
+                                    const known = new Set(sContent.tabs.map((tb) => tb.id));
+                                    const stubOnly = next.tabs.filter((tb) => !known.has(tb.id));
                                     next = {
                                         ...next,
-                                        tabs: sContent.tabs,
+                                        tabs: [...sContent.tabs, ...stubOnly],
                                         // The menu decoration is vault content too —
                                         // the stub never carries it, so a save that
                                         // did not put it back dropped the section's

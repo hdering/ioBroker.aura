@@ -4,6 +4,7 @@ import {
     importWebComponent,
     isSameTheme,
     NAVIGATE_EVENT,
+    resolveManifestUrl,
     type WebComponentElement,
     type WebComponentTheme,
 } from '@iobroker/web-components';
@@ -14,26 +15,44 @@ import { useNavigationStore } from '../../store/navigationStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfigStore } from '../../store/configStore';
 import {
+    diagnoseWebComponentLoad,
     findKnownWebComponent,
+    findRepoWebComponent,
+    repoWebComponentName,
     findTabForView,
+    HEADER_EVENT,
+    headerSource,
+    parseComponentHeader,
+    resolveWidgetHeader,
     themeFromVars,
+    type ComponentHeader,
     typedSettings,
+    type WebComponentLoadProblem,
+    webComponentClick,
     withoutHostSettings,
 } from '../../utils/webComponentHost';
-import { findWebComponent, getWebComponentSocket, useWebComponentCatalog } from '../../utils/webComponentRegistry';
+import {
+    findWebComponent,
+    getWebComponentSocket,
+    useRepoWebComponents,
+    useWebComponentCatalog,
+} from '../../utils/webComponentRegistry';
 import type { WidgetProps } from '../../types';
 import { useWebComponentValue } from '../../hooks/useWebComponentValue';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { useWebComponentDialogs } from './WebComponentDialog';
 
 const FILL = { display: 'block', width: '100%', height: '100%' } as const;
+/** The component takes no clicks: the widget's click action (if any) answers */
+const INERT = { ...FILL, pointerEvents: 'none' } as const;
 
 type Status = 'loading' | 'ready' | 'missing' | 'failed' | 'unset';
 
 /**
  * Shows an ioBroker web component (`@iobroker/web-components`) of an installed
  * adapter: its custom element gets Aura's socket, the settings stored in the
- * widget, the colors and the font of the theme, and the edit mode. The element
- * subscribes and writes on its own; dialogs it opens use the browser's <dialog>.
+ * widget, the colors and the font of the theme, the edit mode and Aura's dialogs
+ * (WebComponentDialog). The element subscribes and writes on its own.
  */
 export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const t = useT();
@@ -42,6 +61,9 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
+    // does the component take clicks? If not, a click is the widget's (its click action, if set)
+    const click = webComponentClick(opts.wcClick);
+    const inert = !editMode && click === 'off';
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const valueDp = typeof opts.wcValueDp === 'string' ? opts.wcValueDp : '';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Puzzle);
@@ -50,9 +72,17 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const component = findWebComponent(components, tag, opts.wcAdapter);
     const known = component ? undefined : findKnownWebComponent(tag, opts.wcAdapter);
     const lang = useConfigStore((s) => s.frontend.language ?? 'de');
+    // in the editor, a component that is neither installed nor known: its name from the repository
+    const repo = findRepoWebComponent(
+        useRepoWebComponents(!!editMode && !!tag && !loading && !component && !known),
+        tag,
+        opts.wcAdapter,
+    );
 
     const [status, setStatus] = useState<Status>(tag ? 'loading' : 'unset');
     const [error, setError] = useState('');
+    // why it failed, when the module or the shared React it imports is not served
+    const [problem, setProblem] = useState<WebComponentLoadProblem | null>(null);
     useEffect(() => {
         if (!tag) {
             setStatus('unset');
@@ -64,6 +94,7 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
         }
         let alive = true;
         setStatus('loading');
+        setProblem(null);
         // The module first: the element must have its class before it gets its properties
         importWebComponent(component).then(
             () => alive && setStatus('ready'),
@@ -71,6 +102,8 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
                 if (!alive) return;
                 setError(e instanceof Error ? e.message : String(e));
                 setStatus('failed');
+                // the browser names neither the file nor the reason: look for it
+                void diagnoseWebComponentLoad(component.moduleUrl).then((p) => alive && setProblem(p));
             },
         );
         return () => {
@@ -97,7 +130,12 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     // (without what the widget frame covers itself - the element keeps its defaults there)
     const settingsJson = JSON.stringify(
         component
-            ? withoutHostSettings(typedSettings(component.manifest, opts.wcSettings), tag, component.adapter)
+            ? withoutHostSettings(
+                  typedSettings(component.manifest, opts.wcSettings),
+                  tag,
+                  component.adapter,
+                  component.manifest,
+              )
             : {},
     );
     const settings = useMemo(
@@ -130,6 +168,9 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
         elRef.current.theme = theme;
     }, [status, themeEpoch]);
 
+    // dialogs: in Aura's look instead of the browser's <dialog>
+    const dialog = useWebComponentDialogs(elRef, status === 'ready', editMode, config);
+
     // iob-navigate: show a tab of this layout, named by slug, id or name
     useEffect(() => {
         const el = elRef.current;
@@ -148,12 +189,47 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
         return () => el.removeEventListener(NAVIGATE_EVENT, onNavigate);
     }, [status, editMode]);
 
+    // title row: Aura's own, or what the component reports (wcTitleSource / wcIconSource)
+    const titleSource = headerSource(opts.wcTitleSource);
+    const iconSource = headerSource(opts.wcIconSource);
+    const wantsHeader = titleSource === 'component' || iconSource === 'component';
+    const [header, setHeader] = useState<ComponentHeader>({});
+    // on the box, which exists before the element: a component that reports while it is
+    // connected (in the same commit that creates it) is heard as well
+    useEffect(() => {
+        const box = hostRef.current;
+        if (!box || !wantsHeader) return;
+        const onHeader = (event: Event): void => setHeader(parseComponentHeader((event as CustomEvent).detail));
+        box.addEventListener(HEADER_EVENT, onHeader);
+        return () => box.removeEventListener(HEADER_EVENT, onHeader);
+    }, [wantsHeader]);
+    useEffect(() => {
+        if (status !== 'ready' || !wantsHeader) {
+            setHeader({});
+            return;
+        }
+        // a component may also keep it in its `header` property
+        const own = parseComponentHeader((elRef.current as unknown as { header?: unknown } | null)?.header);
+        if (own.title || own.icon) setHeader(own);
+    }, [status, wantsHeader, tag]);
+    const shown = resolveWidgetHeader(
+        { titleSource, iconSource },
+        config.title ?? '',
+        header,
+        component ? resolveManifestUrl(component.manifest.icon, component.url) : undefined,
+        (url) => (component ? resolveManifestUrl(url, component.url) : url),
+    );
     // value: bound to a datapoint (wcValueDp) - state -> element.value, iob-change -> state
     useWebComponentValue(elRef, status === 'ready', valueDp, editMode);
 
     let body: React.ReactNode;
     if (status === 'ready' && component) {
-        body = createElement(component.manifest.tag, { ref: elRef, style: FILL });
+        // inert: no pointer, no focus, no keys - the frame's click action gets the click
+        body = createElement(component.manifest.tag, {
+            ref: elRef,
+            style: inert ? INERT : FILL,
+            ...(inert ? { inert: '' } : {}),
+        });
     } else if (editMode || status === 'unset') {
         const text =
             status === 'unset'
@@ -165,9 +241,19 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
                             adapter: known.adapter,
                             version: known.minVersion,
                         })
-                      : t('wc.missing', { tag })
+                      : repo
+                        ? t('wc.missingAdapter', {
+                              name: repoWebComponentName(repo, lang) || tag,
+                              adapter: repo.adapter,
+                              version: repo.version,
+                          })
+                        : t('wc.missing', { tag })
                   : status === 'failed'
-                    ? t('wc.failed', { tag, error })
+                    ? problem?.kind === 'module'
+                        ? t('wc.failedModule', { tag, adapter: component?.adapter ?? '', status: problem.status })
+                        : problem?.kind === 'react'
+                          ? t('wc.failedReact', { tag, file: problem.file, status: problem.status })
+                          : t('wc.failed', { tag, error })
                     : t('common.loading');
         body = (
             <div
@@ -186,13 +272,20 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
             <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                        {showIcon && (
+                        {showIcon && shown.iconUrl ? (
+                            <img
+                                src={shown.iconUrl}
+                                alt=""
+                                className="aura-widget-icon object-contain"
+                                style={{ width: iconSize, height: iconSize, flexShrink: 0 }}
+                            />
+                        ) : showIcon ? (
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
                                 style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                             />
-                        )}
+                        ) : null}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
@@ -201,7 +294,7 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >
-                                {config.title}
+                                {shown.title}
                             </p>
                         )}
                         <HeaderSlotsInline />
@@ -211,11 +304,15 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
             </HeaderGroup>
             <div
                 ref={hostRef}
+                // the component answers its clicks itself: the frame's click action stays quiet
+                data-no-popup={!editMode && click === 'component' ? '' : undefined}
+                data-wc-click={click}
                 className="aura-widget-value relative flex-1 min-h-0"
                 style={{ color: 'var(--text-primary)' }}
             >
                 {body}
             </div>
+            {dialog}
         </div>
     );
 }

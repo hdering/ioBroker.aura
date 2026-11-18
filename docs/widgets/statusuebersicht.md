@@ -29,9 +29,43 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 
 `LOWBAT` in Kanal 0 und 1 desselben Geräts ergibt eine Zeile (Kanal 0).
 
+### Welche Datenpunkte zählen (`batteryKinds`)
+
+| Art | Vorgabe | erkannt an | schwach bei |
+| --- | --- | --- | --- |
+| `bool` – Boolesch (LOWBAT) | an | Rolle `indicator.lowbat` oder Name | `true` |
+| `percent` – Prozent (%) | an | Rolle `value.battery` | ≤ `batteryThreshold` (20 %) |
+| `volt` – Spannung (V) | aus | Einheit `V` und `OPERATING_VOLTAGE` oder „batt“ in Id, Rolle, Name | ≤ `batteryVoltThreshold` (2,4 V) |
+| `millivolt` – Spannung (mV) | aus | dasselbe mit Einheit `mV` | ≤ `batteryVoltThreshold` × 1000 |
+
+- Ein Gerät, eine Zeile: Prozent vor Spannung, Spannung vor LOWBAT.
+- Netzspannung (`Voltage` einer Steckdose) zählt nicht. 0 V gilt als „kein Messwert“.
+- Mit Optik → „Welche Geräte anzeigen: Alle gefundenen Geräte“ (`valueFilter: all`) stehen die Spannungen auch ohne Warnung in der Liste („2,95 V“).
+
 | Fall | Abhilfe |
 | --- | --- |
 | Tote Doubletten: dieselben HmIP-Seriennummern (`000…`) zusätzlich unter einer alten `hm-rpc`-Instanz, Werte eingefroren | `excludeIdPatterns` (Teilstring oder `/regex/`, z. B. `/^hm-rpc.2.000/`) – sonst werden sie mitüberwacht |
+
+## Fenster & Türen erkennen
+
+| Quelle | zählt als Fenster/Tür |
+| --- | --- |
+| Rolle `sensor.window`, `sensor.door`, `window`, `door` | immer |
+| Rolle `value.window`, `value.door` (hm-rega, z. B. HM-Sec-SCo 0/1) | immer |
+| Zustände geschlossen / gekippt / offen (Drehgriff) | immer |
+| `WINDOW_STATE` (Thermostat, Heizgruppe) oder HomeMatic-Gruppe (`INT…`) | nur in Räumen ohne eigenen Fensterkontakt |
+
+## Namen
+
+| Option | |
+| --- | --- |
+| `deviceNames` | eigener Name je Gerät („Gerätenamen bearbeiten“); gilt für alle Zeilen des Geräts |
+| `namePattern` / `nameFilters` | laufen danach; Vorlage „HomeMatic-Kanal (:1) weg“ |
+
+| Erkannter Name | Regel |
+| --- | --- |
+| Kanal „Channel sensor“, „Kanal 1“ | übersprungen, Gerätename statt dessen |
+| `X:0.LOW_BAT` unter Kanal `X:0` | wird zu `X:0 › LOW_BAT` |
 
 ## Merkliste
 

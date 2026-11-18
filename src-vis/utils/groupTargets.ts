@@ -47,6 +47,8 @@ export interface GroupActionConfigOpts {
     groupPulseLabel?: string;
     /** Keys (list entry id / group child id) explicitly excluded from the group action. */
     groupExcludeIds?: string[];
+    /** Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once. */
+    groupStaggerMs?: number;
 }
 
 /** Whether a click on the group switch turns everything on. Off → on, on → off;

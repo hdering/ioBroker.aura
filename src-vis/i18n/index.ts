@@ -50,18 +50,27 @@ export function t(key: TranslationKey, vars?: Record<string, string | number>): 
     return interpolate(str, lang, vars);
 }
 
+type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+// One translate function per language, so useT() hands out the SAME function until
+// the language changes. A fresh one per render broke every effect/memo that lists
+// `t` as a dependency: EditHistoryControls re-ran its 250 ms tooltip timer after
+// every render and set state again - a render loop four times a second that kept
+// re-rendering the admin editor.
+const tByLang: Partial<Record<Language, TFn>> = {};
+
 /**
  * React hook — subscribes to language changes and triggers re-renders.
  * Use this in React components that need to update when the language changes.
- * Returns a `t()` function bound to the current language.
+ * Returns a `t()` function bound to the current language, stable until it changes.
  */
-export function useT(): (key: TranslationKey, vars?: Record<string, string | number>) => string {
+export function useT(): TFn {
     const lang = useConfigStore((s) => (s.frontend.language ?? 'de') as Language);
-    return (key: TranslationKey, vars?: Record<string, string | number>): string => {
+    return (tByLang[lang] ??= (key, vars) => {
         const dict = TRANSLATIONS[lang] ?? TRANSLATIONS.de;
         const str = dict[key] ?? TRANSLATIONS.de[key] ?? key;
         return interpolate(str, lang, vars);
-    };
+    });
 }
 
 export type { TranslationKey };

@@ -100,6 +100,36 @@ export function GroupActionConfig({ opts, setOpts, candidates }: Props) {
                         </div>
                     </div>
 
+                    {/* Delay between devices (#974) — for every type */}
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Versatz zwischen Geräten (Sek.)
+                        </label>
+                        <input
+                            type="number"
+                            min={0}
+                            step={0.1}
+                            className={iCls}
+                            style={iSty}
+                            placeholder="0 = alle gleichzeitig"
+                            value={opts.groupStaggerMs ? opts.groupStaggerMs / 1000 : ''}
+                            onChange={(e) => {
+                                const sec = Number(e.target.value);
+                                setOpts({
+                                    groupStaggerMs:
+                                        e.target.value === '' || !Number.isFinite(sec) || sec <= 0
+                                            ? undefined
+                                            : Math.min(600000, Math.round(sec * 1000)),
+                                });
+                            }}
+                        />
+                        <Info>
+                            Schaltet die Geräte nacheinander statt gleichzeitig — z. B. damit nicht alle Rollläden
+                            zugleich anlaufen. Läuft im Adapter weiter, auch wenn das Tablet in den Standby geht. Stopp
+                            wirkt immer sofort auf alle.
+                        </Info>
+                    </div>
+
                     {/* ── Schalter (An/Aus) ── */}
                     {type === 'switch' && (
                         <>

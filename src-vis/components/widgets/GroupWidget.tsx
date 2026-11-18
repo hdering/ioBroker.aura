@@ -31,15 +31,26 @@ import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
-import { GROUP_GAP, groupRowHeight, groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
+import {
+    groupAutoShrink,
+    groupPitch,
+    groupRows,
+    heightsForScope,
+    isFramelessGroup,
+    withContentHeights,
+} from '../../utils/groupLayout';
+import { clearResizeSize, showResizeSize } from '../../utils/resizeSizeBadge';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
+import { findDashboardWidget, mirrorTargetWidgetId } from '../../utils/mirrorSource';
+import { useDashboardStore } from '../../store/dashboardStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { copyWidget } from '../../utils/widgetCopy';
 import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
     return [...children].sort((a, b) => {
@@ -70,6 +81,8 @@ function GroupEmptyState({ loading }: { loading: boolean }) {
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const t = useT();
     const configLayout = config.layout ?? 'default';
+    // Same touch rules as the outer grid (#699): locked on touch unless arranging.
+    const gridEdit = useGridEditInteraction(editMode);
 
     // ── defId initialisation ───────────────────────────────────────────────────
     // Stable temp defId used between mount and the first onConfigChange round-trip
@@ -123,14 +136,31 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     );
     // autoShrink groups keep their own scroll-based height logic and the classic
     // p-1 grid inset — the uniform-fill spacing below applies only to normal groups.
-    const autoShrink = !!config.options?.autoShrink;
+    const autoShrink = groupAutoShrink(config.options);
+    // "Ohne Rahmen" (#981): no card, children on the tab's own pitch.
+    const frameless = isFramelessGroup(config.options);
     // On a fluid tab with stretched rows the filled box grows with them, so the
     // content-sized rows are counted on the stretched pitch — the same one the
     // Dashboard hugs this group on (#759). autoShrink draws on the design pitch.
     const stretchedRowPx = useStretchedRowHeight();
     const childRowPx = !autoShrink && stretchedRowPx ? stretchedRowPx : cellSize;
-    const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap);
+    const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap, frameless);
     const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
+    // A mirror renders its SOURCE, so in the phone stack it must size like the
+    // source: a mirrored device card or group takes its natural height instead of
+    // a fixed gridPos.h box it can only scroll in (#988) — same rule as the tab's
+    // own stack (#513). A joined id string keeps the selector's result stable.
+    const contentMirrorKey = useDashboardStore((s) => {
+        let key = '';
+        for (const c of children) {
+            const tid = mirrorTargetWidgetId(c);
+            if (!tid) continue;
+            const src = findDashboardWidget(s.layouts, tid);
+            if (src && src.type !== 'mirror' && stacksToContent(src)) key += `${c.id}|`;
+        }
+        return key;
+    });
+    const stacksInMobile = (c: WidgetConfig) => stacksToContent(c) || contentMirrorKey.includes(`${c.id}|`);
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
 
@@ -332,9 +362,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // groupRowHeight, so a child is never shorter than on the tab grid.
     // Truncated to 1/100 px so the rows can never sum a hair ABOVE the box — the
     // editor's overflow-auto would answer that with a scrollbar.
+    // Frameless (#981) runs the same fill on the outer pitch: on a hugged box the
+    // row comes out at exactly cellSize, so the children match the tab grid.
+    const pitch = groupPitch(cellSize, gridGap, frameless);
     const fillRowHeight =
         filled && height > 0 && maxRow > 0
-            ? Math.max(8, Math.floor(((height - (maxRow + 1) * GROUP_GAP) / maxRow) * 100) / 100)
+            ? Math.max(8, Math.floor(((height - (maxRow - 1) * pitch.gap - 2 * pitch.inset) / maxRow) * 100) / 100)
             : null;
 
     // keepGrid uses square cells (rowHeight = colWidth) so width AND height scale
@@ -342,7 +375,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const rowHeight =
         keepGrid && width > 0
             ? Math.max(8, Math.floor((width - gridGap * (cols - 1)) / cols))
-            : (fillRowHeight ?? (filled ? groupRowHeight(cellSize, gridGap) : cellSize));
+            : (fillRowHeight ?? (filled ? pitch.rowPx : cellSize));
 
     const setChildren = (next: WidgetConfig[]) => useGroupDefsStore.getState().setDef(defId, next);
 
@@ -352,9 +385,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const computeH = (next: WidgetConfig[]) => {
         if (next.length === 0) return config.gridPos.h;
         // Packed, like the grid draws them — see gridChildren (#680).
-        const fitted = withContentHeights(next, contentHeights, widgetPad, cellSize, gridGap);
+        const fitted = withContentHeights(next, contentHeights, widgetPad, cellSize, gridGap, frameless);
         const maxBottom = Math.max(...verticalCompact(fitted).map((c) => c.gridPos.y + c.gridPos.h));
-        return groupRows(maxBottom, hasHeaderContent, showTitle && !!config.title, cellSize, gridGap);
+        return groupRows(
+            maxBottom,
+            hasHeaderContent,
+            showTitle && !!config.title,
+            cellSize,
+            gridGap,
+            undefined,
+            frameless,
+        );
     };
 
     const fitHeightToChildren = (next: WidgetConfig[]) => {
@@ -498,7 +539,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 // Same when the bar is just an empty editor drag strip (no
                 // header content) — a divider would read as a real header.
                 borderBottom:
-                    transparent || isCollapsed || !hasHeaderContent ? 'none' : '1px solid var(--widget-border)',
+                    transparent || frameless || isCollapsed || !hasHeaderContent
+                        ? 'none'
+                        : '1px solid var(--widget-border)',
                 minHeight: editMode && !(showTitle && config.title) ? '36px' : undefined,
                 cursor: collapsible ? 'pointer' : undefined,
             }}
@@ -565,6 +608,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             dimmerIds={groupDimmerIds}
                             shutterTargets={groupShutterTargets}
                             pulseIds={groupPulseIds}
+                            staggerKey={config.id}
                             editing={editMode}
                             placeholderHint={t('group.masterPlaceholder')}
                             placeholderLabel={t('group.masterPlaceholderShort')}
@@ -626,17 +670,27 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
                 {!isCollapsed && (
                     <div
-                        className="aura-scroll flex-1 overflow-auto min-h-0 p-1"
-                        style={{ scrollbarGutter: 'stable both-edges' }}
+                        // Frameless (#981): no inset, no scrollbar gutter and the tab's own gap
+                        // between children, so a frameless group (device card) stacks exactly
+                        // like the same widgets outside it — the classic p-1 inset showed as a
+                        // phantom border on tablet/phone (#989). The gutter has to be switched
+                        // off explicitly: `.aura-scroll` reserves one, which costs nothing with
+                        // overlay scrollbars (Chrome on Android) but cut the children short on
+                        // the right where scrollbars take space (Fully Kiosk's WebView, desktop).
+                        className={`aura-scroll flex-1 overflow-auto min-h-0 ${frameless ? '' : 'p-1'}`}
+                        style={{ scrollbarGutter: frameless ? 'auto' : 'stable both-edges' }}
                     >
-                        <div className="flex flex-col gap-1.5">
+                        <div
+                            className={`flex flex-col ${frameless ? '' : 'gap-1.5'}`}
+                            style={frameless ? { gap: gridGap } : undefined}
+                        >
                             {sorted.map((child) => (
                                 <div
                                     key={child.id}
                                     // A nested group, an auto-height child … takes its natural
                                     // height in the stack, as on the tab's own stack (#897).
                                     style={
-                                        stacksToContent(child)
+                                        stacksInMobile(child)
                                             ? undefined
                                             : { height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }
                                     }
@@ -704,7 +758,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 // for badges. In the editor that spill used to raise the group's
                 // scrollbar while the frontend clipped it, so the two views disagreed.
                 // autoShrink keeps the classic p-1 inset and its scroll behaviour.
-                className={`flex-1 min-h-0 ${filled ? 'p-0 overflow-hidden' : 'overflow-auto p-1'}`}
+                // `nodrag` in the editor: touch drags reach the outer grid through
+                // native listeners that stopPropagation cannot stop, so a child's grip
+                // must also be a cancel area for the group's own item (#699).
+                className={`flex-1 min-h-0 ${filled ? 'p-0 overflow-hidden' : 'overflow-auto p-1'} ${editMode ? 'nodrag' : ''}`}
                 style={isCollapsed ? { display: 'none' } : undefined}
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
@@ -715,12 +772,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         cols={cols}
                         rowHeight={rowHeight}
                         width={width}
-                        isDraggable={editMode}
-                        isResizable={editMode}
+                        isDraggable={gridEdit.editable}
+                        isResizable={gridEdit.editable}
                         compactType={editMode ? 'vertical' : null}
                         draggableCancel=".nodrag"
-                        onDragStop={(newLayout) => {
-                            if (!editMode) return;
+                        draggableHandle={gridEdit.draggableHandle}
+                        onDragStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                        onDrag={(_l, _o, _n, _p, e, node) => gridEdit.onInteract(e, node)}
+                        onResizeStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                        onDragStop={(newLayout, _o, _n, _p, e) => {
+                            if (!editMode || !gridEdit.mayPersist(e)) return;
                             let changed = false;
                             const updated = children.map((c) => {
                                 const pos = newLayout.find((l) => l.i === c.id);
@@ -742,8 +803,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 shrinkToFit(updated);
                             }
                         }}
-                        onResizeStop={(newLayout) => {
-                            if (!editMode) return;
+                        onResize={(_l, _o, newItem, _p, e, node) => {
+                            gridEdit.onInteract(e, node);
+                            showResizeSize(node, newItem);
+                        }}
+                        onResizeStop={(newLayout, _o, _n, _p, e, node) => {
+                            clearResizeSize(node);
+                            if (!editMode || !gridEdit.mayPersist(e)) return;
                             let changed = false;
                             const updated = children.map((c) => {
                                 const pos = newLayout.find((l) => l.i === c.id);
@@ -765,8 +831,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 shrinkToFit(updated);
                             }
                         }}
-                        margin={filled ? [GROUP_GAP, GROUP_GAP] : [gridGap, gridGap]}
-                        containerPadding={filled ? [GROUP_GAP, GROUP_GAP] : [0, 0]}
+                        margin={filled ? [pitch.gap, pitch.gap] : [gridGap, gridGap]}
+                        containerPadding={filled ? [pitch.inset, pitch.inset] : [0, 0]}
                     >
                         {gridChildren.map((child) => (
                             <div key={child.id}>

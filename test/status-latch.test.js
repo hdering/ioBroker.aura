@@ -116,6 +116,9 @@ test('levelJumped thresholds', () => {
     assert.strictEqual(levelJumped('%', 10, 45), true);
     assert.strictEqual(levelJumped('%', 10, 35), false, 'below 40 %');
     assert.strictEqual(levelJumped('%', 20, 45), false, 'only +25 points');
+    // mV datapoints (#1000) jump like volts.
+    assert.strictEqual(levelJumped('mV', 2200, 3000), true, '2200 → 3000 mV');
+    assert.strictEqual(levelJumped('mV', 2400, 2500), false, '+100 mV');
 });
 
 // ── latch ───────────────────────────────────────────────────────────────────

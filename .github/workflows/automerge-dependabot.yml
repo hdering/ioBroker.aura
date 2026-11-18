@@ -1,29 +1,25 @@
+# Auto-merges Dependabot PRs by the rules in .github/auto-merge.yml.
+# Runs in the PR base (pull_request_target) — never check out or build PR code here.
+
 name: Auto-merge Dependabot PRs
 
 on:
-  pull_request:
-
-permissions:
-  pull-requests: write
-  contents: write
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 jobs:
   auto-merge:
-    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - name: Fetch Dependabot metadata
-        id: meta
-        uses: dependabot/fetch-metadata@v3
+      - name: Auto-merge Dependabot PRs
+        uses: iobroker-bot-orga/action-automerge-dependabot@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge (patch updates + dev-deps minor)
-        if: |
-          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
-          (steps.meta.outputs.dependency-type == 'direct:development' &&
-           steps.meta.outputs.update-type == 'version-update:semver-minor')
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          merge-method: 'squash'
+          wait-for-checks: 'true'

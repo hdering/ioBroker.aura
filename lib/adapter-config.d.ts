@@ -21,7 +21,6 @@ declare global {
             certPrivate: string;
             certChained: string;
             fsRoots: { label: string; path: string }[];
-            fsAllowWrite: boolean;
             timerTickSeconds: number;
             perfTracking: boolean;
             perfWidgetTracking: boolean;

@@ -8,10 +8,12 @@ import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-type Severity = 'debug' | 'info' | 'warn' | 'error';
-const SEVERITY_ORDER: Severity[] = ['debug', 'info', 'warn', 'error'];
+// The five ioBroker log levels, finest first (#969).
+type Severity = 'silly' | 'debug' | 'info' | 'warn' | 'error';
+const SEVERITY_ORDER: Severity[] = ['silly', 'debug', 'info', 'warn', 'error'];
 
 const SEVERITY_LABEL: Record<Severity, string> = {
+    silly: 'Silly',
     debug: 'Debug',
     info: 'Info',
     warn: 'Warn',
@@ -19,6 +21,7 @@ const SEVERITY_LABEL: Record<Severity, string> = {
 };
 
 const SEVERITY_COLOR: Record<Severity, string> = {
+    silly: '#a78bfa',
     debug: '#94a3b8',
     info: '#3b82f6',
     warn: '#f59e0b',
@@ -27,6 +30,8 @@ const SEVERITY_COLOR: Record<Severity, string> = {
 
 const DEFAULT_BUFFER = 500;
 const DEFAULT_VISIBLE = 200;
+// Table font size in px (#970); the level badge follows at 0.9em.
+const DEFAULT_FONT_SIZE = 10;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -47,8 +52,7 @@ function formatTime(ts: number): string {
 }
 
 function normalizeSeverity(s: LogEntry['severity']): Severity {
-    if (s === 'silly') return 'debug';
-    if (s === 'debug' || s === 'info' || s === 'warn' || s === 'error') return s;
+    if (s === 'silly' || s === 'debug' || s === 'info' || s === 'warn' || s === 'error') return s;
     return 'info';
 }
 
@@ -69,6 +73,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     const bufferSize = Math.max(50, Math.min(5000, (o.bufferSize as number) || DEFAULT_BUFFER));
     const visibleLimit = Math.max(20, Math.min(bufferSize, (o.visibleLimit as number) || DEFAULT_VISIBLE));
     const newestFirst = o.newestFirst !== false;
+    const fontSize = Math.max(8, Math.min(24, Number(o.fontSize) || DEFAULT_FONT_SIZE));
     const defaultLevels = (() => {
         const raw = o.levels as Severity[] | undefined;
         if (Array.isArray(raw) && raw.length > 0)
@@ -225,7 +230,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
 
     // Counts (over whole buffer)
     const counts = useMemo(() => {
-        const c: Record<Severity, number> = { debug: 0, info: 0, warn: 0, error: 0 };
+        const c: Record<Severity, number> = { silly: 0, debug: 0, info: 0, warn: 0, error: 0 };
         for (const e of bufferRef.current) c[normalizeSeverity(e.severity)]++;
         return c;
     }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -454,7 +459,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                 : 'Warte auf Log-Einträge…'}
                     </div>
                 ) : (
-                    <table className="w-full text-[10px] font-mono border-collapse">
+                    <table className="w-full font-mono border-collapse" style={{ fontSize, lineHeight: 1.4 }}>
                         <thead
                             className="sticky top-0 z-10"
                             style={{
@@ -500,8 +505,9 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                         </td>
                                         <td className="px-1.5 py-0.5 align-top whitespace-nowrap">
                                             <span
-                                                className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase"
+                                                className="inline-block px-1.5 py-0.5 rounded font-semibold uppercase"
                                                 style={{
+                                                    fontSize: '0.9em',
                                                     background: `${color}22`,
                                                     color,
                                                     border: `1px solid ${color}55`,

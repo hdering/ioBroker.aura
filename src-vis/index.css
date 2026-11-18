@@ -23,6 +23,46 @@ iframe {
     color-scheme: normal;
 }
 
+/* Refresh bar (ConnectionIndicator): a thin strip across the very top edge while
+ * the values are re-read after a wake-up or reconnect. A segment runs left to right. */
+.aura-refresh-bar {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    height: 5px;
+    overflow: hidden;
+    z-index: 60;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.aura-refresh-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* Loading fill: grows from the left edge to the full width, fades, starts again. */
+    background: var(--accent);
+    transform-origin: left center;
+    animation: auraRefreshBar 3s ease-out infinite;
+}
+@keyframes auraRefreshBar {
+    0% {
+        transform: scaleX(0);
+        opacity: 1;
+    }
+    80% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scaleX(1);
+        opacity: 0;
+    }
+}
+
 @keyframes blink {
     0%,
     100% {
@@ -708,16 +748,54 @@ iframe {
     }
 }
 
+/* ── Live size while resizing (#981) ─────────────────────────────────────────
+   utils/resizeSizeBadge sets data-aura-size on the item being resized. */
+.react-grid-item[data-aura-size]::after {
+    content: attr(data-aura-size);
+    position: absolute;
+    right: 4px;
+    bottom: 22px;
+    z-index: 60;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--accent, #3b82f6);
+    color: #fff;
+    font-size: 11px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 /* ── React-Grid-Layout position transitions ───────────────────────────────────
-   Only animate item positions when an actual drag is in progress.
-   Without this guard, switching tabs (display:none → visible) triggers
-   the 200ms transform transition on all grid items, causing visible flickering.
+   No glide at all. Outside a drag it made tabs flicker (display:none → visible
+   ran the 200 ms transform transition on every item). During a drag the widgets
+   that make room glided 200 ms to their new place, which at a low frame rate
+   (30 fps: six steps) looked like the drag stuttering - they jump there now.
+   Also replaces the former `:has(.react-draggable-dragging)` guard, whose flip
+   at every drag start restyled the whole grid.
    ─────────────────────────────────────────────────────────────────────────── */
-.react-grid-layout:not(:has(.react-draggable-dragging)) .react-grid-item.cssTransforms {
+.react-grid-layout,
+.react-grid-layout .react-grid-item {
     transition: none !important;
 }
-.react-grid-layout:not(:has(.react-draggable-dragging)) {
-    transition: none !important;
+
+/* ── No text selection on draggable grid items (editor) ──────────────────────
+   react-draggable does not prevent the browser's own text selection: mousedown
+   keeps its default, the selection starts at once and is extended on every move
+   of the drag (react-grid-layout only takes over after its 3 px threshold). Its
+   "user select hack" merely paints the selection transparent, which not every
+   setup honours - the widget texts showed up marked and the browser tracked a
+   live selection for the whole drag. `react-draggable` is only on items that can
+   be dragged, i.e. in the editor; fields stay selectable.
+   ─────────────────────────────────────────────────────────────────────────── */
+.react-grid-item.react-draggable {
+    -webkit-user-select: none;
+    user-select: none;
+}
+.react-grid-item.react-draggable :is(input, textarea, [contenteditable='true']) {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 /* ── Corner badges vs. the next grid item ────────────────────────────────────
@@ -834,8 +912,71 @@ input[type='range']::-moz-range-thumb {
     opacity: 0 !important;
     pointer-events: none !important;
 }
-.aura-peek .react-resizable-handle {
+.aura-peek .react-resizable-handle,
+.aura-peek .aura-drag-handle {
     display: none !important;
+}
+
+/* ── Arranging on touch devices (#699) ───────────────────────────────────────
+   hooks/useGridEditInteraction: with the arrange mode on, a tap selects a widget
+   (data-aura-selected on the grid item and its .aura-widget) and only that one
+   shows a grip (the grid's sole drag handle) and a finger-sized resize corner.
+   Both refuse touch panning; everywhere else a swipe keeps scrolling the page. */
+.aura-drag-handle {
+    display: none;
+}
+.aura-touch-arrange .aura-widget[data-aura-selected] > .aura-drag-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 9999px;
+    background: var(--accent, #3b82f6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: move;
+    touch-action: none;
+}
+.aura-touch-arrange .aura-drag-handle::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] {
+    outline: 2px solid var(--accent, #3b82f6);
+    outline-offset: 2px;
+    border-radius: var(--widget-radius, 12px);
+}
+.aura-touch-arrange .react-grid-item > .react-resizable-handle {
+    display: none;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] > .react-resizable-handle {
+    display: block;
+    z-index: 40;
+    width: 32px;
+    height: 32px;
+    opacity: 1;
+    border-radius: 9999px 0 9999px 0;
+    background: var(--accent, #3b82f6);
+    touch-action: none;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] > .react-resizable-handle::after {
+    right: 7px;
+    bottom: 7px;
+    width: 9px;
+    height: 9px;
+    border-color: #fff;
+}
+.aura-touch-arrange .react-grid-item[data-aura-selected] > .react-resizable-handle::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
 }
 
 /* Header-less group: its config controls live in a hover-reveal toolbar (top-left)
@@ -846,10 +987,63 @@ input[type='range']::-moz-range-thumb {
     pointer-events: none;
     transition: opacity 0.12s ease;
 }
-.aura-widget:hover > .aura-group-toolbar,
-.aura-widget:focus-within > .aura-group-toolbar {
+.aura-widget:not(.aura-headerless-group):hover > .aura-group-toolbar,
+.aura-widget:not(.aura-headerless-group):focus-within > .aura-group-toolbar {
     opacity: 1;
     pointer-events: auto;
+}
+/* Nested header-less groups (#981, e.g. a frameless device card in a frameless
+   group): both toolbars sit top-left, so only the INNERMOST header-less group under
+   the pointer (or holding focus) shows its own. The outer one comes back through
+   the inner toolbar's "parent group" button, which sets .aura-toolbar-parent on it
+   until the pointer leaves it — and hides the toolbars inside meanwhile. */
+.aura-headerless-group:hover:not(:has(.aura-headerless-group:hover)) > .aura-group-toolbar,
+.aura-headerless-group:focus-within:not(:has(.aura-headerless-group:focus-within)) > .aura-group-toolbar,
+.aura-headerless-group.aura-toolbar-parent > .aura-group-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+}
+/* The "parent group" button only where a header-less group is the parent: a group
+   with a header shows its own controls there anyway. */
+.aura-group-toolbar > [data-aura-parent-toolbar] {
+    display: none;
+}
+.aura-headerless-group .aura-headerless-group > .aura-group-toolbar > [data-aura-parent-toolbar] {
+    display: flex;
+}
+.aura-toolbar-parent .aura-headerless-group > .aura-group-toolbar {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+/* One colour per nesting level: the frameless outline and the toolbar buttons of a
+   level share it, so a toolbar reads as belonging to its box. */
+.aura-headerless-group {
+    --aura-nest-color: var(--accent, #3b82f6);
+}
+.aura-headerless-group .aura-headerless-group {
+    --aura-nest-color: #f59e0b;
+}
+.aura-headerless-group .aura-headerless-group .aura-headerless-group {
+    --aura-nest-color: #10b981;
+}
+/* "Aufbau geteilt mit …" sits half above a device card's top edge. Inside a group the
+   inner grid clips there (overflow hidden) — without a frame there is no inset left
+   to absorb it, so the text was cut in half (#981). In a group it moves inside the card. */
+.aura-widget .aura-widget .aura-devicecard-badge {
+    --tw-translate-y: 3px;
+}
+/* The text only on hover (#981): the coloured frame already marks linked cards, and an
+   always-on label covered the first child's title. Innermost card only. */
+.aura-devicecard-badge {
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+.aura-widget-type-devicecard:hover:not(:has(.aura-widget-type-devicecard:hover)) .aura-devicecard-badge {
+    opacity: 1;
+}
+.aura-headerless-group > .aura-group-toolbar > * {
+    border-color: var(--aura-nest-color) !important;
+    color: var(--aura-nest-color) !important;
 }
 
 /* Editor control lock (issue #655). While designing, a widget body must not

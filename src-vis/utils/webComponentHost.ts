@@ -13,6 +13,11 @@
  *   every installed component as an entry of its own in the "add widget" dialog.
  * - `KNOWN_WEB_COMPONENTS` / `findKnownWebComponent` - components offered even
  *   before their adapter is installed.
+ * - `RepoWebComponent` / `findRepoWebComponent` - the same from the short forms in the
+ *   repository (`common.webComponents`, `@iobroker/web-components` 0.8), for any adapter.
+ * - `versionedSources` / `versionedModule` / `mergeCatalog` - versioned URLs, so an
+ *   adapter update is not served from the browser cache, and a catalog read again.
+ * - `diagnoseWebComponentLoad` - why a module did not load (the module or the shared React missing).
  */
 import {
     getDefaultSettings,
@@ -20,13 +25,17 @@ import {
     getText,
     resolveManifestUrl,
     toSettings,
+    toSendToOptions,
     toWebComponentTheme,
     type LoadedWebComponent,
+    type WebComponentSendToRequest,
+    type WebComponentSettingOption,
     type WebComponentManifest,
     type WebComponentSettings,
     type WebComponentSocket,
     type WebComponentTheme,
 } from '@iobroker/web-components';
+import { isIdPattern } from './idPattern';
 
 /** A state as the socket delivers it */
 export interface HostState {
@@ -44,13 +53,19 @@ type ObjectHandler = (id: string, obj: unknown) => void;
 
 /** What the bridge needs from Aura's socket layer (hooks/useIoBroker), injected for tests */
 export interface HostSocketApi {
-    /** Subscribe one state; returns the unsubscribe function */
-    subscribeState(id: string, cb: (state: HostState) => void): () => void;
+    /**
+     * Subscribe one state or a pattern (`a.0.x.*`); returns the unsubscribe function. `cb` gets the
+     * state and, for a pattern, the ID of the state that changed
+     */
+    subscribeState(id: string, cb: (state: HostState, id?: string) => void): () => void;
     getState(id: string): Promise<HostState | null>;
     setState(id: string, val: unknown, ack: boolean): Promise<void>;
     getObject(id: string): Promise<unknown>;
-    /** Subscribe one object; returns the unsubscribe function. Optional: without it, objects are read once */
-    subscribeObject?(id: string, cb: (obj: unknown) => void): () => void;
+    /**
+     * Subscribe one object or a pattern of them; returns the unsubscribe function. `cb` gets the new
+     * object (null when deleted) and its ID. Optional: without it, objects are read once
+     */
+    subscribeObject?(id: string, cb: (obj: unknown, id?: string) => void): () => void;
     getHistory(id: string, options: Record<string, unknown>): Promise<unknown>;
     getObjectView(type: string, start: string, end: string): Promise<Record<string, unknown>>;
     sendTo(instance: string, command: string, data: unknown): Promise<unknown>;
@@ -87,9 +102,10 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
             for (const one of ids(id)) {
                 const forId = stateSubs.get(one) ?? new Map<StateHandler, () => void>();
                 if (forId.has(cb)) continue;
+                // a pattern calls back with the ID of the state that changed, as socket-client does
                 forId.set(
                     cb,
-                    api.subscribeState(one, (state) => cb(one, state)),
+                    api.subscribeState(one, (state, stateId) => cb(stateId || one, state)),
                 );
                 stateSubs.set(one, forId);
             }
@@ -99,7 +115,8 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
             for (const one of ids(id)) drop(stateSubs, one, cb);
         },
         getState(id: string) {
-            return api.getState(id);
+            // a pattern has no state of its own - asking the server would only cost a round trip
+            return isIdPattern(id) ? Promise.resolve(null) : api.getState(id);
         },
         async setState(id: string, val: unknown, ack?: boolean): Promise<void> {
             // A SettableState object ({ val, ack }) or the bare value, as in socket-client
@@ -111,16 +128,18 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
             await api.setState(id, val, !!ack);
         },
         getObject(id: string) {
-            return api.getObject(id);
+            // the base class reads the object of every subscribed state ID, a pattern included
+            return isIdPattern(id) ? Promise.resolve(null) : api.getObject(id);
         },
         async subscribeObject(id: string | string[], cb: ObjectHandler): Promise<void> {
             for (const one of ids(id)) {
                 const forId = objectSubs.get(one) ?? new Map<ObjectHandler, () => void>();
                 if (forId.has(cb)) continue;
                 if (api.subscribeObject) {
+                    // a pattern calls back with the ID of the object that changed
                     forId.set(
                         cb,
-                        api.subscribeObject(one, (obj) => cb(one, obj)),
+                        api.subscribeObject(one, (obj, objId) => cb(objId ?? one, obj)),
                     );
                 } else {
                     // No object events on this socket: the current object once, so the
@@ -228,6 +247,143 @@ export function evalSettingExpr(expr: string | undefined, data: Record<string, u
     }
 }
 
+// ── options from the adapter (selectSendTo / autocompleteSendTo) ──────────
+
+/** The answer of the instance for one sendTo setting: options, or null when there was none */
+export interface SendToAnswer {
+    /** `key` of the request it answers (getSendToRequest) */
+    key: string;
+    /** null: no answer, an error or a timeout - the field stays a text field */
+    options: WebComponentSettingOption[] | null;
+}
+
+/**
+ * Asks the instance for the options of a `selectSendTo` / `autocompleteSendTo`
+ * setting. A timeout, an error text or anything that is no list counts as no
+ * answer (null), so the host falls back to the text field.
+ *
+ * @param request from getSendToRequest
+ * @param sendTo the socket's sendTo
+ */
+export async function askSendToOptions(
+    request: WebComponentSendToRequest,
+    sendTo: (instance: string, command: string, data: unknown) => Promise<unknown>,
+): Promise<SendToAnswer> {
+    try {
+        const answer = await sendTo(request.instance, request.command, request.data);
+        return { key: request.key, options: Array.isArray(answer) ? toSendToOptions(answer) : null };
+    } catch {
+        return { key: request.key, options: null };
+    }
+}
+
+/**
+ * The options an `autocompleteSendTo` offers: the answer of the instance, then the
+ * fixed `options` of the manifest that the answer does not already contain.
+ *
+ * @param answer options from the instance
+ * @param fixed `options` of the setting
+ */
+export function mergeSendToOptions(
+    answer: WebComponentSettingOption[],
+    fixed: WebComponentSettingOption[] | undefined,
+): WebComponentSettingOption[] {
+    const seen = new Set(answer.map((o) => String(o.value)));
+    return [...answer, ...(fixed ?? []).filter((o) => !seen.has(String(o.value)))];
+}
+
+/**
+ * The value an `autocompleteSendTo` stores for what was typed: the value of an
+ * option whose value or label matches; any text with `freeSolo`; otherwise
+ * undefined (not a value - the stored one stays). An empty text clears it.
+ *
+ * @param text what is in the field
+ * @param options the options offered
+ * @param freeSolo any text is a value
+ * @param lang language of the labels
+ */
+export function autocompleteValue(
+    text: string,
+    options: WebComponentSettingOption[],
+    freeSolo: boolean,
+    lang: Parameters<typeof getText>[1],
+): { value: string | number | boolean | undefined } | null {
+    if (text === '') return { value: undefined };
+    const byValue = options.find((o) => String(o.value) === text);
+    if (byValue) return { value: byValue.value };
+    const byLabel = options.find((o) => getText(o.label, lang) === text);
+    if (byLabel) return { value: byLabel.value };
+    return freeSolo ? { value: text } : null;
+}
+
+// ── title and icon from the component ─────────────────────────────────────
+
+/**
+ * Event a component dispatches to name what Aura shows in the widget's title row
+ * when the widget takes its title or icon from the component (`wcTitleSource` /
+ * `wcIconSource: 'component'`) - e.g. a camera the name it has in its adapter.
+ * `detail`: `{ title?: string, icon?: string }`, again on every change. The same
+ * object may sit in the element's `header` property, read once it is ready.
+ * Not part of `@iobroker/web-components` yet (proposed there); a component
+ * without it leaves the widget's own title and the manifest's icon.
+ */
+export const HEADER_EVENT = 'iob-header';
+
+/** What a component reported for the title row */
+export interface ComponentHeader {
+    title?: string;
+    /** URL of a picture, absolute or relative to the component's manifest */
+    icon?: string;
+}
+
+/** `detail` of `HEADER_EVENT` (or the `header` property) as a header - strings only, empty ones dropped */
+export function parseComponentHeader(detail: unknown): ComponentHeader {
+    if (!detail || typeof detail !== 'object') return {};
+    const d = detail as Record<string, unknown>;
+    const str = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+    const header: ComponentHeader = {};
+    const title = str(d.title);
+    const icon = str(d.icon);
+    if (title) header.title = title;
+    if (icon) header.icon = icon;
+    return header;
+}
+
+/** Where a widget takes its title or icon from: Aura's own (default) or the component */
+export type HeaderSource = 'aura' | 'component';
+
+/** `options.wcTitleSource` / `options.wcIconSource` as a source - anything unknown is Aura's */
+export function headerSource(value: unknown): HeaderSource {
+    return value === 'component' ? 'component' : 'aura';
+}
+
+/**
+ * The title row of a webcomponent widget: with source `component` the title the
+ * component reported, else (or while it reported none) the widget's title; the
+ * icon the component reported, else the picture of its manifest - `iconUrl`
+ * undefined means Aura's icon of the widget.
+ *
+ * @param opts the sources (`wcTitleSource`, `wcIconSource`)
+ * @param opts.titleSource where the title comes from
+ * @param opts.iconSource where the icon comes from
+ * @param widgetTitle `config.title`
+ * @param header what the component reported
+ * @param manifestIcon URL of the manifest's picture, resolved
+ * @param resolve makes a reported icon URL absolute (relative to the manifest)
+ */
+export function resolveWidgetHeader(
+    opts: { titleSource: HeaderSource; iconSource: HeaderSource },
+    widgetTitle: string,
+    header: ComponentHeader,
+    manifestIcon: string | undefined,
+    resolve: (url: string) => string | undefined = (url) => url,
+): { title: string; iconUrl?: string } {
+    const title = (opts.titleSource === 'component' && header.title) || widgetTitle;
+    if (opts.iconSource !== 'component') return { title };
+    const iconUrl = (header.icon && resolve(header.icon)) || manifestIcon;
+    return iconUrl ? { title, iconUrl } : { title };
+}
+
 interface NavTab {
     id: string;
     name: string;
@@ -293,6 +449,10 @@ export interface WebComponentPickerEntry {
     size?: { width: number; height: number };
     /** A known component whose adapter is not installed (or too old) */
     missing?: boolean;
+    /** Not among the components tested with Aura (`KNOWN_WEB_COMPONENTS`) - offered, but marked */
+    untested?: boolean;
+    /** Version of the installed adapter */
+    version?: string;
 }
 
 /**
@@ -329,7 +489,76 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         // title = the widget's own title row; fullView = the fullscreen button under "Darstellung"
         hostSettings: ['title', 'fullView'],
     },
+    {
+        // tested live 2026-11-09: events of the instance, new and changed ones by object pattern (#953)
+        adapter: 'fullcalendar',
+        tag: 'iob-fullcalendar',
+        minVersion: '3.4.1',
+        name: { de: 'Kalender', en: 'Calendar' },
+        description: {
+            de: 'Die geplanten Ereignisse einer Instanz von fullcalendar als Monat, Woche, Tag oder Liste; Ereignisse lassen sich anlegen, verschieben und bearbeiten',
+            en: 'The planned events of an instance of fullcalendar as a month, week, day or list; events can be created, moved and edited',
+        },
+        size: { width: 520, height: 420 },
+        hostSettings: [],
+    },
+    {
+        adapter: 'cameras',
+        tag: 'iob-cameras-rtsp',
+        minVersion: '3.4.0',
+        name: { de: 'RTSP Camera', en: 'RTSP Camera' },
+        description: { de: 'Livebild einer RTSP-Kamera', en: 'Live picture of an RTSP camera' },
+        size: { width: 320, height: 240 },
+        // title = the widget's own title row (the component would draw a second one above the picture)
+        hostSettings: ['title'],
+    },
+    {
+        adapter: 'cameras',
+        tag: 'iob-cameras-snapshot',
+        minVersion: '3.4.0',
+        name: { de: 'Snapshot Camera', en: 'Snapshot Camera' },
+        description: {
+            de: 'Regelmäßig aktualisiertes Standbild einer Kamera',
+            en: 'Periodically updated snapshot of a camera',
+        },
+        size: { width: 320, height: 240 },
+        hostSettings: ['title'],
+    },
 ];
+
+/**
+ * A component of the repository (backend command `webComponentsRepo`): the short form
+ * of its manifest in `common.webComponents` of the adapter, offered while the adapter
+ * is not installed or too old. Not tested with Aura unless it is known as well.
+ */
+export interface RepoWebComponent {
+    adapter: string;
+    /** The version of the adapter in the repository */
+    version: string;
+    tag: string;
+    /** As in the manifest: a text or texts per language; null without one */
+    name: string | Record<string, string> | null;
+    /** Absolute URL of its picture on the web (the repository of the adapter) */
+    iconUrl?: string;
+    size?: { width: number; height: number };
+}
+
+/** The repository's entry of a component: by tag, the adapter only as a tie-breaker */
+export function findRepoWebComponent(
+    repo: readonly RepoWebComponent[],
+    tag: unknown,
+    adapter?: unknown,
+): RepoWebComponent | undefined {
+    if (typeof tag !== 'string' || !tag) return undefined;
+    const withTag = repo.filter((r) => r.tag === tag);
+    return withTag.find((r) => r.adapter === adapter) ?? withTag[0];
+}
+
+/** The name of a repository component in the frontend's language (English, then any), '' without one */
+export function repoWebComponentName(component: RepoWebComponent | undefined, lang: string): string {
+    if (!component?.name) return '';
+    return getText(component.name, lang as Parameters<typeof getText>[1]) || '';
+}
 
 /** The known component of a widget: by tag, the adapter only as a tie-breaker */
 export function findKnownWebComponent(tag: unknown, adapter?: unknown): KnownWebComponent | undefined {
@@ -338,9 +567,49 @@ export function findKnownWebComponent(tag: unknown, adapter?: unknown): KnownWeb
     return withTag.find((k) => k.adapter === adapter) ?? withTag[0];
 }
 
-/** Manifest settings of a component that Aura covers itself (see `hostSettings`) */
-export function hostOwnedSettings(tag: unknown, adapter?: unknown): readonly string[] {
-    return findKnownWebComponent(tag, adapter)?.hostSettings ?? [];
+/** Whether Aura has tested this component of this adapter (it is in `KNOWN_WEB_COMPONENTS`) */
+export function isTestedWebComponent(tag: unknown, adapter: unknown): boolean {
+    return KNOWN_WEB_COMPONENTS.some((k) => k.tag === tag && k.adapter === adapter);
+}
+
+/**
+ * Manifest settings of a component that Aura covers itself: the `hostSettings` of a
+ * known component, and for any component a text setting `title` - a caption the
+ * component would draw above its content, next to the widget's own title row.
+ *
+ * @param tag tag of the component
+ * @param adapter adapter of the component (tie-breaker among known ones)
+ * @param manifest its manifest, for the rule that applies to every component
+ */
+export function hostOwnedSettings(tag: unknown, adapter?: unknown, manifest?: WebComponentManifest): readonly string[] {
+    const known = findKnownWebComponent(tag, adapter)?.hostSettings ?? [];
+    const generic = manifest && getSettingTypes(manifest).title === 'text' ? ['title'] : [];
+    return generic.length && !known.includes('title') ? [...known, ...generic] : known;
+}
+
+/**
+ * Whether the component takes clicks (`options.wcClick`):
+ * - `off`: no - it gets no pointer, no focus, no keys (`inert`); a click is the widget's like on
+ *   any widget, so the click action of the widget applies if one is set (Aktion), else nothing
+ * - `component`: yes - its own controls and dialog; the widget's click action stays quiet
+ */
+export type WebComponentClick = 'off' | 'component';
+
+/**
+ * The click mode of a widget: `component` only when the widget says so - by default
+ * a click belongs to the widget, as on any other (an earlier build's `aura` too).
+ *
+ * @param own `options.wcClick`
+ */
+export function webComponentClick(own: unknown): WebComponentClick {
+    return own === 'component' ? 'component' : 'off';
+}
+
+/** Why the editor greys out a setting Aura covers itself - an i18n key */
+export function hostSettingReasonKey(key: string): 'wc.host.title' | 'wc.host.fullView' | 'wc.host.other' {
+    if (key === 'title') return 'wc.host.title';
+    if (key === 'fullView') return 'wc.host.fullView';
+    return 'wc.host.other';
 }
 
 /** `settings` without the keys Aura covers itself */
@@ -348,8 +617,9 @@ export function withoutHostSettings<T extends Record<string, unknown>>(
     settings: T,
     tag: unknown,
     adapter?: unknown,
+    manifest?: WebComponentManifest,
 ): T {
-    const drop = hostOwnedSettings(tag, adapter);
+    const drop = hostOwnedSettings(tag, adapter, manifest);
     if (!drop.length) return settings;
     return Object.fromEntries(Object.entries(settings).filter(([key]) => !drop.includes(key))) as T;
 }
@@ -373,12 +643,18 @@ export function parseWebComponentKey(key: unknown): { adapter: string; tag: stri
 /**
  * The installed components as entries of the dialog: once per adapter and tag,
  * named in the frontend's language (English, then the tag, as fallback). The known
- * components that are not installed follow, marked `missing`.
+ * components that are not installed follow, marked `missing`, then those of the
+ * repository that are neither installed nor known.
  *
  * @param components the catalog (`loadWebComponentCatalog`)
  * @param lang language of the frontend
+ * @param repo the components of the repository (`loadRepoWebComponents`)
  */
-export function webComponentPickerEntries(components: LoadedWebComponent[], lang: string): WebComponentPickerEntry[] {
+export function webComponentPickerEntries(
+    components: LoadedWebComponent[],
+    lang: string,
+    repo: readonly RepoWebComponent[] = [],
+): WebComponentPickerEntry[] {
     const entries: WebComponentPickerEntry[] = [];
     for (const c of components) {
         const tag = c?.manifest?.tag;
@@ -396,6 +672,8 @@ export function webComponentPickerEntries(components: LoadedWebComponent[], lang
             label: getText(c.manifest.name, language) || tag,
             hint: [description, from].filter(Boolean).join(' – '),
             iconUrl: resolveManifestUrl(c.manifest.icon, c.url),
+            untested: !isTestedWebComponent(tag, c.adapter),
+            version: typeof c.version === 'string' && c.version ? c.version : undefined,
             size:
                 size && Number(size.width) > 0 && Number(size.height) > 0
                     ? { width: Number(size.width), height: Number(size.height) }
@@ -411,8 +689,23 @@ export function webComponentPickerEntries(components: LoadedWebComponent[], lang
             tag: k.tag,
             label: de ? k.name.de : k.name.en,
             hint: `${de ? k.description.de : k.description.en} – Adapter ${k.adapter} ${de ? '(nicht installiert)' : '(not installed)'}`,
+            iconUrl: findRepoWebComponent(repo, k.tag, k.adapter)?.iconUrl,
             size: k.size,
             missing: true,
+        });
+    }
+    for (const r of repo) {
+        if (!r?.tag || !r.adapter || entries.some((e) => e.tag === r.tag)) continue;
+        entries.push({
+            key: webComponentKey(r.adapter, r.tag),
+            adapter: r.adapter,
+            tag: r.tag,
+            label: repoWebComponentName(r, lang) || r.tag,
+            hint: `Adapter ${r.adapter} ${r.version} ${de ? '(nicht installiert)' : '(not installed)'}`,
+            iconUrl: r.iconUrl,
+            size: r.size,
+            missing: true,
+            untested: !isTestedWebComponent(r.tag, r.adapter),
         });
     }
     return entries;
@@ -452,4 +745,151 @@ export function webComponentGridSize(
 export function objectIdOfRow(row: { id: string; value?: unknown }): string {
     const own = (row.value as { _id?: unknown } | null | undefined)?._id;
     return typeof own === 'string' && own ? own : row.id;
+}
+
+// ── versioned URLs, a catalog read again ────────────────────────────────────
+
+/**
+ * A URL with the adapter version as query `v`. Manifests and modules lie under
+ * URLs without a version, so a browser could keep using cached files of an
+ * adapter after its update; with the version the next page load fetches the new
+ * ones. The servers (Aura's own, web) ignore the query.
+ *
+ * @param url absolute URL of a manifest or a module
+ * @param version version of the adapter that brings it
+ */
+export function versionedUrl(url: string, version: string): string {
+    if (!version) return url;
+    try {
+        const u = new URL(url);
+        u.searchParams.set('v', version);
+        return u.href;
+    } catch {
+        return url;
+    }
+}
+
+/**
+ * The sources of the catalog (`getWebComponentSources`) with versioned manifest URLs
+ *
+ * @param sources where the components are described
+ */
+export function versionedSources<T extends { url: string; version: string }>(sources: T[]): T[] {
+    return sources.map((s) => ({ ...s, url: versionedUrl(s.url, s.version) }));
+}
+
+/**
+ * A loaded component whose module URL is versioned as well: the manifest names its
+ * module relative to itself, and resolving that drops the query of the manifest
+ * URL. `importWebComponent` still imports every URL once and checks the tag.
+ *
+ * @param component as `loadWebComponents` gave it
+ */
+export function versionedModule(component: LoadedWebComponent): LoadedWebComponent {
+    return { ...component, moduleUrl: versionedUrl(component.moduleUrl, component.version) };
+}
+
+/**
+ * The catalog read again (↻, a reconnect, a short catalog), merged with the one before:
+ * - a component whose element is defined already keeps the module URL it was
+ *   imported from. A browser cannot define a tag twice, so the module of an update
+ *   would be loaded and run for nothing - it takes effect with the next page load;
+ * - a component that did not change stays the same object, so the widgets showing
+ *   it are left alone.
+ *
+ * @param next the components just read
+ * @param previous the components read before
+ * @param isDefined whether the element of a tag is defined in this page
+ */
+export function mergeCatalog(
+    next: LoadedWebComponent[],
+    previous: LoadedWebComponent[],
+    isDefined: (tag: string) => boolean,
+): LoadedWebComponent[] {
+    return next.map((c) => {
+        const before = previous.find((p) => p.adapter === c.adapter && p.manifest.tag === c.manifest.tag);
+        if (!before) return c;
+        const kept =
+            before.moduleUrl !== c.moduleUrl && isDefined(c.manifest.tag) ? { ...c, moduleUrl: before.moduleUrl } : c;
+        const same =
+            kept.url === before.url &&
+            kept.moduleUrl === before.moduleUrl &&
+            JSON.stringify(kept.manifest) === JSON.stringify(before.manifest);
+        return same ? before : kept;
+    });
+}
+
+// ── why a module did not load ───────────────────────────────────────────────
+
+/**
+ * What stopped a component's module from loading, found after the import failed.
+ * The browser only says "Failed to fetch dynamically imported module", whether the
+ * module itself or one of its imports is missing.
+ * - `module`: the module file is not served (not uploaded, or an HTML page instead)
+ * - `react`: the shared React it imports (`<base>/lib/esm/react-19.js`) is not
+ *   served - behind the web adapter extension that needs web 9.2.0 or newer
+ */
+export type WebComponentLoadProblem =
+    | { kind: 'module'; url: string; status: number }
+    | { kind: 'react'; url: string; status: number; file: string };
+
+/** The shared React files a module imports, as written in it (relative or absolute) */
+export function reactImportsOf(source: string): string[] {
+    const out: string[] = [];
+    const re = /["'`]((?:\.{1,2}\/|\/)(?:[^"'`\s]*\/)?lib\/esm\/react-\d+\.js)["'`]/g;
+    for (let m = re.exec(source); m; m = re.exec(source)) {
+        if (!out.includes(m[1])) out.push(m[1]);
+    }
+    return out;
+}
+
+type MiniResponse = {
+    ok: boolean;
+    status: number;
+    headers: { get(name: string): string | null };
+    text(): Promise<string>;
+};
+
+/** A JavaScript file answered: not an error, not an HTML page (a SPA fallback) */
+function servesScript(r: MiniResponse): boolean {
+    return r.ok && !/text\/html/i.test(r.headers.get('content-type') ?? '');
+}
+
+/**
+ * Look for the reason a component's module did not load: fetch the module, and
+ * the shared React it imports. Null when both are served (the reason lies in the
+ * module's code then, the browser's message says it) or nothing answered at all.
+ *
+ * @param moduleUrl absolute URL of the module
+ * @param fetchFn `fetch`, injected for the tests
+ */
+export async function diagnoseWebComponentLoad(
+    moduleUrl: string,
+    fetchFn: (url: string, init?: { method?: string }) => Promise<MiniResponse> = fetch,
+): Promise<WebComponentLoadProblem | null> {
+    let source: string;
+    try {
+        const r = await fetchFn(moduleUrl);
+        if (!servesScript(r)) return { kind: 'module', url: moduleUrl, status: r.status };
+        source = await r.text();
+    } catch {
+        return null;
+    }
+    for (const spec of reactImportsOf(source)) {
+        let url: string;
+        try {
+            url = new URL(spec, moduleUrl).href;
+        } catch {
+            continue;
+        }
+        try {
+            const r = await fetchFn(url, { method: 'HEAD' });
+            if (!servesScript(r)) {
+                return { kind: 'react', url, status: r.status, file: spec.replace(/^.*\/(lib\/esm\/)/, '/$1') };
+            }
+        } catch {
+            return { kind: 'react', url, status: 0, file: spec.replace(/^.*\/(lib\/esm\/)/, '/$1') };
+        }
+    }
+    return null;
 }

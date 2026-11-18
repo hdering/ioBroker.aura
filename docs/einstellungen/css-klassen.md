@@ -16,10 +16,12 @@ Custom CSS wirkt im Frontend, im Editor nur mit der Option „CSS auch im Editor
 | `.aura-tabs` | Tab-Leiste, oben wie unten |
 | `.aura-tabs-top` | Tab-Leiste über dem Dashboard |
 | `.aura-tabs-bottom` | Tab-Leiste als Fußzeile |
+| `.aura-tabs-pinned` | Fixierter Hamburger des Bereichs-Menüs am Anfang der Tab-Leiste |
 | `.aura-section-bar` | Bereichsleiste |
 | `.aura-nav-stretch` | Eintragsreihe einer Leiste mit Menü-Position `Gleichmäßig` |
 | `.aura-menu-widget` | Widget-Platz in einer Menüleiste |
 | `.aura-pin-prompt` | PIN-Abfrage vor einem gesperrten Tab |
+| `.aura-refresh-bar` | Ladeleiste am oberen Rand, solange die Werte nach dem Aufwachen oder einem Reconnect neu gelesen werden – und solange noch keine Verbindung besteht, bis das Offline-Banner erscheint |
 
 ## Tabs
 
@@ -243,6 +245,8 @@ Ist die Verbindung zu ioBroker länger als 5 s weg, trägt die Seite `[data-aura
 | `.aura-group-toolbar` | Werkzeugleiste einer Gruppe ohne Kopfzeile |
 | `.aura-widget-inert` | Widget-Inhalt mit gesperrter Bedienung |
 | `.aura-peek` | am `<body>`, solange `Strg`+`Alt` die Editor-Elemente ausblendet |
+| `.aura-touch-arrange` | am `<html>`, solange auf einem Touch-Gerät *Anordnen* aktiv ist |
+| `.aura-drag-handle` | Griff zum Verschieben am ausgewählten Widget (nur bei *Anordnen*) |
 | `.aura-config-modal` | Konfigurations-Popup |
 | `.aura-widget-edit-modal` | Widget-Bearbeiten-Popup |
 | `.aura-dp-picker` | Datenpunkt-Auswahl |

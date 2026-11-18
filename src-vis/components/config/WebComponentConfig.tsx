@@ -1,188 +1,38 @@
-import { useEffect, useState } from 'react';
-import { Database, RefreshCw } from 'lucide-react';
-import { getSettingsGroups, getText, resolveManifestUrl, type WebComponentSetting } from '@iobroker/web-components';
+import { Puzzle, RefreshCw } from 'lucide-react';
+import { getSettingsGroups, getText, resolveManifestUrl } from '@iobroker/web-components';
 import { useConfigStore } from '../../store/configStore';
-import { getObjectViewDirect } from '../../hooks/useIoBroker';
 import {
-    evalSettingExpr,
     findKnownWebComponent,
+    findRepoWebComponent,
+    repoWebComponentName,
+    headerSource,
     hostOwnedSettings,
-    objectIdOfRow,
+    hostSettingReasonKey,
+    isTestedWebComponent,
     typedSettings,
+    webComponentClick,
 } from '../../utils/webComponentHost';
 import { editsValue } from '../../utils/webComponentValue';
-import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
-import { DatapointPicker } from './DatapointPicker';
+import { findWebComponent, useRepoWebComponents, useWebComponentCatalog } from '../../utils/webComponentRegistry';
+import { useT } from '../../i18n';
+import { Unavailable } from './Unavailable';
 import { WebComponentValueField } from './WebComponentValueField';
+import {
+    WebComponentFields,
+    wcHintStyle as hintSty,
+    wcInputCls as iCls,
+    wcInputStyle as iSty,
+    wcLabelCls as labelCls,
+    type WebComponentLang,
+} from './WebComponentFields';
 
 interface Props {
     options: Record<string, unknown>;
     onChange: (patch: Record<string, unknown>) => void;
-}
-
-const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
-const iSty: React.CSSProperties = {
-    background: 'var(--app-bg)',
-    color: 'var(--text-primary)',
-    border: '1px solid var(--app-border)',
-};
-const labelCls = 'text-[11px] mb-1 block';
-const hintSty: React.CSSProperties = { color: 'var(--text-secondary)', opacity: 0.7 };
-
-function Toggle({ value, onToggle, disabled }: { value: boolean; onToggle: () => void; disabled?: boolean }) {
-    return (
-        <button
-            type="button"
-            disabled={disabled}
-            onClick={onToggle}
-            className="relative w-9 h-5 rounded-full transition-colors shrink-0 disabled:opacity-50"
-            style={{ background: value ? 'var(--accent)' : 'var(--app-border)' }}
-        >
-            <span
-                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                style={{ left: value ? '18px' : '2px' }}
-            />
-        </button>
-    );
-}
-
-/** Instances of one adapter (`flow.0`, …) for settings of type `instance` */
-function useInstances(adapter: string | undefined): string[] {
-    const [list, setList] = useState<string[]>([]);
-    useEffect(() => {
-        let alive = true;
-        const start = adapter ? `system.adapter.${adapter}.` : 'system.adapter.';
-        void getObjectViewDirect('instance', start, `${start}\u9999`).then((view) => {
-            if (!alive) return;
-            setList(
-                (view.rows ?? [])
-                    .map((row) => row.id.replace(/^system\.adapter\./, ''))
-                    .filter((id) => /\.\d+$/.test(id))
-                    .sort(),
-            );
-        });
-        return () => {
-            alive = false;
-        };
-    }, [adapter]);
-    return list;
-}
-
-/** `objectId` for states only - what the datapoint picker offers. `types` missing means `state`, as in JSON-Config */
-function onlyStates(item: WebComponentSetting): boolean {
-    const types = Array.isArray(item.types) ? item.types : item.types ? [item.types] : ['state'];
-    return types.every((t) => t === 'state');
-}
-
-/**
- * Objects of other types (`config`, `channel`, `device`, …) below `root`, read from
- * the object views - flow's diagrams are `config` objects under `flow.0.diagrams`,
- * which the datapoint picker (states only) never lists.
- */
-function useObjectsOfTypes(types: string[], root: string | undefined): { id: string; name: unknown }[] {
-    const [list, setList] = useState<{ id: string; name: unknown }[]>([]);
-    const typesKey = types.join(',');
-    useEffect(() => {
-        let alive = true;
-        const start = root ? `${root}.` : '';
-        const end = root ? `${root}.\u9999` : '\u9999';
-        void Promise.all(
-            typesKey.split(',').map((type) =>
-                getObjectViewDirect(type as Parameters<typeof getObjectViewDirect>[0], start, end).catch(() => ({
-                    rows: [],
-                })),
-            ),
-        ).then((views) => {
-            if (!alive) return;
-            const rows = views.flatMap((v) => v.rows ?? []);
-            setList(
-                rows
-                    .map((row) => ({
-                        // not row.id: the `config` view keys its rows by name, not by ID
-                        id: objectIdOfRow(row),
-                        name: (row.value as { common?: { name?: unknown } } | undefined)?.common?.name,
-                    }))
-                    .sort((a, b) => a.id.localeCompare(b.id)),
-            );
-        });
-        return () => {
-            alive = false;
-        };
-    }, [typesKey, root]);
-    return list;
-}
-
-function ObjectSelect({
-    item,
-    value,
-    lang,
-    disabled,
-    onSet,
-}: {
-    item: WebComponentSetting;
-    value: unknown;
-    lang: ioBrokerLang;
-    disabled: boolean;
-    onSet: (v: unknown) => void;
-}) {
-    const types = Array.isArray(item.types) ? item.types : item.types ? [item.types] : ['state'];
-    const objects = useObjectsOfTypes(types, item.root);
-    const current = typeof value === 'string' ? value : '';
-    const label = (id: string, name: unknown): string => {
-        const text = name && (typeof name === 'string' || typeof name === 'object') ? getText(name as never, lang) : '';
-        return text && text !== id ? `${text} (${id})` : id;
-    };
-    return (
-        <select
-            value={current}
-            disabled={disabled}
-            onChange={(e) => onSet(e.target.value)}
-            className={iCls}
-            style={iSty}
-        >
-            <option value="">{objects.length ? '–' : 'Keine Objekte gefunden'}</option>
-            {current && !objects.some((o) => o.id === current) && (
-                <option value={current}>{objects.length ? `${current} (nicht gefunden)` : current}</option>
-            )}
-            {objects.map((o) => (
-                <option key={o.id} value={o.id}>
-                    {label(o.id, o.name)}
-                </option>
-            ))}
-        </select>
-    );
-}
-
-function InstanceSelect({
-    item,
-    value,
-    disabled,
-    onSet,
-}: {
-    item: WebComponentSetting;
-    value: unknown;
-    disabled: boolean;
-    onSet: (v: unknown) => void;
-}) {
-    const instances = useInstances(item.adapter);
-    const current = typeof value === 'string' ? value : '';
-    return (
-        <select
-            value={current}
-            disabled={disabled}
-            onChange={(e) => onSet(e.target.value)}
-            className={iCls}
-            style={iSty}
-        >
-            <option value="">–</option>
-            {current && !instances.includes(current) && <option value={current}>{current}</option>}
-            {instances.map((id) => (
-                <option key={id} value={id}>
-                    {id}
-                </option>
-            ))}
-        </select>
-    );
+    /** The widget's title - a title the component kept in its own settings can be moved there */
+    title?: string;
+    /** Sets the title and patches the options in one change */
+    onTitle?: (title: string, patch: Record<string, unknown>) => void;
 }
 
 /**
@@ -200,251 +50,142 @@ export function WebComponentTypeLabel({
     fallback: string;
     children?: (name: string) => React.ReactNode;
 }) {
-    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as ioBrokerLang;
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as WebComponentLang;
     const { components } = useWebComponentCatalog();
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
     const known = findKnownWebComponent(o.wcTag, o.wcAdapter);
+    const repo = useRepoWebComponents(!component && !known && typeof o.wcTag === 'string' && !!o.wcTag);
     const name =
         (component && getText(component.manifest.name, lang)) ||
         (known && (lang === 'de' ? known.name.de : known.name.en)) ||
+        repoWebComponentName(findRepoWebComponent(repo, o.wcTag, o.wcAdapter), lang) ||
         fallback;
     return <>{children ? children(name) : name}</>;
+}
+
+/**
+ * Under the type list of the edit dialog: which component the "Web-Komponente"
+ * widget shows, from which adapter (and version), and that its content comes
+ * from that adapter - marked when the adapter is missing or the component is not
+ * tested with Aura yet. The component itself is chosen in the settings below.
+ */
+export function WebComponentInfoCard({ options: o }: { options: Record<string, unknown> }) {
+    const t = useT();
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as WebComponentLang;
+    const { components, loading } = useWebComponentCatalog();
+    const component = findWebComponent(components, o.wcTag, o.wcAdapter);
+    const known = findKnownWebComponent(o.wcTag, o.wcAdapter);
+    const chosen = typeof o.wcTag === 'string' && !!o.wcTag;
+    // not installed: name and picture from the repository
+    const repo = findRepoWebComponent(useRepoWebComponents(chosen && !loading && !component), o.wcTag, o.wcAdapter);
+    const name =
+        (component && getText(component.manifest.name, lang)) ||
+        (known && (lang === 'de' ? known.name.de : known.name.en)) ||
+        repoWebComponentName(repo, lang) ||
+        (chosen ? String(o.wcTag) : '');
+    const adapter =
+        component?.adapter ?? known?.adapter ?? repo?.adapter ?? (typeof o.wcAdapter === 'string' ? o.wcAdapter : '');
+    const iconUrl = component?.manifest.icon
+        ? resolveManifestUrl(component.manifest.icon, component.url)
+        : component
+          ? undefined
+          : repo?.iconUrl;
+    const missing = chosen && !loading && !component;
+    const untested = !!component && !isTestedWebComponent(component.manifest.tag, component.adapter);
+    const color = '#0ea5e9'; // the colour of the widget type (widgetRegistry)
+    return (
+        <div
+            data-wc-info
+            className="rounded-lg px-2.5 py-2 flex items-center gap-2.5"
+            style={{
+                background: `color-mix(in srgb, ${color} 8%, var(--app-bg))`,
+                border: `1px solid color-mix(in srgb, ${color} 35%, var(--app-border))`,
+            }}
+        >
+            {iconUrl ? (
+                <img src={iconUrl} alt="" className="object-contain shrink-0" style={{ width: 24, height: 24 }} />
+            ) : (
+                <Puzzle size={20} className="shrink-0" style={{ color }} />
+            )}
+            <div className="min-w-0 flex-1">
+                {chosen ? (
+                    <>
+                        <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                            {name}
+                        </p>
+                        <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                            {adapter && (
+                                <>
+                                    Adapter <code>{adapter}</code>
+                                    {component?.version ? ` ${component.version}` : ''}
+                                    {' · '}
+                                </>
+                            )}
+                            {missing ? (
+                                <span style={{ color: 'var(--accent-yellow)' }}>
+                                    {t('wf.edit.wc.adapterMissing', { adapter: adapter || '?' })}
+                                </span>
+                            ) : (
+                                t('wf.edit.wc.fromAdapter')
+                            )}
+                            {untested && ` · ${t('editor.manual.wc.untested')}`}
+                        </p>
+                    </>
+                ) : (
+                    <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.edit.wc.none')}
+                    </p>
+                )}
+            </div>
+        </div>
+    );
 }
 
 /**
  * Settings of the webcomponent widget: which component of which adapter, and its
  * own settings as its manifest declares them (a subset of JSON-Config). Values
  * are stored in `options.wcSettings`, only what the user set - the defaults of
- * the manifest fill in the rest when the element gets them.
+ * the manifest fill in the rest when the element gets them. The fields are those
+ * of the form dialogs a component opens at runtime (WebComponentFields).
  */
-export function WebComponentConfig({ options: o, onChange }: Props) {
-    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as ioBrokerLang;
+export function WebComponentConfig({ options: o, onChange, title, onTitle }: Props) {
+    const t = useT();
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as WebComponentLang;
     const { components, loading, reload } = useWebComponentCatalog();
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
     // Placed from the dialog before its adapter was installed: say which one is missing
     const known = component ? undefined : findKnownWebComponent(o.wcTag, o.wcAdapter);
-    const knownName = known ? (lang === 'de' ? known.name.de : known.name.en) : '';
+    const repo = useRepoWebComponents(!component && !known && typeof o.wcTag === 'string' && !!o.wcTag);
+    const knownName = known
+        ? lang === 'de'
+            ? known.name.de
+            : known.name.en
+        : repoWebComponentName(findRepoWebComponent(repo, o.wcTag, o.wcAdapter), lang);
     // Title and "open large" come from the widget frame, not from the component
-    const hostKeys = component ? hostOwnedSettings(component.manifest.tag, component.adapter) : [];
+    const hostKeys = component ? hostOwnedSettings(component.manifest.tag, component.adapter, component.manifest) : [];
     const stored = (o.wcSettings && typeof o.wcSettings === 'object' ? o.wcSettings : {}) as Record<string, unknown>;
     const data = component ? (typedSettings(component.manifest, stored) as Record<string, unknown>) : {};
-    const [picking, setPicking] = useState<string | null>(null);
+    // a title the component kept before Aura took it over: offered for the widget's title
+    const oldTitle =
+        hostKeys.includes('title') && typeof stored.title === 'string' && stored.title.trim()
+            ? stored.title.trim()
+            : '';
+    const withoutOldTitle = (): Record<string, unknown> => {
+        const next = { ...stored };
+        delete next.title;
+        return { wcSettings: next };
+    };
+    const titleSource = headerSource(o.wcTitleSource);
+    const iconSource = headerSource(o.wcIconSource);
+    const click = webComponentClick(o.wcClick);
+    // without an own choice a click belongs to the widget
+    const defaultClick = webComponentClick(undefined);
 
     const setValue = (key: string, value: unknown): void => {
         const next = { ...stored };
         if (value === undefined || value === '') delete next[key];
         else next[key] = value;
         onChange({ wcSettings: next });
-    };
-
-    const field = (key: string, item: WebComponentSetting): React.ReactNode => {
-        if (evalSettingExpr(item.hidden, data)) return null;
-        const disabled = evalSettingExpr(item.disabled, data);
-        const label = getText(item.label, lang);
-        const help = item.help ? getText(item.help, lang) : '';
-        const value = data[key];
-
-        if (item.type === 'header') {
-            return (
-                <p key={key} className="text-xs font-semibold pt-1" style={{ color: 'var(--text-primary)' }}>
-                    {getText(item.text ?? item.label, lang)}
-                </p>
-            );
-        }
-        if (item.type === 'staticText') {
-            return (
-                <p key={key} className="text-[11px]" style={hintSty}>
-                    {getText(item.text ?? item.label, lang)}
-                </p>
-            );
-        }
-        if (item.type === 'divider') {
-            return <hr key={key} style={{ borderColor: 'var(--app-border)' }} />;
-        }
-
-        let input: React.ReactNode;
-        switch (item.type) {
-            case 'checkbox':
-                input = (
-                    <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs" style={{ color: 'var(--text-primary)' }}>
-                            {label}
-                        </span>
-                        <Toggle
-                            value={value === true}
-                            disabled={disabled}
-                            onToggle={() => setValue(key, value !== true)}
-                        />
-                    </div>
-                );
-                return (
-                    <div key={key}>
-                        {input}
-                        {help && (
-                            <p className="text-[10px] mt-0.5" style={hintSty}>
-                                {help}
-                            </p>
-                        )}
-                    </div>
-                );
-            case 'number':
-                input = (
-                    <input
-                        type="number"
-                        value={value === undefined ? '' : String(value)}
-                        min={item.min}
-                        max={item.max}
-                        step={item.step}
-                        disabled={disabled}
-                        onChange={(e) => setValue(key, e.target.value === '' ? undefined : Number(e.target.value))}
-                        className={iCls}
-                        style={iSty}
-                    />
-                );
-                break;
-            case 'slider':
-                input = (
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="range"
-                            value={typeof value === 'number' ? value : Number(item.min ?? 0)}
-                            min={item.min ?? 0}
-                            max={item.max ?? 100}
-                            step={item.step ?? 1}
-                            disabled={disabled}
-                            onChange={(e) => setValue(key, Number(e.target.value))}
-                            className="flex-1"
-                        />
-                        <span className="text-xs tabular-nums w-10 text-right" style={{ color: 'var(--text-primary)' }}>
-                            {value === undefined ? '' : String(value)}
-                        </span>
-                    </div>
-                );
-                break;
-            case 'color':
-                input = (
-                    <div className="flex gap-1 items-center">
-                        <input
-                            type="color"
-                            value={typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'}
-                            disabled={disabled}
-                            onChange={(e) => setValue(key, e.target.value)}
-                            className="w-8 h-8 rounded shrink-0"
-                            style={{ border: '1px solid var(--app-border)', background: 'transparent' }}
-                        />
-                        <input
-                            type="text"
-                            value={typeof value === 'string' ? value : ''}
-                            disabled={disabled}
-                            onChange={(e) => setValue(key, e.target.value)}
-                            className={`${iCls} font-mono`}
-                            style={iSty}
-                        />
-                    </div>
-                );
-                break;
-            case 'select':
-                input = (
-                    <select
-                        value={value === undefined ? '' : String(value)}
-                        disabled={disabled}
-                        onChange={(e) => {
-                            const opt = item.options?.find((op) => String(op.value) === e.target.value);
-                            setValue(key, opt ? opt.value : e.target.value);
-                        }}
-                        className={iCls}
-                        style={iSty}
-                    >
-                        {value === undefined && <option value="">–</option>}
-                        {(item.options ?? []).map((op) => (
-                            <option key={String(op.value)} value={String(op.value)}>
-                                {getText(op.label, lang)}
-                            </option>
-                        ))}
-                    </select>
-                );
-                break;
-            case 'objectId':
-                if (!onlyStates(item)) {
-                    input = (
-                        <ObjectSelect
-                            item={item}
-                            value={value}
-                            lang={lang}
-                            disabled={disabled}
-                            onSet={(v) => setValue(key, v)}
-                        />
-                    );
-                    break;
-                }
-                input = (
-                    <div className="flex gap-1">
-                        <input
-                            type="text"
-                            value={typeof value === 'string' ? value : ''}
-                            disabled={disabled}
-                            placeholder={item.root ? `${item.root}.…` : undefined}
-                            onChange={(e) => setValue(key, e.target.value)}
-                            className={`${iCls} flex-1 font-mono min-w-0`}
-                            style={iSty}
-                        />
-                        <button
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => setPicking(key)}
-                            className="px-2 rounded-lg hover:opacity-80 shrink-0 disabled:opacity-50"
-                            style={{ ...iSty, color: 'var(--text-secondary)' }}
-                            title="Aus ioBroker wählen"
-                        >
-                            <Database size={13} />
-                        </button>
-                    </div>
-                );
-                break;
-            case 'instance':
-                input = (
-                    <InstanceSelect item={item} value={value} disabled={disabled} onSet={(v) => setValue(key, v)} />
-                );
-                break;
-            case 'text':
-            case 'password':
-            default:
-                input =
-                    item.type === 'text' && (item.minRows ?? 1) > 1 ? (
-                        <textarea
-                            rows={item.minRows}
-                            value={value === undefined ? '' : String(value)}
-                            disabled={disabled}
-                            onChange={(e) => setValue(key, e.target.value)}
-                            className={iCls}
-                            style={iSty}
-                        />
-                    ) : (
-                        <input
-                            type={item.type === 'password' ? 'password' : 'text'}
-                            value={value === undefined ? '' : String(value)}
-                            disabled={disabled}
-                            onChange={(e) => setValue(key, e.target.value)}
-                            className={iCls}
-                            style={iSty}
-                        />
-                    );
-        }
-        return (
-            <div key={key}>
-                {label && (
-                    <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
-                        {label}
-                    </label>
-                )}
-                {input}
-                {help && (
-                    <p className="text-[10px] mt-0.5" style={hintSty}>
-                        {help}
-                    </p>
-                )}
-            </div>
-        );
     };
 
     // a stored component that is not installed stays selected (its "nicht installiert" entry)
@@ -454,7 +195,6 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
           ? `${String(o.wcAdapter ?? '')}|${o.wcTag}`
           : '';
     const icon = component ? resolveManifestUrl(component.manifest.icon, component.url) : undefined;
-    const pickingItem = picking && component ? findSetting(component.manifest, picking) : undefined;
 
     return (
         <>
@@ -520,46 +260,140 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                 <WebComponentValueField value={o.wcValueDp} onChange={(dp) => onChange({ wcValueDp: dp })} />
             )}
 
-            {component &&
-                getSettingsGroups(component.manifest).map((group) => (
-                    <div key={group.name} className="space-y-2">
-                        {group.label && (
-                            <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                {getText(group.label, lang)}
-                            </p>
-                        )}
-                        {Object.entries(group.panel.items)
-                            .filter(([key]) => !hostKeys.includes(key))
-                            .map(([key, item]) => field(key, item))}
+            {component && (
+                <div className="grid grid-cols-2 gap-2">
+                    <div data-wc-source="title">
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('wc.source.title')}
+                        </label>
+                        <select
+                            value={titleSource}
+                            onChange={(e) =>
+                                onChange({ wcTitleSource: e.target.value === 'component' ? 'component' : undefined })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="aura">{t('wc.source.aura')}</option>
+                            <option value="component">{t('wc.source.component')}</option>
+                        </select>
                     </div>
-                ))}
-
-            {picking && (
-                <DatapointPicker
-                    currentValue={typeof data[picking] === 'string' ? (data[picking] as string) : ''}
-                    onSelect={(id) => {
-                        setValue(picking, id);
-                        setPicking(null);
-                    }}
-                    onClose={() => setPicking(null)}
-                    idFilter={rootFilter(pickingItem?.root)}
-                />
+                    <div data-wc-source="icon">
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('wc.source.icon')}
+                        </label>
+                        <select
+                            value={iconSource}
+                            onChange={(e) =>
+                                onChange({ wcIconSource: e.target.value === 'component' ? 'component' : undefined })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="aura">{t('wc.source.aura')}</option>
+                            <option value="component">{t('wc.source.component')}</option>
+                        </select>
+                    </div>
+                    {(titleSource === 'component' || iconSource === 'component') && (
+                        <p className="col-span-2 text-[10px]" style={hintSty}>
+                            {titleSource === 'component' ? t('wc.source.titleHint') : ''}
+                            {titleSource === 'component' && iconSource === 'component' ? ' ' : ''}
+                            {iconSource === 'component' ? t('wc.source.iconHint') : ''}
+                        </p>
+                    )}
+                    <div className="col-span-2" data-wc-click-select>
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('wc.click.label')}
+                        </label>
+                        <select
+                            value={click}
+                            onChange={(e) =>
+                                onChange({ wcClick: e.target.value === defaultClick ? undefined : e.target.value })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            {(['off', 'component'] as const).map((mode) => (
+                                <option key={mode} value={mode}>
+                                    {t(`wc.click.${mode}`)}
+                                    {mode === defaultClick ? ` (${t('wc.click.default')})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-[10px] mt-0.5" style={hintSty}>
+                            {t(`wc.click.${click}Hint`)}
+                        </p>
+                    </div>
+                </div>
             )}
+
+            {component && oldTitle && onTitle && (
+                <div
+                    data-wc-old-title
+                    className="rounded-lg px-2.5 py-2 text-[11px] space-y-1.5"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                >
+                    <p style={{ color: 'var(--text-secondary)' }}>
+                        {t('wc.oldTitle.text', { title: oldTitle, current: title ?? '' })}
+                    </p>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            data-action="take"
+                            onClick={() => onTitle(oldTitle, withoutOldTitle())}
+                            className="px-2 py-1 rounded-md text-white"
+                            style={{ background: 'var(--accent)' }}
+                        >
+                            {t('wc.oldTitle.take')}
+                        </button>
+                        <button
+                            type="button"
+                            data-action="drop"
+                            onClick={() => onChange(withoutOldTitle())}
+                            className="px-2 py-1 rounded-md"
+                            style={{ ...iSty, color: 'var(--text-secondary)' }}
+                        >
+                            {t('wc.oldTitle.drop')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {component &&
+                getSettingsGroups(component.manifest).map((group) => {
+                    const entries = Object.entries(group.panel.items);
+                    const own = entries.filter(([key]) => !hostKeys.includes(key));
+                    const covered = entries.filter(([key]) => hostKeys.includes(key));
+                    return (
+                        <div key={group.name} className="space-y-2">
+                            {group.label && (
+                                <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    {getText(group.label, lang)}
+                                </p>
+                            )}
+                            <WebComponentFields
+                                items={Object.fromEntries(own)}
+                                data={data}
+                                lang={lang}
+                                adapter={component.adapter}
+                                onSet={setValue}
+                            />
+                            {/* covered by the widget frame: shown greyed with the reason, never handed over */}
+                            {covered.map(([key, item]) => (
+                                <div key={key} data-wc-host-setting={key}>
+                                    <Unavailable reason={t(hostSettingReasonKey(key))}>
+                                        <WebComponentFields
+                                            items={{ [key]: item }}
+                                            data={{ [key]: undefined }}
+                                            lang={lang}
+                                            onSet={() => undefined}
+                                        />
+                                    </Unavailable>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                })}
         </>
     );
-}
-
-type ioBrokerLang = 'en' | 'de' | 'ru' | 'pt' | 'nl' | 'fr' | 'it' | 'es' | 'pl' | 'uk' | 'zh-cn';
-
-function findSetting(manifest: Parameters<typeof getSettingsGroups>[0], key: string): WebComponentSetting | undefined {
-    for (const group of getSettingsGroups(manifest)) {
-        if (group.panel.items[key]) return group.panel.items[key];
-    }
-    return undefined;
-}
-
-/** `root` of an objectId setting: that object and the ones below it only */
-function rootFilter(root: string | undefined): ((id: string) => boolean) | undefined {
-    if (!root) return undefined;
-    return (id) => id === root || id.startsWith(`${root}.`);
 }

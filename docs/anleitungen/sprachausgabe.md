@@ -107,7 +107,7 @@ Bestehende Skripte mit `setState('sayit.0.tts.text', …)` funktionieren ohne Ä
 | --- | --- |
 | Ausgabetyp | **Browser** |
 | Vis-Instanzen | **Aura-Dashboards** |
-| Browser-Instanz | Client-IDs mit Komma getrennt; leer = alle Geräte (siehe [Client-ID](../einstellungen/settings#client-id)) |
+| Browser-Instanz | Client-IDs mit Komma getrennt; leer oder `FFFFFFFF` = alle Geräte (siehe [Client-ID](../einstellungen/settings#client-id)) |
 | Aura-Instanz | Leer = `aura.0` |
 
 Die Lautstärke aus `80;Text` wird übernommen.

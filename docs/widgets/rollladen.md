@@ -71,6 +71,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `positionLivePreview` | `false` | Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen |
 | `positionPresets` | — | Schnellwahl-Tasten unter dem Regler (Default-Layout, Custom-Komponente `presets`): Liste aus `pos` (%, gelesen wie die Anzeige), optional `label` und `tilt` (% Lamellen, nur mit `tiltDp`). Ohne `pos` nur Lamellen; steht der Behang schon auf `pos`, wird nur `tilt` geschrieben |
 
+### Sicherheitsabfrage
+
+Blendet vor jeder Fahrt (Auf/Zu, Regler, Schnellwahl, Kreismenü) und jeder Lamellenänderung eine Bestätigung über dem Widget ein, mit dem Ziel als zweiter Zeile. Erst **Ja** schreibt. **Stopp** fragt nie.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `confirmAction` | `false` | Bestätigung vor dem Schreiben; Regler senden dann immer erst beim Loslassen |
+| `confirmText` | — | Abfragetext, leer = „Wirklich ausführen?“ |
+
+![](./assets/rollladen/sicherheitsabfrage.png)
+
 ### Lamellen / Neigung
 
 Nur aktiv mit `tiltDp`. Feste Skala: **0 % = Lamellen geschlossen, 100 % = offen/waagerecht** — Geräteabweichungen über Bereich und Invertierung abbilden.
@@ -95,6 +106,7 @@ Nur aktiv mit `tiltDp`. Feste Skala: **0 % = Lamellen geschlossen, 100 % = offen
 | --- | --- | --- |
 | `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
 | `circleOrder` | — | Reihenfolge der Einträge: `up`, `down`, `stop`, `tilt`, `preset-<i>` (Index in `positionPresets`). Vollkreis ab oben im Uhrzeigersinn, Halbkreis von links bzw. oben. Nicht genannte Einträge folgen in Standardreihenfolge |
+| `circleHidden` | — | Einträge, die im Kreis fehlen (Schlüssel wie bei `circleOrder`), z. B. `["stop"]` · im Editor das Auge neben dem Eintrag |
 | `circleIcon` | — | Icon im runden Knopf; leer = Widget-Icon (`icon`), ohne beides die Rollladen-Grafik |
 | `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–396), höchstens Widget-Größe; leer = füllt das Widget (Regler ganz rechts) |
 | `circleItemSize` | `48` | Durchmesser der Einträge in px (32–96) |

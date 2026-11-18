@@ -76,6 +76,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showPresets` | `true` | Preset-Buttons anzeigen |
 | `presets` | `[18,20,22,24]` | Soll-Temperatur-Presets (°C) |
 
+### Sicherheitsabfrage
+
+Blendet vor jeder Änderung der Solltemperatur (+/−, Presets, Rundskala, Kreismenü) eine Bestätigung mit dem Zielwert über dem Widget ein. Erst **Ja** schreibt.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `confirmAction` | `false` | Bestätigung vor dem Schreiben |
+| `confirmText` | — | Abfragetext, leer = „Wirklich ausführen?“ |
+
+![](./assets/thermostat/sicherheitsabfrage.png)
+
 ### Schwellwerte
 
 Färbt die angezeigte Temperatur abhängig vom Ist- (bzw. Soll-)Wert.
@@ -106,6 +117,8 @@ Nur im Layout **Rundskala**.
 | --- | --- | --- |
 | `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
 | `circleOrder` | — | Reihenfolge der Einträge: `minus`, `plus`, `preset-<Wert>` (z. B. `preset-21.5`). Vollkreis ab oben im Uhrzeigersinn, Halbkreis von links bzw. oben. Nicht genannte Einträge folgen in Standardreihenfolge |
+| `circleHidden` | — | Einträge, die im Kreis fehlen (Schlüssel wie bei `circleOrder`), z. B. `["minus","plus"]` · im Editor das Auge neben dem Eintrag |
+| `circleCenter` | `true` | Sollwert in der Mitte des geöffneten Menüs; `false` = Schließen-Kreuz |
 | `primaryValue` | `setpoint` | **Große Anzeige** im Knopf: `setpoint` (Soll) oder `actual` (Ist, Soll klein darunter) |
 | `circleIcon` | — | Icon im runden Knopf; leer = Widget-Icon (`icon`), ohne beides ein Thermometer |
 | `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–396), höchstens Widget-Größe; leer = füllt das Widget (Regler ganz rechts) |

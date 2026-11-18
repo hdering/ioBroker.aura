@@ -25,6 +25,7 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
+    'flowFill',
     'gridWidthMode',
     'fluidDesignWidth',
     'fluidMinScale',
@@ -77,8 +78,10 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'layoutDrawerIndicatorStyle',
     'layoutDrawerFontSize',
     'layoutDrawerIconSize',
+    'layoutDrawerTabs',
     'layoutDrawerBarAlignment',
     'layoutDrawerHideMobileScrollbar',
+    'layoutDrawerPinned',
     'layoutDrawerItems',
     // Header
     'showHeader',

@@ -156,6 +156,48 @@ export function buildDatapointEntries(views: DatapointViews): {
     return { entries, parentNames, deviceIds: new Set(views.devices.map((r) => r.id)) };
 }
 
+/**
+ * A parent name that says nothing about the device: adapters that name a channel after
+ * its kind ("Channel sensor", "Channel Smoke0" — Shelly) or just repeat the id segment.
+ */
+export function isGenericParentName(name: string, segment: string): boolean {
+    const n = name.trim().toLowerCase();
+    return /^(channel|kanal)\b/.test(n) || n === segment.toLowerCase();
+}
+
+/**
+ * The display name of a state: closest named parent (channel preferred over device) ›
+ * state name. A generic channel name (isGenericParentName) gives way to the next named
+ * object above it, normally the device — "Channel sensor › Flood" becomes
+ * "Wassermelder Bad › Flood". A state name that merely repeats the parent's name
+ * ("Thermostat:0.LOW_BAT" under "Thermostat:0", as hm-rega names them) loses that prefix.
+ */
+export function composeDpName(id: string, stateName: string, parentNames: Map<string, string>): string {
+    const parts = id.split('.');
+    let parentName = '';
+    let generic = '';
+    for (let i = parts.length - 1; i >= 2; i--) {
+        const pName = parentNames.get(parts.slice(0, i).join('.'));
+        if (!pName) continue;
+        if (isGenericParentName(pName, parts[i - 1] ?? '')) {
+            generic ||= pName;
+            continue;
+        }
+        parentName = pName;
+        break;
+    }
+    parentName ||= generic;
+    let own = stateName;
+    if (parentName && own.length > parentName.length + 1 && own.startsWith(parentName)) {
+        const rest = own.slice(parentName.length);
+        if (/^[.:_\s-]/.test(rest)) own = rest.replace(/^[.:_\s-]+/, '') || own;
+    }
+    if (parentName && own && parentName !== own) return `${parentName} › ${own}`;
+    if (own) return own;
+    if (parentName) return `${parentName} › ${parts[parts.length - 1]}`;
+    return parts[parts.length - 1] ?? id;
+}
+
 export type StateCommon = ObjectViewResult['rows'][number]['value']['common'];
 export type EnumMap = Map<string, { rooms: string[]; funcs: string[] }>;
 
@@ -199,26 +241,7 @@ export function buildEntry(
         }
     }
 
-    // Compose name: closest parent (channel preferred over device) › state name
-    const stateName = resolveName(common.name, '');
-    let parentName = '';
-    for (let i = parts.length - 1; i >= 2; i--) {
-        const pName = parentNames.get(parts.slice(0, i).join('.'));
-        if (pName) {
-            parentName = pName;
-            break;
-        }
-    }
-    let name: string;
-    if (parentName && stateName && parentName !== stateName) {
-        name = `${parentName} › ${stateName}`;
-    } else if (stateName) {
-        name = stateName;
-    } else if (parentName) {
-        name = `${parentName} › ${parts[parts.length - 1]}`;
-    } else {
-        name = parts[parts.length - 1] ?? id;
-    }
+    const name = composeDpName(id, resolveName(common.name, ''), parentNames);
 
     const custom = common.custom ?? {};
     const logging = Object.entries(custom)

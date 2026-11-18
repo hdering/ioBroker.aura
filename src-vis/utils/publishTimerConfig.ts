@@ -51,6 +51,7 @@ export interface TimerConfigPayload {
     events: TimerEvent[];
     targetDp?: string; // widget-level: where to write when an event fires
     extraTargetDps?: string[]; // further DPs written with the same value (#774)
+    extraTargetDelays?: number[]; // ms after the trigger per extraTargetDps index (#974)
     value?: string; // widget-level: what to write (parsed bool/number/string)
     allowEventValue?: boolean; // when true, backend honors per-event ev.value overrides
     allowEventAnnounce?: boolean; // when true, backend announces ev.announce (#918)
@@ -73,13 +74,13 @@ function ensureObjects(widgetId: string, title: string): Promise<void> {
     const p = (async () => {
         await setObjectAsync(timerChannelId(widgetId), {
             type: 'channel',
-            common: { name: title || 'Zeitschaltuhr' },
+            common: { name: title || 'Timer' },
             native: {},
         });
         await setObjectAsync(timerConfigStateId(widgetId), {
             type: 'state',
             common: {
-                name: `${title || 'Zeitschaltuhr'} — config`,
+                name: `${title || 'Timer'} — config`,
                 type: 'string',
                 role: 'json',
                 read: true,
@@ -91,7 +92,7 @@ function ensureObjects(widgetId: string, title: string): Promise<void> {
         await setObjectAsync(timerEnabledStateId(widgetId), {
             type: 'state',
             common: {
-                name: `${title || 'Zeitschaltuhr'} — enabled`,
+                name: `${title || 'Timer'} — enabled`,
                 type: 'boolean',
                 role: 'switch',
                 read: true,
@@ -214,7 +215,7 @@ export function renameTimerForWidget(
     if (typeof stateBaseId !== 'string') return;
     const backendKey = stateBaseId.split('.').pop();
     if (!backendKey) return;
-    const title = widget.title || 'Zeitschaltuhr';
+    const title = widget.title || 'Timer';
     if (lastRenameSent.get(backendKey) === title) return;
     lastRenameSent.set(backendKey, title);
     void sendToDirect(NS, 'renameTimer', { widgetId: backendKey, title });

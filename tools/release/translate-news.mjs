@@ -20,7 +20,7 @@
  * Failure is never fatal. If the translator is unreachable or rate-limited the
  * English text stays where it is — a release must not depend on Google.
  *
- * Usage: node tools/i18n/translate-news.mjs [io-package.json]
+ * Usage: node tools/release/translate-news.mjs [io-package.json]
  */
 import fs from 'node:fs';
 import { createRequire } from 'node:module';

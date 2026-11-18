@@ -21,8 +21,8 @@ const bundle = join(cache, `aura-status-window-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: [
-            "export { categoryOf, evaluateItem, contactLevel, hasContactStates, isStatusLoading } from './src-vis/utils/statusOverview.ts';",
-            "export { normalizeStates } from './src-vis/hooks/useDatapointList.ts';",
+            "export { categoryOf, evaluateItem, contactLevel, hasContactStates, isStatusLoading, customDeviceName } from './src-vis/utils/statusOverview.ts';",
+            "export { normalizeStates } from './src-vis/utils/datapointEntry.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
         loader: 'ts',
@@ -46,9 +46,8 @@ await build({
         },
     ],
 });
-const { categoryOf, evaluateItem, contactLevel, hasContactStates, isStatusLoading, normalizeStates } = await import(
-    pathToFileURL(bundle).href
-);
+const { categoryOf, evaluateItem, contactLevel, hasContactStates, isStatusLoading, customDeviceName, normalizeStates } =
+    await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -193,6 +192,22 @@ const RHS = dp({
     // Grace period: a getState reply lost on a flaky link must not spin forever.
     eq('grace period expired', load({ settled: true, loaded: 3, expected: 12 }), false);
     eq('grace period does not skip the scan', load({ discovered: false, settled: true }), true);
+}
+
+// ── 6. value.window (hm-rega, HM-Sec-SCo) and own device names ───────
+{
+    const sco = dp({
+        id: 'hm-rpc.0.00109A498FCE8F.1.STATE',
+        role: 'value.window',
+        states: { 0: 'CLOSED', 1: 'OPEN' },
+    });
+    eq('value.window contact is a window', categoryOf(sco, {}), 'window');
+    eq('value.window 1 = Offen', evaluateItem(sco, 1, 'window', {})?.label, 'Offen');
+    eq('value.window 0 = closed (no alert)', evaluateItem(sco, 0, 'window', {}), null);
+    const names = { 'hm-rpc.0.00109A498FCE8F': 'Küchenfenster links', 'hm-rpc.0.X.0.LOWBAT': 'Nur LOWBAT' };
+    eq('device entry names every row of the device', customDeviceName(sco.id, names), 'Küchenfenster links');
+    eq('datapoint entry wins', customDeviceName('hm-rpc.0.X.0.LOWBAT', names), 'Nur LOWBAT');
+    eq('blank entry = unset', customDeviceName(sco.id, { 'hm-rpc.0.00109A498FCE8F': '  ' }), undefined);
 }
 
 const failed = results.filter((r) => !r.ok);

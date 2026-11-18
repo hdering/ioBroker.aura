@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.109.1",
+    "auraVersion": "1.1.0-next.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -100,7 +100,7 @@
     },
     "tabletCol": {
       "type": "number",
-      "description": "Spalte im Tablet-Fluss, 0-basiert, auf die Spaltenzahl gekappt. Fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets (ohne Zuordnung: abwechselnd)."
+      "description": "Spalte im Tablet-Fluss, 0-basiert, auf die Spaltenzahl gekappt. Fehlt sie, verteilt die Einstellung flowFill: count = Spalte mit den wenigsten Widgets (ohne Zuordnung: abwechselnd), height = niedrigste Spalte, compact = so wenige Spalten wie nötig, Block zentriert. Ein gesetztes tabletCol schließt den Block von compact aus."
     },
     "tabletWide": {
       "type": "boolean",
@@ -130,6 +130,10 @@
     {
       "id": "layout",
       "label": "Layout"
+    },
+    {
+      "id": "webcomponent",
+      "label": "Web-Komponenten (aus Adaptern)"
     }
   ],
   "commonOptions": {
@@ -370,7 +374,7 @@
     "lastChangeDatapoint": {
       "type": "string",
       "datapoint": true,
-      "description": "Datenpunkt-Id, deren Zeitstempel showLastChange zeigt. Leer = der Datenpunkt des Widgets. Pflicht für Widgets ohne eigenen Datenpunkt (universal, group, panels …): ohne sie erscheint dort nichts."
+      "description": "Datenpunkt-Id, deren Zeitstempel showLastChange zeigt. Leer = der Datenpunkt des Widgets. Pflicht für Widgets ohne eigenen Datenpunkt (universal, group, panels …): ohne sie erscheint dort nichts. Gewinnt gegen den Datenpunkt des Widgets — in Kindern einer Gerätekarte daher {{parent}}.… statt einer festen Id, sonst zeigen alle Karten denselben Zeitstempel."
     },
     "fullscreenWidget": {
       "type": "boolean",
@@ -492,6 +496,11 @@
       "type": "boolean",
       "default": false,
       "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert – auch als Kind einer Gruppe, die dann mitwächst. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count). Adapter-Logs: Höhe wächst bis visibleLimit Zeilen. HTML: das Dokument im iframe meldet seine Höhe selbst (auch bei htmlApi false), braucht eine Sandbox mit Skripten; hat Vorrang vor mobileHeight."
+    },
+    "fontSize": {
+      "type": "number",
+      "default": 12,
+      "description": "Schriftgröße in px. 0 = automatisch."
     }
   },
   "types": {
@@ -1675,7 +1684,7 @@
         "align": {
           "type": "string",
           "ref": "CustomCellAlign",
-          "description": "default: 'left'"
+          "description": "default: 'center' (input cells: the field itself is left-aligned)"
         },
         "valign": {
           "type": "string",
@@ -3311,6 +3320,10 @@
           "type": "number",
           "description": "Slider width in px (row layouts). Default 64; the card fills its cell."
         },
+        "shutterButtonSize": {
+          "type": "number",
+          "description": "Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943)."
+        },
         "shutterSendOnRelease": {
           "type": "boolean",
           "description": "Write once the drag ends. Default true, like the widget."
@@ -4447,6 +4460,10 @@
           "type": "number",
           "description": "Slider width in px (row layouts). Default 64; the card fills its cell."
         },
+        "shutterButtonSize": {
+          "type": "number",
+          "description": "Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943)."
+        },
         "shutterSendOnRelease": {
           "type": "boolean",
           "description": "Write once the drag ends. Default true, like the widget."
@@ -5150,6 +5167,10 @@
         "shutterSliderWidth": {
           "type": "number",
           "description": "Slider width in px (row layouts). Default 64; the card fills its cell."
+        },
+        "shutterButtonSize": {
+          "type": "number",
+          "description": "Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943)."
         },
         "shutterSendOnRelease": {
           "type": "boolean",
@@ -6344,6 +6365,7 @@
     "Severity": {
       "type": "string",
       "enum": [
+        "silly",
         "debug",
         "info",
         "warn",
@@ -6620,6 +6642,15 @@
         "top-right",
         "bottom-left",
         "bottom-right"
+      ]
+    },
+    "BatteryKind": {
+      "type": "string",
+      "enum": [
+        "bool",
+        "percent",
+        "volt",
+        "millivolt"
       ]
     },
     "CategoryKey": {
@@ -7217,6 +7248,11 @@
           "default": "",
           "description": "Vorbelegung des Suchfelds (Teilstring in Meldung oder Quelle, ohne Groß/Klein; mehrere Begriffe mit \"|\" oder-verknüpft, z. B. \"Beschattung | Beleuchtung\"). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren."
         },
+        "fontSize": {
+          "description": "Schriftgröße der Logtabelle in px (8–24) für Quelle, Zeitstempel, Typ und Nachricht; die Typ-Plakette folgt mit 0,9em.",
+          "type": "number",
+          "default": 10
+        },
         "icon": {
           "type": "string",
           "default": "ScrollText",
@@ -7227,7 +7263,8 @@
           "items": {
             "type": "string",
             "ref": "Severity"
-          }
+          },
+          "description": "Beim Start aktive Schweregrade, wie in ioBroker: \"silly\", \"debug\", \"info\", \"warn\", \"error\". Standard: info, warn, error."
         },
         "newestFirst": {
           "type": "boolean",
@@ -7327,6 +7364,11 @@
           "type": "boolean",
           "default": false
         },
+        "buttonSize": {
+          "type": "number",
+          "default": 14,
+          "description": "Symbolgröße der Neustart- und Update-Schaltflächen in px (10–48); der Innenabstand wächst mit (30 %), damit die Touchfläche auf Tablets größer wird."
+        },
         "compact": {
           "type": "boolean",
           "default": false,
@@ -7337,6 +7379,10 @@
           "ref": "FilterMode",
           "default": "all",
           "description": "Welche Einträge die Liste beim Öffnen zeigt."
+        },
+        "fontSize": {
+          "description": "Schriftgröße der Instanzliste in px (8–32) für Name, Version, Status, Zusammenfassung, Filter-Pillen und Suche; Nebentexte folgen mit 0,833em. Nicht gesetzt = 12 px mal globaler Schriftskalierung. Der Titel bleibt unberührt.",
+          "type": "number"
         },
         "icon": {
           "type": "string",
@@ -8165,6 +8211,10 @@
             "boolean"
           ],
           "description": "Value the Taster action writes to every target. Default true."
+        },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
         },
         "groupSwitch": {
           "type": "boolean",
@@ -10668,6 +10718,11 @@
           "description": "Farbe der Mittelwertlinie.",
           "color": true
         },
+        "circleCenter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz."
+        },
         "circleDirection": {
           "type": "string",
           "ref": "CircleDirection",
@@ -10681,6 +10736,9 @@
             "left"
           ],
           "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleHidden": {
+          "description": "Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen. Leer = alle Einträge sichtbar."
         },
         "circleIcon": {
           "type": "string",
@@ -11751,14 +11809,14 @@
         "transparent"
       ],
       "options": {
-        "autoShrink": {
-          "type": "boolean",
-          "default": false,
-          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
-        },
         "defId": {
           "type": "string",
           "description": "Verweis auf den Aufbau (Kinderliste) in aura-group-defs — wie bei group, aber GETEILT: jede Gerätekarte mit derselben defId zeigt dieselben Kinder, nur mit ihrem eigenen Datenpunkt. Für ein weiteres gleiches Gerät eine Karte mit derselben defId und anderem `datapoint` anlegen, ohne groupDefs. Eine neue defId nur für einen neuen Aufbau (dann mit groupDefs)."
+        },
+        "frameless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ohne Rahmen (#981): kein Hintergrund, kein Rand, kein Innenabstand. Die Kinder liegen im Raster des Tabs (dessen Zeilenhöhe und Abstand), also bündig mit den Widgets neben der Gruppe; ein Kind mit h Zeilen ist so hoch wie dasselbe Widget außerhalb. Ohne Kopfzeile ist die Gruppe genau so viele Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei devicecard."
         },
         "groupActionType": {
           "type": "string",
@@ -11821,6 +11879,10 @@
             "boolean"
           ],
           "description": "Value the Taster action writes to every target. Default true."
+        },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
         },
         "groupSwitch": {
           "type": "boolean",
@@ -15366,14 +15428,14 @@
         "transparent"
       ],
       "options": {
-        "autoShrink": {
-          "type": "boolean",
-          "default": false,
-          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
-        },
         "defId": {
           "type": "string",
           "description": "Verweis auf die Kinderliste in aura-group-defs. Beim Import wird sie aus dem Feld \"groupDefs\" der Import-JSON angelegt — nicht von Hand vergeben."
+        },
+        "frameless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ohne Rahmen (#981): kein Hintergrund, kein Rand, kein Innenabstand. Die Kinder liegen im Raster des Tabs (dessen Zeilenhöhe und Abstand), also bündig mit den Widgets neben der Gruppe; ein Kind mit h Zeilen ist so hoch wie dasselbe Widget außerhalb. Ohne Kopfzeile ist die Gruppe genau so viele Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei devicecard."
         },
         "groupActionType": {
           "type": "string",
@@ -15436,6 +15498,10 @@
             "boolean"
           ],
           "description": "Value the Taster action writes to every target. Default true."
+        },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
         },
         "groupSwitch": {
           "type": "boolean",
@@ -16676,6 +16742,7 @@
         "collapsePosition",
         "conditions",
         "defaultCollapsed",
+        "fontSize",
         "fullscreenPosition",
         "fullscreenScreen",
         "fullscreenWidget",
@@ -16723,11 +16790,6 @@
         "firstColHeader": {
           "type": "boolean",
           "default": false
-        },
-        "fontSize": {
-          "type": "number",
-          "default": 12,
-          "description": "Schriftgröße in px. 0 = automatisch."
         },
         "footerBg": {
           "type": "string",
@@ -18320,6 +18382,10 @@
             "boolean"
           ],
           "description": "Value the Taster action writes to every target. Default true."
+        },
+        "groupStaggerMs": {
+          "type": "number",
+          "description": "Delay in ms between the devices of one group action (#974): device n is written n × groupStaggerMs after the click, e.g. so shutters do not all start at once. Runs in the adapter, so it completes when the tablet sleeps; stop and a new command drop what is still pending. Default 0 = all at once."
         },
         "groupSwitch": {
           "type": "boolean",
@@ -20715,7 +20781,6 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
-        "confirmAction",
         "confirmText",
         "customGrid",
         "defaultCollapsed",
@@ -20800,6 +20865,9 @@
           ],
           "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
         },
+        "circleHidden": {
+          "description": "Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. [\"stop\"] für nur Öffnen, Schnellwahl und Schließen. Leer = alle Einträge sichtbar."
+        },
         "circleIcon": {
           "type": "string",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Icon im runden Knopf (Iconify-Name, z. B. \"mdi:window-shutter\"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik."
@@ -20825,6 +20893,11 @@
         "circleTriggerSize": {
           "type": "number",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
+        "confirmAction": {
+          "type": "boolean",
+          "default": false,
+          "description": "Vor jeder Fahrt (Auf/Zu, Regler, Voreinstellung, Kreismenü) und jeder Lamellenänderung eine Rückfrage mit dem Ziel (\"Schließen\", \"40% geöffnet\") anzeigen. Stopp fragt nie. Erzwingt Senden beim Loslassen (#977)."
         },
         "controlMode": {
           "type": "string",
@@ -22019,6 +22092,22 @@
             "count"
           ]
         },
+        "batteryKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "ref": "BatteryKind"
+          },
+          "description": "Which battery datapoints count (default ['bool', 'percent']): 'bool' = LOWBAT-style flags, 'percent' = value.battery in %, 'volt' / 'millivolt' = battery voltage (OPERATING_VOLTAGE, voltage of a battery device) in V / mV. A device with a percent value shows that; else its voltage row replaces its LOWBAT flag (#1000).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
         "batteryThreshold": {
           "type": "number",
           "description": "% (default 20)",
@@ -22034,6 +22123,18 @@
         "batteryTypeEnabled": {
           "type": "boolean",
           "description": "show physical battery type (· CR2032) next to low batteries",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
+        "batteryVoltThreshold": {
+          "type": "number",
+          "description": "V (default 2.4): voltage at or below counts as weak; mV datapoints compare x1000",
           "onlyLayouts": [
             "default",
             "compact",
@@ -22155,6 +22256,11 @@
             "minimal",
             "count"
           ]
+        },
+        "deviceNames": {
+          "type": "object",
+          "tsType": "Record<string, string>",
+          "description": "Eigene Anzeigenamen: Schlüssel = Geräte-ID (adapter.instanz.gerät, z. B. \"hm-rpc.0.00109A498FCE8F\") oder eine einzelne Datenpunkt-ID, Wert = Name. Ersetzt den erkannten Namen aller Zeilen des Geräts (Batterie, Fenster, offline) und gilt auch für Merkliste und Verlauf; namePattern/nameFilters laufen danach."
         },
         "excludeIdPatterns": {
           "type": "string",
@@ -23782,7 +23888,6 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
-        "confirmAction",
         "confirmText",
         "customGrid",
         "decimals",
@@ -23811,7 +23916,6 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
-        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",
@@ -23836,6 +23940,11 @@
           "description": "Datenpunkt der Ist-Temperatur (der Haupt-DP ist die Soll-Temperatur).",
           "datapoint": true
         },
+        "circleCenter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz, z. B. wenn der Knopf den Sollwert ohnehin zeigt oder − und + ausgeblendet sind."
+        },
         "circleDirection": {
           "type": "string",
           "ref": "CircleDirection",
@@ -23849,6 +23958,9 @@
             "left"
           ],
           "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleHidden": {
+          "description": "Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. [\"minus\",\"plus\"] für nur die Schnellwahl. Leer = alle Einträge sichtbar."
         },
         "circleIcon": {
           "type": "string",
@@ -23875,6 +23987,11 @@
         "circleTriggerSize": {
           "type": "number",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
+        "confirmAction": {
+          "type": "boolean",
+          "default": false,
+          "description": "Vor jeder Änderung der Solltemperatur (±, Voreinstellung, Rundskala, Kreismenü) eine Rückfrage mit dem Zielwert anzeigen (#977)."
         },
         "dialColor": {
           "type": "string",
@@ -23932,6 +24049,11 @@
         "showSetpoint": {
           "type": "boolean",
           "default": true
+        },
+        "statusDp": {
+          "description": "Rückmelde-Datenpunkt der Soll-Temperatur. Leer bei Haupt-DP \"….MANU_MODE\" (Homematic classic, meldet nie zurück) = automatisch der Geschwister-DP \"SET_TEMPERATURE\"; sonst leer = Haupt-DP.",
+          "type": "string",
+          "datapoint": true
         },
         "step": {
           "type": "number",
@@ -24166,6 +24288,13 @@
             "ref": "TimerEvent"
           },
           "description": "Die Schaltzeiten."
+        },
+        "extraTargetDelays": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Verzögerung in ms nach dem Auslösen je weiterem Ziel-DP, gleicher Index wie extraTargetDps (#974) — z. B. [0, 3000, 3000] lässt Rollläden gestaffelt anlaufen. targetDp schaltet immer sofort; fehlender Eintrag = 0, max. 600000. Der Adapter führt die Folge aus; ein neues Auslösen, Ausschalten oder Löschen der Uhr verwirft noch offene Schreibvorgänge."
         },
         "extraTargetDps": {
           "type": "array",
@@ -25475,9 +25604,9 @@
     },
     "webcomponent": {
       "label": "Web-Komponente",
-      "group": "special",
+      "group": "webcomponent",
       "addMode": "free",
-      "hint": "Web-Komponente eines installierten Adapters (z. B. flow) einbetten",
+      "hint": "Baustein, den ein Adapter mitbringt (z. B. flow) – Inhalt und Verhalten kommen vom Adapter",
       "defaultSize": {
         "w": 10,
         "h": 6
@@ -25530,13 +25659,39 @@
           "type": "string",
           "description": "Adaptername der Komponente (ohne Instanz, z. B. \"flow\"). Entscheidet nur, wenn zwei Adapter denselben Tag anbieten; leer = der erste mit diesem Tag."
         },
+        "wcClick": {
+          "type": "string",
+          "enum": [
+            "off",
+            "component"
+          ],
+          "description": "Ob die Komponente Klicks bekommt. \"off\" = nein (keine Klicks/Tasten); ein Klick gehört dem Widget, es gilt dessen clickAction wie bei jedem Widget (ohne clickAction passiert nichts). \"component\" = die Komponente bedient sich selbst (eigene Knöpfe, eigener Dialog - der erscheint im Popup des Widgets mit dessen Popup-Optionen); clickAction bleibt still. Standard (leer) = \"off\" für jede Komponente - interaktive Komponenten (Kalender, Fluss-Diagramm, Komponenten mit Knöpfen) brauchen \"component\"."
+        },
+        "wcIconSource": {
+          "type": "string",
+          "enum": [
+            "aura",
+            "component"
+          ],
+          "default": "aura",
+          "description": "Woher das Icon der Titelzeile kommt: \"aura\" = options.icon; \"component\" = das Bild, das die Komponente meldet (iob-header), sonst das Bild ihres Manifests, sonst options.icon."
+        },
         "wcSettings": {
           "type": "object",
-          "description": "Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. Beim Fluss-Diagramm werden \"title\" und \"fullView\" ignoriert - dafür gelten Widget-Titel (showTitle) und der Vollbild-Knopf des Rahmens."
+          "description": "Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. Ein Text-Setting \"title\" wird bei jeder Komponente ignoriert (dafür gilt der Widget-Titel, showTitle bzw. wcTitleSource), beim Fluss-Diagramm zusätzlich \"fullView\" (Vollbild-Knopf des Rahmens)."
         },
         "wcTag": {
           "type": "string",
-          "description": "Tag der ioBroker-Web-Komponente (Custom Element, z. B. \"iob-flow-diagram\"). Nur Komponenten, die ein installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte selbst - es gibt kein dp-Feld (nur wcValueDp für einen Wert, den sie bearbeitet). Bekannt und auch ohne Adapter wählbar: \"iob-flow-diagram\" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter flow.0.diagrams)."
+          "description": "Tag der ioBroker-Web-Komponente (Custom Element, z. B. \"iob-flow-diagram\"). Nur Komponenten, die ein installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte selbst - es gibt kein dp-Feld (nur wcValueDp für einen Wert, den sie bearbeitet). Bekannt (mit Aura getestet) und auch ohne Adapter wählbar: \"iob-flow-diagram\" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter flow.0.diagrams) und \"iob-fullcalendar\" (Kalender, Adapter fullcalendar ab 3.4.1, wcSettings.instance = Instanznummer z. B. \"0\", optional wcSettings.calendar = fullcalendar.0.Calendars.<id>, viewMode dayGridMonth|timeGridWeek|timeGridDay|listMonth), \"iob-cameras-rtsp\" (Livebild) und \"iob-cameras-snapshot\" (Standbild; beide Adapter cameras ab 3.4.0, wcSettings.camera = State der Kamera z. B. cameras.0.cam1.running, width, rotate). Alle anderen Komponenten gelten als nicht getestet."
+        },
+        "wcTitleSource": {
+          "type": "string",
+          "enum": [
+            "aura",
+            "component"
+          ],
+          "default": "aura",
+          "description": "Woher der Titel in der Titelzeile kommt: \"aura\" = Widget-Titel; \"component\" = der Name, den die Komponente zur Laufzeit meldet (Ereignis iob-header, z. B. Kameraname aus dem Adapter) - meldet sie keinen, gilt der Widget-Titel. Die Komponente zeichnet nie einen eigenen Titel."
         },
         "wcValueDp": {
           "type": "string",

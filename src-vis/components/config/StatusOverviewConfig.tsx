@@ -4,14 +4,26 @@ import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection'
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { WidgetConfig } from '../../types';
 import {
-    categoryOf,
-    collectHmBatterySerials,
-    dedupeHmLowbat,
-    passesScope,
+    customDeviceName,
+    discoverStatusCandidates,
     CATEGORY_ORDER,
+    BATTERY_KINDS,
+    DEFAULT_BATTERY_KINDS,
+    DEFAULT_BATTERY_VOLT_THRESHOLD,
+    type BatteryKind,
     type StatusOverviewOptions,
     type CategoryKey,
 } from '../../utils/statusOverview';
+import { Unavailable } from './Unavailable';
+
+/** Labels of the battery datapoint kinds (option batteryKinds, #1000). */
+const BATTERY_KIND_LABELS: Record<BatteryKind, string> = {
+    bool: 'Boolesch (LOWBAT)',
+    percent: 'Prozent (%)',
+    volt: 'Spannung (V)',
+    millivolt: 'Spannung (mV)',
+};
+import { DeviceNamesEditor, deviceRowsOf, type DeviceNameRow } from './StatusDeviceNamesEditor';
 import type { NameSource } from '../../utils/nameFilter';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { loadBatteryDeviceTest } from '../../utils/batteryLibrary';
@@ -155,6 +167,16 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     // datapoints this widget really lists. ensureDatapointCache is module-level (5 min TTL).
     const [samples, setSamples] = useState<NameSource[]>([]);
     const [sampleTotal, setSampleTotal] = useState(0);
+    // One row per found device, for the "Gerätenamen" popup.
+    const [devices, setDevices] = useState<DeviceNameRow[]>([]);
+    const [showNames, setShowNames] = useState(false);
+    const namedSamples = samples.map((s) => {
+        const own = customDeviceName(s.id, o.deviceNames);
+        return own ? { ...s, name: own } : s;
+    });
+    const namedCount = Object.values(o.deviceNames ?? {}).filter((v) => v.trim()).length;
+    const batteryKinds = o.batteryKinds ?? DEFAULT_BATTERY_KINDS;
+    const hasVoltKind = batteryKinds.includes('volt') || batteryKinds.includes('millivolt');
     const scopeKey = JSON.stringify([
         o.catBattery,
         o.catWindow,
@@ -162,6 +184,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.catUnreach,
         o.catAlarm,
         o.includeLowbatBoolean,
+        o.batteryKinds,
         o.lightRoleScope,
         o.lightsOnlyFunction,
         o.lightIncludeDimmers,
@@ -179,17 +202,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         Promise.all([ensureDatapointCache(), opts.catBattery === false ? undefined : loadBatteryDeviceTest()]).then(
             ([cache, isBatteryDevice]) => {
                 if (cancelled) return;
-                const hm = collectHmBatterySerials(cache, isBatteryDevice);
-                const byCat = new Map<CategoryKey, NameSource[]>();
-                const found: { dp: (typeof cache)[number]; cat: CategoryKey }[] = [];
-                for (const dp of cache) {
-                    const cat = categoryOf(dp, opts, hm);
-                    if (!cat) continue;
-                    if (!passesScope(dp, opts)) continue;
-                    found.push({ dp, cat });
-                }
-                const kept = dedupeHmLowbat(found);
+                // The widget's own discovery, minus the battery-level lookup the preview has no use for.
+                const kept = discoverStatusCandidates(cache, { ...opts, latchBattery: false }, isBatteryDevice);
                 const count = kept.length;
+                setDevices(deviceRowsOf(kept));
+                const byCat = new Map<CategoryKey, NameSource[]>();
                 for (const { dp, cat } of kept) {
                     const list = byCat.get(cat) ?? [];
                     if (list.length < 2) list.push({ id: dp.id, name: dp.name, room: dp.rooms[0] });
@@ -403,30 +420,91 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         onChange={(v) => set({ catBattery: v })}
                         label="Schwache Batterien"
                     >
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Berücksichtigte Datenpunkte
+                            </label>
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                {BATTERY_KINDS.map((k) => (
+                                    <Toggle
+                                        key={k}
+                                        checked={batteryKinds.includes(k)}
+                                        onChange={(v) => {
+                                            const next = BATTERY_KINDS.filter((x) =>
+                                                x === k ? v : batteryKinds.includes(x),
+                                            );
+                                            const isDefault =
+                                                next.length === DEFAULT_BATTERY_KINDS.length &&
+                                                next.every((x) => DEFAULT_BATTERY_KINDS.includes(x));
+                                            set({ batteryKinds: isDefault ? undefined : next });
+                                        }}
+                                        label={BATTERY_KIND_LABELS[k]}
+                                    />
+                                ))}
+                            </div>
+                            <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Hat ein Gerät mehrere, zählt Prozent vor Spannung und Spannung vor LOWBAT.
+                            </p>
+                        </div>
                         <div className="flex gap-3 items-start">
                             <div className="flex-1">
-                                <label className={labelCls} style={labelStyle}>
-                                    Warnschwelle (%)
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={100}
-                                    value={o.batteryThreshold ?? 20}
-                                    onChange={(e) =>
-                                        set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
+                                <Unavailable
+                                    reason={
+                                        batteryKinds.includes('percent') ? undefined : 'Nur mit Prozent-Datenpunkten'
                                     }
-                                    className={inputCls}
-                                    style={inputStyle}
-                                />
+                                >
+                                    <label className={labelCls} style={labelStyle}>
+                                        Warnschwelle (%)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={100}
+                                        value={o.batteryThreshold ?? 20}
+                                        onChange={(e) =>
+                                            set({
+                                                batteryThreshold: e.target.value ? Number(e.target.value) : undefined,
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    />
+                                </Unavailable>
+                            </div>
+                            <div className="flex-1">
+                                <Unavailable reason={hasVoltKind ? undefined : 'Nur mit Spannungs-Datenpunkten'}>
+                                    <label className={labelCls} style={labelStyle}>
+                                        Warnschwelle (V)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0.1}
+                                        max={60}
+                                        step={0.05}
+                                        value={o.batteryVoltThreshold ?? DEFAULT_BATTERY_VOLT_THRESHOLD}
+                                        onChange={(e) =>
+                                            set({
+                                                batteryVoltThreshold: e.target.value
+                                                    ? Number(e.target.value)
+                                                    : undefined,
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    />
+                                </Unavailable>
                             </div>
                             <CatColor cat="battery" />
                         </div>
-                        <Toggle
-                            checked={o.includeLowbatBoolean !== false}
-                            onChange={(v) => set({ includeLowbatBoolean: v })}
-                            label="Boolesche LOWBAT-Datenpunkte einbeziehen"
-                        />
+                        <Unavailable
+                            reason={batteryKinds.includes('bool') ? undefined : 'Nur mit booleschen Datenpunkten'}
+                        >
+                            <Toggle
+                                checked={o.includeLowbatBoolean !== false}
+                                onChange={(v) => set({ includeLowbatBoolean: v })}
+                                label="Auch LOWBAT-Datenpunkte ohne Batterie-Rolle (nach Name)"
+                            />
+                        </Unavailable>
                         <Toggle
                             checked={o.batteryTypeEnabled !== false}
                             onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
@@ -552,7 +630,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </div>
                         <div>
                             <label className={labelCls} style={labelStyle}>
-                                Adapter (Komma-getrennt, z. B. zigbee.0)
+                                Nur diese Adapter (Komma-getrennt, leer = alle)
                             </label>
                             <input
                                 type="text"
@@ -565,13 +643,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </div>
                         <div>
                             <label className={labelCls} style={labelStyle}>
-                                Ausschluss-Muster (Text oder /regex/)
+                                Ausschluss-Muster (Text oder /regex/, z. B. homee.0. blendet einen Adapter aus)
                             </label>
                             <input
                                 type="text"
                                 value={o.excludeIdPatterns ?? ''}
                                 onChange={(e) => set({ excludeIdPatterns: e.target.value || undefined })}
-                                placeholder=".info., _REMOTE_"
+                                placeholder="homee.0., .info., _REMOTE_"
                                 className={inputCls}
                                 style={inputStyle}
                             />
@@ -838,10 +916,26 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 <option value="all">Alle gefundenen Geräte</option>
                             </select>
                         </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Eigene Gerätenamen
+                            </label>
+                            <button
+                                onClick={() => setShowNames(true)}
+                                className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                                style={{ background: 'var(--accent)', color: '#fff' }}
+                            >
+                                Gerätenamen bearbeiten{namedCount ? ` (${namedCount})` : ''} →
+                            </button>
+                            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Ersetzt den erkannten Namen eines Geräts. Gilt für alle Zeilen des Geräts (Batterie,
+                                Fenster, offline); Namensmuster und Filter laufen danach.
+                            </p>
+                        </div>
                         <NameDisplayFields
                             pattern={o.namePattern}
                             rules={o.nameFilters}
-                            samples={samples}
+                            samples={namedSamples}
                             sampleTotal={sampleTotal}
                             onChange={set}
                         />
@@ -920,6 +1014,15 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             {showActions && (
                 <ConfigModal title="Zeilen-Aktionen" maxWidth={560} padded onClose={() => setShowActions(false)}>
                     <StatusRowActionsEditor actions={o.rowActions ?? []} onChange={(v) => set({ rowActions: v })} />
+                </ConfigModal>
+            )}
+            {showNames && (
+                <ConfigModal title="Gerätenamen" maxWidth={640} padded onClose={() => setShowNames(false)}>
+                    <DeviceNamesEditor
+                        devices={devices}
+                        names={o.deviceNames}
+                        onChange={(v) => set({ deviceNames: v })}
+                    />
                 </ConfigModal>
             )}
         </div>

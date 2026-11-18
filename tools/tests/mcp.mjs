@@ -3399,7 +3399,7 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all thirty-seven tools are announced with descriptions', () => {
+check('all thirty-eight tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_backups',
@@ -3433,6 +3433,7 @@ check('all thirty-seven tools are announced with descriptions', () => {
         'aura_update_widget',
         'aura_update_widgets',
         'aura_validate',
+        'aura_web_components',
         'aura_widget_schema',
         'aura_widget_types',
         'aura_write_group',
@@ -4374,7 +4375,7 @@ vaultData.sections['tab:s1:t9'].mcpWrite = true;
 
 const dashReleased = await client.callTool({ name: 'aura_dashboard', arguments: {} });
 check('a released view is marked as such', () => {
-    assert.match(dashReleased.content[0].text, /\[über MCP bearbeitbar\]/);
+    assert.match(dashReleased.content[0].text, /\[über MCP bearbeitbar: Tab\]/);
 });
 
 const tabReleased = await client.callTool({ name: 'aura_tab', arguments: { tab: 'Geheim' } });
@@ -4412,6 +4413,202 @@ check('a released view takes a geometry change — into the vault, not into the 
     );
     assert.deepEqual(tab.widgets, [], 'protected content must never land in config.dashboard');
     assert.ok(!adapter.states['config.dashboard'].includes('wSecret'));
+});
+
+// ── A new tab in a PIN-protected section ─────────────────────────────────────
+// Reported from use: aura_create_tab into a section with a section PIN reported
+// success, but the tab landed in the stub only — in the frontend's tab bar with
+// nothing behind it, missing from the editor (which takes the vault's tab list),
+// and deleted by the next editor save. The tab has to go into the vault, or not
+// be created at all.
+vaultData.sections['section:s2'] = {
+    scope: 'section',
+    name: 'Haupt',
+    salt: 's',
+    hash: 'h',
+    len: 4,
+    pinRelock: 'leave',
+    content: {
+        tabs: [
+            {
+                id: 't3',
+                name: 'Licht',
+                slug: 'licht',
+                widgets: [{ ...OK_SWITCH, id: 'wHaupt', title: 'Haupt-Geheim' }],
+            },
+        ],
+    },
+};
+const filesBeforeLockedCreate = Object.keys(adapter.files).length;
+const dashBeforeLockedCreate = adapter.states['config.dashboard'];
+const createLockedRefused = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: {
+        layout: 'Tablet',
+        section: 'Haupt',
+        name: 'Bearbeiten',
+        widgets: JSON.stringify([{ ...OK_SWITCH, id: 'wNeuTab' }]),
+    },
+});
+check('aura_create_tab into a locked section without a release is refused — nothing written', () => {
+    assert.ok(createLockedRefused.isError, createLockedRefused.content[0].text);
+    assert.match(createLockedRefused.content[0].text, /nicht für den MCP freigegeben/);
+    assert.match(createLockedRefused.content[0].text, /auch für später angelegte/);
+    assert.equal(adapter.states['config.dashboard'], dashBeforeLockedCreate, 'config unchanged');
+    assert.equal(Object.keys(adapter.files).length, filesBeforeLockedCreate, 'no backup');
+    assert.equal(vaultData.sections['section:s2'].content.tabs.length, 1);
+});
+
+const copyIntoLocked = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'tab', target: 'Klima', toLayout: 'Tablet', toSection: 'Haupt' },
+});
+check('aura_copy_node into a locked section without a release is refused as well', () => {
+    assert.ok(copyIntoLocked.isError, copyIntoLocked.content[0].text);
+    assert.match(copyIntoLocked.content[0].text, /nicht für den MCP freigegeben/);
+    assert.equal(adapter.states['config.dashboard'], dashBeforeLockedCreate);
+});
+
+// The release on the SECTION (the switch at the section in the editor) covers
+// every tab in it, the ones created later included.
+vaultData.sections['section:s2'].mcpWrite = true;
+const createLocked = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: {
+        layout: 'Tablet',
+        section: 'Haupt',
+        name: 'Bearbeiten',
+        widgets: JSON.stringify([{ ...OK_SWITCH, id: 'wNeuTab', title: 'Neu-Geheim' }]),
+    },
+});
+check('with a section release the new tab goes into the vault, with its widgets', () => {
+    assert.ok(!createLocked.isError, createLocked.content[0].text);
+    assert.match(createLocked.content[0].text, /im PIN-Tresor, über MCP bearbeitbar/);
+    const tabs = vaultData.sections['section:s2'].content.tabs;
+    assert.deepEqual(
+        tabs.map((t) => t.name),
+        ['Licht', 'Bearbeiten'],
+    );
+    assert.equal(tabs[1].widgets.length, 1);
+    assert.equal(tabs[1].widgets[0].title, 'Neu-Geheim');
+    assert.equal(tabs[0].widgets[0].title, 'Haupt-Geheim', 'the existing tab is untouched');
+    assert.ok(!('_mcpHydrated' in tabs[0]) && !('_mcpHydrated' in tabs[1]));
+    // The state keeps a menu stub for it, and nothing protected.
+    const state = adapter.states['config.dashboard'];
+    assert.ok(!state.includes('Neu-Geheim') && !state.includes('wNeuTab') && !state.includes('Haupt-Geheim'));
+    assert.ok(!state.includes('_mcpHydrated'));
+    const stubTabs = JSON.parse(state).state.layouts[1].sections[0].tabs;
+    assert.deepEqual(
+        stubTabs.map((t) => [t.name, t.widgets.length]),
+        [
+            ['Licht', 0],
+            ['Bearbeiten', 0],
+        ],
+    );
+});
+
+const dashSectionReleased = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+check('aura_dashboard says where a release comes from', () => {
+    const t = dashSectionReleased.content[0].text;
+    assert.match(t, /· Bearbeiten — PIN-geschützt.*1 Widget\(s\).*\[über MCP bearbeitbar: Bereich\]/);
+    assert.match(t, /· Geheim — PIN-geschützt.*\[über MCP bearbeitbar: Tab\]/);
+});
+
+const tabNewLocked = await client.callTool({
+    name: 'aura_tab',
+    arguments: { tab: 'Bearbeiten', layout: 'Tablet', section: 'Haupt' },
+});
+check('the new tab reads back through aura_tab', () => {
+    assert.ok(!tabNewLocked.isError, tabNewLocked.content[0].text);
+    assert.match(tabNewLocked.content[0].text, /Neu-Geheim/);
+});
+
+// A tab that is already stub-only (the state the bug left behind): without a
+// release the answer names the missing content, not a release that was on.
+{
+    const env = JSON.parse(adapter.states['config.dashboard']);
+    env.state.layouts[1].sections[0].tabs.push({ id: 'tGhost', name: 'Geist', slug: 'geist', widgets: [] });
+    adapter.states['config.dashboard'] = JSON.stringify(env);
+}
+delete vaultData.sections['section:s2'].mcpWrite;
+const ghostRead = await client.callTool({ name: 'aura_tab', arguments: { tab: 'Geist' } });
+const ghostAdd = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: { tab: 'Geist', widget: JSON.stringify({ ...OK_SWITCH, id: 'wGhost' }) },
+});
+const ghostDash = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+check('a stub-only tab says it has no vault content', () => {
+    assert.ok(ghostRead.isError);
+    assert.match(ghostRead.content[0].text, /keinen Tresor-Inhalt/);
+    assert.ok(ghostAdd.isError);
+    assert.match(ghostAdd.content[0].text, /keinen Tresor-Inhalt/);
+    assert.match(ghostDash.content[0].text, /· Geist — PIN-geschützt.*kein Tresor-Inhalt/);
+});
+
+// With the release back on, the next write takes the stub-only tab into the vault.
+vaultData.sections['section:s2'].mcpWrite = true;
+const ghostAddReleased = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: { tab: 'Geist', widget: JSON.stringify({ ...OK_SWITCH, id: 'wGhost', title: 'Geist-Geheim' }) },
+});
+check('a released section heals a stub-only tab on the next write', () => {
+    assert.ok(!ghostAddReleased.isError, ghostAddReleased.content[0].text);
+    const ghost = vaultData.sections['section:s2'].content.tabs.find((t) => t.id === 'tGhost');
+    assert.ok(ghost, 'the tab is in the vault now');
+    assert.equal(ghost.widgets[0].title, 'Geist-Geheim');
+    assert.ok(!adapter.states['config.dashboard'].includes('Geist-Geheim'));
+});
+
+check('syncedSectionTabs keeps vault-only tabs and follows the stub for order and names', () => {
+    const { syncedSectionTabs } = require('../../lib/mcp/protectedView.js');
+    const out = syncedSectionTabs(
+        [
+            { id: 'a', name: 'A', widgets: [{ id: 'x' }] },
+            { id: 'b', name: 'B', widgets: [{ id: 'y' }] },
+        ],
+        [
+            { id: 'b', name: 'B2', widgets: [] },
+            { id: 'c', name: 'C', widgets: [{ id: 'z' }], pinProtected: true },
+        ],
+    );
+    assert.deepEqual(
+        out.map((t) => [t.id, t.name, t.widgets.map((w) => w.id)]),
+        [
+            ['b', 'B2', ['y']],
+            ['c', 'C', ['z']],
+            ['a', 'A', ['x']],
+        ],
+    );
+    assert.ok(!('pinProtected' in out[1]));
+});
+
+check('removing a section PIN keeps a tab only the stub had', () => {
+    const { restoreView } = require('../../lib/security/dashboardVault.js');
+    const cfg = {
+        layouts: [
+            {
+                id: 'l',
+                sections: [
+                    {
+                        id: 's',
+                        pinProtected: true,
+                        tabs: [
+                            { id: 'a', name: 'A', widgets: [] },
+                            { id: 'g', name: 'G', widgets: [] },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+    assert.ok(restoreView(cfg, 'section:s', { tabs: [{ id: 'a', name: 'A', widgets: [{ id: 'x' }] }] }));
+    assert.deepEqual(
+        cfg.layouts[0].sections[0].tabs.map((t) => [t.id, t.widgets.length]),
+        [
+            ['a', 1],
+            ['g', 0],
+        ],
+    );
 });
 
 delete adapter.vault;
@@ -7716,6 +7913,213 @@ check('a valid token is accepted, a near-miss and a truncation are not', () => {
     assert.equal(nearMiss, 403);
     assert.equal(truncated, 403);
 });
+
+// ── aura_web_components: the installed web components, read from the file storage ──
+console.log('\nmcp — Web-Komponenten');
+{
+    const { callTool } = require('../../lib/mcp/tools.js');
+    const { fileText, gridSizeOf } = require('../../lib/mcp/webComponents.js');
+
+    const flowManifest = {
+        manifestVersion: 1,
+        tag: 'iob-flow-diagram',
+        name: { en: 'Flow diagram', de: 'Fluss-Diagramm' },
+        description: { en: 'Animated energy flow', de: 'Animierter Energiefluss' },
+        module: 'flow-diagram.js',
+        size: { width: 480, height: 340 },
+        settings: {
+            type: 'panel',
+            items: {
+                diagram: {
+                    type: 'objectId',
+                    label: { en: 'Diagram', de: 'Diagramm' },
+                    types: 'config',
+                    root: 'flow.0.diagrams',
+                },
+                display: { type: 'header', text: { en: 'Display', de: 'Anzeige' } },
+                legend: { type: 'checkbox', label: { en: 'Legend', de: 'Legende' }, default: true },
+                speed: { type: 'slider', label: 'Speed', min: 0, max: 10, step: 0.5, default: 5 },
+                unit: {
+                    type: 'select',
+                    label: 'Unit',
+                    default: 'w',
+                    options: [
+                        { value: 'w', label: 'w' },
+                        { value: 'kw', label: 'kW' },
+                    ],
+                },
+                inst: { type: 'instance', label: 'Instance', adapter: 'flow' },
+                note: { type: 'text', label: 'Note', minRows: 3, hidden: '!data.legend' },
+                line: { type: 'divider' },
+            },
+        },
+    };
+    const tabsManifest = {
+        manifestVersion: 1,
+        tag: 'iob-cal-month',
+        name: 'Calendar',
+        module: 'month.js',
+        settings: {
+            type: 'tabs',
+            items: {
+                main: { type: 'panel', label: { en: 'General', de: 'Allgemein' }, items: { color: { type: 'color' } } },
+                more: { type: 'panel', label: 'More', items: { weeks: { type: 'number', min: 1 } } },
+            },
+        },
+    };
+    const inst = (id, version, list) => ({ _id: id, type: 'instance', common: { version, webComponents: list } });
+    const makeWcAdapter = (instances, files) => {
+        const reads = [];
+        const warnings = [];
+        return {
+            namespace: 'aura.0',
+            reads,
+            warnings,
+            log: { warn: (m) => warnings.push(m), info() {}, debug() {}, error() {} },
+            getStateAsync: async (id) =>
+                id === 'config.app-config'
+                    ? { val: JSON.stringify({ version: 0, state: { frontend: { gridRowHeight: 20, gridGap: 10 } } }) }
+                    : null,
+            getObjectViewAsync: async (_design, type) => ({
+                rows: type === 'instance' ? instances.map((value) => ({ id: value._id, value })) : [],
+            }),
+            readFileAsync: async (id, name) => {
+                reads.push(`${id}/${name}`);
+                if (!(`${id}/${name}` in files)) {
+                    throw new Error('Not exists');
+                }
+                return { file: Buffer.from(JSON.stringify(files[`${id}/${name}`])), mimeType: 'application/json' };
+            },
+            getForeignObjectAsync: async (id) => (id === 'system.config' ? { common: { language: 'de' } } : null),
+        };
+    };
+    const instances = [
+        inst('system.adapter.flow.0', '0.1.0', ['webcomponents/flow-diagram.json']),
+        inst('system.adapter.flow.1', '0.1.0', ['webcomponents/flow-diagram.json']),
+        inst('system.adapter.cal.0', '2.0.0', ['wc/month.json', 'wc/missing.json']),
+        { _id: 'system.adapter.admin.0', type: 'instance', common: { version: '7.0.0' } },
+    ];
+    const files = {
+        'flow.admin/webcomponents/flow-diagram.json': flowManifest,
+        'cal.admin/wc/month.json': tabsManifest,
+    };
+    const wcAdapter = makeWcAdapter(instances, files);
+    const call = async (args = {}, a = wcAdapter) =>
+        (await callTool('aura_web_components', args, { adapter: a, schema })).content[0].text;
+
+    const all = await call();
+    check('aura_web_components lists every installed component once, with the widget it goes into', () => {
+        assert.match(all, /^Installierte Web-Komponenten: 2$/m);
+        assert.match(all, /"type": "webcomponent", "options": \{ "wcTag": "<tag>", "wcAdapter": "<adapter>"/);
+        assert.match(all, /^### iob-flow-diagram — Flow diagram \/ Fluss-Diagramm$/m);
+        assert.match(all, /^### iob-cal-month — Calendar$/m);
+        assert.equal(all.match(/### iob-flow-diagram/g).length, 1, 'two instances of flow, one component');
+    });
+    check('… with adapter, version, description in both languages and the size in grid cells', () => {
+        assert.match(all, /Adapter flow 0\.1\.0 \(wcAdapter\) · Größe 480 × 340 px → gridPos w 17, h 13/);
+        assert.match(all, /^Animated energy flow \/ Animierter Energiefluss$/m);
+        // the same cells as the "new widget" dialog (utils/webComponentHost webComponentGridSize)
+        assert.deepEqual(gridSizeOf({ width: 480, height: 340 }, { rowHeight: 20, snapX: 20, gap: 10, padding: 16 }), {
+            w: 17,
+            h: 13,
+        });
+    });
+    check('… and every setting wcSettings takes, as the manifest declares it', () => {
+        const lines = all.split('\n');
+        const line = (key) => lines.find((l) => l.startsWith(`- ${key}:`));
+        assert.equal(
+            line('diagram'),
+            '- diagram: string (objectId) — „Diagramm“; Objekt-ID vom Typ config unter flow.0.diagrams',
+        );
+        assert.equal(line('legend'), '- legend: boolean (checkbox) — „Legende“; Standard true');
+        assert.equal(line('speed'), '- speed: number (slider) — „Speed“; 0 … 10; Schritt 0.5; Standard 5');
+        assert.equal(line('unit'), '- unit: string (select) — „Unit“; Werte "w", "kw" (kW); Standard "w"');
+        assert.equal(line('inst'), '- inst: string (instance) — „Instance“; Instanz des Adapters flow, z. B. "flow.0"');
+        assert.equal(line('note'), '- note: string (text) — „Note“; mehrzeilig; ausgeblendet, wenn !data.legend');
+        assert.ok(lines.includes('  (Anzeige)'), 'a header is shown as a note');
+        assert.ok(!line('line') && !line('display'), 'decorations are no settings');
+        assert.match(
+            all,
+            /Reiter „Allgemein“:\n- color: string \(color\) — CSS-Farbe\nReiter „More“:\n- weeks: number \(number\) — 1 … /,
+        );
+    });
+    check('a manifest that cannot be read is left out and reported', () => {
+        assert.ok(!all.includes('missing'));
+        assert.ok(wcAdapter.warnings.some((w) => w.includes('cal.admin/wc/missing.json')));
+    });
+
+    const readsBefore = wcAdapter.reads.length;
+    await call();
+    const readAgain = wcAdapter.reads.slice(readsBefore);
+    check('the manifests are read once per adapter version; an adapter with a missing file is asked again', () => {
+        assert.deepEqual(readAgain, ['cal.admin/wc/month.json', 'cal.admin/wc/missing.json']);
+    });
+    instances[0].common.version = '0.2.0';
+    instances[1].common.version = '0.2.0';
+    const readsBeforeUpdate = wcAdapter.reads.length;
+    const updated = await call({ adapter: 'flow' });
+    check('an update is read anew; adapter narrows the list', () => {
+        assert.ok(wcAdapter.reads.slice(readsBeforeUpdate).includes('flow.admin/webcomponents/flow-diagram.json'));
+        assert.match(updated, /^Installierte Web-Komponenten: 1 von 2$/m);
+        assert.match(updated, /Adapter flow 0\.2\.0/);
+        assert.ok(!updated.includes('iob-cal-month'));
+    });
+    const one = await call({ tag: 'iob-cal-month' });
+    const unknown = await call({ tag: 'iob-nope' });
+    check('tag narrows the list to one component; an unknown tag names the installed ones', () => {
+        assert.match(one, /^### iob-cal-month/m);
+        assert.ok(!one.includes('iob-flow-diagram'));
+        assert.match(
+            unknown,
+            /Keine Web-Komponente "iob-nope"\. Installiert: iob-flow-diagram \(flow\), iob-cal-month \(cal\)\./,
+        );
+    });
+
+    const twice = makeWcAdapter(
+        [
+            inst('system.adapter.flow.0', '0.1.0', ['webcomponents/flow-diagram.json']),
+            inst('system.adapter.clone.0', '1.0.0', ['wc/d.json']),
+        ],
+        { 'flow.admin/webcomponents/flow-diagram.json': flowManifest, 'clone.admin/wc/d.json': flowManifest },
+    );
+    const clash = await call({}, twice);
+    check('a tag that two adapters bring asks for wcAdapter', () => {
+        assert.equal(clash.match(/derselbe Tag kommt von mehreren Adaptern: wcAdapter angeben/g).length, 2);
+    });
+    const none = await call({}, makeWcAdapter([{ _id: 'system.adapter.admin.0', common: { version: '7.0.0' } }], {}));
+    check('without any component the answer says the widget would stay empty', () => {
+        assert.match(none, /Keine Web-Komponenten installiert/);
+    });
+    const broken = await callTool(
+        'aura_web_components',
+        {},
+        {
+            adapter: {
+                ...makeWcAdapter([], {}),
+                getObjectViewAsync: async () => {
+                    throw new Error('permissionError');
+                },
+            },
+            schema,
+        },
+    );
+    check('an instance list that cannot be read is an error, not "none installed"', () => {
+        assert.equal(broken.isError, true);
+        assert.match(broken.content[0].text, /nicht lesbar: permissionError/);
+    });
+    check('a file of the storage arrives as text in any of its shapes', () => {
+        assert.deepEqual(
+            [
+                fileText({ file: Buffer.from('a'), mimeType: 'x' }),
+                fileText([Buffer.from('b'), 'x']),
+                fileText('c'),
+                fileText({ file: 'd' }),
+                fileText(null),
+            ],
+            ['a', 'b', 'c', 'd', ''],
+        );
+    });
+}
 
 await client.close();
 server.close();

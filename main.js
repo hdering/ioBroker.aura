@@ -10,13 +10,14 @@ const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS, countdownAnnouncement } = require('./lib/countdowns');
 const auraShared = require('./lib/shared/auraShared');
 const { timerEventAnnouncement, timerHasWork } = require('./lib/timerAnnounce');
+const { StaggeredWriter, clampDelay } = require('./lib/staggeredWrite');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
 const { WidgetPublishEngine, PUBLISH_STATE_DEFS, collectWidgets } = require('./lib/widgetPublish');
 /** Record of battery changes kept by the former battery script — imported once (status.battery.history). */
 const LEGACY_BATTERY_HISTORY_ID = '0_userdata.0.Batterien.Verlauf';
 
 /** Channel names of aura.<inst>.status.<cat> (Statusübersicht, remembered hints). */
-const STATUS_CATEGORY_NAMES = { battery: 'Batterien', unreach: 'Nicht erreichbar', alarm: 'Rauch- & Wasser-Alarme' };
+const STATUS_CATEGORY_NAMES = { battery: 'Batteries', unreach: 'Unreachable', alarm: 'Smoke & water alarms' };
 const { parseSpecialDays } = require('./lib/specialDays');
 const {
     activeException,
@@ -41,6 +42,8 @@ const {
     splitDashboard,
     exposeMarkers,
     buildVaultSections,
+    keepStubEntries,
+    fillVaultKeptTabs,
     unredactView,
     restoreView,
     stampPinLengths,
@@ -61,9 +64,13 @@ const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
 const { createAnnouncements } = require('./lib/announcements');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
+const { isBlockedHost, guardedLookup, isCrossSite } = require('./lib/proxyGuard');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
+const { adapterTimers } = require('./lib/timers');
 const { createAutoListSync } = require('./lib/autoListSync');
+const { compareVersions, usableRepoNames, bestRepoVersion, computeAdapterUpdates } = require('./lib/adapterUpdates');
+const { repoWebComponents } = require('./lib/repoWebComponents');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -179,7 +186,7 @@ const POPUP_CLOSE_OBJ = {
         name: 'Close all open popups (true; reset by the client)',
         type: 'boolean',
         role: 'button',
-        read: true,
+        read: false,
         write: true,
         def: false,
     },
@@ -264,49 +271,8 @@ const UPDATE_CHECK_INTERVAL_MS = 3600_000;
 /** Message ids carry the version so a fresh release is a new entry, not a silent replace. */
 const UPDATE_MESSAGE_ID_PREFIX = 'aura-update-';
 
-/**
- * Split a version into comparable parts. Returns null for anything that is not
- * `x.y.z` with an optional `-prerelease` tail (build metadata is ignored).
- */
-function parseVersion(raw) {
-    const m = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?/.exec(String(raw ?? '').trim());
-    if (!m) return null;
-    return {
-        core: [Number(m[1]), Number(m[2]), Number(m[3])],
-        pre: m[4] ? m[4].split('.') : null,
-    };
-}
-
-/**
- * Semver ordering, so a beta install is never told to "update" to the older
- * stable it came from. Returns -1 / 0 / 1, or null when either side is unparsable.
- */
-function compareVersions(a, b) {
-    const va = parseVersion(a);
-    const vb = parseVersion(b);
-    if (!va || !vb) return null;
-    for (let i = 0; i < 3; i++) {
-        if (va.core[i] !== vb.core[i]) return va.core[i] < vb.core[i] ? -1 : 1;
-    }
-    // 1.0.0-beta.1 < 1.0.0 — a release without a prerelease tail always wins.
-    if (va.pre && !vb.pre) return -1;
-    if (!va.pre && vb.pre) return 1;
-    if (!va.pre && !vb.pre) return 0;
-    for (let i = 0; i < Math.max(va.pre.length, vb.pre.length); i++) {
-        const x = va.pre[i];
-        const y = vb.pre[i];
-        if (x === undefined) return -1;
-        if (y === undefined) return 1;
-        const nx = /^\d+$/.test(x) ? Number(x) : null;
-        const ny = /^\d+$/.test(y) ? Number(y) : null;
-        if (nx !== null && ny !== null) {
-            if (nx !== ny) return nx < ny ? -1 : 1;
-        } else if (x !== y) {
-            return x < y ? -1 : 1;
-        }
-    }
-    return 0;
-}
+// parseVersion / compareVersions live in lib/adapterUpdates.js (shared with the
+// adapter-status update list, issue #962).
 
 /** ioBroker object ids allow a restricted charset — layout slugs are free user text. */
 function sanitizeIdSegment(raw) {
@@ -582,7 +548,25 @@ function applyForwardedHeaders(headers, req) {
     if (req.headers['host']) headers['X-Forwarded-Host'] = req.headers['x-forwarded-host'] || req.headers['host'];
 }
 
-function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) {
+/**
+ * Does a state change of a watched datapoint count as a real value? Foreign states
+ * only once acknowledged; own states and user/script datapoints always.
+ *
+ * @param {string} id datapoint ID of the change
+ * @param {ioBroker.State | null | undefined} state new state, null when deleted
+ * @param {string} namespace own namespace, e.g. aura.0
+ */
+function isConfirmedValue(id, state, namespace) {
+    if (!state || state.ack) {
+        return true;
+    }
+    return id.startsWith(`${namespace}.`) || id.startsWith('0_userdata.') || id.startsWith('javascript.');
+}
+
+/** Upstream must answer the WebSocket upgrade within this; the open socket has no timeout. */
+const WS_HANDSHAKE_TIMEOUT_MS = 15000;
+
+function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, guard = false) {
     let targetUrl;
     try {
         targetUrl = new URL(targetWsUrl);
@@ -608,14 +592,23 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) 
             'Sec-WebSocket-Key': req.headers['sec-websocket-key'],
         },
         rejectUnauthorized: false,
+        timeout: WS_HANDSHAKE_TIMEOUT_MS,
     };
+    // User-supplied iframe targets (/proxyws): nothing on the ioBroker host itself.
+    if (guard) opts.lookup = guardedLookup;
     if (req.headers['sec-websocket-protocol'])
         opts.headers['Sec-WebSocket-Protocol'] = req.headers['sec-websocket-protocol'];
     if (req.headers['cookie']) opts.headers['Cookie'] = req.headers['cookie'];
     if (sendForwardedFor) applyForwardedHeaders(opts.headers, req);
 
     const proxyReq = lib.request(opts);
+    let upgraded = false;
+    // Only the handshake is bounded: after the upgrade the socket timeout is cleared below.
+    proxyReq.on('timeout', () => {
+        if (!upgraded) proxyReq.destroy(new Error(`no upgrade within ${WS_HANDSHAKE_TIMEOUT_MS} ms`));
+    });
     proxyReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
+        upgraded = true;
         const lines = [
             'HTTP/1.1 101 Switching Protocols',
             'Upgrade: websocket',
@@ -1032,16 +1025,24 @@ class Aura extends utils.Adapter {
             return;
         }
 
+        // Values of watched datapoints (lists, announcements, remembered hints, countdown
+        // triggers) count once the owning adapter confirmed them (ack) — a command
+        // (ack=false) has not happened yet. Aura's own states and user/script datapoints
+        // (0_userdata, javascript), which scripts write with ack=false, count right away.
+        const confirmed = isConfirmedValue(id, state, this.namespace);
+
         // A datapoint a published list reads (#798). First and not returned: a list
         // may show aura's own states, and other features watch the same ids.
-        if (this._publish && this._publishSubscribed && this._publishSubscribed.has(id)) {
+        if (confirmed && this._publish && this._publishSubscribed && this._publishSubscribed.has(id)) {
             this._publish.update(id, state || null);
         }
 
         // Announcement rules (#834 phase 4): a datapoint they read (not returned —
         // other features may watch the same id) and the rules themselves.
         if (this._announcements) {
-            this._announcements.onStateChange(id, state);
+            if (confirmed) {
+                this._announcements.onStateChange(id, state);
+            }
             if (id === `${this.namespace}.config.announcements` && state) {
                 await this._announcements.load(state.val);
                 return;
@@ -1068,11 +1069,11 @@ class Aura extends utils.Adapter {
         }
         // A datapoint the remembered hints watch. Not returned: another feature may
         // have subscribed the same id.
-        if (this._statusLatch && state && this._statusSubscribed.has(id)) {
+        if (confirmed && this._statusLatch && state && this._statusSubscribed.has(id)) {
             this._statusLatch.update(id, state);
         }
         // A countdown's trigger datapoint (#796). Not returned either.
-        if (this._countdowns && state && this._countdownTriggerSubs?.has(id)) {
+        if (confirmed && this._countdowns && state && this._countdownTriggerSubs?.has(id)) {
             await this._countdowns.ingestTrigger(id, state.val);
         }
 
@@ -1181,10 +1182,18 @@ class Aura extends utils.Adapter {
 
         // Client delete relay: write a clientId here → the adapter tears down that
         // client's whole object tree. Documented in docs/einstellungen/settings.md.
-        // Acknowledged writes count too: the adapter's own clear is empty, so the value
-        // check already tells the two apart — and a manual write from the Admin object
-        // tree with "Bestätigt" ticked used to be swallowed without a word (#624).
+        // A command is a write with ack=false (ioBroker rule for own states). An
+        // acknowledged write — "Bestätigt" ticked in the Admin object tree — is not
+        // executed, but no longer swallowed without a word either (#624): it is
+        // logged and cleared, so the next try starts from an empty relay.
         if (id.endsWith('clients.deleteRequest') && state && state.val) {
+            if (state.ack) {
+                this.log.warn(
+                    `[clients] deleteRequest "${state.val}" was written with ack=true and is ignored — write it without ack`,
+                );
+                await this.setStateAsync('clients.deleteRequest', '', true);
+                return;
+            }
             const clientId = sanitizeClientId(state.val);
             if (clientId) await this._deleteClientTree(clientId);
             else this.log.warn(`[clients] deleteRequest: "${state.val}" is not a valid client id`);
@@ -1195,9 +1204,14 @@ class Aura extends utils.Adapter {
         // A client rename writes clients.<id>.info.name (Admin → Verbundene Geräte, or a
         // script). Mirror it onto the channel so the object tree shows the same name —
         // it otherwise keeps whatever the client was called when it first registered.
-        if (/\.clients\.[^.]+\.info\.name$/.test(id) && state && state.val) {
+        // Only commands (ack=false); the register relay renames the channel itself
+        // and writes the name acknowledged.
+        if (/\.clients\.[^.]+\.info\.name$/.test(id) && state && !state.ack && state.val) {
             const cId = id.split('.')[3];
-            if (cId) await this._setClientChannelName(cId, String(state.val));
+            if (cId) {
+                await this._setClientChannelName(cId, String(state.val));
+                await this.setStateAsync(`clients.${cId}.info.name`, { val: String(state.val), ack: true });
+            }
             return;
         }
 
@@ -1552,7 +1566,26 @@ class Aura extends utils.Adapter {
 
     async _initPinVault() {
         const dir = this._instanceDataDir();
-        this.vault = new VaultFile(dir);
+        // info.vaultRevision = time of the last vault write. Says nothing about the
+        // content; an unlocked frontend re-reads its view (/pin/content) when it
+        // moves — otherwise an MCP write into a protected tab only showed after F5.
+        await this.setObjectNotExistsAsync('info.vaultRevision', {
+            type: 'state',
+            common: {
+                name: 'Last change of the PIN vault (for unlocked frontends)',
+                type: 'number',
+                role: 'value.time',
+                read: true,
+                write: false,
+                def: 0,
+            },
+            native: {},
+        });
+        this.vault = new VaultFile(dir, {
+            onSave: () => {
+                this.setStateAsync('info.vaultRevision', { val: Date.now(), ack: true }).catch(() => {});
+            },
+        });
         const data = this.vault.load();
         if (!data.serverSecret) {
             data.serverSecret = generateServerSecret();
@@ -1618,11 +1651,20 @@ class Aura extends utils.Adapter {
         for (const p of prot) {
             if (p.fromStub && data.sections && data.sections[p.key]) {
                 p.content = data.sections[p.key].content;
+            } else if (p.scope === 'section') {
+                // Tabs the editor knew only as stubs (added by the MCP meanwhile)
+                // keep the content the vault holds for them.
+                const prev = data.sections && data.sections[p.key];
+                fillVaultKeptTabs(p.content, prev && prev.content);
             }
         }
         // Shown markers (#944) come from the real view, not from the stub it arrived as.
         exposeMarkers(publicConfig, prot);
         const { sections, unresolved } = buildVaultSections(prot, data.sections || {}, data.codes || {});
+        const kept = keepStubEntries(publicConfig, sections, data.sections || {});
+        if (kept.length) {
+            this.log.debug(`aura: PIN vault — kept ${kept.length} view(s) saved as stub: ${kept.join(', ')}`);
+        }
         if (unresolved.length) {
             // A "keep the current PIN" marker pointed at a PIN the vault does not
             // know (only reachable by hand-editing the state). Never drop the view's
@@ -1842,6 +1884,7 @@ class Aura extends utils.Adapter {
                 listening: !!this._httpServer?.listening,
             },
             probe: (at) => this.probeBackend(at),
+            ownReact: !!reactEsmFile('/lib/esm/react-19.js'),
             meta: { version, checkedAt: new Date().toISOString().replace('T', ' ').slice(0, 19) },
         });
 
@@ -1987,6 +2030,7 @@ class Aura extends utils.Adapter {
                 dataDir: this._instanceDataDir(),
                 isAllowed: insideRoots,
                 log: this.log,
+                timers: adapterTimers(this),
             }));
 
         // Icons are served from our own origin (see lib/iconCache.js): the public
@@ -2013,7 +2057,12 @@ class Aura extends utils.Adapter {
                 this.log.debug(`aura: info.iconCache not written — ${e.message}`);
             }
         };
-        const iconCache = createIconCache({ dir: this._instanceDataDir(), log: this.log, onChange: publishIconCache });
+        const iconCache = createIconCache({
+            dir: this._instanceDataDir(),
+            log: this.log,
+            onChange: publishIconCache,
+            timers: adapterTimers(this),
+        });
         publishIconCache(iconCache.summary());
         // Icons of installed ioBroker icon adapters (#716) — served from their
         // own storage, never bundled or re-hosted by Aura.
@@ -2050,6 +2099,19 @@ class Aura extends utils.Adapter {
                 return;
             }
             if (adapterIcons.handle(req, res, parsedUrl)) {
+                return;
+            }
+            // Proxy and file routes answer only Aura's own pages, not a foreign web
+            // page driving a visitor's browser (lib/proxyGuard.js).
+            if (
+                (pathname === '/proxy' ||
+                    pathname === '/feed' ||
+                    pathname.startsWith('/feed/') ||
+                    pathname.startsWith('/fs/')) &&
+                isCrossSite(req)
+            ) {
+                res.writeHead(403);
+                res.end('Cross-site request refused');
                 return;
             }
             if (feedProxy.handle(req, res, parsedUrl)) {
@@ -2101,6 +2163,11 @@ class Aura extends utils.Adapter {
                     res.end(`Invalid proxy URL: ${e.message}`);
                     return;
                 }
+                if (isBlockedHost(targetUrl.hostname)) {
+                    res.writeHead(403);
+                    res.end('Proxy target not allowed');
+                    return;
+                }
 
                 const lib = targetUrl.protocol === 'https:' ? https : http;
                 const fwdHeaders = buildFwdHeaders(req);
@@ -2114,6 +2181,7 @@ class Aura extends utils.Adapter {
                     timeout: PROXY_TIMEOUT_MS,
                     headers: fwdHeaders,
                     rejectUnauthorized: false,
+                    lookup: guardedLookup,
                 };
 
                 const proxyReq = lib.request(reqOptions, (proxyRes) => {
@@ -2163,7 +2231,7 @@ class Aura extends utils.Adapter {
                 });
                 proxyReq.on('error', (e) => {
                     if (!res.headersSent) {
-                        res.writeHead(502);
+                        res.writeHead(/** @type {NodeJS.ErrnoException} */ (e).code === 'EAURABLOCKED' ? 403 : 502);
                         res.end(`Proxy error: ${e.message}`);
                     }
                 });
@@ -2405,10 +2473,21 @@ class Aura extends utils.Adapter {
             // that references adapter files directly (see webFsPath, #885).
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
             const reactEsm = req.method === 'GET' || req.method === 'HEAD' ? reactEsmFile(pathname) : null;
+            // The web extension asked for it because web has no copy (before 9.2.0):
+            // handing it back to web would come straight back here.
+            const reactFromExt = !!req.headers['x-aura-react-fallback'];
+            const reactMissing = () => {
+                res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('not found');
+            };
             if (reactEsm) {
                 serveReactEsm(reactEsm, res, req.method, String(req.headers['accept-encoding'] || ''), () =>
-                    proxyToWebBackend(req, res, req.url),
+                    reactFromExt ? reactMissing() : proxyToWebBackend(req, res, req.url),
                 );
+                return;
+            }
+            if (reactFromExt && /^\/lib\/esm\/react-1[89]\.js$/.test(pathname)) {
+                reactMissing();
                 return;
             }
             const webfsPath = webFsPath(pathname);
@@ -2545,7 +2624,7 @@ class Aura extends utils.Adapter {
                 // for each WS upgrade — useful when chasing "No sid found" / protocol
                 // mismatches. Enable the adapter's debug log level to see it.
                 this.log.debug(
-                    `aura: WS upgrade in="${req.url}" pure=${isPureWs} sid="${parsedUrl.searchParams.get('sid') ?? ''}" injected=${injected} -> "${targetReqUrl}"`,
+                    `aura: WS upgrade in="${parsedUrl.pathname}" pure=${isPureWs} sid=${parsedUrl.searchParams.has('sid') ? 'present' : 'none'} injected=${injected} -> "${String(targetReqUrl).split('?')[0]}"`,
                 );
                 proxyWebSocket(
                     req,
@@ -2562,7 +2641,18 @@ class Aura extends utils.Adapter {
                 socket.destroy();
                 return;
             }
-            proxyWebSocket(req, socket, targetWsUrl, this.log);
+            let wsHost = '';
+            try {
+                wsHost = new URL(targetWsUrl).hostname;
+            } catch {
+                /* proxyWebSocket answers 400 */
+            }
+            if (isCrossSite(req) || (wsHost && isBlockedHost(wsHost))) {
+                socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+                socket.destroy();
+                return;
+            }
+            proxyWebSocket(req, socket, targetWsUrl, this.log, true, true);
         });
 
         const bindAddr = listenAddress(this.config.bind);
@@ -2712,16 +2802,12 @@ class Aura extends utils.Adapter {
             common: { name: 'Info' },
             native: {},
         });
-        await this.setObjectNotExistsAsync(`${base}.info.name`, {
-            type: 'state',
-            common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: name },
-            native: {},
-        });
         await this.setObjectNotExistsAsync(`${base}.info.lastSeen`, {
             type: 'state',
-            common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
+            common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: false, def: 0 },
             native: {},
         });
+        await this._alignCommon(`${base}.info.lastSeen`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.info.resolutionWidth`, {
             type: 'state',
             common: {
@@ -2730,11 +2816,12 @@ class Aura extends utils.Adapter {
                 role: 'value',
                 unit: 'px',
                 read: true,
-                write: true,
+                write: false,
                 def: 0,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.info.resolutionWidth`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.info.resolutionHeight`, {
             type: 'state',
             common: {
@@ -2743,11 +2830,12 @@ class Aura extends utils.Adapter {
                 role: 'value',
                 unit: 'px',
                 read: true,
-                write: true,
+                write: false,
                 def: 0,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.info.resolutionHeight`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.info.userAgent`, {
             type: 'state',
             common: { name: 'User agent', type: 'string', role: 'text', read: true, write: true, def: '' },
@@ -2798,6 +2886,13 @@ class Aura extends utils.Adapter {
         await this._ensureIdleReturnDps(cId);
         await this._ensureIdleStateDps(cId);
         await this._ensureSpeechDps(cId);
+        // Last: its default value is what the frontend waits for before it writes
+        // heartbeat and idle state — every other datapoint has to exist by then.
+        await this.setObjectNotExistsAsync(`${base}.info.name`, {
+            type: 'state',
+            common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: name },
+            native: {},
+        });
         this.log.debug(`[clients] completed object tree for ${cId}`);
         return true;
     }
@@ -2902,6 +2997,10 @@ class Aura extends utils.Adapter {
                 try {
                     // Doubles as the backfill for clients whose tree is incomplete.
                     await this._ensureClientTree(cId);
+                    // Reported values, read-only for users — also on trees created before.
+                    for (const dp of ['info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+                        await this._alignCommon(`clients.${cId}.${dp}`, { write: false });
+                    }
                     // Unconditional: _ensureClientTree short-circuits on an existing
                     // navigate.url, so a client from before the messages channel
                     // existed would never be reached from there (#429).
@@ -3440,7 +3539,7 @@ class Aura extends utils.Adapter {
             common: {
                 name: 'Pause auto-return for N minutes (counts down to 0)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 'min',
                 min: 0,
                 max: IDLE_SNOOZE_MAX_MIN,
@@ -3450,12 +3549,13 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idleReturn.snoozeMinutes`, { role: 'level.timer' });
         await this.setObjectNotExistsAsync(`${base}.idleReturn.delay`, {
             type: 'state',
             common: {
                 name: 'Auto-return delay for this client (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 's',
                 min: -1,
                 max: IDLE_DELAY_MAX_SEC,
@@ -3465,6 +3565,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idleReturn.delay`, { role: 'level.timer' });
     }
 
     /** clients.<id>.popup.close (#861) — own backfill, the tree short-circuits on navigate.url. */
@@ -3475,6 +3576,22 @@ class Aura extends utils.Adapter {
             native: {},
         });
         await this.setObjectNotExistsAsync(`clients.${cId}.popup.close`, POPUP_CLOSE_OBJ);
+        await this._alignCommon(`clients.${cId}.popup.close`, { read: false });
+    }
+
+    /**
+     * Brings `common` fields of an object created by an older version in line —
+     * setObjectNotExists leaves existing objects untouched (English names, role flags).
+     */
+    async _alignCommon(id, common) {
+        try {
+            const obj = await this.getObjectAsync(id);
+            if (!obj) return;
+            const stale = Object.entries(common).some(([k, v]) => obj.common?.[k] !== v);
+            if (stale) await this.extendObjectAsync(id, { common });
+        } catch (e) {
+            this.log.debug(`aura: align ${id} failed: ${e.message}`);
+        }
     }
 
     /**
@@ -3497,11 +3614,12 @@ class Aura extends utils.Adapter {
                 type: 'boolean',
                 role: 'indicator',
                 read: true,
-                write: true,
+                write: false,
                 def: false,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idle.active`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.idle.enabled`, {
             type: 'state',
             common: {
@@ -3509,17 +3627,18 @@ class Aura extends utils.Adapter {
                 type: 'boolean',
                 role: 'indicator',
                 read: true,
-                write: true,
+                write: false,
                 def: true,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idle.enabled`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.idle.delay`, {
             type: 'state',
             common: {
                 name: 'Idle after N seconds on this client (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 's',
                 min: -1,
                 max: IDLE_DELAY_MAX_SEC,
@@ -3529,6 +3648,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idle.delay`, { role: 'level.timer' });
     }
 
     /**
@@ -3563,11 +3683,12 @@ class Aura extends utils.Adapter {
                 type: 'boolean',
                 role: 'indicator',
                 read: true,
-                write: true,
+                write: false,
                 def: false,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.speech.playing`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.speech.lastResult`, {
             type: 'state',
             common: {
@@ -3798,16 +3919,62 @@ class Aura extends utils.Adapter {
         /** @type {Record<string, any>} */
         const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
         // js-controller 5 allows several repositories at once; the highest offer wins.
-        const usable = names.filter((n) => repos[n]);
-        let best = null;
-        for (const name of usable.length ? usable : Object.keys(repos)) {
-            const version = repos[name]?.json?.[this.name]?.version;
-            if (!parseVersion(version)) continue;
-            if (!best || compareVersions(best.version, version) === -1) {
-                best = { version: String(version).trim(), repo: name };
-            }
+        return bestRepoVersion(repos, usableRepoNames(names, repos), this.name);
+    }
+
+    /**
+     * Available adapter updates measured against the *active* repositories —
+     * what the admin's adapter list shows. `admin.X.info.updatesJson` lags behind
+     * a repository switch until admin's next scheduled refresh (issue #962).
+     *
+     * Cached for a minute: system.repositories is several MB, and every open
+     * adapter-status widget asks on its own.
+     */
+    async _adapterUpdates(force = false) {
+        const now = Date.now();
+        if (!force && this._adapterUpdatesCache && now - this._adapterUpdatesCache.at < 60_000) {
+            return this._adapterUpdatesCache.result;
         }
-        return best;
+        const sys = await this.getForeignObjectAsync('system.config');
+        const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
+        const view = await this.getObjectViewAsync('system', 'adapter', {
+            startkey: 'system.adapter.',
+            endkey: 'system.adapter.香',
+        });
+        const adapters = [];
+        for (const row of (view && view.rows) || []) {
+            const c = row.value?.common;
+            const name = c?.name || String(row.id).slice('system.adapter.'.length);
+            if (!name) continue;
+            adapters.push({ name, version: c?.version, ignoreVersion: c?.ignoreVersion });
+        }
+        const computed = computeAdapterUpdates({ activeRepo: sys?.common?.activeRepo, repos, adapters });
+        const result = computed
+            ? { ok: true, repos: computed.repos, updates: computed.updates, checkedAt: now }
+            : { ok: false, error: 'no active repository data' };
+        this._adapterUpdatesCache = { at: now, result };
+        return result;
+    }
+
+    /**
+     * Web components of adapters that are not installed: the short forms of
+     * `common.webComponents` in the active repositories (lib/repoWebComponents),
+     * for the "add widget" dialog. Cached for ten minutes - system.repositories is
+     * several MB and changes only when admin refreshes it.
+     */
+    async _repoWebComponents() {
+        const now = Date.now();
+        if (this._repoWebComponentsCache && now - this._repoWebComponentsCache.at < 600_000) {
+            return this._repoWebComponentsCache.result;
+        }
+        const sys = await this.getForeignObjectAsync('system.config');
+        const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
+        const found = repoWebComponents({ activeRepo: sys?.common?.activeRepo, repos });
+        const result = found
+            ? { ok: true, repos: found.repos, components: found.components }
+            : { ok: false, error: 'no repository data', components: [] };
+        this._repoWebComponentsCache = { at: now, result };
+        return result;
     }
 
     /** Language for the update notice. system.config decides, English otherwise. */
@@ -3976,10 +4143,33 @@ class Aura extends utils.Adapter {
             debug.forEach((line) => this.log.debug(line));
             if (changed) {
                 await this.setForeignObjectAsync(obj._id, obj);
+                return true;
             }
         } catch (e) {
             this.log.warn(`Could not update instance object: ${e.message}`);
         }
+        return false;
+    }
+
+    /**
+     * After a write to the own instance object js-controller restarts this
+     * instance within moments. Starting everything up in that window only ends
+     * in "adapter is shutting down" warnings and rejected DB calls once the
+     * connection closes. Wait for the terminate instead; if none comes (the
+     * controller does not restart on every change), carry on with the start.
+     *
+     * @returns {Promise<boolean>} true when the instance is being unloaded
+     */
+    _awaitRestartAfterOwnWrite() {
+        return new Promise((resolve) => {
+            const done = (unloading) => {
+                this.clearTimeout(timer);
+                this._onUnloadStarted = null;
+                resolve(unloading);
+            };
+            const timer = this.setTimeout(() => done(false), 5000);
+            this._onUnloadStarted = () => done(true);
+        });
     }
 
     async onReady() {
@@ -3988,7 +4178,12 @@ class Aura extends utils.Adapter {
         // The PIN vault first: a pending "reset admin PIN" runs there, and the one
         // write below then clears its flag together with everything else.
         await this._initPinVault();
-        await this._syncOwnInstanceObject();
+        if (await this._syncOwnInstanceObject()) {
+            this.log.info('aura: instance object updated - waiting for js-controller to restart the instance');
+            if (await this._awaitRestartAfterOwnWrite()) {
+                return;
+            }
+        }
 
         await this.setObjectNotExistsAsync('config', {
             type: 'channel',
@@ -4031,9 +4226,10 @@ class Aura extends utils.Adapter {
         });
         await this.setObjectNotExistsAsync('timers', {
             type: 'channel',
-            common: { name: 'Zeitschaltuhren (timer widgets)' },
+            common: { name: 'Timers (timer widgets)' },
             native: {},
         });
+        await this._alignCommon('timers', { name: 'Timers (timer widgets)' });
         await this.setObjectNotExistsAsync('panels', {
             type: 'channel',
             common: { name: 'Panels widget slide selectors' },
@@ -4088,6 +4284,7 @@ class Aura extends utils.Adapter {
             native: {},
         });
         await this.setObjectNotExistsAsync('popup.close', POPUP_CLOSE_OBJ);
+        await this._alignCommon('popup.close', { read: false });
 
         await this.setObjectNotExistsAsync('config.dashboard', {
             type: 'state',
@@ -4122,7 +4319,7 @@ class Aura extends utils.Adapter {
         await this.setObjectNotExistsAsync('info.activeSection', {
             type: 'state',
             common: {
-                name: 'Currently displayed section (Bereich)',
+                name: 'Currently displayed section',
                 type: 'string',
                 role: 'text',
                 read: true,
@@ -4131,6 +4328,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon('info.activeSection', { name: 'Currently displayed section' });
         await this.setObjectNotExistsAsync('info.activeTab', {
             type: 'state',
             common: {
@@ -4558,7 +4756,7 @@ class Aura extends utils.Adapter {
             common: {
                 name: 'Pause auto-return on all clients for N minutes (counts down to 0)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 'min',
                 min: 0,
                 max: IDLE_SNOOZE_MAX_MIN,
@@ -4568,12 +4766,13 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon('idleReturn.snoozeMinutes', { role: 'level.timer' });
         await this.setObjectNotExistsAsync('idleReturn.delay', {
             type: 'state',
             common: {
                 name: 'Auto-return delay for all clients (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 's',
                 min: -1,
                 max: IDLE_DELAY_MAX_SEC,
@@ -4583,6 +4782,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon('idleReturn.delay', { role: 'level.timer' });
 
         this.subscribeStates('calendar.request');
         this.subscribeStates('calendar.clientError');
@@ -4648,7 +4848,9 @@ class Aura extends utils.Adapter {
         // browser announcements until SayIt can address Aura itself.
         this._sayit = createSayitBridge(this, { announce: (p) => this._announce(p) });
         this.on('fileChange', (id, fileName, size) => this._sayit?.onFileChange(id, fileName, size));
-        this.subscribeForeignObjects(`${SAYIT_PREFIX}*`);
+        this.subscribeForeignObjectsAsync(`${SAYIT_PREFIX}*`).catch((e) =>
+            this.log.warn(`[sayit] could not subscribe: ${e.message}`),
+        );
         await this._sayit.scan();
 
         // Announcement rules of Admin → Ansagen (#834 phase 4), run here so a lock
@@ -4710,6 +4912,17 @@ class Aura extends utils.Adapter {
         } catch (e) {
             this.log.warn(`[timers] initial scan failed: ${e.message}`);
         }
+        // Untitled timers used to be created as "Zeitschaltuhr" — English object names now.
+        for (const [widgetId, entry] of this._timerState.entries()) {
+            try {
+                const ch = await this.getObjectAsync(`timers.${widgetId}`);
+                if (ch?.common?.name === 'Zeitschaltuhr') {
+                    await this._syncTimerName(widgetId, entry.payload?.title);
+                }
+            } catch (e) {
+                this.log.debug(`[timers] rename of ${widgetId} failed: ${e.message}`);
+            }
+        }
         // Catch up what was missed while the adapter was down (#872).
         for (const [widgetId, entry] of this._timerState.entries()) {
             if (entry.payload?.reapplyOnStart !== true) continue;
@@ -4734,6 +4947,7 @@ class Aura extends utils.Adapter {
         this.subscribeObjects('countdowns.*');
         this._countdownObjectsEnsured = new Set();
         this._countdowns = new CountdownEngine({
+            ...adapterTimers(this),
             log: this.log,
             writeStatus: (key, status) => this._writeCountdownStatus(key, status),
             writeTarget: (dp, raw, why) => this._writeCountdownTarget(dp, raw, why),
@@ -4925,6 +5139,8 @@ class Aura extends utils.Adapter {
             // explicit save via the renameTimer onMessage handler.
             if (entry.payload) void this._ensureTimerReapplyObject(widgetId, entry.payload.title);
         }
+        // Switched off or emptied: staggered writes still pending must not land (#974).
+        if (!entry.enabled || !entry.payload) this._staggerWriter?.cancel(`timer:${widgetId}`);
         this._timerState.set(widgetId, entry);
     }
 
@@ -4932,7 +5148,7 @@ class Aura extends utils.Adapter {
         const base = `timers.${widgetId}`;
         const ch = await this.getObjectAsync(base);
         if (!ch) return;
-        const want = title || 'Zeitschaltuhr';
+        const want = title || 'Timer';
         if (ch.common?.name === want) return;
         await this.extendObjectAsync(base, { common: { name: want } });
         await this.extendObjectAsync(`${base}.config`, { common: { name: `${want} — config` } });
@@ -5030,16 +5246,54 @@ class Aura extends utils.Adapter {
         return [...new Set(all.filter((id) => typeof id === 'string' && id.trim()).map((id) => id.trim()))];
     }
 
-    async _writeTarget(targets, baseValue, ev, override) {
-        const val = override !== undefined ? override : this._parseValue(baseValue);
-        for (const targetDp of targets) {
-            try {
-                await this.setForeignStateAsync(targetDp, val, false);
-                this.log.info(`[timers] fired ${ev.label || ev.id}: ${targetDp} ← ${JSON.stringify(val)}`);
-            } catch (e) {
-                this.log.warn(`[timers] write failed (${targetDp}): ${e.message}`);
-            }
+    /**
+     * The timer's targets with their delay after the trigger (#974): targetDp at 0,
+     * extraTargetDps[i] at extraTargetDelays[i] ms. Same order and dedupe as _timerTargets.
+     */
+    _timerTargetItems(payload) {
+        const extras = Array.isArray(payload.extraTargetDps) ? payload.extraTargetDps : [];
+        const delays = Array.isArray(payload.extraTargetDelays) ? payload.extraTargetDelays : [];
+        const all = [{ id: payload.targetDp, delayMs: 0 }, ...extras.map((id, i) => ({ id, delayMs: delays[i] }))];
+        const seen = new Set();
+        const out = [];
+        for (const it of all) {
+            if (typeof it.id !== 'string' || !it.id.trim()) continue;
+            const id = it.id.trim();
+            if (seen.has(id)) continue;
+            seen.add(id);
+            out.push({ id, delayMs: clampDelay(it.delayMs) });
         }
+        return out;
+    }
+
+    /** Shared engine for delayed writes (#974) — timer targets and staggered group actions. */
+    _stagger() {
+        if (!this._staggerWriter) {
+            this._staggerWriter = new StaggeredWriter({
+                write: (id, val) => this.setForeignStateAsync(id, val, false),
+                ...adapterTimers(this),
+            });
+        }
+        return this._staggerWriter;
+    }
+
+    /**
+     * Write the timer's value to all its targets. Targets with a delay (#974) are
+     * written later; a new write of the same timer drops those still pending.
+     */
+    async _writeTarget(widgetId, payload, baseValue, ev, override) {
+        const val = override !== undefined ? override : this._parseValue(baseValue);
+        const name = ev.label || ev.id;
+        const items = this._timerTargetItems(payload).map((it) => ({ ...it, val }));
+        const write = async (id) => {
+            try {
+                await this.setForeignStateAsync(id, val, false);
+                this.log.info(`[timers] fired ${name}: ${id} ← ${JSON.stringify(val)}`);
+            } catch (e) {
+                this.log.warn(`[timers] write failed (${id}): ${e.message}`);
+            }
+        };
+        await this._stagger().run(`timer:${widgetId}`, items, write);
     }
 
     /**
@@ -5074,10 +5328,10 @@ class Aura extends utils.Adapter {
         if (sig === prev) return;
         this._timerException.set(widgetId, sig);
         if (exc) {
-            await this._writeTarget(this._timerTargets(payload), exc.value, { label: this._exceptionLabel(exc.kind) });
+            await this._writeTarget(widgetId, payload, exc.value, { label: this._exceptionLabel(exc.kind) });
             return;
         }
-        if (!(await this._writeLastDue(payload, now, holidays, vacation))) {
+        if (!(await this._writeLastDue(widgetId, payload, now, holidays, vacation))) {
             this.log.info(`[timers] ${this._exceptionLabel(prev.split(':')[0])} ended — no regular event to restore`);
         }
     }
@@ -5087,7 +5341,7 @@ class Aura extends utils.Adapter {
     }
 
     /** Write what the regular schedule wrote last (see lastDueWrite); false when nothing is due. */
-    async _writeLastDue(payload, now, holidays, vacation) {
+    async _writeLastDue(widgetId, payload, now, holidays, vacation) {
         const last = lastDueWrite(payload, now, holidays, vacation, (event, date, offsetMin) =>
             this._computeAstroDate(event, date, offsetMin),
         );
@@ -5097,7 +5351,7 @@ class Aura extends utils.Adapter {
             const v = this._parseValue(last.baseValue);
             override = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
         }
-        await this._writeTarget(this._timerTargets(payload), last.baseValue, last.ev, override);
+        await this._writeTarget(widgetId, payload, last.baseValue, last.ev, override);
         return true;
     }
 
@@ -5127,10 +5381,10 @@ class Aura extends utils.Adapter {
         this._timerException.set(widgetId, exc ? `${exc.kind}:${exc.value}` : null);
         this.log.info(`[timers] reapply ${name} (${reason})`);
         if (exc) {
-            await this._writeTarget(this._timerTargets(payload), exc.value, { label: this._exceptionLabel(exc.kind) });
+            await this._writeTarget(widgetId, payload, exc.value, { label: this._exceptionLabel(exc.kind) });
             return;
         }
-        if (!(await this._writeLastDue(payload, now, holidays, vacation))) {
+        if (!(await this._writeLastDue(widgetId, payload, now, holidays, vacation))) {
             this.log.info(`[timers] reapply ${name}: no regular event due in the last days`);
         }
     }
@@ -5148,7 +5402,7 @@ class Aura extends utils.Adapter {
             await this.setObjectNotExistsAsync(`timers.${widgetId}.reapply`, {
                 type: 'state',
                 common: {
-                    name: `${title || 'Zeitschaltuhr'} — reapply`,
+                    name: `${title || 'Timer'} — reapply`,
                     desc: 'true = write the value the schedule wants right now',
                     type: 'boolean',
                     role: 'button',
@@ -5264,7 +5518,7 @@ class Aura extends utils.Adapter {
                     const v = this._parseValue(baseValue);
                     writeVal = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
                 }
-                await this._writeTarget(targets, baseValue, ev, writeVal);
+                await this._writeTarget(widgetId, payload, baseValue, ev, writeVal);
                 this._timerFired.add(c.key);
                 // The end of a range only switches back; it has nothing to say (#918).
                 if (!c.invert) {
@@ -5610,9 +5864,10 @@ class Aura extends utils.Adapter {
         try {
             await this.setObjectNotExistsAsync('status', {
                 type: 'channel',
-                common: { name: 'Statusübersicht – gemerkte Hinweise' },
+                common: { name: 'Status overview - remembered hints' },
                 native: {},
             });
+            await this._alignCommon('status', { name: 'Status overview - remembered hints' });
             await this.setObjectNotExistsAsync('status.register', {
                 type: 'state',
                 common: {
@@ -5631,6 +5886,7 @@ class Aura extends utils.Adapter {
                     common: { name: STATUS_CATEGORY_NAMES[cat] || cat },
                     native: {},
                 });
+                await this._alignCommon(`status.${cat}`, { name: STATUS_CATEGORY_NAMES[cat] || cat });
                 for (const [sub, def] of Object.entries(STATUS_STATE_DEFS)) {
                     await this.setObjectNotExistsAsync(`status.${cat}.${sub}`, {
                         type: 'state',
@@ -6299,6 +6555,7 @@ class Aura extends utils.Adapter {
                 this._statusDiscovery ??= createStatusDiscovery({
                     getObjectView: (type, startkey, endkey) =>
                         this.getObjectViewAsync('system', type, { startkey, endkey }),
+                    timers: adapterTimers(this),
                 });
                 const m = msg.message || {};
                 reply(await this._statusDiscovery.discover(m.opts, m.overrides));
@@ -6341,13 +6598,16 @@ class Aura extends utils.Adapter {
                 // instance's /aura/mcp, which the extension lets past the web login.
                 const web = isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
                 const blocks = await resolveBothConfigs(
-                    mcpBaseOptions({
-                        customUrl: this.config.customUrl,
-                        port: this.config.port,
-                        https: this._httpsActive,
-                        bind: this.config.bind,
-                        web,
-                    }),
+                    {
+                        ...mcpBaseOptions({
+                            customUrl: this.config.customUrl,
+                            port: this.config.port,
+                            https: this._httpsActive,
+                            bind: this.config.bind,
+                            web,
+                        }),
+                        timers: adapterTimers(this),
+                    },
                     token,
                 );
                 reply({
@@ -6427,6 +6687,20 @@ class Aura extends utils.Adapter {
             if (msg.command === 'updateInfo') {
                 const force = !!(msg.message && msg.message.refresh === true);
                 reply(force || !this._updateInfo ? await this._checkForUpdate() : this._updateInfo);
+                return;
+            }
+
+            // Adapter-status widget: updates against the active repositories
+            // (issue #962). { refresh: true } bypasses the one-minute cache.
+            if (msg.command === 'adapterUpdates') {
+                reply(await this._adapterUpdates(!!(msg.message && msg.message.refresh === true)));
+                return;
+            }
+
+            // "Add widget" dialog: web components of adapters that are not installed,
+            // from the short forms in the active repositories
+            if (msg.command === 'webComponentsRepo') {
+                reply(await this._repoWebComponents());
                 return;
             }
 
@@ -6626,6 +6900,7 @@ class Aura extends utils.Adapter {
                 this._timerState.delete(widgetId);
                 this._timerException.delete(widgetId);
                 this._timerReapplyEnsured?.delete(widgetId);
+                this._staggerWriter?.cancel(`timer:${widgetId}`);
                 this.log.info(`[timers] deleteTimer ${base} → ${JSON.stringify(results)}`);
                 reply({ ok: true, results });
                 return;
@@ -6870,6 +7145,46 @@ class Aura extends utils.Adapter {
                 return;
             }
 
+            if (msg.command === 'staggeredWrite') {
+                // Group action with a delay between devices (#974): the adapter runs the
+                // sequence, so it completes even when the tablet sleeps or the page closes.
+                // { key, items: [{ id, val, delayMs }] } starts a run, { key, cancel: true }
+                // drops what is still pending (stop button).
+                const key = String(msg.message?.key || '').trim();
+                if (!/^[\w.:-]{1,128}$/.test(key)) {
+                    reply({ ok: false, error: `Invalid key: ${key}` });
+                    return;
+                }
+                const runKey = `group:${key}`;
+                if (msg.message?.cancel === true) {
+                    reply({ ok: true, cancelled: this._stagger().cancel(runKey) });
+                    return;
+                }
+                const raw = Array.isArray(msg.message?.items) ? msg.message.items.slice(0, 200) : [];
+                const items = [];
+                for (const it of raw) {
+                    const id = typeof it?.id === 'string' ? it.id.trim() : '';
+                    if (!id) continue;
+                    const obj = await this.getForeignObjectAsync(id).catch(() => null);
+                    // Only real, writable states — never a channel or a read-only DP.
+                    if (!obj || obj.type !== 'state' || obj.common?.write === false) {
+                        this.log.warn(`[stagger] skipped ${id}: not a writable state`);
+                        continue;
+                    }
+                    items.push({ id, val: it.val, delayMs: clampDelay(it.delayMs) });
+                }
+                const scheduled = await this._stagger().run(runKey, items, async (id, val) => {
+                    try {
+                        await this.setForeignStateAsync(id, val, false);
+                    } catch (e) {
+                        this.log.warn(`[stagger] write failed (${id}): ${e.message}`);
+                    }
+                });
+                this.log.debug(`[stagger] ${key}: ${items.length} writes, ${scheduled} delayed`);
+                reply({ ok: true, scheduled });
+                return;
+            }
+
             if (msg.command === 'upgradeAdapter') {
                 const name = String(msg.message?.name || '').trim();
                 if (!name || !/^[a-z0-9_-]+$/i.test(name)) {
@@ -6903,6 +7218,7 @@ class Aura extends utils.Adapter {
                         exitCode = subMsg.message.data;
                         this.removeListener('message', onSubMsg);
                         this.log.info(`[adapter-status] upgrade ${name} exit ${exitCode}`);
+                        this._adapterUpdatesCache = null; // installed version just changed
                         reply({ ok: exitCode === 0, exitCode, stdout: out.join('\n'), stderr: err.join('\n') });
                     }
                 };
@@ -6955,6 +7271,7 @@ class Aura extends utils.Adapter {
     }
 
     onUnload(callback) {
+        this._onUnloadStarted?.();
         const finish = () => {
             try {
                 if (this._httpServer) {
@@ -6986,6 +7303,7 @@ class Aura extends utils.Adapter {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;
             }
+            this._staggerWriter?.dispose();
             if (this._countdowns) {
                 this._countdowns.dispose();
             }

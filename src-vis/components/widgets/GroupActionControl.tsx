@@ -12,13 +12,14 @@
  * In the editor an empty type shows a dashed placeholder (like GroupMasterSwitch)
  * so the configurer sees where the control will appear once DPs exist.
  */
-import { useRef, useState, type CSSProperties } from 'react';
+import { useId, useRef, useState, type CSSProperties } from 'react';
 import { ChevronUp, ChevronDown, Square } from 'lucide-react';
 import { GroupMasterSwitch } from './GroupMasterSwitch';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { useGroupControl } from '../../hooks/useGroupControl';
 import { useT } from '../../i18n';
 import type { GroupActionConfigOpts, GroupActionType, GroupTarget, ShutterTarget } from '../../utils/groupTargets';
+import { cancelStaggered, runStaggered, staggerDelay, type StaggerItem } from '../../utils/staggeredWrite';
 
 type SetState = (id: string, v: boolean | number | string) => void;
 
@@ -39,6 +40,8 @@ interface Props {
     dimmerIds: string[];
     shutterTargets: ShutterTarget[];
     pulseIds: string[];
+    /** Owner of staggered runs (#974) — the host widget id, so a new command or stop drops the pending ones. */
+    staggerKey?: string;
     editing?: boolean;
     placeholderHint?: string;
     placeholderLabel?: string;
@@ -84,6 +87,7 @@ export function GroupActionControl({
     dimmerIds,
     shutterTargets,
     pulseIds,
+    staggerKey,
     editing = false,
     placeholderHint,
     placeholderLabel,
@@ -91,10 +95,21 @@ export function GroupActionControl({
 }: Props) {
     // Hooks must run unconditionally regardless of the active type.
     const t = useT();
+    const fallbackKey = useId();
+    const key = staggerKey || fallbackKey;
+    const step = cfg.groupStaggerMs;
     const { aggregate, toggleAll, setAll, activeCount, total, turnsOn, asks } = useGroupControl(
         switchTargets,
         cfg.groupMixedAction,
+        { key, stepMs: step },
     );
+    /** Write one value per device, device n delayed by n × groupStaggerMs (#974). */
+    const writeAll = (writes: { id: string; val: boolean | number | string }[]) =>
+        runStaggered(
+            key,
+            writes.map((w, i): StaggerItem => ({ ...w, delayMs: staggerDelay(i, step) })),
+            setState,
+        );
     const [level, setLevel] = useState(0);
     const [asking, setAsking] = useState(false);
     const anchorRef = useRef<HTMLSpanElement>(null);
@@ -144,7 +159,7 @@ export function GroupActionControl({
             return editing ? (
                 <Placeholder label={placeholderLabel} hint={placeholderHint} className={className} />
             ) : null;
-        const applyLevel = () => dimmerIds.forEach((id) => setState(id, level));
+        const applyLevel = () => writeAll(dimmerIds.map((id) => ({ id, val: level })));
         return (
             <div className={`nodrag shrink-0 flex items-center gap-1.5 ${className}`}>
                 <input
@@ -173,17 +188,28 @@ export function GroupActionControl({
             return editing ? (
                 <Placeholder label={placeholderLabel} hint={placeholderHint} className={className} />
             ) : null;
+        type Write = { id: string; val: boolean | number | string };
         const up = () =>
-            active.forEach((t) => {
-                if (t.upDp) setState(t.upDp, t.upValue ?? coerce(t.writeValue, true));
-                else if (t.positionDp) setState(t.positionDp, t.invert ? 0 : 100);
-            });
+            writeAll(
+                active.flatMap((t): Write[] => {
+                    if (t.upDp) return [{ id: t.upDp, val: t.upValue ?? coerce(t.writeValue, true) }];
+                    if (t.positionDp) return [{ id: t.positionDp, val: t.invert ? 0 : 100 }];
+                    return [];
+                }),
+            );
         const down = () =>
-            active.forEach((t) => {
-                if (t.downDp) setState(t.downDp, t.downValue ?? coerce(t.writeValue, true));
-                else if (t.positionDp) setState(t.positionDp, t.invert ? 100 : 0);
-            });
-        const stop = () => active.forEach((t) => t.stopDp && setState(t.stopDp, coerce(t.writeValue, true)));
+            writeAll(
+                active.flatMap((t): Write[] => {
+                    if (t.downDp) return [{ id: t.downDp, val: t.downValue ?? coerce(t.writeValue, true) }];
+                    if (t.positionDp) return [{ id: t.positionDp, val: t.invert ? 100 : 0 }];
+                    return [];
+                }),
+            );
+        // Stop is never staggered: it reaches every shutter at once and drops the rest of a run.
+        const stop = () => {
+            cancelStaggered(key);
+            active.forEach((t) => t.stopDp && setState(t.stopDp, coerce(t.writeValue, true)));
+        };
         return (
             <div className={`nodrag shrink-0 flex items-center gap-1 ${className}`}>
                 <button onClick={up} title="Auf" aria-label="Auf" className={cmdBtnCls} style={cmdBtnStyle}>
@@ -205,15 +231,32 @@ export function GroupActionControl({
     const press = () => {
         if (pulsePendingRef.current) return;
         const pulse = coerce(cfg.groupPulseValue, true);
-        pulseIds.forEach((id) => setState(id, pulse));
-        if (cfg.groupPulseReset) {
-            pulsePendingRef.current = true;
-            const resetVal = coerce(cfg.groupPulseResetValue, false);
+        const gap = cfg.groupPulseDelay ?? 500;
+        // With a delay between devices (#974) each device gets its whole pulse shifted.
+        const items: StaggerItem[] = pulseIds.map((id, i) => ({ id, val: pulse, delayMs: staggerDelay(i, step) }));
+        const staggered = items.some((it) => it.delayMs > 0);
+        if (!cfg.groupPulseReset) {
+            runStaggered(key, items, setState);
+            return;
+        }
+        const resetVal = coerce(cfg.groupPulseResetValue, false);
+        pulsePendingRef.current = true;
+        if (!staggered) {
+            pulseIds.forEach((id) => setState(id, pulse));
             setTimeout(() => {
                 pulseIds.forEach((id) => setState(id, resetVal));
                 pulsePendingRef.current = false;
-            }, cfg.groupPulseDelay ?? 500);
+            }, gap);
+            return;
         }
+        const resets = items.map((it) => ({ id: it.id, val: resetVal, delayMs: it.delayMs + gap }));
+        runStaggered(key, [...items, ...resets], setState);
+        setTimeout(
+            () => {
+                pulsePendingRef.current = false;
+            },
+            Math.max(...resets.map((it) => it.delayMs)),
+        );
     };
     return (
         <button

@@ -17,6 +17,7 @@ import {
     Settings,
     X,
     Ruler,
+    Scaling,
     Lock,
     LockOpen,
     ChevronDown,
@@ -32,7 +33,7 @@ import {
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { ManualWidgetDialog } from '../../components/config/ManualWidgetDialog';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
+import { flowOrderField, normalizeFlowFill, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
 import { FlowSettingsLink, TabletOrderPanel } from './editor/TabletOrderPanel';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
@@ -62,6 +63,7 @@ import { exportTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { AuraIcon } from '../../components/common/AuraIcon';
 import { ResizablePopover, usePanelWidth } from '../../components/common/ResizablePopover';
+import { TouchArrangeToggle } from '../../components/layout/TouchArrangeToggle';
 
 // TYPE_LABELS are now resolved via useT() inside components
 
@@ -1929,6 +1931,23 @@ export function AdminEditor() {
     // Effective settings for the edited layout/section so the editor preview honors
     // per-layout overrides (e.g. a layout that enables the menu while global is off).
     const editorSettings = useEffectiveSettings(activeLayoutId, activeSectionForEditor?.id);
+    // Target device of the fluid preview (#981) — the guidelines' size.
+    const guidelinesWidthEff = editorSettings.guidelinesWidth ?? 1280;
+    // Short-lived note after switching the scale preview on (see the toolbar).
+    const [fluidNote, setFluidNote] = useState(false);
+    const fluidNoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const showFluidNote = (show: boolean) => {
+        if (fluidNoteTimer.current) clearTimeout(fluidNoteTimer.current);
+        setFluidNote(show);
+        if (show) fluidNoteTimer.current = setTimeout(() => setFluidNote(false), 6000);
+    };
+    useEffect(
+        () => () => {
+            if (fluidNoteTimer.current) clearTimeout(fluidNoteTimer.current);
+        },
+        [],
+    );
+    const guidelinesHeightEff = editorSettings.guidelinesHeight ?? 800;
 
     // Mirror the frontend's mobile behavior: a docked sidebar menu collapses on narrow
     // viewports (App.tsx). Without this the editor keeps rendering the full-width menu
@@ -2098,6 +2117,7 @@ export function AdminEditor() {
                         </button>
                     );
                 })}
+                <TouchArrangeToggle />
                 <button
                     onClick={() => setLockWidgets(!lockWidgets)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
@@ -2124,6 +2144,71 @@ export function AdminEditor() {
                 >
                     <Ruler size={15} />
                 </button>
+                {/* Fluid grid as in the frontend, on the guidelines' target size (#981).
+                    Greyed with the reason on the fixed grid, where there is nothing to scale. */}
+                {(() => {
+                    const fluidGrid = (editorSettings.gridWidthMode ?? 'fixed') === 'fluid';
+                    const on = fluidGrid && (frontend.editorFluidPreview ?? false);
+                    return (
+                        <div className="relative">
+                            <button
+                                onClick={() => {
+                                    const next = !(frontend.editorFluidPreview ?? false);
+                                    updateFrontend({ editorFluidPreview: next });
+                                    showFluidNote(next);
+                                }}
+                                disabled={!fluidGrid}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{
+                                    background: on
+                                        ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                        : 'var(--app-bg)',
+                                    color: on ? 'var(--accent)' : 'var(--text-secondary)',
+                                    border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                                title={
+                                    !fluidGrid
+                                        ? t('editor.fluidPreview.needsFluid')
+                                        : on
+                                          ? t('editor.fluidPreview.on', {
+                                                w: guidelinesWidthEff,
+                                                h: guidelinesHeightEff,
+                                            })
+                                          : t('editor.fluidPreview.off', {
+                                                w: guidelinesWidthEff,
+                                                h: guidelinesHeightEff,
+                                            })
+                                }
+                                aria-pressed={on}
+                                data-aura-fluid-preview-toggle={on ? 'on' : 'off'}
+                            >
+                                <Scaling size={15} />
+                            </button>
+                            {/* Switched on: a short note below the button, then gone — the preview
+                            recomputes row and content heights on the target size, so moving a
+                            widget can change the shown heights of others; the design units stay. */}
+                            {on && fluidNote && (
+                                <div
+                                    className="absolute top-full right-0 mt-2 z-50 w-72 px-3 py-2 rounded-lg text-xs leading-snug shadow-lg pointer-events-none"
+                                    style={{
+                                        background: 'var(--app-surface)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    role="status"
+                                    data-aura-fluid-preview-hint=""
+                                >
+                                    {t(
+                                        editorSettings.gridHeightMode === 'fill'
+                                            ? 'editor.fluidPreview.hintFill'
+                                            : 'editor.fluidPreview.hint',
+                                        { w: guidelinesWidthEff, h: guidelinesHeightEff },
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* Section switcher — pick/add the "Bereich" being edited */}
@@ -2159,6 +2244,7 @@ export function AdminEditor() {
                                 indicatorStyle={editorSettings.layoutDrawerIndicatorStyle ?? 'filled'}
                                 fontSize={editorSettings.layoutDrawerFontSize ?? 14}
                                 iconSize={editorSettings.layoutDrawerIconSize ?? 16}
+                                tabsMode={editorSettings.layoutDrawerTabs ?? 'off'}
                                 items={editorSettings.layoutDrawerItems ?? []}
                             />
                         </div>
@@ -2212,7 +2298,12 @@ export function AdminEditor() {
                 </div>
                 {orderPanel === 'mobile' &&
                     (mobileCols > 1 ? (
-                        <TabletOrderPanel layoutId={activeLayoutId} cols={mobileCols} mode="mobile" />
+                        <TabletOrderPanel
+                            layoutId={activeLayoutId}
+                            cols={mobileCols}
+                            mode="mobile"
+                            fill={normalizeFlowFill(editorSettings.flowFill)}
+                        />
                     ) : (
                         <OrderPanel layoutId={activeLayoutId} mode="mobile" />
                     ))}
@@ -2220,6 +2311,7 @@ export function AdminEditor() {
                     <TabletOrderPanel
                         layoutId={activeLayoutId}
                         cols={Math.min(4, Math.max(1, Math.round(editorSettings.tabletCols ?? 2)))}
+                        fill={normalizeFlowFill(editorSettings.flowFill)}
                     />
                 )}
             </div>

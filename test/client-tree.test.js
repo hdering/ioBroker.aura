@@ -191,6 +191,23 @@ const FULL_TREE = [
         console.log('✓ startup sync heals half-built clients and fills the selector');
     }
 
+    // ── Reported info values of an existing tree become read-only ────────────
+    {
+        const a = makeAdapter();
+        await a._ensureClientTree('old', 'Old');
+        // As a pre-review tree had them: writable.
+        for (const dp of ['info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+            a._objects.get(`clients.old.${dp}`).common.write = true;
+        }
+        a._objects.set('navigate.target', { type: 'state', common: { role: 'text' }, native: {} });
+        await a._syncNavigateTargets();
+        for (const dp of ['info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+            assert.strictEqual(a._objects.get(`clients.old.${dp}`).common.write, false, `${dp} must be read-only`);
+        }
+        assert.strictEqual(a._objects.get('clients.old.info.name').common.write, true, 'the name stays writable');
+        console.log('✓ startup sync makes reported info values of old clients read-only');
+    }
+
     // ── #620: client ids are sanitised before they become object-id segments ──
     {
         assert.strictEqual(sanitizeClientId('Wohnzimmer Tablet'), 'wohnzimmer-tablet');
@@ -278,18 +295,44 @@ const FULL_TREE = [
         console.log('✓ delete relay removes the whole tree, including unlisted datapoints (#624)');
     }
 
-    // ── #624: a manual write with "ack" ticked deletes just the same ─────────
+    // ── #624: a write with "ack" ticked is not executed, but not silent either ──
     {
         const a = makeAdapter();
+        const warnings = [];
+        a.log.warn = (msg) => warnings.push(msg);
         await a.onStateChange('aura.0.clients.register', {
             val: JSON.stringify({ clientId: 'a1b2c3d4e5f60718', name: 'Tablet' }),
             ack: false,
         });
         await a.onStateChange('aura.0.clients.deleteRequest', { val: 'a1b2c3d4e5f60718', ack: true });
-        assert.ok(!a._objects.has('clients.a1b2c3d4e5f60718'), 'an acknowledged write must delete too');
+        assert.ok(a._objects.has('clients.a1b2c3d4e5f60718'), 'an acknowledged write must not delete');
+        assert.ok(
+            warnings.some((w) => w.includes('ack=true')),
+            'an ignored acknowledged write must be logged',
+        );
+        assert.strictEqual(a._states.get('clients.deleteRequest').val, '', 'the relay is cleared');
         // The adapter's own clear must not re-enter the handler.
         await a.onStateChange('aura.0.clients.deleteRequest', { val: '', ack: true });
-        console.log('✓ deleteRequest also accepts an acknowledged write (#624)');
+        console.log('✓ deleteRequest ignores an acknowledged write and logs it (#624)');
+    }
+
+    // ── info.name: only a command (ack=false) renames the channel ─────────────
+    {
+        const a = makeAdapter();
+        await a.onStateChange('aura.0.clients.register', {
+            val: JSON.stringify({ clientId: 'kitchen-tablet', name: 'Kitchen' }),
+            ack: false,
+        });
+        await a.onStateChange('aura.0.clients.kitchen-tablet.info.name', { val: 'Echo', ack: true });
+        assert.strictEqual(a._objects.get('clients.kitchen-tablet').common.name, 'Kitchen', 'ack=true is no command');
+        await a.onStateChange('aura.0.clients.kitchen-tablet.info.name', { val: 'Hall', ack: false });
+        assert.strictEqual(a._objects.get('clients.kitchen-tablet').common.name, 'Hall', 'rename mirrors');
+        assert.deepStrictEqual(
+            a._states.get('clients.kitchen-tablet.info.name'),
+            { val: 'Hall', ack: true },
+            'the rename is acknowledged',
+        );
+        console.log('✓ info.name rename honours ack');
     }
 
     // ── #624: only fingerprint ids get the 8-char short name ─────────────────

@@ -33,6 +33,14 @@ jobs:
       matrix:
         node-version: [22.x, 24.x, 26.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
+        # macOS arm64 runners are capacity-constrained: jobs that are never
+        # acquired get cancelled and block deploy. The repochecker (E3027)
+        # only reads matrix.os, so keep macOS there and test it on one Node only.
+        exclude:
+          - os: macos-latest
+            node-version: 22.x
+          - os: macos-latest
+            node-version: 26.x
 
     steps:
       - uses: actions/checkout@v7

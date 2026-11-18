@@ -106,6 +106,10 @@ export const KEY_DESCRIPTIONS = {
         'Fenster offen); der Sperr-Badge entfällt. Wirkt nur mit showStatusBadges.',
     namePattern:
         'Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>; {{dpname}} / {{parentname}} / {{parent2name}} … = common.name des Datenpunkts bzw. der Objekte darüber (Kanal, Gerät).',
+    deviceNames:
+        'Eigene Anzeigenamen: Schlüssel = Geräte-ID (adapter.instanz.gerät, z. B. "hm-rpc.0.00109A498FCE8F") oder ' +
+        'eine einzelne Datenpunkt-ID, Wert = Name. Ersetzt den erkannten Namen aller Zeilen des Geräts (Batterie, ' +
+        'Fenster, offline) und gilt auch für Merkliste und Verlauf; namePattern/nameFilters laufen danach.',
     showRoom: 'Raum des Geräts mit anzeigen.',
     showCount: 'Anzahl-Chip in der Kopfzeile anzeigen.',
     rowDensity:
@@ -474,7 +478,17 @@ export const WIDGET_OPTION_NOTES = {
         offIcon: { description: 'Icon im ausgeschalteten Zustand. Leer = wie icon.' },
     },
     thermostat: {
+        confirmAction: {
+            description:
+                'Vor jeder Änderung der Solltemperatur (±, Voreinstellung, Rundskala, Kreismenü) eine Rückfrage mit dem ' +
+                'Zielwert anzeigen (#977).',
+        },
         actualDatapoint: { description: 'Datenpunkt der Ist-Temperatur (der Haupt-DP ist die Soll-Temperatur).' },
+        statusDp: {
+            description:
+                'Rückmelde-Datenpunkt der Soll-Temperatur. Leer bei Haupt-DP "….MANU_MODE" (Homematic classic, meldet nie zurück) = ' +
+                'automatisch der Geschwister-DP "SET_TEMPERATURE"; sonst leer = Haupt-DP.',
+        },
         minTemp: { description: 'Untere Grenze der Soll-Temperatur.' },
         maxTemp: { description: 'Obere Grenze der Soll-Temperatur.' },
         step: { description: 'Schrittweite der Soll-Temperatur.' },
@@ -495,6 +509,16 @@ export const WIDGET_OPTION_NOTES = {
                 'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "minus", "plus" und ' +
                 '"preset-<Wert>" (z. B. "preset-21.5", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, ' +
                 'Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard.',
+        },
+        circleHidden: {
+            description:
+                'Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. ["minus","plus"] für nur die Schnellwahl. ' +
+                'Leer = alle Einträge sichtbar.',
+        },
+        circleCenter: {
+            description:
+                'Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz, ' +
+                'z. B. wenn der Knopf den Sollwert ohnehin zeigt oder − und + ausgeblendet sind.',
         },
     },
     slider: {
@@ -606,9 +630,14 @@ export const WIDGET_OPTION_NOTES = {
                 'Tag der ioBroker-Web-Komponente (Custom Element, z. B. "iob-flow-diagram"). Nur Komponenten, die ein ' +
                 'installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt ' +
                 'das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte ' +
-                'selbst - es gibt kein dp-Feld (nur wcValueDp für einen Wert, den sie bearbeitet). Bekannt und auch ' +
-                'ohne Adapter wählbar: "iob-flow-diagram" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram ' +
-                '= Objekt-ID unter flow.0.diagrams).',
+                'selbst - es gibt kein dp-Feld (nur wcValueDp für einen Wert, den sie bearbeitet). Bekannt (mit Aura getestet) und auch ohne Adapter wählbar: ' +
+                '"iob-flow-diagram" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter ' +
+                'flow.0.diagrams) und "iob-fullcalendar" (Kalender, Adapter fullcalendar ab 3.4.1, ' +
+                'wcSettings.instance = Instanznummer z. B. "0", optional wcSettings.calendar = ' +
+                'fullcalendar.0.Calendars.<id>, viewMode dayGridMonth|timeGridWeek|timeGridDay|listMonth), ' +
+                '"iob-cameras-rtsp" (Livebild) und "iob-cameras-snapshot" (Standbild; beide Adapter cameras ab ' +
+                '3.4.0, wcSettings.camera = State der Kamera z. B. cameras.0.cam1.running, width, rotate). ' +
+                'Alle anderen Komponenten gelten als nicht getestet.',
         },
         wcAdapter: {
             type: 'string',
@@ -622,8 +651,37 @@ export const WIDGET_OPTION_NOTES = {
                 'Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der ' +
                 'Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard ' +
                 'speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. ' +
-                'Beim Fluss-Diagramm werden "title" und "fullView" ignoriert - dafür gelten Widget-Titel ' +
-                '(showTitle) und der Vollbild-Knopf des Rahmens.',
+                'Ein Text-Setting "title" wird bei jeder Komponente ignoriert (dafür gilt der Widget-Titel, ' +
+                'showTitle bzw. wcTitleSource), beim Fluss-Diagramm zusätzlich "fullView" (Vollbild-Knopf des ' +
+                'Rahmens).',
+        },
+        wcTitleSource: {
+            type: 'string',
+            enum: ['aura', 'component'],
+            default: 'aura',
+            description:
+                'Woher der Titel in der Titelzeile kommt: "aura" = Widget-Titel; "component" = der Name, den die ' +
+                'Komponente zur Laufzeit meldet (Ereignis iob-header, z. B. Kameraname aus dem Adapter) - meldet ' +
+                'sie keinen, gilt der Widget-Titel. Die Komponente zeichnet nie einen eigenen Titel.',
+        },
+        wcIconSource: {
+            type: 'string',
+            enum: ['aura', 'component'],
+            default: 'aura',
+            description:
+                'Woher das Icon der Titelzeile kommt: "aura" = options.icon; "component" = das Bild, das die ' +
+                'Komponente meldet (iob-header), sonst das Bild ihres Manifests, sonst options.icon.',
+        },
+        wcClick: {
+            type: 'string',
+            enum: ['off', 'component'],
+            description:
+                'Ob die Komponente Klicks bekommt. "off" = nein (keine Klicks/Tasten); ein Klick gehört dem ' +
+                'Widget, es gilt dessen clickAction wie bei jedem Widget (ohne clickAction passiert nichts). ' +
+                '"component" = die Komponente bedient sich selbst (eigene Knöpfe, eigener Dialog - der erscheint ' +
+                'im Popup des Widgets mit dessen Popup-Optionen); clickAction bleibt still. Standard (leer) = "off" ' +
+                'für jede Komponente - interaktive Komponenten (Kalender, Fluss-Diagramm, Komponenten mit Knöpfen) ' +
+                'brauchen "component".',
         },
         wcValueDp: {
             type: 'string',
@@ -894,6 +952,11 @@ export const WIDGET_OPTION_NOTES = {
         pointer3Label: { description: 'Beschriftung des dritten Zeigers.' },
     },
     shutter: {
+        confirmAction: {
+            description:
+                'Vor jeder Fahrt (Auf/Zu, Regler, Voreinstellung, Kreismenü) und jeder Lamellenänderung eine Rückfrage ' +
+                'mit dem Ziel ("Schließen", "40% geöffnet") anzeigen. Stopp fragt nie. Erzwingt Senden beim Loslassen (#977).',
+        },
         controlMode: {
             enum: ['position', 'taster', 'move'],
             description:
@@ -952,6 +1015,11 @@ export const WIDGET_OPTION_NOTES = {
                 'in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; ' +
                 'Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard.',
         },
+        circleHidden: {
+            description:
+                'Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen, z. B. ["stop"] für nur Öffnen, ' +
+                'Schnellwahl und Schließen. Leer = alle Einträge sichtbar.',
+        },
     },
     dimmer: {
         valueFactor: {
@@ -1002,6 +1070,8 @@ export const WIDGET_OPTION_NOTES = {
             'catLight',
             'batteryThreshold',
             'includeLowbatBoolean',
+            'batteryKinds',
+            'batteryVoltThreshold',
             'lightRoleScope',
             'lightsOnlyFunction',
             'batteryTypeEnabled',
@@ -1141,6 +1211,14 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Nur Kreismenü: Reihenfolge der Einträge als Liste von Schlüsseln — "minus", "plus" und "preset-<Wert>" ' +
                 '(Wert aus presets). Standard: minus, presets, plus. Leer = Standard.',
+        },
+        circleHidden: {
+            description:
+                'Nur Kreismenü: Schlüssel (wie in circleOrder), die im Kreis NICHT erscheinen. Leer = alle Einträge sichtbar.',
+        },
+        circleCenter: {
+            description:
+                'Nur Kreismenü: Sollwert in der Mitte des geöffneten Menüs (Standard true). false = dort nur das Schließen-Kreuz.',
         },
         humidityDatapoint: { description: 'Datenpunkt der Luftfeuchte.' },
         pressureDatapoint: { description: 'Datenpunkt des Luftdrucks.' },
@@ -1588,7 +1666,24 @@ export const WIDGET_OPTION_NOTES = {
         fontSize: { type: 'number', default: 12, description: 'Schriftgröße der Tabelle in px.' },
         showHeader: { description: 'Zeile mit den Spaltentiteln anzeigen.' },
     },
+    adapterstatus: {
+        fontSize: {
+            type: 'number',
+            description:
+                'Schriftgröße der Instanzliste in px (8–32) für Name, Version, Status, Zusammenfassung, Filter-Pillen und Suche; Nebentexte folgen mit 0,833em. Nicht gesetzt = 12 px mal globaler Schriftskalierung. Der Titel bleibt unberührt.',
+        },
+        buttonSize: {
+            type: 'number',
+            default: 14,
+            description:
+                'Symbolgröße der Neustart- und Update-Schaltflächen in px (10–48); der Innenabstand wächst mit (30 %), damit die Touchfläche auf Tablets größer wird.',
+        },
+    },
     adapterlogs: {
+        levels: {
+            description:
+                'Beim Start aktive Schweregrade, wie in ioBroker: "silly", "debug", "info", "warn", "error". Standard: info, warn, error.',
+        },
         adapterFilter: {
             description:
                 'Instanz-Vorfilter im Backend, kommagetrennt: "aura, admin" = alle Instanzen dieser Adapter, "aura.0" = genau diese Instanz. Leer = alle.',
@@ -1596,6 +1691,12 @@ export const WIDGET_OPTION_NOTES = {
         defaultQuery: {
             description:
                 'Vorbelegung des Suchfelds (Teilstring in Meldung oder Quelle, ohne Groß/Klein; mehrere Begriffe mit "|" oder-verknüpft, z. B. "Beschattung | Beleuchtung"). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren.',
+        },
+        fontSize: {
+            type: 'number',
+            default: 10,
+            description:
+                'Schriftgröße der Logtabelle in px (8–24) für Quelle, Zeitstempel, Typ und Nachricht; die Typ-Plakette folgt mit 0,9em.',
         },
     },
     weather: {
@@ -1996,6 +2097,11 @@ export const WIDGET_OPTION_NOTES = {
         extraTargetDps: {
             description:
                 'Weitere Datenpunkte, die bei jeder Schaltzeit (und bei Ausnahme-Werten) denselben Wert wie targetDp bekommen — z. B. mehrere Thermostate mit einem Zeitplan.',
+        },
+        extraTargetDelays: {
+            description:
+                'Verzögerung in ms nach dem Auslösen je weiterem Ziel-DP, gleicher Index wie extraTargetDps (#974) — z. B. [0, 3000, 3000] lässt Rollläden gestaffelt anlaufen. targetDp schaltet immer sofort; fehlender Eintrag = 0, max. 600000. ' +
+                'Der Adapter führt die Folge aus; ein neues Auslösen, Ausschalten oder Löschen der Uhr verwirft noch offene Schreibvorgänge.',
         },
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
@@ -2530,6 +2636,17 @@ export const EXTRA_OPTIONS = {
                 'Verweis auf die Kinderliste in aura-group-defs. Beim Import wird sie aus dem Feld "groupDefs" der ' +
                 'Import-JSON angelegt — nicht von Hand vergeben.',
         },
+        // Read via isFramelessGroup / groupPitch (utils/groupLayout), not the options binding.
+        frameless: {
+            type: 'boolean',
+            default: false,
+            description:
+                'Ohne Rahmen (#981): kein Hintergrund, kein Rand, kein Innenabstand. Die Kinder liegen im Raster des ' +
+                'Tabs (dessen Zeilenhöhe und Abstand), also bündig mit den Widgets neben der Gruppe; ein Kind mit h ' +
+                'Zeilen ist so hoch wie dasselbe Widget außerhalb. Ohne Kopfzeile ist die Gruppe genau so viele ' +
+                'Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei ' +
+                'devicecard.',
+        },
     },
     panels: {
         defId: {
@@ -2686,7 +2803,8 @@ export const UNIVERSAL_OPTIONS = {
         description:
             'Datenpunkt-Id, deren Zeitstempel showLastChange zeigt. Leer = der Datenpunkt des Widgets. ' +
             'Pflicht für Widgets ohne eigenen Datenpunkt (universal, group, panels …): ohne sie ' +
-            'erscheint dort nichts.',
+            'erscheint dort nichts. Gewinnt gegen den Datenpunkt des Widgets — in Kindern einer ' +
+            'Gerätekarte daher {{parent}}.… statt einer festen Id, sonst zeigen alle Karten denselben Zeitstempel.',
     },
     fullscreenWidget: {
         ts: 'boolean',

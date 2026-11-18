@@ -24,6 +24,7 @@ export const de = {
     'common.off': 'Aus',
     'common.confirm': 'Bestätigen',
     'widget.confirm.defaultPrompt': 'Wirklich schalten?',
+    'widget.confirm.defaultAction': 'Wirklich ausführen?',
     'widget.group.mixedPrompt': 'Was soll passieren?',
     'widget.group.allOn': 'Alle an',
     'widget.group.allOff': 'Alle aus',
@@ -135,6 +136,11 @@ export const de = {
     'settings.frontend.layoutDrawerAutoHideHint':
         'Button erscheint nur, wenn die Maus oben am Rand ist (oder bei Touch nach Tipp im oberen Bereich). Wirkt nur wenn der Header ausgeblendet ist.',
     'settings.frontend.layoutDrawerPlacement': 'Platzierung',
+    'settings.frontend.layoutDrawerPinned': 'Hamburger in der Tab-Leiste fixieren',
+    'settings.frontend.layoutDrawerPinnedHint':
+        'Der Hamburger bleibt am Anfang der Tab-Leiste stehen und scrollt nicht mit den Tabs weg – hilfreich auf dem Handy, wenn ein Tab weiter hinten geöffnet ist.',
+    'settings.frontend.layoutDrawerPinnedReason':
+        'Nur bei Platzierung „In Tab-Leiste“ (auf mindestens einer Bildschirmgröße).',
     'settings.frontend.layoutDrawerPlacementFloating': 'Schwebend',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In Tab-Leiste',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Feste Seitenleiste',
@@ -164,6 +170,15 @@ export const de = {
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Nur Icon',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Nur Name',
     'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Aufzählungspunkt + Name',
+    'settings.frontend.layoutDrawerTabs': 'Tabs im Menü',
+    'settings.frontend.layoutDrawerTabsOff': 'Aus',
+    'settings.frontend.layoutDrawerTabsCollapsible': 'Aufklappbar',
+    'settings.frontend.layoutDrawerTabsExpanded': 'Immer offen',
+    'settings.frontend.layoutDrawerTabsHint':
+        'Zeigt die Tabs eines Bereichs als Unterpunkte – ein Tipp springt direkt auf den Tab. Ab zwei sichtbaren Tabs.',
+    'settings.frontend.layoutDrawerTabsBarReason':
+        'Nur im aufgeklappten Menü und in der Seitenleiste, nicht in der Leiste oben/unten.',
+    'settings.frontend.layoutDrawerTabsIconOnlyReason': 'Nicht bei der Darstellung „Nur Icon“.',
     'settings.frontend.layoutDrawerIndicatorStyle': 'Stil des ausgewählten Bereichs',
     'settings.frontend.layoutDrawerFontSize': 'Schriftgröße',
     'settings.frontend.layoutDrawerIconSize': 'Icon-Größe',
@@ -329,6 +344,16 @@ export const de = {
     'settings.grid.groupMobile': 'Mobile',
     'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile-Spalten',
+    'settings.grid.flowFill': 'Spalten füllen',
+    'settings.grid.flowFillCount': 'Nach Anzahl',
+    'settings.grid.flowFillHeight': 'Nach Höhe',
+    'settings.grid.flowFillCompact': 'Kompakt',
+    'settings.grid.flowFillCountHint': 'Jede Karte kommt in die Spalte mit den wenigsten Karten.',
+    'settings.grid.flowFillHeightHint':
+        'Jede Karte kommt in die niedrigste Spalte, gemessen an der Höhe der Karten. Fest angeordnete Karten bleiben in ihrer Spalte.',
+    'settings.grid.flowFillCompactHint':
+        'Nach Höhe, aber mit so wenigen Spalten wie nötig: Der Block wird nicht höher als seine längste Karte und steht mittig. Blöcke mit fest angeordneten Karten oder eigener Spaltenzahl werden nur nach Höhe gefüllt.',
+    'settings.grid.flowFillUnavailable': 'Wirkt erst, wenn Tablet- oder Mobile-Fluss mehr als eine Spalte hat.',
     'settings.grid.wizardMaxDp': 'Wizard Max-Datenpunkte',
     'settings.grid.mobileOff': 'Aus',
     'settings.grid.hideScrollbar': 'Scrollbalken ausblenden',
@@ -648,6 +673,9 @@ export const de = {
     'sections.hideMenuHere': 'Menü hier verbergen',
     'sections.hideMenuHereHint':
         'Bereichs-Menü ausblenden, wenn dieser Bereich geöffnet ist – z.B. für ein festgelegtes Tablet.',
+    'sections.drawerTabs': 'Tabs im Bereichs-Menü',
+    'sections.drawerTabsHint': 'Abweichend vom Layout festlegen, ob die Tabs dieses Bereichs im Menü erscheinen.',
+    'sections.drawerTabsInherit': 'Wie Layout',
     // ── PIN protection (sections / tabs) ────────────────────────────────────────
     'pin.field': 'PIN',
     'pin.hint': 'Ohne PIN frei sichtbar. Mit PIN erscheint der Inhalt erst nach der Eingabe.',
@@ -842,6 +870,8 @@ export const de = {
     // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
     'layoutDrawer.title': 'Bereiche',
     'layoutDrawer.open': 'Bereichs-Menü öffnen',
+    'layoutDrawer.expandTabs': 'Tabs anzeigen',
+    'layoutDrawer.collapseTabs': 'Tabs ausblenden',
 
     // ── Endpoints ─────────────────────────────────────────────────────────────────
     'endpoints.title': 'Endpunkte & Gruppen',
@@ -1123,6 +1153,19 @@ export const de = {
     'editor.manual.searchHint': 'Tipp: einfach lostippen – die Liste filtert sich sofort.',
     'editor.manual.searchHits': '{n} Treffer – Enter wählt den ersten aus.',
     'editor.manual.searchNoHits': 'Kein Widget passt zu „{q}“.',
+    'editor.manual.wc.chip': 'Web-Komponenten',
+    'editor.manual.wc.title': 'Web-Komponenten · Bausteine aus Adaptern',
+    'editor.manual.wc.intro':
+        'Inhalt und Verhalten kommen vom Adapter, Aura liefert Rahmen, Verbindung und Einstellungen.',
+    'editor.manual.wc.other': 'Andere Web-Komponente …',
+    'editor.manual.wc.otherHint':
+        'Eine Web-Komponente, die hier nicht aufgeführt ist – sie wird in den Einstellungen des Widgets gewählt.',
+    'editor.manual.wc.missing': 'Adapter fehlt',
+    'editor.manual.wc.untested': 'nicht getestet',
+    'editor.manual.wc.untestedHint': 'Automatisch aufgenommen, noch nicht mit Aura getestet.',
+    'wf.edit.wc.fromAdapter': 'Inhalt kommt vom Adapter',
+    'wf.edit.wc.adapterMissing': 'Adapter {adapter} fehlt',
+    'wf.edit.wc.none': 'Noch keine Komponente gewählt – unten in den Einstellungen auswählen.',
 
     'editor.tab.addDevice': '+ Geräte',
     'editor.tab.addManual': '+ Manuell',
@@ -1136,7 +1179,19 @@ export const de = {
     'editor.layouts.agenda': 'Agenda',
     'editor.layouts.custom': 'Custom',
 
+    'editor.arrange.label': 'Anordnen',
+    'editor.arrange.off':
+        'Anordnen: Widgets auf dem Touch-Gerät verschieben und in der Größe ändern — antippen, dann am Griff ziehen',
+    'editor.arrange.on':
+        'Anordnen aktiv — Widget antippen, am Griff verschieben, an der Ecke die Größe ändern. Tippen zum Beenden.',
     'editor.lock.on': 'Bedienelemente gesperrt — klicken zum Entsperren (Widgets lösen im Editor keine Aktionen aus)',
+    'editor.fluidPreview.hint': 'Vorschau {w} × {h}: Größen skaliert, gespeichert wird das Design-Raster',
+    'editor.fluidPreview.hintFill':
+        'Vorschau {w} × {h}: Höhen füllen den Bildschirm und ändern sich beim Verschieben mit — gespeichert wird das Design-Raster',
+    'editor.fluidPreview.off':
+        'Wie im Frontend skalieren — das fließende Raster auf der Zielgröße {w} × {h} (Hilfslinien) zeigen',
+    'editor.fluidPreview.on': 'Skaliert wie im Frontend auf {w} × {h} — klicken für das feste Design-Raster',
+    'editor.fluidPreview.needsFluid': 'Wie im Frontend skalieren — nur bei fließendem Raster (Einstellungen → Raster)',
     'editor.lock.off': 'Bedienelemente entsperrt — Klicks schalten echte Geräte. Klicken zum Sperren.',
     'editor.mobile.title': 'Mobile-Reihenfolge',
     'editor.mobile.hint': 'Einspaltig unterhalb des Mobile-Breakpoints',
@@ -1144,6 +1199,8 @@ export const de = {
     'editor.mobile.colsHint':
         'Spalten wie unterhalb des Mobile-Breakpoints. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge. Jeder Block hat eine eigene Spaltenzahl; ▲ ▼ verschieben auch zwischen Blöcken.',
     'editor.tablet.title': 'Tablet-Reihenfolge',
+    'editor.tablet.pinnedHint': '{n} Karten sind fest einer Spalte zugeordnet und werden nicht nach Höhe verteilt.',
+    'editor.tablet.releaseCols': 'Spalten-Zuordnung zurücksetzen',
     'editor.tablet.hint':
         'Spalten wie im Tablet-Bereich. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge. Jeder Block hat eine eigene Spaltenzahl; ▲ ▼ verschieben auch zwischen Blöcken.',
     'editor.tablet.columns': 'Spalten',
@@ -1282,6 +1339,9 @@ export const de = {
     'wf.edit.hideName': 'Name ausblenden',
     'wf.edit.titlePosition': 'Titel-Position',
     'wf.edit.showLastChange': 'Letzte Änderung anzeigen',
+    'wf.edit.lastChangeDp': 'Datenpunkt für den Zeitstempel',
+    'wf.edit.lastChangeDpNoMain': '(Pflicht, da kein Haupt-Datenpunkt)',
+    'wf.edit.lastChangeDpOverride': '(optional, leer = Haupt-Datenpunkt)',
     'wf.edit.lastChangeSource': 'Zeitpunkt',
     'wf.edit.lcSource.lastChange': 'Änderung',
     'wf.edit.lcSource.lastUpdate': 'Aktualisierung',
@@ -1309,6 +1369,12 @@ export const de = {
     'wf.edit.fsPos.tr': 'rechts oben',
     'wf.edit.fsPos.tl': 'links oben',
     'wf.edit.fsPos.br': 'rechts unten',
+    'wf.edit.group.frameless': 'Ohne Rahmen',
+    'wf.edit.group.framelessHint':
+        'Kein Hintergrund, kein Rand, kein Innenabstand: Die Widgets darin liegen im Raster des Tabs – gleiche Kanten, gleiche Abstände und gleiche Höhe wie außerhalb.',
+    'wf.edit.group.framelessTransparent': 'Ohne Rahmen ist die Gruppe immer ganz transparent.',
+    'wf.edit.group.framelessAutoShrink':
+        'Ohne Rahmen schrumpft die Gruppe im Frontend ohnehin auf die sichtbaren Widgets.',
     'wf.edit.group.autoShrink': 'Bei versteckten Widgets schrumpfen',
     'wf.edit.group.autoShrinkHint':
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
@@ -2909,6 +2975,7 @@ export const de = {
     'group.masterPlaceholder': 'Gruppen-Schalter aktiv – erscheint, sobald steuerbare Datenpunkte konfiguriert sind',
     'group.masterPlaceholderShort': 'DPs nötig',
     'group.fitHeight': 'Höhe an Inhalt anpassen',
+    'group.parentToolbar': 'Übergeordnete Gruppe',
 
     // ── Panels Widget (Slide-of-Widgets) ──────────────────────────────────────────
     'panels.noSlides': 'Keine Panels',
@@ -3261,6 +3328,7 @@ export const de = {
     'preview.cal.birthday': 'Geburtstag Lisa',
 
     // ── Tab-Standby-Hinweis ───────────────────────────────────────────────────────
+    'connection.refreshing': 'Werte werden aktualisiert …',
     'tabSleep.title': 'Browser hat diesen Tab schlafen gelegt',
     'tabSleep.body':
         'Die Werte wurden gerade aktualisiert. Damit das Dashboard dauerhaft live bleibt, kannst du den Standby für diese Seite abschalten:',
@@ -3629,6 +3697,38 @@ export const de = {
     'wc.missing': 'Komponente <{tag}> ist nicht installiert',
     'wc.missingAdapter': '{name}: Adapter „{adapter}“ fehlt (ab Version {version})',
     'wc.failed': 'Komponente <{tag}> lässt sich nicht laden: {error}',
+    'wc.failedModule':
+        'Komponente <{tag}> lässt sich nicht laden: ihre Datei wird nicht ausgeliefert ({status}). Dateien des Adapters neu hochladen: iobroker upload {adapter}',
+    'wc.failedReact':
+        'Komponente <{tag}> lässt sich nicht laden: {file} fehlt ({status}). Hinter der Web-Erweiterung (…/aura/) liefert web diese Datei erst ab 9.2.0; bei älterem web springt Aura ein – web-Instanz neu starten, web aktualisieren oder Aura über den eigenen Port öffnen.',
+    'wc.noObjects': 'Keine Objekte gefunden',
+    'wc.objectNotFound': '{id} (nicht gefunden)',
+    'wc.pickDatapoint': 'Aus ioBroker wählen',
+    'wc.sendToLoading': 'Lade Auswahl …',
+    'wc.sendToNotInList': '{value} (nicht in der Liste)',
+    'wc.dialog': 'Dialog der Komponente',
+    'wc.host.title': 'Kommt vom Widget-Titel (Titel/Icon oben bzw. Titel-Quelle)',
+    'wc.host.fullView': 'Kommt vom Vollbild-Knopf des Widgets (Darstellung)',
+    'wc.host.other': 'Übernimmt Aura selbst',
+    'wc.source.title': 'Titel aus',
+    'wc.source.icon': 'Icon aus',
+    'wc.source.aura': 'Aura (Widget)',
+    'wc.source.component': 'Komponente',
+    'wc.source.titleHint':
+        'Titel: der Name, den die Komponente meldet (z. B. aus dem Adapter); meldet sie keinen, gilt der Widget-Titel.',
+    'wc.source.iconHint': 'Icon: das Bild, das die Komponente meldet, sonst das Bild aus ihrem Manifest.',
+    'wc.oldTitle.text':
+        'In den Einstellungen der Komponente steht noch der Name „{title}“. Aura zeigt ihn nicht mehr, sondern den Widget-Titel „{current}“.',
+    'wc.oldTitle.take': 'Als Widget-Titel übernehmen',
+    'wc.oldTitle.drop': 'Verwerfen',
+    'wc.click.label': 'Klick auf die Komponente',
+    'wc.click.component': 'Komponente',
+    'wc.click.off': 'Aus',
+    'wc.click.default': 'Standard',
+    'wc.click.componentHint':
+        'Die Komponente bedient Klicks selbst (eigene Knöpfe, eigener Dialog im Aura-Popup). Eine Klick-Aktion des Widgets bleibt still.',
+    'wc.click.offHint':
+        'Die Komponente reagiert nicht auf Klicks. Ein Klick gehört dem Widget – eine Klick-Aktion wie bei jedem Widget unter „Aktion“ einstellen.',
 } as const;
 
 export type TranslationKey = keyof typeof de;

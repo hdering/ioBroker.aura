@@ -32,6 +32,7 @@ import {
     Copy,
     Layers2,
     Minimize2,
+    ArrowUpLeft,
     Maximize2,
     Smartphone,
     GripVertical,
@@ -49,12 +50,13 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows, withContentHeights } from '../../utils/groupLayout';
+import { groupRows, isFramelessGroup, withContentHeights } from '../../utils/groupLayout';
 import { CARD_PAD_MAX, cardPadding } from '../../utils/cardPadding';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { htmlCanReportHeight, supportsAutoHeight } from '../../utils/autoHeight';
 import { Unavailable } from '../config/Unavailable';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
+import { TOUCH_DRAG_HANDLE } from '../../hooks/useGridEditInteraction';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { WidgetWriteLockContext, useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { exportWidget } from '../../utils/widgetExportImport';
@@ -230,6 +232,7 @@ import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
 import { HistoryTableConfig } from '../config/HistoryTableConfig';
 import { SlideshowConfig } from '../config/SlideshowConfig';
 import { FillTabToggle } from '../config/FillTabToggle';
+import { ConfirmActionFields } from '../config/ConfirmActionFields';
 import { FeedConfig } from '../config/FeedConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
@@ -299,7 +302,7 @@ import {
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlConfig } from '../config/HtmlConfig';
-import { WebComponentConfig, WebComponentTypeLabel } from '../config/WebComponentConfig';
+import { WebComponentConfig, WebComponentInfoCard, WebComponentTypeLabel } from '../config/WebComponentConfig';
 import { MapConfig } from '../config/MapConfig';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
@@ -2614,14 +2617,19 @@ function PortalDropdown({
         panel.style.visibility = 'visible';
     });
 
+    // Capture phase: a group's inner grid stops mousedown in the editor (so the outer
+    // grid does not take a drag meant for it), and a bubbling listener on document never
+    // saw a click on an empty spot inside a group or device card — the menu stayed open
+    // (#981). The panel and the anchor are excluded here instead of by stopPropagation.
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
-                onClose();
-            }
+            const target = e.target as Node;
+            if (!anchorRef.current || anchorRef.current.contains(target)) return;
+            if (panelRef.current?.contains(target)) return;
+            onClose();
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        document.addEventListener('mousedown', handler, true);
+        return () => document.removeEventListener('mousedown', handler, true);
     }, [anchorRef, onClose]);
 
     return createPortal(
@@ -6682,6 +6690,22 @@ type PickerOptionTarget = keyof typeof PICKER_OPTION_KEYS;
 const isPickerOptionTarget = (t: string): t is PickerOptionTarget =>
     Object.prototype.hasOwnProperty.call(PICKER_OPTION_KEYS, t);
 
+/** Stable "no children" for store selectors (a fresh [] re-renders on every update). */
+const NO_CHILDREN: WidgetConfig[] = [];
+
+/** "↖ parent group": show the nearest header-less ancestor's toolbar until the pointer leaves it. */
+function revealParentToolbar(from: HTMLElement) {
+    const own = from.closest('.aura-headerless-group');
+    const parent = own?.parentElement?.closest('.aura-headerless-group') as HTMLElement | null | undefined;
+    if (!parent) return;
+    parent.classList.add('aura-toolbar-parent');
+    const done = () => {
+        parent.classList.remove('aura-toolbar-parent');
+        parent.removeEventListener('mouseleave', done);
+    };
+    parent.addEventListener('mouseleave', done);
+}
+
 function WidgetFrameInner({
     config,
     editMode,
@@ -7249,7 +7273,9 @@ function WidgetFrameInner({
           : t('wf.mirrorBadge');
 
     // Last-change timestamp overlay (sourced from the mirror's target when applicable)
-    const lcConfig = mirrorLcSource ?? config;
+    // Resolved like the body: inside a device card the datapoint is `{{parent}}.SET` & co.
+    // until the card's transform rewrites it (#989).
+    const lcConfig = mirrorBase ?? baseConfig;
     const showLastChange = !!lcConfig.options?.showLastChange;
     const lastChangePos = (lcConfig.options?.lastChangePosition as string | undefined) ?? 'left';
     const lastChangeSource = lcConfig.options?.lastChangeSource as string | undefined;
@@ -7428,7 +7454,11 @@ function WidgetFrameInner({
     const isBareHeader = isHeader && (config.layout ?? 'default') !== 'framed';
     const isGroup = isGroupType(config.type);
     const isButton = config.type === 'button';
-    const isTransparent = !!config.options?.transparent;
+    // "Ohne Rahmen" (#981): a group without its card — fully transparent and no
+    // border at all, so its children sit flush on the tab grid. The editor marks the
+    // box with an outline, which takes no space.
+    const isFrameless = isGroup && isFramelessGroup(config.options);
+    const isTransparent = !!config.options?.transparent || isFrameless;
     // Background image (#442): its own layer above the card colour, so a
     // transparent card shows the image alone. Not on the bare section title,
     // which has no card.
@@ -7473,9 +7503,11 @@ function WidgetFrameInner({
           : isButton
             ? 'var(--button-border, var(--widget-border))'
             : 'var(--widget-border)';
-    const transparencyStrength = isTransparent
-        ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
-        : 100;
+    const transparencyStrength = isFrameless
+        ? 100
+        : isTransparent
+          ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
+          : 100;
     const transparentBg =
         transparencyStrength >= 100
             ? 'transparent'
@@ -7483,7 +7515,9 @@ function WidgetFrameInner({
 
     // ── Group-specific hooks (always called, conditionally used) ───────────────
     const groupDefId = isGroup ? (config.options?.defId as string | undefined) : undefined;
-    const groupChildren = useGroupDefsStore((s) => (groupDefId ? (s.defs[groupDefId] ?? []) : []));
+    // A constant for "no children": a fresh [] per call made every frame re-render on
+    // every group-defs store update.
+    const groupChildren = useGroupDefsStore((s) => (groupDefId ? (s.defs[groupDefId] ?? NO_CHILDREN) : NO_CHILDREN));
     // Candidates for the group-action target checklist (config UI).
     const groupActionType = (config.options?.groupActionType ?? 'switch') as GroupActionType;
     // Warm the datapoint cache so list entries without an explicit label show
@@ -7527,6 +7561,7 @@ function WidgetFrameInner({
             effectiveSettings.widgetPadding ?? 16,
             groupCellSize,
             groupGridGap,
+            isFrameless,
         );
         const maxBottom = Math.max(...verticalCompact(fitted).map((c) => c.gridPos.y + c.gridPos.h));
         const hasHeader = !isHeaderlessGroup;
@@ -7538,6 +7573,7 @@ function WidgetFrameInner({
             groupCellSize,
             groupGridGap,
             useAutoHeightStore.getState().groupHeaders[rid],
+            isFrameless,
         );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
     };
@@ -7569,6 +7605,7 @@ function WidgetFrameInner({
             groupCellSize,
             groupGridGap,
             useAutoHeightStore.getState().groupHeaders[rid],
+            isFrameless,
         );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
         setShowGroupTypePicker(false);
@@ -8462,7 +8499,7 @@ function WidgetFrameInner({
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''} ${condDisabled ? 'aura-cond-disabled' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''} ${condDisabled ? 'aura-cond-disabled' : ''} ${isHeaderlessGroup ? 'aura-headerless-group' : ''}`}
             aria-disabled={condDisabled || undefined}
             onClick={handleWidgetClick}
             onContextMenu={
@@ -8472,6 +8509,11 @@ function WidgetFrameInner({
                           // its parent's menu as well. Without a menu button to
                           // anchor the dropdown to, leave the browser menu alone.
                           e.stopPropagation();
+                          // React bubbles events out of portals (edit dialog, pickers,
+                          // popovers) along the component tree. A right-click in one of
+                          // their fields must keep the browser menu (copy/paste) instead
+                          // of opening the widget menu, which would replace the dialog.
+                          if (!e.currentTarget.contains(e.target as Node)) return;
                           if (!menuBtnRef.current) return;
                           e.preventDefault();
                           setConfirmDelete(false);
@@ -8489,9 +8531,12 @@ function WidgetFrameInner({
                               isTransparent && (editMode || transparencyStrength < 100) ? 'var(--widget-radius)' : 0,
                           boxShadow: 'none',
                           backdropFilter: 'none',
-                          borderWidth: isBareHeader ? 0 : editMode ? 1 : 'var(--widget-border-width)',
+                          borderWidth: isBareHeader || isFrameless ? 0 : editMode ? 1 : 'var(--widget-border-width)',
                           borderStyle: 'dashed',
                           borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
+                          ...(isFrameless && editMode
+                              ? { outline: '1px dashed var(--aura-nest-color, var(--app-border))' }
+                              : {}),
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
@@ -8600,6 +8645,15 @@ function WidgetFrameInner({
             )}
 
             {editMode && (
+                // Touch grip (#699): the only drag handle while arranging on a touch
+                // device (useGridEditInteraction). Hidden by CSS unless this widget is
+                // the selected one in arrange mode, so it costs nothing elsewhere.
+                <div className={TOUCH_DRAG_HANDLE} aria-hidden="true" title={t('wf.menu.move')}>
+                    <GripVertical size={18} />
+                </div>
+            )}
+
+            {editMode && (
                 // Header-less group: the chrome becomes a hover-reveal toolbar at
                 // top-left (see .aura-group-toolbar) with a dedicated grab grip, so
                 // children sit flush and the group's buttons never collide with the
@@ -8627,39 +8681,64 @@ function WidgetFrameInner({
                             <GripVertical size={13} />
                         </div>
                     )}
-                    <div
-                        draggable
-                        onMouseDown={stopDrag}
-                        onPointerDown={stopDrag}
-                        onDragStart={(e) => {
-                            e.stopPropagation();
-                            setDragBridge({ widget: config, remove: onRemove });
-                            e.dataTransfer.effectAllowed = 'move';
-                        }}
-                        onDragEnd={() => setDragBridge(null)}
-                        // A child's grip reads "pull out of group", so a plain click does
-                        // exactly that — onto the active tab, the same step a drop on the
-                        // tab performs (the drop position is not used there either). The
-                        // drag stays for moving the child into ANOTHER group or panels.
-                        onClick={
-                            onDuplicate
-                                ? (e) => {
-                                      e.stopPropagation();
-                                      getTabDropAccept()?.(config, onRemove);
-                                  }
-                                : undefined
-                        }
-                        className="nodrag cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
-                        title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        <Layers2 size={12} />
-                    </div>
-                    {isGroup && (
+                    {isHeaderlessGroup && inGroup && (
+                        <button
+                            data-aura-parent-toolbar=""
+                            onMouseDown={stopDrag}
+                            onPointerDown={stopDrag}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                revealParentToolbar(e.currentTarget);
+                            }}
+                            className="nodrag w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            title={t('group.parentToolbar')}
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <ArrowUpLeft size={13} />
+                        </button>
+                    )}
+                    {/* A header-less group keeps grip + menu only (#981) — next to the
+                        first child's chrome it has to fit narrow boxes; these two are
+                        in its menu instead. */}
+                    {!isHeaderlessGroup && (
+                        <div
+                            draggable
+                            onMouseDown={stopDrag}
+                            onPointerDown={stopDrag}
+                            onDragStart={(e) => {
+                                e.stopPropagation();
+                                setDragBridge({ widget: config, remove: onRemove });
+                                e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragEnd={() => setDragBridge(null)}
+                            // A child's grip reads "pull out of group", so a plain click does
+                            // exactly that — onto the active tab, the same step a drop on the
+                            // tab performs (the drop position is not used there either). The
+                            // drag stays for moving the child into ANOTHER group or panels.
+                            onClick={
+                                onDuplicate
+                                    ? (e) => {
+                                          e.stopPropagation();
+                                          getTabDropAccept()?.(config, onRemove);
+                                      }
+                                    : undefined
+                            }
+                            className="nodrag cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
+                            title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <Layers2 size={12} />
+                        </div>
+                    )}
+                    {isGroup && !isHeaderlessGroup && (
                         <button
                             onClick={fitGroupHeight}
                             onMouseDown={stopDrag}
@@ -9247,6 +9326,39 @@ function WidgetFrameInner({
                                     <Smartphone size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
                                     {t('group.mobileOrder')}
                                 </button>
+                                {/* Header-less group: its hover toolbar only keeps grip + menu (#981),
+                                    so "fit height" and "pull out of group" live here. */}
+                                {isHeaderlessGroup && (
+                                    <button
+                                        data-aura-menu-fit=""
+                                        onClick={() => {
+                                            fitGroupHeight();
+                                            openPanelFor(null);
+                                        }}
+                                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        <Minimize2
+                                            size={13}
+                                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                        />
+                                        {t('group.fitHeight')}
+                                    </button>
+                                )}
+                                {isHeaderlessGroup && onDuplicate && (
+                                    <button
+                                        data-aura-menu-pullout=""
+                                        onClick={() => {
+                                            openPanelFor(null);
+                                            getTabDropAccept()?.(config, onRemove);
+                                        }}
+                                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity w-full"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        <Layers2 size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                        {t('wf.menu.dragOutOfGroup')}
+                                    </button>
+                                )}
                                 <div className="my-0.5 mx-1 border-t" style={{ borderColor: 'var(--app-border)' }} />
                             </>
                         )}
@@ -9719,54 +9831,36 @@ function WidgetFrameInner({
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 {t('wf.edit.widgetType')}
                             </label>
-                            {(() => {
-                                // Sorted by the name shown - a web component widget shows its
-                                // component's name ("Fluss-Diagramm"), not "Web-Komponente"
-                                const typeSelect = (wcName?: string) => {
-                                    const label = (m: (typeof WIDGET_REGISTRY)[number]) =>
-                                        m.type === 'webcomponent' && wcName ? wcName : m.label;
-                                    return (
-                                        <select
-                                            value={config.type}
-                                            onChange={(e) =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    type: e.target.value as WidgetConfig['type'],
-                                                })
-                                            }
-                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        >
-                                            {WIDGET_GROUPS.map((g) => (
-                                                <optgroup key={g.id} label={g.label}>
-                                                    {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
-                                                        .slice()
-                                                        .sort((a, b) => label(a).localeCompare(label(b), 'de'))
-                                                        .map((m) => (
-                                                            <option key={m.type} value={m.type}>
-                                                                {label(m)}
-                                                            </option>
-                                                        ))}
-                                                </optgroup>
+                            {/* "Web-Komponente" is one type in a group of its own; which component
+                                it shows is said by the card under the list, not by the type name. */}
+                            <select
+                                value={config.type}
+                                onChange={(e) =>
+                                    onConfigChange({
+                                        ...config,
+                                        type: e.target.value as WidgetConfig['type'],
+                                    })
+                                }
+                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                {WIDGET_GROUPS.map((g) => (
+                                    <optgroup key={g.id} label={g.label}>
+                                        {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
+                                            .slice()
+                                            .sort((a, b) => a.label.localeCompare(b.label, 'de'))
+                                            .map((m) => (
+                                                <option key={m.type} value={m.type}>
+                                                    {m.label}
+                                                </option>
                                             ))}
-                                        </select>
-                                    );
-                                };
-                                return config.type === 'webcomponent' ? (
-                                    <WebComponentTypeLabel
-                                        options={config.options ?? {}}
-                                        fallback={WIDGET_BY_TYPE.webcomponent.label}
-                                    >
-                                        {typeSelect}
-                                    </WebComponentTypeLabel>
-                                ) : (
-                                    typeSelect()
-                                );
-                            })()}
+                                    </optgroup>
+                                ))}
+                            </select>
                         </div>
 
                         {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
@@ -10083,85 +10177,92 @@ function WidgetFrameInner({
                                         </p>
                                     </div>
                                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <label
-                                                className="text-[11px] font-medium"
-                                                style={{ color: 'var(--text-secondary)' }}
+                                    <Unavailable
+                                        reason={isFrameless ? t('wf.edit.group.framelessTransparent') : undefined}
+                                        className="space-y-2.5"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Transparenz-Modus
+                                                </label>
+                                                <p
+                                                    className="text-[10px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    Hintergrund, Rahmen und Schatten entfernen
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...o, transparent: !o.transparent },
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: o.transparent ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
                                             >
-                                                Transparenz-Modus
-                                            </label>
-                                            <p
-                                                className="text-[10px] mt-0.5"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                            >
-                                                Hintergrund, Rahmen und Schatten entfernen
-                                            </p>
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: o.transparent ? '18px' : '2px' }}
+                                                />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    options: { ...o, transparent: !o.transparent },
-                                                })
-                                            }
-                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                            style={{
-                                                background: o.transparent ? 'var(--accent)' : 'var(--app-border)',
-                                            }}
-                                        >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: o.transparent ? '18px' : '2px' }}
-                                            />
-                                        </button>
-                                    </div>
-                                    {!!o.transparent &&
-                                        (() => {
-                                            const displayTransparency =
-                                                draftTransparency ??
-                                                Math.max(0, Math.min(100, Number(o.transparency ?? 100)));
-                                            return (
-                                                <div>
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <label
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Transparenz-Stärke
-                                                        </label>
-                                                        <span
-                                                            className="text-[11px] tabular-nums"
-                                                            style={{ color: 'var(--text-primary)' }}
-                                                        >
-                                                            {displayTransparency} %
-                                                        </span>
+                                        {!!o.transparent &&
+                                            (() => {
+                                                const displayTransparency =
+                                                    draftTransparency ??
+                                                    Math.max(0, Math.min(100, Number(o.transparency ?? 100)));
+                                                return (
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <label
+                                                                className="text-[11px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Transparenz-Stärke
+                                                            </label>
+                                                            <span
+                                                                className="text-[11px] tabular-nums"
+                                                                style={{ color: 'var(--text-primary)' }}
+                                                            >
+                                                                {displayTransparency} %
+                                                            </span>
+                                                        </div>
+                                                        <input
+                                                            type="range"
+                                                            min={0}
+                                                            max={100}
+                                                            step={5}
+                                                            value={displayTransparency}
+                                                            onChange={(e) =>
+                                                                setDraftTransparency(Number(e.target.value))
+                                                            }
+                                                            onPointerUp={(e) => {
+                                                                onConfigChange({
+                                                                    ...config,
+                                                                    options: {
+                                                                        ...o,
+                                                                        transparency: Number(
+                                                                            (e.target as HTMLInputElement).value,
+                                                                        ),
+                                                                    },
+                                                                });
+                                                                setDraftTransparency(null);
+                                                            }}
+                                                            className="w-full h-1"
+                                                            style={{ accentColor: 'var(--accent)' }}
+                                                        />
                                                     </div>
-                                                    <input
-                                                        type="range"
-                                                        min={0}
-                                                        max={100}
-                                                        step={5}
-                                                        value={displayTransparency}
-                                                        onChange={(e) => setDraftTransparency(Number(e.target.value))}
-                                                        onPointerUp={(e) => {
-                                                            onConfigChange({
-                                                                ...config,
-                                                                options: {
-                                                                    ...o,
-                                                                    transparency: Number(
-                                                                        (e.target as HTMLInputElement).value,
-                                                                    ),
-                                                                },
-                                                            });
-                                                            setDraftTransparency(null);
-                                                        }}
-                                                        className="w-full h-1"
-                                                        style={{ accentColor: 'var(--accent)' }}
-                                                    />
-                                                </div>
-                                            );
-                                        })()}
+                                                );
+                                            })()}
+                                    </Unavailable>
                                     {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). In a
                                         group too: the group sizes the child from it (#741). */}
                                     {supportsAutoHeight(config.type, config.layout) && (
@@ -10614,15 +10715,20 @@ function WidgetFrameInner({
                                                     </div>
                                                 </div>
                                             )}
-                                            {showLastChange && !config.datapoint && (
+                                            {/* Shown with a main datapoint too: the override wins over it, and a
+                                                stale absolute id hidden here made every device card show the same
+                                                timestamp (#996). */}
+                                            {showLastChange && (
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Datenpunkt{' '}
+                                                        {t('wf.edit.lastChangeDp')}{' '}
                                                         <span style={{ opacity: 0.6 }}>
-                                                            (für Zeitstempel, da kein Haupt-Datenpunkt)
+                                                            {config.datapoint
+                                                                ? t('wf.edit.lastChangeDpOverride')
+                                                                : t('wf.edit.lastChangeDpNoMain')}
                                                         </span>
                                                     </label>
                                                     <input
@@ -10637,7 +10743,8 @@ function WidgetFrameInner({
                                                                 },
                                                             })
                                                         }
-                                                        placeholder="z.B. evcc.0.status.pvPower"
+                                                        placeholder={config.datapoint || 'z.B. evcc.0.status.pvPower'}
+                                                        data-last-change-dp=""
                                                         className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
                                                         style={{
                                                             background: 'var(--app-bg)',
@@ -10871,6 +10978,7 @@ function WidgetFrameInner({
                         (() => {
                             const o = config.options ?? {};
                             const autoShrink = !!o.autoShrink;
+                            const frameless = !!o.frameless;
                             return (
                                 <div
                                     className="space-y-2.5 rounded-lg px-3 py-3"
@@ -10891,33 +10999,71 @@ function WidgetFrameInner({
                                                 className="text-[11px] font-medium"
                                                 style={{ color: 'var(--text-primary)' }}
                                             >
-                                                {t('wf.edit.group.autoShrink')}
+                                                {t('wf.edit.group.frameless')}
                                             </label>
                                             <p
                                                 className="text-[10px] mt-0.5"
                                                 style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                             >
-                                                {t('wf.edit.group.autoShrinkHint')}
+                                                {t('wf.edit.group.framelessHint')}
                                             </p>
                                         </div>
                                         <button
+                                            data-aura-frameless-toggle=""
                                             onClick={() =>
                                                 onConfigChange({
                                                     ...config,
-                                                    options: { ...o, autoShrink: !autoShrink },
+                                                    options: { ...o, frameless: !frameless },
                                                 })
                                             }
                                             className="relative w-9 h-5 rounded-full transition-colors shrink-0"
                                             style={{
-                                                background: autoShrink ? 'var(--accent)' : 'var(--app-border)',
+                                                background: frameless ? 'var(--accent)' : 'var(--app-border)',
                                             }}
                                         >
                                             <span
                                                 className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: autoShrink ? '18px' : '2px' }}
+                                                style={{ left: frameless ? '18px' : '2px' }}
                                             />
                                         </button>
                                     </div>
+                                    <Unavailable
+                                        reason={frameless ? t('wf.edit.group.framelessAutoShrink') : undefined}
+                                    >
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {t('wf.edit.group.autoShrink')}
+                                                </label>
+                                                <p
+                                                    className="text-[10px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    {t('wf.edit.group.autoShrinkHint')}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...o, autoShrink: !autoShrink },
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: autoShrink ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: autoShrink ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                    </Unavailable>
                                 </div>
                             );
                         })()}
@@ -10942,16 +11088,21 @@ function WidgetFrameInner({
                                 style={{ color: 'var(--accent)' }}
                             >
                                 {config.type === 'webcomponent' ? (
-                                    // the component's own name, e.g. "Fluss-Diagramm"
-                                    <WebComponentTypeLabel
-                                        options={config.options ?? {}}
-                                        fallback={WIDGET_BY_TYPE.webcomponent.label}
-                                    />
+                                    // type and component, e.g. "Web-Komponente · Fluss-Diagramm"
+                                    <WebComponentTypeLabel options={config.options ?? {}} fallback="">
+                                        {(name) =>
+                                            name
+                                                ? `${WIDGET_BY_TYPE.webcomponent.label} · ${name}`
+                                                : WIDGET_BY_TYPE.webcomponent.label
+                                        }
+                                    </WebComponentTypeLabel>
                                 ) : (
                                     (WIDGET_BY_TYPE[config.type]?.label ?? config.type)
                                 )}
                             </p>
                         )}
+                        {/* which component, from which adapter - right under its name, above its settings */}
+                        {config.type === 'webcomponent' && <WebComponentInfoCard options={config.options ?? {}} />}
                         {/* Sichtbare Felder — always the first section of the widget's own settings
                             (docs-internal/widget-config-template.md). The light's status row carries
                             its alignment as an extra control next to the switch. */}
@@ -13474,6 +13625,14 @@ function WidgetFrameInner({
                                             options: { ...(config.options ?? {}), ...patch },
                                         })
                                     }
+                                    title={config.title}
+                                    onTitle={(title, patch) =>
+                                        onConfigChange({
+                                            ...config,
+                                            title,
+                                            options: { ...(config.options ?? {}), ...patch },
+                                        })
+                                    }
                                 />
                             )}
 
@@ -15878,6 +16037,62 @@ function WidgetFrameInner({
                                                     def={true}
                                                     hint="Zeilen abwechselnd einfärben statt als Karten"
                                                 />
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Schriftgröße{' '}
+                                                        <span className="opacity-60">(px, 8–32, leer = Standard)</span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={8}
+                                                        max={32}
+                                                        step={1}
+                                                        placeholder="12"
+                                                        value={(o.fontSize as number | undefined) ?? ''}
+                                                        onChange={(e) =>
+                                                            set({
+                                                                fontSize:
+                                                                    e.target.value === ''
+                                                                        ? undefined
+                                                                        : Number(e.target.value),
+                                                            })
+                                                        }
+                                                        className={`${aCls} font-mono`}
+                                                        style={aSty}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Größe Bedienelemente{' '}
+                                                        <span className="opacity-60">
+                                                            (px, 10–48, Klickfläche wächst mit)
+                                                        </span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={10}
+                                                        max={48}
+                                                        step={1}
+                                                        placeholder="14"
+                                                        value={(o.buttonSize as number | undefined) ?? ''}
+                                                        onChange={(e) =>
+                                                            set({
+                                                                buttonSize:
+                                                                    e.target.value === ''
+                                                                        ? undefined
+                                                                        : Number(e.target.value),
+                                                            })
+                                                        }
+                                                        className={`${aCls} font-mono`}
+                                                        style={aSty}
+                                                    />
+                                                </div>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                                                 <Toggle
@@ -16038,6 +16253,7 @@ function WidgetFrameInner({
                                         set({ levels: next });
                                     };
                                     const LEVEL_OPTS: { key: string; label: string; color: string }[] = [
+                                        { key: 'silly', label: 'Silly', color: '#a78bfa' },
                                         { key: 'debug', label: 'Debug', color: '#94a3b8' },
                                         { key: 'info', label: 'Info', color: '#3b82f6' },
                                         { key: 'warn', label: 'Warn', color: '#f59e0b' },
@@ -16179,6 +16395,31 @@ function WidgetFrameInner({
                                                         style={lSty}
                                                     />
                                                 </div>
+                                            </div>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schriftgröße Tabelle <span className="opacity-60">(px, 8–24)</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={8}
+                                                    max={24}
+                                                    step={1}
+                                                    value={(o.fontSize as number | undefined) ?? 10}
+                                                    onChange={(e) =>
+                                                        set({
+                                                            fontSize: Math.max(
+                                                                8,
+                                                                Math.min(24, Number(e.target.value) || 10),
+                                                            ),
+                                                        })
+                                                    }
+                                                    className={`${lCls} font-mono`}
+                                                    style={lSty}
+                                                />
                                             </div>
                                             <Toggle
                                                 label="Kompakte Darstellung"
@@ -18577,36 +18818,54 @@ function WidgetFrameInner({
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                                                 <>
+                                                    {/* Sicherheitsabfrage (#977) */}
+                                                    <ConfirmActionFields
+                                                        options={o}
+                                                        setO={setO}
+                                                        hintText="Bestätigung vor jeder Fahrt und Lamellenänderung. Stopp fragt nie nach."
+                                                        placeholder="Wirklich ausführen?"
+                                                    />
                                                     {/* Erst bei Loslassen senden */}
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div>
-                                                            <label className="text-[11px] block" style={hint}>
-                                                                Erst bei Loslassen senden
-                                                            </label>
-                                                            <p className="text-[10px]" style={hint}>
-                                                                Slider-Wert wird erst beim Loslassen übertragen.
-                                                            </p>
-                                                        </div>
-                                                        <button
-                                                            onClick={() =>
-                                                                setO({ sendOnRelease: !(o.sendOnRelease !== false) })
-                                                            }
-                                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
-                                                            style={{
-                                                                background:
-                                                                    o.sendOnRelease !== false
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    <Unavailable
+                                                        reason={
+                                                            o.confirmAction === true
+                                                                ? 'Mit Sicherheitsabfrage wird immer erst beim Loslassen gesendet.'
+                                                                : undefined
+                                                        }
+                                                    >
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div>
+                                                                <label className="text-[11px] block" style={hint}>
+                                                                    Erst bei Loslassen senden
+                                                                </label>
+                                                                <p className="text-[10px]" style={hint}>
+                                                                    Slider-Wert wird erst beim Loslassen übertragen.
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() =>
+                                                                    setO({
+                                                                        sendOnRelease: !(o.sendOnRelease !== false),
+                                                                    })
+                                                                }
+                                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
                                                                 style={{
-                                                                    left: o.sendOnRelease !== false ? '18px' : '2px',
+                                                                    background:
+                                                                        o.sendOnRelease !== false
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-border)',
                                                                 }}
-                                                            />
-                                                        </button>
-                                                    </div>
+                                                            >
+                                                                <span
+                                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                    style={{
+                                                                        left:
+                                                                            o.sendOnRelease !== false ? '18px' : '2px',
+                                                                    }}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </Unavailable>
 
                                                     {/* Position live mitzeichnen */}
                                                     {toggleRow(
@@ -19601,6 +19860,11 @@ function WidgetFrameInner({
                                             );
                                             if (v) patch.actualDatapoint = v;
                                         }
+                                        // Homematic MANU_MODE never reports back — SET_TEMPERATURE does (#973).
+                                        if (parts[parts.length - 1] === 'MANU_MODE' && !o.statusDp) {
+                                            const v = find('SET_TEMPERATURE');
+                                            if (v) patch.statusDp = v;
+                                        }
                                         if (Object.keys(patch).length) setO(patch);
                                     };
                                     return (
@@ -19757,6 +20021,7 @@ function WidgetFrameInner({
                                                         entries={thermostatCircleEntries(o)}
                                                         iconPlaceholder="Thermometer"
                                                         extra={<PrimaryValueSelect o={o} setO={setO} />}
+                                                        centerToggle
                                                     />
                                                 )}
                                                 {config.layout === 'dial' && (
@@ -19827,6 +20092,15 @@ function WidgetFrameInner({
                                                     </SubGroup>
                                                 )}
                                                 {renderThresholds()}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                                {/* Sicherheitsabfrage (#977) */}
+                                                <ConfirmActionFields
+                                                    options={o}
+                                                    setO={setO}
+                                                    hintText="Bestätigung vor jeder Änderung der Solltemperatur."
+                                                    placeholder="Wirklich ausführen?"
+                                                />
                                             </ConfigSection>
                                         </>
                                     );

@@ -168,6 +168,159 @@ function fakeApi() {
     check('socket: unsubscribeObject ends the object subscription', objectCbs.has('x.0.three'), false);
 }
 
+// ── object subscriptions by pattern: the bridge, then hooks/useIoBroker on a fake socket ──
+{
+    const subs = new Map(); // id or pattern -> cb
+    const f = fakeApi();
+    f.api.subscribeObject = (id, cb) => {
+        subs.set(id, cb);
+        return () => subs.delete(id);
+    };
+    const socket = m.createWebComponentSocket(f.api, 'en');
+    const objs = [];
+    const oc = (id, obj) => objs.push([id, obj === null ? null : obj?.v]);
+    await socket.subscribeObject('system.adapter.*', oc);
+    subs.get('system.adapter.*')({ v: 3 }, 'system.adapter.flow.0');
+    subs.get('system.adapter.*')(null, 'system.adapter.flow.0');
+    check('objects: a pattern calls back with the ID of the object', objs, [
+        ['system.adapter.flow.0', 3],
+        ['system.adapter.flow.0', null],
+    ]);
+    await socket.unsubscribeObject('system.adapter.*', oc);
+    check('objects: a pattern unsubscribes through the host', subs.size, 0);
+}
+{
+    // the real socket layer, bundled with a fake socket library in place of /socket.io/socket.io.js
+    const ioBundle = join(cache, `aura-web-components-io-objects-${process.pid}.mjs`);
+    await build({
+        entryPoints: [join(process.cwd(), 'src-vis/hooks/useIoBroker.ts')],
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        outfile: ioBundle,
+        define: { 'import.meta.env.DEV': 'false' },
+        logLevel: 'warning',
+    });
+    const sockets = [];
+    globalThis.window ??= { location: { origin: 'http://aura.test', protocol: 'http:' } };
+    globalThis.io = {
+        connect() {
+            const handlers = {};
+            const sock = {
+                connected: true,
+                emitted: [],
+                on(event, cb) {
+                    (handlers[event] ??= []).push(cb);
+                },
+                emit(event, ...args) {
+                    const cb = typeof args.at(-1) === 'function' ? args.pop() : null;
+                    sock.emitted.push([event, ...args]);
+                    if (cb && event === 'getObject') {
+                        setTimeout(() => cb(null, { _id: args[0], common: { name: 'current' } }), 0);
+                    }
+                },
+                disconnect() {},
+                fire(event, ...args) {
+                    for (const h of handlers[event] ?? []) {
+                        h(...args);
+                    }
+                },
+            };
+            sockets.push(sock);
+            return sock;
+        },
+    };
+    const quiet = console.log;
+    console.log = () => {}; // the connect banner
+    const io = await import(pathToFileURL(ioBundle).href);
+    rmSync(ioBundle, { force: true });
+    const s = io.getSocket();
+    s.fire('connect');
+    console.log = quiet;
+    const sent = (command) => s.emitted.filter((e) => e[0] === command).map((e) => e[1]);
+
+    const got = [];
+    const a = (obj, id) => got.push(['a', id, obj === null ? null : obj.common.name]);
+    const b = (obj, id) => got.push(['b', id, obj === null ? null : obj.common.name]);
+    const offA = io.subscribeObjectDirect('flow.0.diagrams.d1', a);
+    const offP = io.subscribeObjectDirect('system.adapter.*', a);
+    const offP2 = io.subscribeObjectDirect('system.adapter.*', b);
+    check('io objects: one subscribeObjects per ID or pattern', sent('subscribeObjects'), [
+        'flow.0.diagrams.d1',
+        'system.adapter.*',
+    ]);
+    s.fire('objectChange', 'flow.0.diagrams.d1', { common: { name: 'changed' } });
+    s.fire('objectChange', 'system.adapter.flow.0', { common: { name: 'instance' } });
+    s.fire('objectChange', 'system.adapterX', { common: { name: 'no match' } });
+    s.fire('objectChange', 'system.adapter.flow.0', null);
+    check('io objects: exact and pattern subscribers get the ID of the object, deletion as null', got, [
+        ['a', 'flow.0.diagrams.d1', 'changed'],
+        ['a', 'system.adapter.flow.0', 'instance'],
+        ['b', 'system.adapter.flow.0', 'instance'],
+        ['a', 'system.adapter.flow.0', null],
+        ['b', 'system.adapter.flow.0', null],
+    ]);
+
+    // a subscriber that throws does not keep the change from the others
+    got.length = 0;
+    const error = console.error;
+    console.error = () => {};
+    const offBad = io.subscribeObjectDirect('x.0.*', () => {
+        throw new Error('broken component');
+    });
+    const offAfter = io.subscribeObjectDirect('x.0.one', a);
+    const offAfterP = io.subscribeObjectDirect('x.0.*', a);
+    s.fire('objectChange', 'x.0.one', { common: { name: 'x' } });
+    console.error = error;
+    check('io objects: a throwing subscriber leaves the others alone', got, [
+        ['a', 'x.0.one', 'x'],
+        ['a', 'x.0.one', 'x'],
+    ]);
+    offBad();
+    offAfter();
+    offAfterP();
+
+    // reconnect: everything subscribed again; one object is handed out, a pattern names none to read
+    got.length = 0;
+    const sentBefore = s.emitted.length;
+    console.log = () => {};
+    s.fire('disconnect');
+    s.fire('reconnect');
+    console.log = quiet;
+    await new Promise((r) => setTimeout(r, 5));
+    const renewed = (command) =>
+        s.emitted
+            .slice(sentBefore)
+            .filter((e) => e[0] === command)
+            .map((e) => e[1]);
+    check('io objects: every subscription renewed after a reconnect', renewed('subscribeObjects'), [
+        'flow.0.diagrams.d1',
+        'system.adapter.*',
+    ]);
+    check('io objects: after a reconnect only the object is read', renewed('getObject'), ['flow.0.diagrams.d1']);
+    check('io objects: after a reconnect the object reaches its subscriber', got, [
+        ['a', 'flow.0.diagrams.d1', 'current'],
+    ]);
+
+    // unsubscribing: the server hears it after the last subscriber of a pattern
+    const before = sent('unsubscribeObjects').length;
+    offP();
+    check(
+        'io objects: a pattern stays subscribed while a subscriber is left',
+        sent('unsubscribeObjects').length,
+        before,
+    );
+    offP2();
+    offA();
+    check('io objects: unsubscribed after the last one', sent('unsubscribeObjects').slice(before), [
+        'system.adapter.*',
+        'flow.0.diagrams.d1',
+    ]);
+    got.length = 0;
+    s.fire('objectChange', 'system.adapter.flow.0', { common: { name: 'late' } });
+    check('io objects: nothing after unsubscribing', got, []);
+}
+
 // ── theme ───────────────────────────────────────────────────────────────────
 {
     const vars = {
@@ -208,6 +361,201 @@ function fakeApi() {
         [empty.type, typeof empty.primary, typeof empty.paper],
         ['light', 'string', 'string'],
     );
+}
+
+// ── wildcard state subscriptions: the pattern, the bridge, hooks/useIoBroker ──
+{
+    const patternBundle = join(cache, `aura-web-components-pattern-${process.pid}.mjs`);
+    await build({
+        entryPoints: [join(process.cwd(), 'src-vis/utils/idPattern.ts')],
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        outfile: patternBundle,
+        logLevel: 'warning',
+    });
+    const p = await import(pathToFileURL(patternBundle).href);
+    rmSync(patternBundle, { force: true });
+    const matches = (pattern, id) => p.idPatternToRegExp(pattern).test(id);
+    check(
+        'pattern: is one',
+        ['a.0.x.*', '*.STATE', 'a.0.x'].map((id) => p.isIdPattern(id)),
+        [true, true, false],
+    );
+    check(
+        'pattern: * at the end covers everything below, dots included',
+        [matches('a.0.x.*', 'a.0.x.y'), matches('a.0.x.*', 'a.0.x.y.z'), matches('a.0.x.*', 'a.0.xy')],
+        [true, true, false],
+    );
+    check(
+        'pattern: * in the middle, the rest literal and anchored',
+        [
+            matches('hm-rpc.0.*.STATE', 'hm-rpc.0.ABC.1.STATE'),
+            matches('hm-rpc.0.*.STATE', 'hm-rpc.0.ABC.STATE_X'),
+            matches('hm-rpc.0.*.STATE', 'xhm-rpc.0.A.STATE'),
+        ],
+        [true, false, false],
+    );
+    check(
+        'pattern: regex characters of an ID are literal (js-controller pattern2RegEx)',
+        [matches('a.0.(x)+$.*', 'a.0.(x)+$.y'), matches('a.0.x.*', 'a10x.y'), matches('*', 'anything')],
+        [true, false, true],
+    );
+}
+{
+    // the bridge: a pattern calls back with the concrete ID; it has no state or object of its own
+    const f = fakeApi();
+    const reads = [];
+    f.api.getState = async (id) => (reads.push(id), { val: id });
+    f.api.getObject = async (id) => (reads.push(id), { _id: id });
+    f.api.subscribeState = (id, cb) => {
+        f.subs.set(id, new Set([cb]));
+        return () => f.subs.get(id).delete(cb);
+    };
+    const socket = m.createWebComponentSocket(f.api, 'en');
+    const got = [];
+    const cb = (id, state) => got.push([id, state?.val]);
+    await socket.subscribeState(['a.0.x.*', 'a.0.y'], cb);
+    for (const fn of f.subs.get('a.0.x.*')) {
+        fn({ val: 1 }, 'a.0.x.one');
+    }
+    for (const fn of f.subs.get('a.0.y')) {
+        fn({ val: 2 }); // an exact subscription may leave the ID out
+    }
+    check('patterns: the bridge passes the ID of the state that changed', got, [
+        ['a.0.x.one', 1],
+        ['a.0.y', 2],
+    ]);
+    check(
+        'patterns: no state and no object of a pattern, and no read for them',
+        [await socket.getState('a.0.x.*'), await socket.getObject('a.0.x.*'), reads],
+        [null, null, []],
+    );
+    socket.unsubscribeState('a.0.x.*', cb);
+    check('patterns: unsubscribed through the bridge', f.subs.get('a.0.x.*').size, 0);
+}
+{
+    // the real socket layer, bundled with a fake socket library in place of /socket.io/socket.io.js
+    const ioBundle = join(cache, `aura-web-components-io-patterns-${process.pid}.mjs`);
+    await build({
+        entryPoints: [join(process.cwd(), 'src-vis/hooks/useIoBroker.ts')],
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        outfile: ioBundle,
+        define: { 'import.meta.env.DEV': 'false' },
+        logLevel: 'warning',
+    });
+    const sockets = [];
+    let serverValue = 1;
+    globalThis.window ??= { location: { origin: 'http://aura.test', protocol: 'http:' } };
+    globalThis.io = {
+        connect() {
+            const handlers = {};
+            const sock = {
+                connected: true,
+                emitted: [],
+                on(event, cb) {
+                    (handlers[event] ??= []).push(cb);
+                },
+                emit(event, ...args) {
+                    const cb = typeof args.at(-1) === 'function' ? args.pop() : null;
+                    sock.emitted.push([event, ...args]);
+                    if (cb && event === 'getState') {
+                        setTimeout(() => cb(null, { val: serverValue, ack: true, ts: serverValue }), 0);
+                    }
+                },
+                disconnect() {},
+                fire(event, ...args) {
+                    for (const h of handlers[event] ?? []) {
+                        h(...args);
+                    }
+                },
+            };
+            sockets.push(sock);
+            return sock;
+        },
+    };
+    const quiet = console.log;
+    console.log = () => {}; // the connect banner
+    const io = await import(pathToFileURL(ioBundle).href);
+    rmSync(ioBundle, { force: true });
+    const s = io.getSocket();
+    s.fire('connect');
+    console.log = quiet;
+    const sent = (command) => s.emitted.filter((e) => e[0] === command).map((e) => e[1]);
+    const state = (val) => ({ val, ack: true, ts: Date.now() });
+
+    const got = [];
+    const onPattern = (st, id) => got.push(['pattern', id, st.val]);
+    const onMiddle = (st, id) => got.push(['middle', id, st.val]);
+    const onExact = (st, id) => got.push(['exact', id, st.val]);
+    const offP = io.subscribeStateDirect('a.0.x.*', onPattern);
+    const offP2 = io.subscribeStateDirect('a.0.x.*', onExact);
+    offP2();
+    const offM = io.subscribeStateDirect('hm-rpc.0.*.STATE', onMiddle);
+    const offE = io.subscribeStateDirect('a.0.x.one', onExact);
+    check('io patterns: the server is subscribed once per pattern', sent('subscribe'), [
+        'a.0.x.*',
+        'hm-rpc.0.*.STATE',
+        'a.0.x.one',
+    ]);
+    s.fire('stateChange', 'a.0.x.one', state(1));
+    s.fire('stateChange', 'a.0.x.two', state(2));
+    s.fire('stateChange', 'hm-rpc.0.ABC.1.STATE', state(3));
+    s.fire('stateChange', 'a.0.y', state(4));
+    check('io patterns: matching changes reach pattern and exact subscribers, with their ID', got, [
+        ['exact', 'a.0.x.one', 1],
+        ['pattern', 'a.0.x.one', 1],
+        ['pattern', 'a.0.x.two', 2],
+        ['middle', 'hm-rpc.0.ABC.1.STATE', 3],
+    ]);
+    check(
+        'io patterns: what a pattern delivered is cached; the exact ID stays maintained',
+        [io.getStateFromCache('a.0.x.two')?.val, io.isStateFresh('a.0.x.one')],
+        [2, true],
+    );
+
+    // a write is echoed to the pattern subscribers as well
+    got.length = 0;
+    io.setStateEchoed('a.0.x.three', 5);
+    await tick();
+    check('io patterns: the optimistic echo of a write reaches a pattern', got, [['pattern', 'a.0.x.three', 5]]);
+
+    // reconnect: patterns subscribed again, but never read as a state
+    s.emitted.length = 0;
+    got.length = 0;
+    console.log = () => {};
+    s.fire('disconnect');
+    serverValue = 9;
+    s.fire('reconnect');
+    console.log = quiet;
+    await new Promise((r) => setTimeout(r, 5));
+    check(
+        'io patterns: subscribed again after a reconnect',
+        sent('subscribe').filter((id) => id.includes('*')),
+        ['a.0.x.*', 'hm-rpc.0.*.STATE'],
+    );
+    check(
+        'io patterns: a pattern is not read as a state on reconnect',
+        sent('getState').filter((id) => id.includes('*')),
+        [],
+    );
+    check(
+        'io patterns: a cached state that changed while offline reaches its pattern',
+        got.filter((g) => g[1] === 'a.0.x.two'),
+        [['pattern', 'a.0.x.two', 9]],
+    );
+
+    // unsubscribing ends the pattern; the exact path keeps working without one
+    got.length = 0;
+    offP();
+    offM();
+    check('io patterns: unsubscribed after the last subscriber', sent('unsubscribe'), ['a.0.x.*', 'hm-rpc.0.*.STATE']);
+    s.fire('stateChange', 'a.0.x.one', state(6));
+    s.fire('stateChange', 'a.0.x.two', state(7));
+    check('io patterns: without patterns only the exact subscriber hears', got, [['exact', 'a.0.x.one', 6]]);
+    offE();
 }
 
 // ── settings ────────────────────────────────────────────────────────────────
@@ -313,7 +661,7 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
         manifest: { manifestVersion: 1, tag: 'iob-other-tile', name: { fr: 'Tuile' }, settings: { items: {} } },
     };
     const entries = m.webComponentPickerEntries([flow, flow, bare, { adapter: 'x', manifest: {} }, null], 'de');
-    check('entries: once per adapter and tag, without a tag none', entries.length, 2);
+    check('entries: once per adapter and tag, without a tag none', entries.filter((e) => !e.missing).length, 2);
     check('entry: key', entries[0].key, 'wc:flow|iob-flow-diagram');
     check('entry: name in the frontend language', entries[0].label, 'Fluss-Diagramm');
     check('entry: description and adapter as hint', entries[0].hint, 'Animiertes Fluss-Diagramm – Adapter flow');
@@ -328,11 +676,31 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check('entry: no description - only the adapter', entries[1].hint, 'Adapter other');
     check('entry: no icon, no size', [entries[1].iconUrl, entries[1].size], [undefined, undefined]);
     check('entries: English frontend', m.webComponentPickerEntries([flow], 'en')[0].label, 'Flow diagram');
-    check('entries: installed flow - no known entry on top', entries.filter((e) => e.missing).length, 0);
+    check(
+        'entries: installed flow - no known entry on top, only the missing others',
+        entries.filter((e) => e.missing).map((e) => e.tag),
+        ['iob-fullcalendar', 'iob-cameras-rtsp', 'iob-cameras-snapshot'],
+    );
+    check('entry: tested component (KNOWN_WEB_COMPONENTS) is not marked', entries[0].untested, false);
+    check('entry: any other component is marked untested', entries[1].untested, true);
+    check('entry: version of the installed adapter', [entries[0].version, entries[1].version], ['0.1.0', '1.0.0']);
+    check(
+        'tested: tag and adapter must both match',
+        [
+            m.isTestedWebComponent('iob-flow-diagram', 'flow'),
+            m.isTestedWebComponent('iob-flow-diagram', 'other'),
+            m.isTestedWebComponent('iob-other-tile', 'other'),
+        ],
+        [true, false, false],
+    );
 
     // A known component is offered while its adapter is missing (#891)
     const none = m.webComponentPickerEntries([], 'de');
-    check('known: offered without any adapter', none.length, 1);
+    check(
+        'known: offered without any adapter',
+        none.map((e) => e.tag),
+        ['iob-flow-diagram', 'iob-fullcalendar', 'iob-cameras-rtsp', 'iob-cameras-snapshot'],
+    );
     check('known: same key as the installed one', none[0].key, 'wc:flow|iob-flow-diagram');
     check('known: name in the frontend language', none[0].label, 'Fluss-Diagramm');
     check('known: marked missing', none[0].missing, true);
@@ -342,10 +710,67 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check(
         'known: after the installed ones',
         m.webComponentPickerEntries([bare], 'de').map((e) => e.tag),
-        ['iob-other-tile', 'iob-flow-diagram'],
+        ['iob-other-tile', 'iob-flow-diagram', 'iob-fullcalendar', 'iob-cameras-rtsp', 'iob-cameras-snapshot'],
     );
     check('known: found by tag', m.findKnownWebComponent('iob-flow-diagram')?.adapter, 'flow');
     check('known: unknown tag', m.findKnownWebComponent('iob-other-tile'), undefined);
+
+    // Components of the repository (short forms in common.webComponents) for adapters that are not installed
+    const repo = [
+        {
+            adapter: 'flow',
+            version: '0.3.0',
+            tag: 'iob-flow-diagram',
+            name: { en: 'Flow diagram', de: 'Fluss-Diagramm' },
+            iconUrl: 'https://raw.example/flow/admin/flow.svg',
+        },
+        {
+            adapter: 'sonos',
+            version: '4.7.0',
+            tag: 'iob-sonos-player',
+            name: { en: 'Player', de: 'Wiedergabe' },
+            iconUrl: 'https://raw.example/sonos/admin/player.png',
+            size: { width: 400, height: 240 },
+        },
+        { adapter: 'other', version: '2.0.0', tag: 'iob-other-tile', name: 'Other' },
+        { adapter: 'nameless', version: '1.0.0', tag: 'iob-nameless', name: null },
+    ];
+    const withRepo = m.webComponentPickerEntries([bare], 'de', repo);
+    check(
+        'repo: after the installed and the known ones, an installed tag not again',
+        withRepo.map((e) => e.tag),
+        [
+            'iob-other-tile',
+            'iob-flow-diagram',
+            'iob-fullcalendar',
+            'iob-cameras-rtsp',
+            'iob-cameras-snapshot',
+            'iob-sonos-player',
+            'iob-nameless',
+        ],
+    );
+    const sonos = withRepo.find((e) => e.tag === 'iob-sonos-player');
+    check(
+        'repo: key, name in the language, missing and untested',
+        [sonos.key, sonos.label, sonos.missing, sonos.untested],
+        ['wc:sonos|iob-sonos-player', 'Wiedergabe', true, true],
+    );
+    check(
+        'repo: icon and size of the short form',
+        [sonos.iconUrl, sonos.size],
+        ['https://raw.example/sonos/admin/player.png', { width: 400, height: 240 }],
+    );
+    check('repo: hint names adapter and version', sonos.hint, 'Adapter sonos 4.7.0 (nicht installiert)');
+    check('repo: no name - the tag', withRepo.find((e) => e.tag === 'iob-nameless').label, 'iob-nameless');
+    check(
+        'repo: a known component keeps its texts, gets the icon',
+        [withRepo[1].label, withRepo[1].iconUrl, withRepo[1].untested],
+        ['Fluss-Diagramm', 'https://raw.example/flow/admin/flow.svg', undefined],
+    );
+    check('repo: found by tag', m.findRepoWebComponent(repo, 'iob-sonos-player')?.adapter, 'sonos');
+    check('repo: name, English frontend', m.repoWebComponentName(repo[1], 'en'), 'Player');
+    check('repo: name as plain text', m.repoWebComponentName(repo[2], 'de'), 'Other');
+    check('repo: no entry - no name', m.repoWebComponentName(undefined, 'de'), '');
 
     // Title and "open large" of the flow diagram belong to Aura's widget frame
     check(
@@ -358,6 +783,109 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
         m.withoutHostSettings({ title: 'x' }, 'iob-other-tile', 'other'),
         { title: 'x' },
     );
+    check(
+        'host settings: the cameras draw no title of their own',
+        m.withoutHostSettings({ camera: 'cameras.0.cam1', title: 'Einfahrt' }, 'iob-cameras-rtsp', 'cameras'),
+        { camera: 'cameras.0.cam1' },
+    );
+    check('host settings: the snapshot camera too', m.hostOwnedSettings('iob-cameras-snapshot', 'cameras'), ['title']);
+    {
+        const withTitle = {
+            manifestVersion: 1,
+            tag: 'iob-other-tile',
+            module: 'x.js',
+            settings: { type: 'panel', items: { title: { type: 'text' }, dp: { type: 'objectId' } } },
+        };
+        const numberTitle = { ...withTitle, settings: { type: 'panel', items: { title: { type: 'number' } } } };
+        check(
+            'host settings: any text setting "title" (generic)',
+            m.hostOwnedSettings('iob-other-tile', 'other', withTitle),
+            ['title'],
+        );
+        check(
+            'host settings: generic rule drops it',
+            m.withoutHostSettings({ title: 'x', dp: 'a.0.b' }, 'iob-other-tile', 'other', withTitle),
+            { dp: 'a.0.b' },
+        );
+        check(
+            'host settings: "title" of another type stays',
+            m.hostOwnedSettings('iob-other-tile', 'other', numberTitle),
+            [],
+        );
+        check(
+            'host settings: known list and generic rule merge without doubles',
+            m.hostOwnedSettings('iob-flow-diagram', 'flow', { ...withTitle, tag: 'iob-flow-diagram' }),
+            ['title', 'fullView'],
+        );
+    }
+    check('host settings: reason keys', ['title', 'fullView', 'x'].map(m.hostSettingReasonKey), [
+        'wc.host.title',
+        'wc.host.fullView',
+        'wc.host.other',
+    ]);
+
+    // who answers a click (wcClick)
+    check('click: off by default', m.webComponentClick(undefined), 'off');
+    check(
+        'click: component only on request, anything else off',
+        [
+            m.webComponentClick('component'),
+            m.webComponentClick('off'),
+            m.webComponentClick('nonsense'),
+            m.webComponentClick('aura'),
+        ],
+        ['component', 'off', 'off', 'off'],
+    );
+
+    // title row from the component (wcTitleSource / wcIconSource, event iob-header)
+    check('header: strings only, trimmed', m.parseComponentHeader({ title: ' Einfahrt ', icon: 5 }), {
+        title: 'Einfahrt',
+    });
+    check('header: nothing usable', [m.parseComponentHeader(null), m.parseComponentHeader({ title: '  ' })], [{}, {}]);
+    check(
+        'header: source defaults to aura',
+        [m.headerSource(undefined), m.headerSource('x'), m.headerSource('component')],
+        ['aura', 'aura', 'component'],
+    );
+    {
+        const aura = { titleSource: 'aura', iconSource: 'aura' };
+        const comp = { titleSource: 'component', iconSource: 'component' };
+        const hdr = { title: 'Einfahrt', icon: 'cam.png' };
+        const res = (u) => `https://h/adapter/cameras/${u}`;
+        check(
+            'header: aura ignores the component',
+            m.resolveWidgetHeader(aura, 'Kamera', hdr, 'https://h/m.png', res),
+            {
+                title: 'Kamera',
+            },
+        );
+        check('header: component title and icon', m.resolveWidgetHeader(comp, 'Kamera', hdr, 'https://h/m.png', res), {
+            title: 'Einfahrt',
+            iconUrl: 'https://h/adapter/cameras/cam.png',
+        });
+        check(
+            'header: nothing reported - widget title, manifest icon',
+            m.resolveWidgetHeader(comp, 'Kamera', {}, 'https://h/m.png', res),
+            {
+                title: 'Kamera',
+                iconUrl: 'https://h/m.png',
+            },
+        );
+        check('header: no picture at all - Aura icon', m.resolveWidgetHeader(comp, 'Kamera', {}, undefined, res), {
+            title: 'Kamera',
+        });
+        check(
+            'header: title from the component, icon from Aura',
+            m.resolveWidgetHeader(
+                { titleSource: 'component', iconSource: 'aura' },
+                'Kamera',
+                hdr,
+                'https://h/m.png',
+                res,
+            ),
+            { title: 'Einfahrt' },
+        );
+    }
 
     check('key: parsed', m.parseWebComponentKey('wc:flow|iob-flow-diagram'), {
         adapter: 'flow',
@@ -399,6 +927,271 @@ check(
     [m.objectIdOfRow({ id: 'a.0.b', value: { enabled: true } }), m.objectIdOfRow({ id: 'a.0.c' })],
     ['a.0.b', 'a.0.c'],
 );
+
+// ── versioned URLs and a catalog read again ──────────────────────────────
+{
+    check(
+        'version: the adapter version as query of a URL',
+        [
+            m.versionedUrl('http://h/adapter/flow/wc/d.json', '1.2.0'),
+            m.versionedUrl('http://h/adapter/flow/wc/d.js?v=1.1.0&x=1', '1.2.0'),
+            m.versionedUrl('http://h/adapter/flow/wc/d.js', ''),
+            m.versionedUrl('not a url', '1.0.0'),
+        ],
+        [
+            'http://h/adapter/flow/wc/d.json?v=1.2.0',
+            'http://h/adapter/flow/wc/d.js?v=1.2.0&x=1',
+            'http://h/adapter/flow/wc/d.js',
+            'not a url',
+        ],
+    );
+
+    // the real loader of the package: the versioned manifest URL is read, the module URL
+    // (relative to the manifest, so without its query) gets the version as well
+    const pkg = await import('@iobroker/web-components');
+    const manifestOf = (tag, module) => ({
+        manifestVersion: 1,
+        tag,
+        name: 'D',
+        module,
+        icon: 'd.svg',
+        settings: { type: 'panel', items: {} },
+    });
+    const read = [];
+    const sources = m.versionedSources(
+        pkg.getWebComponentSources(
+            [{ _id: 'system.adapter.flow.0', common: { version: '1.2.0', webComponents: ['wc/d.json'] } }],
+            'http://h:8095/index.html',
+        ),
+    );
+    const loaded = (
+        await pkg.loadWebComponents(sources, {
+            readManifest: async (url) => {
+                read.push(url);
+                return manifestOf('iob-versioned-d', 'd.js');
+            },
+            log: { error() {}, warn() {} },
+        })
+    ).map(m.versionedModule);
+    check('version: the manifest is read under its versioned URL', read, [
+        'http://h:8095/adapter/flow/wc/d.json?v=1.2.0',
+    ]);
+    check(
+        'version: the module URL is versioned too',
+        loaded[0].moduleUrl,
+        'http://h:8095/adapter/flow/wc/d.js?v=1.2.0',
+    );
+    check(
+        'version: the icon still resolves next to the manifest',
+        m.webComponentPickerEntries(loaded, 'en')[0].iconUrl,
+        'http://h:8095/adapter/flow/wc/d.svg',
+    );
+    // importWebComponent: once per URL, and the tag check still holds
+    const defined = new Set();
+    globalThis.customElements ??= { get: (tag) => (defined.has(tag) ? class {} : undefined) };
+    const imported = [];
+    const importer = async (url) => {
+        imported.push(url);
+        defined.add('iob-versioned-d');
+        return {};
+    };
+    await pkg.importWebComponent(loaded[0], { importer });
+    await pkg.importWebComponent(loaded[0], { importer });
+    check('version: the versioned module is imported once', imported, ['http://h:8095/adapter/flow/wc/d.js?v=1.2.0']);
+    let rejected = '';
+    await pkg
+        .importWebComponent(
+            {
+                ...loaded[0],
+                moduleUrl: 'http://h:8095/adapter/flow/wc/other.js?v=1.2.0',
+                manifest: manifestOf('iob-x-none', 'other.js'),
+            },
+            { importer: async () => ({}) },
+        )
+        .catch((e) => (rejected = e.message));
+    check(
+        'version: a module that does not define its tag is still refused',
+        /does not define <iob-x-none>/.test(rejected),
+        true,
+    );
+    // an older component: a module exporting its manifest, imported at once under the versioned URL
+    const legacyImports = [];
+    const legacy = (
+        await pkg.loadWebComponents(
+            m.versionedSources([{ url: 'http://h:8095/adapter/old/wc/old.js', adapter: 'old', version: '0.2.0' }]),
+            {
+                importer: async (url) => {
+                    legacyImports.push(url);
+                    defined.add('iob-legacy-old');
+                    return { manifest: manifestOf('iob-legacy-old', undefined) };
+                },
+                log: { error() {}, warn() {} },
+            },
+        )
+    ).map(m.versionedModule);
+    check(
+        'version: a module that exports its manifest keeps one versioned URL',
+        [legacyImports, legacy[0].moduleUrl],
+        [['http://h:8095/adapter/old/wc/old.js?v=0.2.0'], 'http://h:8095/adapter/old/wc/old.js?v=0.2.0'],
+    );
+
+    // merging a catalog read again
+    const comp = (adapter, tag, version, extra = {}) => ({
+        url: `http://h/adapter/${adapter}/${tag}.json?v=${version}`,
+        adapter,
+        version,
+        moduleUrl: `http://h/adapter/${adapter}/${tag}.js?v=${version}`,
+        manifest: { ...manifestOf(tag, `${tag}.js`), ...extra },
+    });
+    const before = [comp('flow', 'iob-a', '1.0.0'), comp('flow', 'iob-b', '1.0.0'), comp('x', 'iob-c', '2.0.0')];
+    const after = [
+        comp('flow', 'iob-a', '1.1.0'), // updated, its element is defined
+        comp('flow', 'iob-b', '1.1.0'), // updated, never shown
+        comp('x', 'iob-c', '2.0.0'), // unchanged
+        comp('y', 'iob-d', '1.0.0'), // new
+    ];
+    const merged = m.mergeCatalog(after, before, (tag) => tag === 'iob-a');
+    check(
+        'merge: a defined element keeps the module it was imported from, the rest takes the new one',
+        merged.map((c) => c.moduleUrl.replace('http://h/adapter/', '')),
+        ['flow/iob-a.js?v=1.0.0', 'flow/iob-b.js?v=1.1.0', 'x/iob-c.js?v=2.0.0', 'y/iob-d.js?v=1.0.0'],
+    );
+    check('merge: the new manifest is taken all the same', merged[0].url, after[0].url);
+    check(
+        'merge: an unchanged component stays the same object, a changed one does not',
+        [merged[2] === before[2], merged[0] === before[0], merged[3] === after[3]],
+        [true, false, true],
+    );
+    const changedSettings = m.mergeCatalog([comp('x', 'iob-c', '2.0.0', { name: 'New name' })], before, () => true);
+    check('merge: a changed manifest of the same version is a new object', changedSettings[0] === before[2], false);
+}
+
+// ── selectSendTo / autocompleteSendTo (#975) ───────────────────────────────
+{
+    const { getSendToRequest } = await import('@iobroker/web-components');
+    const setting = {
+        type: 'selectSendTo',
+        command: 'getLocations',
+        jsonData: '{ "lang": "${data.lang}" }',
+        alsoDependsOn: ['region'],
+    };
+    const req = getSendToRequest(setting, { lang: 'de', region: 'n' }, 'openmeteo-notify');
+    check('sendTo: without instance the first instance of the adapter is asked', req?.instance, 'openmeteo-notify.0');
+    check('sendTo: jsonData is filled from the settings', req?.data, { lang: 'de' });
+    const again = getSendToRequest(setting, { lang: 'de', region: 's' }, 'openmeteo-notify');
+    check('sendTo: a change in alsoDependsOn changes the key', req.key === again.key, false);
+    check(
+        'sendTo: instance pattern without a chosen instance - no request (text field)',
+        getSendToRequest({ ...setting, instance: '${data.instance}' }, {}, 'x'),
+        null,
+    );
+
+    const calls = [];
+    const answer = await m.askSendToOptions(req, async (instance, command, data) => {
+        calls.push([instance, command, data]);
+        return [{ value: 'berlin', label: { en: 'Berlin', de: 'Berlin' } }, 'hilchenbach'];
+    });
+    check('sendTo: asks instance, command and message', calls, [
+        ['openmeteo-notify.0', 'getLocations', { lang: 'de' }],
+    ]);
+    check('sendTo: answer becomes the options', answer, {
+        key: req.key,
+        options: [
+            { value: 'berlin', label: { en: 'Berlin', de: 'Berlin' } },
+            { value: 'hilchenbach', label: 'hilchenbach' },
+        ],
+    });
+    check(
+        'sendTo: a timeout is no answer',
+        (await m.askSendToOptions(req, async () => ({ __timeout: true }))).options,
+        null,
+    );
+    check(
+        'sendTo: an error text is no answer',
+        (await m.askSendToOptions(req, async () => 'unknown command')).options,
+        null,
+    );
+    check(
+        'sendTo: a thrown error is no answer',
+        (
+            await m.askSendToOptions(req, async () => {
+                throw new Error('x');
+            })
+        ).options,
+        null,
+    );
+    check('sendTo: an empty list is an answer', (await m.askSendToOptions(req, async () => [])).options, []);
+
+    const opts = [
+        { value: 'b', label: { en: 'Berlin', de: 'Berlin' } },
+        { value: 7, label: 'Seven' },
+    ];
+    check(
+        'autocomplete: fixed options follow the answer, without duplicates',
+        m
+            .mergeSendToOptions(opts, [
+                { value: 'b', label: 'dup' },
+                { value: 'x', label: 'Extra' },
+            ])
+            .map((o) => o.value),
+        ['b', 7, 'x'],
+    );
+    check('autocomplete: a label picks its value', m.autocompleteValue('Berlin', opts, false, 'de'), { value: 'b' });
+    check('autocomplete: a value keeps its type', m.autocompleteValue('7', opts, false, 'de'), { value: 7 });
+    check('autocomplete: other text without freeSolo is no value', m.autocompleteValue('Ber', opts, false, 'de'), null);
+    check('autocomplete: other text with freeSolo is the value', m.autocompleteValue('Ber', opts, true, 'de'), {
+        value: 'Ber',
+    });
+    check('autocomplete: empty text clears', m.autocompleteValue('', opts, false, 'de'), { value: undefined });
+}
+
+// ── why a module did not load (forum, 1.0.2) ────────────────────────────────
+{
+    const src =
+        'import{a as b}from"../../../lib/esm/react-19.js";import x from "../../../lib/esm/react-19.js";export{}';
+    check('React imports of a module, each once', m.reactImportsOf(src), ['../../../lib/esm/react-19.js']);
+    check('absolute React import', m.reactImportsOf("import r from '/lib/esm/react-18.js'"), ['/lib/esm/react-18.js']);
+    check('no React import', m.reactImportsOf('export const a = "lib/esm/react-19.js.map"'), []);
+
+    const MOD = 'http://h:8082/aura/adapter/flow/webcomponents/flow.js?v=1.2.0';
+    const REACT = 'http://h:8082/aura/lib/esm/react-19.js';
+    const res = (status, body = '', type = 'application/javascript') => ({
+        ok: status >= 200 && status < 300,
+        status,
+        headers: { get: (n) => (n.toLowerCase() === 'content-type' ? type : null) },
+        text: async () => body,
+    });
+    const server = (files) => async (url) => files[url] ?? res(404);
+    const body = 'import{jsx}from"../../../lib/esm/react-19.js";';
+
+    check('module missing', await m.diagnoseWebComponentLoad(MOD, server({})), {
+        kind: 'module',
+        url: MOD,
+        status: 404,
+    });
+    check(
+        'an HTML page instead of the module is missing too',
+        (await m.diagnoseWebComponentLoad(MOD, server({ [MOD]: res(200, '<html>', 'text/html') })))?.kind,
+        'module',
+    );
+    check(
+        'React missing: resolved against the module, below the path prefix',
+        await m.diagnoseWebComponentLoad(MOD, server({ [MOD]: res(200, body) })),
+        { kind: 'react', url: REACT, status: 404, file: '/lib/esm/react-19.js' },
+    );
+    check(
+        'both served: no verdict',
+        await m.diagnoseWebComponentLoad(MOD, server({ [MOD]: res(200, body), [REACT]: res(200) })),
+        null,
+    );
+    check(
+        'nothing answers: no verdict',
+        await m.diagnoseWebComponentLoad(MOD, async () => {
+            throw new TypeError('Failed to fetch');
+        }),
+        null,
+    );
+}
 
 if (failed) {
     console.error(`\n${failed} check(s) failed`);

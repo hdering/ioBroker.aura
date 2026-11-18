@@ -158,7 +158,9 @@ const CLIENT_DPS = [
         const active = a._objects.get('clients.tablet.idle.active');
         assert.ok(active, 'idle.active exists');
         assert.strictEqual(active.common.type, 'boolean');
-        assert.strictEqual(active.common.write, true, 'the client writes it');
+        // A status the client reports — read-only for users and scripts (role indicator).
+        assert.strictEqual(active.common.write, false, 'reported state, not a control');
+        assert.strictEqual(a._objects.get('clients.tablet.idle.delay').common.role, 'level.timer');
         const delay = a._objects.get('clients.tablet.idle.delay');
         assert.strictEqual(delay.common.def, -1, 'unset = follow the dashboard setting');
 

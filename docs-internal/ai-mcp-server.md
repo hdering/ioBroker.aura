@@ -179,6 +179,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_update_widgets`                 | Mehrere Widgets in einem Schreibvorgang ändern — eine Prüfung des Endzustands, eine Sicherung                  | write        |
 | `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen, Hintergrundbild | write        |
 | `aura_icons`                          | Installierte ioBroker-Icon-Adapter und vis-2-Iconsets mit ihren Icons als `iob:<adapter>/<pfad>`-IDs (#716)                      | read         |
+| `aura_web_components`                 | Installierte ioBroker-Web-Komponenten (`common.webComponents`): Tag, Adapter, Name, Größe, Einstellungen — die gültigen `wcTag`/`wcSettings` des Typs `webcomponent` | read         |
 | `aura_find`                           | Widgets nach Datenpunkt, Typ oder Titel finden — über Tabs, Gruppen und Popups, inkl. Datenpunkten in Optionen | read         |
 | `aura_copy_node`                      | Tab, Bereich, Layout oder Popup kopieren bzw. verschieben (`mode:"move"`)                                      | write        |
 | `aura_reorder`                        | Layouts, Bereiche oder Tabs neu sortieren — die Reihenfolge muss vollständig sein                              | write        |
@@ -1980,6 +1981,30 @@ nennt, die in dieser einen Zeile enden.
 MCP-Änderung beim nächsten Speichern überschreiben. Die Antwort jedes
 Schreibwerkzeugs sagt das dazu.
 
+## Web-Komponenten: was installiert ist
+
+Der Typ `webcomponent` zeigt ein Custom Element, das ein Adapter mitbringt
+(`common.webComponents`, Paket `@iobroker/web-components`). Welche Tags es gibt und
+welche Schlüssel `wcSettings` nimmt, steht nicht im Widget-Schema, sondern in den
+Manifesten der Adapter — ein Modell konnte also nur raten, und ein falscher Tag ist
+ein leeres Widget, ein falscher Schlüssel fällt still weg.
+
+`aura_web_components` (`lib/mcp/webComponents.js`) liest die Instanzen,
+`getWebComponentFiles()` nennt die Manifest-Dateien, `readWebComponentManifests()`
+liest sie aus der Dateiablage (`<adapter>.admin`) — kein Code einer Komponente läuft
+dafür. Das Paket ist ESM, das Backend CommonJS: es wird einmal dynamisch importiert.
+Je Komponente: Tag, Adapter, Name auf Englisch und in der Systemsprache,
+Beschreibung, Größe in px und in Rasterzellen (dieselbe Rechnung wie der Dialog
+„Neues Widget“, globales Raster) und jede Einstellung mit Werttyp, Label, Standard,
+Auswahlwerten, min/max, `types`/`root` eines `objectId`-Felds und dem Adapter eines
+`instance`-Felds. `tag` oder `adapter` grenzen die Liste ein.
+
+Die Manifeste werden je Adapter und Version einmal gelesen; ein Update (neue
+Version, andere Dateiliste) liest neu. Fehlt eine Datei (Upload läuft noch), wird
+das Manifest weggelassen, gewarnt und beim nächsten Aufruf erneut gelesen.
+`aura_validate` prüft `wcTag`/`wcSettings` nicht gegen die Manifeste — die
+Werkzeugbeschreibung schickt das Modell deshalb hierher.
+
 ## Erreichbar auch für Clients, die nicht Claude Code sind
 
 Claude Code spricht HTTP-MCP direkt; Claude Desktop startet nur lokale Prozesse
@@ -2298,3 +2323,19 @@ dem Original.
 | Übersicht | `aura_dashboard` druckt den Link als „verknüpft mit Layout / Bereich / Tab (Widgets nur im Original)“, ohne Zeilenbudget |
 | Frontend | `App.tsx`: `tabsOfSection` setzt die Widgets des Originals ein (inkl. entsperrtem Inhalt), die PIN-Abfrage läuft mit dem Schlüssel des Originals (`pinGate`) |
 | Tests | `tools/tests/tab-link-logic.mjs` |
+
+## Neuer Tab in einem PIN-geschützten Bereich
+
+Ein Bereichs-PIN hält die Tabs des Bereichs im Tresor (`content.tabs`); der Stub in `config.dashboard`
+ist nur das Menü. Ein Tab, der nur im Stub steht, ist im Frontend ein leerer Eintrag in der Tab-Leiste
+und fiel früher beim nächsten Speichern im Editor bzw. bei „PIN entfernen“ weg.
+
+| Stelle | Verhalten |
+| --- | --- |
+| `aura_create_tab`, `aura_copy_node` (Ziel) | `sectionGate`: Bereich nicht freigegeben → Ablehnung vor der Sicherung; freigegeben → Tab landet im Tresor |
+| `flushHydrated` | Freigegebener Bereich: Tab-Liste im Tresor folgt dem Stub (neue Tabs, Reihenfolge, Name/Icon); Tabs nur im Tresor bleiben erhalten |
+| `hydrateReleased` | markiert eingesetzte Tabs (`_mcpHydrated`, wird beim Schreiben entfernt) — ein geleerter Tab wird als leer geschrieben |
+| `lockedView` | `missing: true` für Tabs ohne Tresor-Eintrag → `missingContentHint` statt „nicht freigegeben“ |
+| `aura_dashboard` | `[über MCP bearbeitbar: Bereich]` bzw. `: Tab` |
+| Editor / Adapter | `mergeProtectedContent` und `restoreView` behalten Tabs, die nur im Stub stehen |
+| Tests | `tools/tests/mcp.mjs` („A new tab in a PIN-protected section“) |

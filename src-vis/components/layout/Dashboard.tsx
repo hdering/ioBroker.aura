@@ -4,7 +4,13 @@ import { Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { docsUrl } from '../../utils/docsUrl';
-import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset } from '../../utils/guidelinesInset';
+import {
+    GUIDELINES_CHROME,
+    guidelinesTopInset,
+    insetKeyFor,
+    readMeasuredInset,
+    storeMeasuredInset,
+} from '../../utils/guidelinesInset';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
 import { useIsProbe, useProbeFill } from '../../utils/probeContext';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
@@ -33,16 +39,25 @@ import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
+import {
+    groupAutoShrink,
+    groupRows,
+    heightsForScope,
+    isFramelessGroup,
+    withContentHeights,
+} from '../../utils/groupLayout';
+import { clearResizeSize, showResizeSize } from '../../utils/resizeSizeBadge';
 import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { isGroupType } from '../../utils/groupTypes';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { TabChainProvider } from '../../contexts/TabChainContext';
 import { mirrorTargetWidgetId } from '../../utils/mirrorSource';
-import { flowBands, flowGridTemplate, flowModeFor } from '../../utils/flowOrder';
+import { flowBands, flowGridTemplate, flowModeFor, normalizeFlowFill } from '../../utils/flowOrder';
+import { useFlowHeights } from '../../hooks/useFlowHeights';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
+import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
 import { reportMetric } from '../../utils/perfMetrics';
 import { resolveEmbedMobileHeight } from '../../utils/embedMobileHeight';
 import { cardPadding } from '../../utils/cardPadding';
@@ -432,6 +447,10 @@ export function Dashboard({
     // Visible height of the scroller's content box — only the fluid grid's
     // vertical 'fill' reads it (#413). A zero is never believed, like the width.
     const [containerHeight, setContainerHeight] = useState(0);
+    // Width of the scroller's reserved scrollbar gutter (.aura-scroll: scrollbar-gutter
+    // stable) — the frontend loses it on the same browser, so the editor's fluid preview
+    // takes it off the target width too (#981).
+    const [scrollGutter, setScrollGutter] = useState(0);
     // The live scroll element, exposed so TouchScrollbar can mirror its scroll
     // position (native scrollbars are hidden / invisible on touch devices).
     const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
@@ -470,6 +489,7 @@ export function Dashboard({
             if (w > 0) setContainerWidth(w);
             const h = Math.floor(entry.contentRect.height);
             if (h > 0) setContainerHeight(h);
+            if (w > 0) setScrollGutter(Math.max(0, el.offsetWidth - el.clientWidth));
         });
         ro.observe(el);
         roRef.current = ro;
@@ -497,7 +517,9 @@ export function Dashboard({
     // onDragStop persists new positions for *every* widget — silently wrecking a
     // layout arranged on desktop. The desktop grid can only be arranged sensibly
     // with a mouse anyway, so we disable drag/resize (and the writeback) whenever
-    // the primary pointer is coarse. Config edits and mobile ordering still work.
+    // the primary pointer is coarse — unless the user switches on the arrange mode
+    // in the editor toolbar (#699): then only the grip drags. Config edits and
+    // mobile ordering work either way.
     // Widget whose resize handle was grabbed although its height follows the content
     // (autoHeight): RGL pins minH = maxH, so the drag only changes the width. A small
     // hint at the handle says why (AutoHeightLockHint).
@@ -509,20 +531,11 @@ export function Dashboard({
         },
         [],
     );
-    const [coarsePointer, setCoarsePointer] = useState(
-        () =>
-            typeof window !== 'undefined' &&
-            typeof window.matchMedia === 'function' &&
-            window.matchMedia('(pointer: coarse)').matches,
-    );
-    useEffect(() => {
-        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
-        const mq = window.matchMedia('(pointer: coarse)');
-        const onChange = () => setCoarsePointer(mq.matches);
-        mq.addEventListener?.('change', onChange);
-        return () => mq.removeEventListener?.('change', onChange);
-    }, []);
-    const gridEditable = editMode && !coarsePointer;
+    // Locked on touch unless the arrange mode is on; there the grip is the only
+    // drag handle and only real drags persist (#699, useGridEditInteraction).
+    const gridEdit = useGridEditInteraction(editMode);
+    const coarsePointer = gridEdit.coarse;
+    const gridEditable = gridEdit.editable;
 
     // ── columns and render width of the desktop grid ─────────────────────
     // Keep cols ≥ the maximum column used across all tabs so RGL never clamps
@@ -540,10 +553,29 @@ export function Dashboard({
             ),
         [tabs],
     );
-    const fluidMode = (settings.gridWidthMode ?? 'fixed') === 'fluid' && !editMode;
+    // Editor preview of the fluid grid (#981): laid out like the frontend, but on the
+    // guidelines' target device instead of the editor's own (smaller) area — otherwise
+    // the stretch would follow the admin window, not the wall tablet. Display only: the
+    // grid units (x/y/w/h) are the same on every pitch, so edits store as before.
+    const fluidPreview =
+        editMode &&
+        !embedded &&
+        (settings.editorFluidPreview ?? false) &&
+        (settings.gridWidthMode ?? 'fixed') === 'fluid';
+    // The scroller's padding (sm:p-4) sits inside the device as well.
+    const SCROLLER_PAD = 32;
+    const previewWidth = Math.max(200, guidelinesWidth - guidelinesMenuInset - SCROLLER_PAD - scrollGutter);
+    const previewHeight = Math.max(
+        120,
+        guidelinesHeight -
+            (readMeasuredInset(guidelinesInsetKey) ?? guidelinesFallbackInset) -
+            (tabBarVisible && tabBarResolved.position === 'bottom' ? GUIDELINES_CHROME.tabBar : 0) -
+            SCROLLER_PAD,
+    );
+    const fluidMode = (settings.gridWidthMode ?? 'fixed') === 'fluid' && (!editMode || fluidPreview);
     const gridCols = gridColumns({
         mode: fluidMode ? 'fluid' : 'fixed',
-        width: rglWidth,
+        width: fluidPreview ? previewWidth : rglWidth,
         snapX,
         gap: MARGIN,
         usedCols: minCols,
@@ -565,7 +597,7 @@ export function Dashboard({
             rowHeight: cellSize,
             gap: MARGIN,
             scaleX: gridCols.scale,
-            height: containerHeight,
+            height: fluidPreview ? previewHeight : containerHeight,
             usedRows,
             maxScale: settings.fluidMaxScale ?? 0,
         });
@@ -658,6 +690,18 @@ export function Dashboard({
               { container: containerWidth, viewport: viewportWidth },
               { mobileBreakpoint, tabletBreakpoint, editMode },
           );
+    const flowCols = flowMode === 'tablet' ? tabletCols : mobileCols;
+    // Filling the columns by height (#939) needs the cards' real heights. They are
+    // measured on the active tab and frozen while the user works — see useFlowHeights.
+    const flowFill = normalizeFlowFill(settings.flowFill);
+    const fillByHeight = !!flowMode && flowCols > 1 && flowFill !== 'count';
+    const activeTabWidgetIds = (tabs.find((tb) => tb.id === activeTabId)?.widgets ?? []).map((w) => w.id).join(',');
+    const flowHeights = useFlowHeights(
+        scrollEl,
+        activeTabId,
+        `${activeTabId}|${containerWidth}|${flowMode}|${flowCols}|${flowFill}|${activeTabWidgetIds}`,
+        fillByHeight,
+    );
     // Embedded in a mirror: no scrollbar gutters (the mirror computes the grid's
     // width without them) and a slim scrollbar-free scroller — wheel and touch still scroll.
     const scrollerStyle: React.CSSProperties = embedded
@@ -681,7 +725,9 @@ export function Dashboard({
         </DashboardMobileContext.Provider>
     );
     if (flowMode) {
-        const flowCols = flowMode === 'tablet' ? tabletCols : mobileCols;
+        // Until a card is measured, its stored row height stands in.
+        const flowHeightOf = (w: WidgetConfig) =>
+            flowHeights[w.id] ?? w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN;
         return (
             <>
                 <DashboardMobileContext.Provider value={true}>
@@ -732,7 +778,14 @@ export function Dashboard({
                                             const tabWidgets = (tab.widgets ?? []).filter(
                                                 (w) => !reflowHiddenIds.has(rid(w.id)) && !fillTabIds.has(w.id),
                                             );
-                                            const bands = flowBands(tabWidgets, flowMode, flowCols);
+                                            const bands = flowBands(
+                                                tabWidgets,
+                                                flowMode,
+                                                flowCols,
+                                                fillByHeight
+                                                    ? { fill: flowFill, heightOf: flowHeightOf, gap: MARGIN }
+                                                    : {},
+                                            );
                                             // One box per widget — the same height rules whether it sits in the phone
                                             // stack, a tablet column or a full-width band; `span` only feeds the test hook.
                                             const renderBox = (w: WidgetConfig, span: number) => {
@@ -858,14 +911,21 @@ export function Dashboard({
                                                                                 data-aura-flow-band-cols={
                                                                                     band.columns.length
                                                                                 }
+                                                                                data-aura-flow-band-slots={band.slots}
                                                                                 style={{
                                                                                     display: 'grid',
                                                                                     // A block may have its own column count and shares (#851).
-                                                                                    gridTemplateColumns:
-                                                                                        flowGridTemplate(
-                                                                                            band.columns.length,
-                                                                                            band.widths,
-                                                                                        ),
+                                                                                    // A compact block (#939) keeps the column width of the
+                                                                                    // full count and is centred.
+                                                                                    gridTemplateColumns: band.slots
+                                                                                        ? `repeat(${band.columns.length}, calc((100% - ${(band.slots - 1) * MARGIN}px) / ${band.slots}))`
+                                                                                        : flowGridTemplate(
+                                                                                              band.columns.length,
+                                                                                              band.widths,
+                                                                                          ),
+                                                                                    justifyContent: band.slots
+                                                                                        ? 'center'
+                                                                                        : undefined,
                                                                                     gap: MARGIN,
                                                                                     alignItems: 'start',
                                                                                 }}
@@ -917,6 +977,7 @@ export function Dashboard({
                             className={`aura-scroll aura-scroll-touch absolute inset-0 overflow-auto ${embedded ? 'p-2' : 'p-2 sm:p-4'}`}
                             data-aura-grid-mode={gridCols.fluid ? 'fluid' : 'fixed'}
                             data-aura-grid-height-mode={heightMode}
+                            data-aura-fluid-preview={fluidPreview ? '' : undefined}
                             style={{
                                 ...scrollerStyle,
                                 ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
@@ -993,7 +1054,8 @@ export function Dashboard({
                                                     // runtime id (#743) — the card renders them under its own id.
                                                     // Inside a tab mirror every scope sits below the mirror's own.
                                                     const childScope = gw.type === 'devicecard' ? rid(gw.id) : scope;
-                                                    const autoShrink = isGroup && !!gw.options?.autoShrink;
+                                                    const autoShrink = isGroup && groupAutoShrink(gw.options);
+                                                    const frameless = isGroup && isFramelessGroup(gw.options);
                                                     const defId = isGroup
                                                         ? (gw.options?.defId as string | undefined)
                                                         : undefined;
@@ -1013,6 +1075,7 @@ export function Dashboard({
                                                             widgetPadding,
                                                             px,
                                                             MARGIN,
+                                                            frameless,
                                                         );
                                                     const groupChildren = childrenAt(autoShrink ? cellSize : rowPx);
 
@@ -1060,6 +1123,7 @@ export function Dashboard({
                                                             px,
                                                             MARGIN,
                                                             groupHeaderHeights[gw.id],
+                                                            frameless,
                                                         );
                                                     };
                                                     // The floor counts EVERY child (the editor keeps hidden ones mounted), and
@@ -1323,12 +1387,23 @@ export function Dashboard({
                                                                     isDraggable={isActive && gridEditable}
                                                                     isResizable={isActive && gridEditable}
                                                                     draggableCancel=".nodrag"
+                                                                    draggableHandle={gridEdit.draggableHandle}
+                                                                    onDragStart={(_nl, _o, _n, _p, e) =>
+                                                                        gridEdit.onInteractStart(e)
+                                                                    }
+                                                                    onDrag={(_nl, _o, _n, _p, e, node) =>
+                                                                        gridEdit.onInteract(e, node)
+                                                                    }
                                                                     onLayoutChange={(nl) => {
                                                                         if (isActive)
                                                                             onLayoutChange?.(buildTabUpdated(nl));
                                                                     }}
-                                                                    onDragStop={(nl, oldItem, newItem) => {
-                                                                        if (!isActive || readonly || coarsePointer)
+                                                                    onDragStop={(nl, oldItem, newItem, _p, e) => {
+                                                                        if (
+                                                                            !isActive ||
+                                                                            readonly ||
+                                                                            !gridEdit.mayPersist(e)
+                                                                        )
                                                                             return;
                                                                         if (!itemMoved(oldItem, newItem)) return;
                                                                         // Skip if nothing moved (a click without drag fires onDragStop
@@ -1344,7 +1419,8 @@ export function Dashboard({
                                                                         )
                                                                             updateLayouts(updated);
                                                                     }}
-                                                                    onResizeStart={(_nl, oldItem) => {
+                                                                    onResizeStart={(_nl, oldItem, _n, _p, e) => {
+                                                                        gridEdit.onInteractStart(e);
                                                                         if (!oldItem) return;
                                                                         const rw = tabGridWidgets.find(
                                                                             (x) => x.id === oldItem.i,
@@ -1354,7 +1430,19 @@ export function Dashboard({
                                                                             clearTimeout(heightLockTimer.current);
                                                                         setHeightLockHintId(oldItem.i);
                                                                     }}
-                                                                    onResizeStop={(nl, oldItem, newItem) => {
+                                                                    onResize={(_nl, _o, newItem, _p, e, node) => {
+                                                                        gridEdit.onInteract(e, node);
+                                                                        showResizeSize(node, newItem);
+                                                                    }}
+                                                                    onResizeStop={(
+                                                                        nl,
+                                                                        oldItem,
+                                                                        newItem,
+                                                                        _p,
+                                                                        e,
+                                                                        node,
+                                                                    ) => {
+                                                                        clearResizeSize(node);
                                                                         if (oldItem && heightLockHintId === oldItem.i) {
                                                                             if (heightLockTimer.current)
                                                                                 clearTimeout(heightLockTimer.current);
@@ -1363,7 +1451,11 @@ export function Dashboard({
                                                                                 2500,
                                                                             );
                                                                         }
-                                                                        if (!isActive || readonly || coarsePointer)
+                                                                        if (
+                                                                            !isActive ||
+                                                                            readonly ||
+                                                                            !gridEdit.mayPersist(e)
+                                                                        )
                                                                             return;
                                                                         if (!itemMoved(oldItem, newItem)) return;
                                                                         const updated = buildTabUpdated(nl);

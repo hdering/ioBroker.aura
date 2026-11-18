@@ -145,7 +145,44 @@ export type FlowWidget = Pick<
  *  shares (2:1 = the left column twice as wide), one per column; absent = all equal. */
 export type FlowBand<W> =
     | { kind: 'full'; widget: W }
-    | { kind: 'columns'; columns: W[][]; start?: boolean; widths?: number[] };
+    | {
+          kind: 'columns';
+          columns: W[][];
+          start?: boolean;
+          widths?: number[];
+          /** Compact fill (#939): the block uses fewer columns than the flow has. Each column
+           *  keeps the width of one of `slots` columns and the block is centred. */
+          slots?: number;
+      };
+
+/**
+ * How a column block deals its unpinned cards (#939).
+ * - `count`: the column with the fewest cards (round-robin) — the original rule.
+ * - `height`: the shortest column (masonry), measured in px.
+ * - `compact`: masonry with as few columns as needed — the smallest column count whose
+ *   block is no taller than its tallest card; the block is centred.
+ */
+export type FlowFill = 'count' | 'height' | 'compact';
+
+export const FLOW_FILLS: readonly FlowFill[] = ['count', 'height', 'compact'];
+
+export function normalizeFlowFill(v: unknown): FlowFill {
+    return v === 'height' || v === 'compact' ? v : 'count';
+}
+
+export type FlowBandOptions<W> = {
+    fill?: FlowFill;
+    /** Height of a card's box in px. Without it `height` / `compact` fall back to `count`. */
+    heightOf?: (w: W) => number;
+    /** Vertical gap between two cards of a column, px. */
+    gap?: number;
+    /** Compact: how much taller than its tallest card a block may get, px. */
+    tolerance?: number;
+};
+
+/** Slack the compact fill allows over the tallest card — the number the issue's
+ *  own script used (#939). */
+export const COMPACT_TOLERANCE = 20;
 
 /** A block's own column count as stored, clamped to [1, MAX_FLOW_COLS]; null when none is set. */
 export function bandColsOf(w: FlowWidget, mode: FlowMode): number | null {
@@ -210,39 +247,151 @@ export function emptiestColumn(columns: readonly (readonly unknown[])[]): number
  * (and, with `tabletBandWidths` / `mobileBandWidths`, its own column shares);
  * every other block has the configured `cols`.
  */
-export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: FlowMode, cols: number): FlowBand<W>[] {
+export function flowBands<W extends FlowWidget>(
+    widgets: readonly W[],
+    mode: FlowMode,
+    cols: number,
+    opts: FlowBandOptions<W> = {},
+): FlowBand<W>[] {
     const sorted = sortForFlow(widgets, mode);
     if (cols <= 1) {
         return sorted.length ? [{ kind: 'columns', columns: [sorted] }] : [];
     }
     const colField = flowFields(mode).col;
     const tabExtent = tabExtentOf(widgets);
+    // Without heights there is nothing to measure by — the count rule it is.
+    const fill: FlowFill = opts.heightOf ? normalizeFlowFill(opts.fill) : 'count';
+    const gap = opts.gap ?? 0;
+    const heightOf = opts.heightOf ?? (() => 0);
     const bands: FlowBand<W>[] = [];
-    let block: W[][] | null = null;
+    // The cards of the block being collected; dealt into columns when it ends.
+    let pending: { band: Extract<FlowBand<W>, { kind: 'columns' }>; cards: W[]; own: boolean } | null = null;
+    const flush = () => {
+        if (!pending) return;
+        dealBlock(pending.band, pending.cards, {
+            fill,
+            pinOf: (w) => {
+                const pin = w[colField];
+                return typeof pin === 'number' && Number.isFinite(pin) ? Math.round(pin) : null;
+            },
+            heightOf,
+            gap,
+            // A block begun on purpose (own column count / shares) was arranged by hand:
+            // it keeps its columns, compact only fills it by height.
+            mayShrink: !pending.own,
+            tolerance: opts.tolerance ?? COMPACT_TOLERANCE,
+        });
+        pending = null;
+    };
     for (const w of sorted) {
         if (isWideInFlow(w, tabExtent, cols, mode)) {
-            block = null;
+            flush();
             bands.push({ kind: 'full', widget: w });
             continue;
         }
         const own = bandColsOf(w, mode);
-        if (!block || own !== null) {
-            block = Array.from({ length: own ?? cols }, () => [] as W[]);
+        if (!pending || own !== null) {
+            flush();
+            const block = Array.from({ length: own ?? cols }, () => [] as W[]);
             const widths = own !== null ? bandWidthsOf(w, mode, own) : null;
-            bands.push(
-                own === null
-                    ? { kind: 'columns', columns: block }
-                    : widths
-                      ? { kind: 'columns', columns: block, start: true, widths }
-                      : { kind: 'columns', columns: block, start: true },
-            );
+            const band: Extract<FlowBand<W>, { kind: 'columns' }> = own === null
+                ? { kind: 'columns', columns: block }
+                : widths
+                  ? { kind: 'columns', columns: block, start: true, widths }
+                  : { kind: 'columns', columns: block, start: true };
+            bands.push(band);
+            pending = { band, cards: [], own: own !== null };
         }
-        const pin = w[colField];
-        const pinned = typeof pin === 'number' && Number.isFinite(pin);
-        const col = pinned ? Math.min(block.length - 1, Math.max(0, Math.round(pin as number))) : emptiestColumn(block);
+        pending.cards.push(w);
+    }
+    flush();
+    return bands;
+}
+
+/** Sum of a column's card heights plus the gaps between them. */
+function stackHeight<W>(col: readonly W[], heightOf: (w: W) => number, gap: number): number {
+    let h = 0;
+    for (const w of col) h += heightOf(w);
+    return h + Math.max(0, col.length - 1) * gap;
+}
+
+/** Index of the lowest column, leftmost on a tie. */
+function lowestColumn(heights: readonly number[]): number {
+    let best = 0;
+    for (let i = 1; i < heights.length; i++) if (heights[i] < heights[best] - 0.5) best = i;
+    return best;
+}
+
+/** Masonry: every card, in the given order, into the lowest of `k` columns. */
+function masonry<W>(cards: readonly W[], k: number, heightOf: (w: W) => number, gap: number): W[][] {
+    const cols = Array.from({ length: k }, () => [] as W[]);
+    const h = Array.from({ length: k }, () => 0);
+    for (const w of cards) {
+        const c = lowestColumn(h);
+        h[c] += (cols[c].length ? gap : 0) + heightOf(w);
+        cols[c].push(w);
+    }
+    return cols;
+}
+
+/**
+ * Deal a block's cards into its columns.
+ * count / height walk the cards in flow order: a pinned card goes into its column, an
+ * unpinned one into the emptiest (count) or lowest (height) column.
+ * compact (block without pins, not begun on purpose): for k = 1 … N columns, masonry in
+ * flow order and masonry tallest-first; the lower of the two wins. The first k whose
+ * block stays within the tallest card (+ tolerance) is taken, else N. The columns are
+ * then put in reading order (the column holding the earliest card on the left) and each
+ * column lists its cards in flow order — so the block still reads row by row (#939).
+ */
+function dealBlock<W>(
+    band: Extract<FlowBand<W>, { kind: 'columns' }>,
+    cards: readonly W[],
+    o: {
+        fill: FlowFill;
+        pinOf: (w: W) => number | null;
+        heightOf: (w: W) => number;
+        gap: number;
+        mayShrink: boolean;
+        tolerance: number;
+    },
+): void {
+    const block = band.columns;
+    const n = block.length;
+    const anyPin = cards.some((w) => o.pinOf(w) !== null);
+    if (o.fill === 'compact' && o.mayShrink && !anyPin && n > 1 && cards.length > 0) {
+        const rank = new Map(cards.map((w, i) => [w, i]));
+        const tallestFirst = [...cards].sort((a, b) => o.heightOf(b) - o.heightOf(a) || rank.get(a)! - rank.get(b)!);
+        const tallest = Math.max(...cards.map(o.heightOf));
+        const blockHeight = (cs: W[][]) => Math.max(...cs.map((c) => stackHeight(c, o.heightOf, o.gap)));
+        let chosen: W[][] | null = null;
+        for (let k = 1; k <= n; k++) {
+            const a = masonry(cards, k, o.heightOf, o.gap);
+            const b = masonry(tallestFirst, k, o.heightOf, o.gap);
+            const best = blockHeight(b) < blockHeight(a) - 0.5 ? b : a;
+            if (k === n || blockHeight(best) <= tallest + o.tolerance) {
+                chosen = best;
+                break;
+            }
+        }
+        const cols = chosen!
+            .filter((c) => c.length > 0)
+            .map((c) => [...c].sort((x, y) => rank.get(x)! - rank.get(y)!))
+            .sort((x, y) => rank.get(x[0])! - rank.get(y[0])!);
+        block.length = 0;
+        block.push(...cols);
+        if (cols.length < n) band.slots = n;
+        return;
+    }
+    const byHeight = o.fill !== 'count';
+    const h = Array.from({ length: n }, () => 0);
+    for (const w of cards) {
+        const pin = o.pinOf(w);
+        const col =
+            pin !== null ? Math.min(n - 1, Math.max(0, pin)) : byHeight ? lowestColumn(h) : emptiestColumn(block);
+        h[col] += (block[col].length ? o.gap : 0) + o.heightOf(w);
         block[col].push(w);
     }
-    return bands;
 }
 
 /**

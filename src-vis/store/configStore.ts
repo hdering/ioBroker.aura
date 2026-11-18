@@ -49,6 +49,9 @@ export interface FrontendSettings {
      *  into `tabletCols` columns instead of the desktop grid. 0 (or ≤ mobileBreakpoint) = off. */
     tabletBreakpoint: number;
     tabletCols: number;
+    /** How a column flow (tablet, or a phone with mobileCols > 1) deals its unpinned cards (#939):
+     *  'count' = fewest cards, 'height' = shortest column, 'compact' = as few columns as needed. */
+    flowFill: 'count' | 'height' | 'compact';
     /** Desktop grid width (#413): 'fixed' keeps every column ≈ gridSnapX px wide (a wider
      *  window leaves space, a narrower one scrolls); 'fluid' keeps the column count and
      *  stretches the columns so the widgets fill the window. Heights stay in px. */
@@ -64,6 +67,10 @@ export interface FrontendSettings {
      *  width (widgets keep their aspect ratio); 'fill' stretches the rows until the tab's content
      *  reaches the bottom of the screen (never squeezes). Ignored on the fixed grid. */
     gridHeightMode: 'fixed' | 'scale' | 'fill';
+    /** Editor: lay the fluid grid out like the frontend on the guidelines' target size
+     *  (guidelinesWidth × guidelinesHeight) instead of the fixed design pitch. Display only —
+     *  positions and sizes are still stored in grid cells. Ignored on the fixed grid. */
+    editorFluidPreview: boolean;
     language: 'de' | 'en';
     /** Hide the draggable touch scroll indicator over the dashboard grid (mobile/coarse pointers). */
     hideGridScrollbar: boolean;
@@ -125,10 +132,14 @@ export interface FrontendSettings {
     layoutDrawerFontSize: number;
     /** Entry icon size in px. */
     layoutDrawerIconSize: number;
+    /** Tabs of each section as sub-entries in the stacked menu (#951): off, foldable per section, always open. */
+    layoutDrawerTabs: 'off' | 'collapsible' | 'expanded';
     /** Horizontal-bar placement (top/bottom): alignment of the section entries in the bar. */
     layoutDrawerBarAlignment: 'left' | 'center' | 'right' | 'stretch';
     /** Horizontal-bar placement (top/bottom): hide the custom scroll indicator on mobile. */
     layoutDrawerHideMobileScrollbar: boolean;
+    /** Tab-bar placement: keep the hamburger fixed at the bar's leading edge instead of scrolling away with the tabs. */
+    layoutDrawerPinned: boolean;
     /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */
     layoutDrawerItems: LayoutMenuItem[];
     // Idle return — auto-switch back to default tab after inactivity
@@ -234,6 +245,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     // layout or globally in the Grid section.
     tabletBreakpoint: 0,
     tabletCols: 2,
+    flowFill: 'count',
     // Off by default like the tablet band: a stretched grid would change every
     // existing dashboard after an update (#413).
     gridWidthMode: 'fixed',
@@ -241,6 +253,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     fluidMinScale: 0.6,
     fluidMaxScale: 0,
     gridHeightMode: 'fixed',
+    editorFluidPreview: false,
     language: 'de',
     hideGridScrollbar: false,
     // Fresh installs show the guidelines + resolution readout in the frontend so
@@ -272,8 +285,10 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerIndicatorStyle: 'filled',
     layoutDrawerFontSize: 14,
     layoutDrawerIconSize: 16,
+    layoutDrawerTabs: 'off',
     layoutDrawerBarAlignment: 'left',
     layoutDrawerHideMobileScrollbar: false,
+    layoutDrawerPinned: false,
     layoutDrawerItems: [],
     idleReturnEnabled: false,
     idleReturnDelay: 30,

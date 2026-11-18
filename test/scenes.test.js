@@ -72,7 +72,7 @@ test('slug keeps letters/digits, transliterates umlauts', () => {
     assert.equal(slugify('Abend Licht'), 'Abend_Licht');
     assert.equal(slugify('Gemütlich & warm!'), 'Gemuetlich_warm');
     assert.equal(slugify('Café'), 'Cafe');
-    assert.equal(slugify('...'), 'szene');
+    assert.equal(slugify('...'), 'scene');
 });
 
 test('ids collide → numeric suffix', () => {

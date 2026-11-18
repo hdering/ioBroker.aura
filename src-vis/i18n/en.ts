@@ -26,6 +26,7 @@ export const en: Record<TranslationKey, string> = {
     'common.off': 'Off',
     'common.confirm': 'Confirm',
     'widget.confirm.defaultPrompt': 'Really switch?',
+    'widget.confirm.defaultAction': 'Really do this?',
     'widget.group.mixedPrompt': 'What should happen?',
     'widget.group.allOn': 'All on',
     'widget.group.allOff': 'All off',
@@ -136,6 +137,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerAutoHideHint':
         'Button appears only when the mouse is near the top edge (or after a top-area touch). Applies only when the header is hidden.',
     'settings.frontend.layoutDrawerPlacement': 'Placement',
+    'settings.frontend.layoutDrawerPinned': 'Pin hamburger in the tab bar',
+    'settings.frontend.layoutDrawerPinnedHint':
+        'The hamburger stays at the start of the tab bar instead of scrolling away with the tabs — handy on phones when a tab further along is open.',
+    'settings.frontend.layoutDrawerPinnedReason': 'Only with placement "In tab bar" (on at least one screen size).',
     'settings.frontend.layoutDrawerPlacementFloating': 'Floating',
     'settings.frontend.layoutDrawerPlacementTabbar': 'In tab bar',
     'settings.frontend.layoutDrawerPlacementSidebar': 'Docked sidebar',
@@ -165,6 +170,15 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Icon only',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Name only',
     'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Bullet + name',
+    'settings.frontend.layoutDrawerTabs': 'Tabs in the menu',
+    'settings.frontend.layoutDrawerTabsOff': 'Off',
+    'settings.frontend.layoutDrawerTabsCollapsible': 'Collapsible',
+    'settings.frontend.layoutDrawerTabsExpanded': 'Always open',
+    'settings.frontend.layoutDrawerTabsHint':
+        "Lists a section's tabs as sub-entries – a tap jumps straight to the tab. From two visible tabs on.",
+    'settings.frontend.layoutDrawerTabsBarReason':
+        'Only in the slide-in menu and the sidebar, not in the top/bottom bar.',
+    'settings.frontend.layoutDrawerTabsIconOnlyReason': 'Not with the "Icon only" entry style.',
     'settings.frontend.layoutDrawerIndicatorStyle': 'Selected style',
     'settings.frontend.layoutDrawerFontSize': 'Font size',
     'settings.frontend.layoutDrawerIconSize': 'Icon size',
@@ -328,6 +342,16 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.groupMobile': 'Mobile',
     'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile columns',
+    'settings.grid.flowFill': 'Fill columns',
+    'settings.grid.flowFillCount': 'By count',
+    'settings.grid.flowFillHeight': 'By height',
+    'settings.grid.flowFillCompact': 'Compact',
+    'settings.grid.flowFillCountHint': 'Each card goes into the column with the fewest cards.',
+    'settings.grid.flowFillHeightHint':
+        'Each card goes into the lowest column, measured by card height. Cards arranged into a column stay there.',
+    'settings.grid.flowFillCompactHint':
+        'By height, but with as few columns as needed: the block gets no taller than its longest card and is centred. Blocks with arranged cards or their own column count are only filled by height.',
+    'settings.grid.flowFillUnavailable': 'Takes effect once the tablet or mobile flow has more than one column.',
     'settings.grid.wizardMaxDp': 'Wizard Max Datapoints',
     'settings.grid.mobileOff': 'Off',
     'settings.grid.hideScrollbar': 'Hide scroll bar',
@@ -643,6 +667,9 @@ export const en: Record<TranslationKey, string> = {
     'sections.hideFromMenuHint': 'Remove this section from the left-hand menu. Still reachable via its direct URL.',
     'sections.hideMenuHere': 'Hide menu here',
     'sections.hideMenuHereHint': 'Hide the section menu while this section is open – e.g. for a fixed tablet.',
+    'sections.drawerTabs': 'Tabs in the section menu',
+    'sections.drawerTabsHint': "Override the layout: whether this section's tabs appear in the menu.",
+    'sections.drawerTabsInherit': 'Like layout',
     // ── PIN protection (sections / tabs) ────────────────────────────────────────
     'pin.field': 'PIN',
     'pin.hint': 'Without a PIN the view is open. With one, the content only appears once it was entered.',
@@ -836,6 +863,8 @@ export const en: Record<TranslationKey, string> = {
     // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
     'layoutDrawer.title': 'Sections',
     'layoutDrawer.open': 'Open section menu',
+    'layoutDrawer.expandTabs': 'Show tabs',
+    'layoutDrawer.collapseTabs': 'Hide tabs',
 
     // ── Endpoints ─────────────────────────────────────────────────────────────────
     'endpoints.title': 'Endpoints & Groups',
@@ -1114,6 +1143,19 @@ export const en: Record<TranslationKey, string> = {
     'editor.manual.searchHint': 'Tip: just start typing – the list filters as you go.',
     'editor.manual.searchHits': '{n} matches – Enter picks the first one.',
     'editor.manual.searchNoHits': 'No widget matches "{q}".',
+    'editor.manual.wc.chip': 'Web components',
+    'editor.manual.wc.title': 'Web components · building blocks from adapters',
+    'editor.manual.wc.intro':
+        'Content and behaviour come from the adapter; Aura provides the frame, the connection and the settings.',
+    'editor.manual.wc.other': 'Other web component …',
+    'editor.manual.wc.otherHint':
+        'A web component that is not listed here - it is chosen in the settings of the widget.',
+    'editor.manual.wc.missing': 'Adapter missing',
+    'editor.manual.wc.untested': 'not tested',
+    'editor.manual.wc.untestedHint': 'Added automatically, not tested with Aura yet.',
+    'wf.edit.wc.fromAdapter': 'Content comes from the adapter',
+    'wf.edit.wc.adapterMissing': 'Adapter {adapter} missing',
+    'wf.edit.wc.none': 'No component chosen yet - pick one in the settings below.',
 
     'editor.tab.addDevice': '+ Devices',
     'editor.tab.addManual': '+ Manual',
@@ -1127,7 +1169,17 @@ export const en: Record<TranslationKey, string> = {
     'editor.layouts.agenda': 'Agenda',
     'editor.layouts.custom': 'Custom',
 
+    'editor.arrange.label': 'Arrange',
+    'editor.arrange.off': 'Arrange: move and resize widgets on this touch device — tap a widget, then drag its grip',
+    'editor.arrange.on': 'Arranging — tap a widget, drag the grip to move it, the corner to resize. Tap to finish.',
     'editor.lock.on': 'Controls locked — click to unlock (widgets trigger nothing in the editor)',
+    'editor.fluidPreview.hint': 'Preview {w} × {h}: sizes scaled, the design grid is what gets saved',
+    'editor.fluidPreview.hintFill':
+        'Preview {w} × {h}: heights fill the screen and change as you move widgets — the design grid is what gets saved',
+    'editor.fluidPreview.off':
+        'Scale like the frontend — show the fluid grid on the target size {w} × {h} (guidelines)',
+    'editor.fluidPreview.on': 'Scaled like the frontend on {w} × {h} — click for the fixed design grid',
+    'editor.fluidPreview.needsFluid': 'Scale like the frontend — only with the fluid grid (Settings → Grid)',
     'editor.lock.off': 'Controls unlocked — clicks switch real devices. Click to lock.',
     'editor.mobile.title': 'Mobile Order',
     'editor.mobile.hint': 'Single column below the mobile breakpoint',
@@ -1135,6 +1187,8 @@ export const en: Record<TranslationKey, string> = {
     'editor.mobile.colsHint':
         'Columns as below the mobile breakpoint. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order. Every block has its own column count; ▲ ▼ also move between blocks.',
     'editor.tablet.title': 'Tablet Order',
+    'editor.tablet.pinnedHint': '{n} cards are pinned to a column and are not dealt by height.',
+    'editor.tablet.releaseCols': 'Reset column assignment',
     'editor.tablet.hint':
         'Columns as on the tablet. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order. Every block has its own column count; ▲ ▼ also move between blocks.',
     'editor.tablet.columns': 'columns',
@@ -1272,6 +1326,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.hideName': 'Hide Name',
     'wf.edit.titlePosition': 'Title Position',
     'wf.edit.showLastChange': 'Show Last Change',
+    'wf.edit.lastChangeDp': 'Datapoint for the timestamp',
+    'wf.edit.lastChangeDpNoMain': '(required, no main datapoint)',
+    'wf.edit.lastChangeDpOverride': '(optional, empty = main datapoint)',
     'wf.edit.lastChangeSource': 'Timestamp',
     'wf.edit.lcSource.lastChange': 'Change',
     'wf.edit.lcSource.lastUpdate': 'Update',
@@ -1298,6 +1355,12 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.fsPos.tr': 'top right',
     'wf.edit.fsPos.tl': 'top left',
     'wf.edit.fsPos.br': 'bottom right',
+    'wf.edit.group.frameless': 'No frame',
+    'wf.edit.group.framelessHint':
+        'No background, no border, no inner spacing: the widgets inside sit on the tab grid – same edges, same gaps and same height as outside.',
+    'wf.edit.group.framelessTransparent': 'Without a frame the group is always fully transparent.',
+    'wf.edit.group.framelessAutoShrink':
+        'Without a frame the group shrinks to its visible widgets in the frontend anyway.',
     'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
@@ -2883,6 +2946,7 @@ export const en: Record<TranslationKey, string> = {
     'group.masterPlaceholder': 'Group switch enabled – appears once controllable datapoints are configured',
     'group.masterPlaceholderShort': 'needs DPs',
     'group.fitHeight': 'Fit height to content',
+    'group.parentToolbar': 'Parent group',
 
     // ── Panels Widget (slide of widgets) ──────────────────────────────────────────
     'panels.noSlides': 'No panels',
@@ -3234,6 +3298,7 @@ export const en: Record<TranslationKey, string> = {
     'preview.cal.birthday': 'Birthday Lisa',
 
     // ── Tab sleep hint ────────────────────────────────────────────────────────────
+    'connection.refreshing': 'Refreshing values …',
     'tabSleep.title': 'The browser put this tab to sleep',
     'tabSleep.body':
         'The values have just been refreshed. To keep the dashboard live permanently, exclude this page from tab sleeping:',
@@ -3598,4 +3663,36 @@ export const en: Record<TranslationKey, string> = {
     'wc.missing': 'Component <{tag}> is not installed',
     'wc.missingAdapter': '{name}: adapter "{adapter}" is missing (version {version} or newer)',
     'wc.failed': 'Component <{tag}> could not be loaded: {error}',
+    'wc.failedModule':
+        'Component <{tag}> could not be loaded: its file is not served ({status}). Upload the adapter files again: iobroker upload {adapter}',
+    'wc.failedReact':
+        'Component <{tag}> could not be loaded: {file} is missing ({status}). Behind the web extension (…/aura/) web serves this file only from 9.2.0 on; for an older web Aura steps in - restart the web instance, update web or open Aura on its own port.',
+    'wc.noObjects': 'No objects found',
+    'wc.objectNotFound': '{id} (not found)',
+    'wc.pickDatapoint': 'Pick from ioBroker',
+    'wc.sendToLoading': 'Loading choices …',
+    'wc.sendToNotInList': '{value} (not in the list)',
+    'wc.dialog': 'Dialog of the component',
+    'wc.host.title': "Comes from the widget's title (title/icon above or title source)",
+    'wc.host.fullView': "Comes from the widget's fullscreen button (Look)",
+    'wc.host.other': 'Aura covers this itself',
+    'wc.source.title': 'Title from',
+    'wc.source.icon': 'Icon from',
+    'wc.source.aura': 'Aura (widget)',
+    'wc.source.component': 'Component',
+    'wc.source.titleHint':
+        "Title: the name the component reports (e.g. from the adapter); if it reports none, the widget's title applies.",
+    'wc.source.iconHint': 'Icon: the picture the component reports, else the picture of its manifest.',
+    'wc.oldTitle.text':
+        'The settings of the component still hold the name "{title}". Aura no longer shows it but the widget title "{current}".',
+    'wc.oldTitle.take': 'Use as widget title',
+    'wc.oldTitle.drop': 'Discard',
+    'wc.click.label': 'Click on the component',
+    'wc.click.component': 'Component',
+    'wc.click.off': 'Off',
+    'wc.click.default': 'default',
+    'wc.click.componentHint':
+        "The component handles clicks itself (its own buttons, its own dialog in Aura's popup). A click action of the widget stays quiet.",
+    'wc.click.offHint':
+        'The component does not react to clicks. A click belongs to the widget - set a click action under Action as for any widget.',
 };

@@ -10,6 +10,7 @@ import {
     Maximize2,
     Merge,
     Minimize2,
+    RotateCcw,
     X,
 } from 'lucide-react';
 import { useDashboardStore } from '../../../store/dashboardStore';
@@ -27,6 +28,7 @@ import {
     redealBlock,
     tabExtentOf,
     type FlowBand,
+    type FlowFill,
     type FlowMode,
 } from '../../../utils/flowOrder';
 
@@ -141,10 +143,14 @@ export function TabletOrderPanel({
     layoutId,
     cols,
     mode = 'tablet',
+    fill = 'count',
 }: {
     layoutId: string;
     cols: number;
     mode?: FlowMode;
+    /** How the dashboard deals unpinned cards (#939). The panel itself always shows the
+     *  stored arrangement; with a height fill it offers to release the pinned columns. */
+    fill?: FlowFill;
 }) {
     const fields = flowFields(mode);
     const t = useT();
@@ -207,6 +213,15 @@ export function TabletOrderPanel({
             }
             if (Object.keys(patch).length) updateWidgetInTab(tab.id, w.id, { ...w, ...patch });
         }
+    };
+
+    // Arranging a card pins it to its column; a height fill (#939) only deals the
+    // unpinned ones. Releasing keeps the order, wide bands and own blocks.
+    const pinnedCount = widgets.filter((w) => typeof w[fields.col] === 'number').length;
+    const releaseColumns = () => {
+        if (!tab) return;
+        for (const w of widgets)
+            if (w[fields.col] !== undefined) updateWidgetInTab(tab.id, w.id, { ...w, [fields.col]: undefined });
     };
 
     const moveVertical = (id: string, dir: -1 | 1) => {
@@ -477,6 +492,22 @@ export function TabletOrderPanel({
                     {t(mode === 'tablet' ? 'editor.tablet.hint' : 'editor.mobile.colsHint')}
                 </p>
                 <FlowSettingsLink layoutId={layoutId} />
+                {fill !== 'count' && pinnedCount > 0 && (
+                    <div className="mt-2 space-y-1">
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('editor.tablet.pinnedHint', { n: pinnedCount })}
+                        </p>
+                        <button
+                            data-aura-order-release
+                            onClick={releaseColumns}
+                            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg hover:opacity-80"
+                            style={{ border: '1px solid var(--app-border)', color: 'var(--text-primary)' }}
+                        >
+                            <RotateCcw size={12} />
+                            {t('editor.tablet.releaseCols')}
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="aura-scroll flex-1 overflow-y-auto p-3 space-y-2">

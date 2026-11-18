@@ -13,10 +13,12 @@ import {
     wasTabSuspended,
     onTabSuspended,
     chromiumFlavour,
+    useRefreshing,
 } from './hooks/useIoBroker';
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
+import { useUnlockedContentRefresh } from './hooks/useUnlockedContentRefresh';
 import { useActiveSelectionSync } from './hooks/useActiveSelectionSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionLost } from './hooks/useConnectionLost';
@@ -125,9 +127,35 @@ function ConnectionBadge() {
 // Always rendered; visible/hidden via opacity so it never shifts layout.
 // When the full badge is active it already shows "Getrennt" – the dot is
 // then suppressed for disconnects to avoid duplication.
+// While re-reading the datapoints after a wake-up or reconnect (useRefreshing),
+// and while there is no connection yet but the offline banner is still within its
+// grace period, it shows a thin bar across the top edge instead (.aura-refresh-bar):
+// the values on screen may still be the old ones. So the page always says something
+// until it is current: the bar while loading, the banner once offline.
+// Delayed so a quick refresh does not flicker.
 
-function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
+const REFRESH_BAR_DELAY_MS = 300;
+
+function ConnectionIndicator({ showBadge, offline }: { showBadge: boolean; offline: boolean }) {
     const { connected } = useIoBroker();
+    const t = useT();
+    const refreshing = useRefreshing();
+    // The bar also runs while there is no connection yet, until the offline banner
+    // takes over (CONNECTION_LOST_GRACE_MS): on start-up and during a reconnect the
+    // values on screen are not current either, and a page without any hint would
+    // look as if it had finished loading.
+    // The screenshot harness runs against a dead proxy target on purpose (see
+    // useConnectionLost) — no endless bar there.
+    const loading = connected ? refreshing : !offline && !isScreenshotMode();
+    const [bar, setBar] = useState(false);
+    useEffect(() => {
+        if (!loading) {
+            setBar(false);
+            return;
+        }
+        const timer = setTimeout(() => setBar(true), REFRESH_BAR_DELAY_MS);
+        return () => clearTimeout(timer);
+    }, [loading]);
     const [startupVisible, setStartupVisible] = useState(true);
     const wasConnectedRef = useRef(false);
     const [everConnected, setEverConnected] = useState(false);
@@ -150,6 +178,10 @@ function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
     const color = startupVisible && connected ? 'var(--accent-green)' : 'var(--accent-red)';
     // Suppress startup dot if badge covers it and we're connected (badge shows "Verbunden")
     const suppressed = startupVisible && connected && showBadge;
+
+    if (bar && loading) {
+        return <div className="aura-refresh-bar" role="status" aria-label={t('connection.refreshing')} />;
+    }
 
     if (!visible || suppressed) return null;
 
@@ -783,6 +815,7 @@ export default function App() {
 
     // React to external changes on aura.0.config.dashboard (subscription + polling)
     useConfigSync(connected, ioBrokerConfigLoaded, { ignoreDirty: true });
+    useUnlockedContentRefresh(connected);
 
     // Detect adapter upgrades: if the live adapter version diverges from the
     // bundled one (e.g. after a npm install of a new aura release), reload.
@@ -1314,7 +1347,12 @@ export default function App() {
             }
             const res = await pinUnlock(pinTarget.key, code);
             if (!res.ok) return false;
-            setUnlockContent(pinTarget.key, res.result.content, res.result.pinRelock);
+            setUnlockContent(
+                pinTarget.key,
+                res.result.content,
+                res.result.pinRelock,
+                res.result.unlockToken || undefined,
+            );
             unlockPin(pinTarget.key, res.result.pinRelock);
             return true;
         },
@@ -1469,6 +1507,7 @@ export default function App() {
     const drawerIndicatorStyle = effectiveSettings.layoutDrawerIndicatorStyle ?? 'filled';
     const drawerFontSize = effectiveSettings.layoutDrawerFontSize ?? 14;
     const drawerIconSize = effectiveSettings.layoutDrawerIconSize ?? 16;
+    const drawerTabsMode = effectiveSettings.layoutDrawerTabs ?? 'off';
     const drawerItems = effectiveSettings.layoutDrawerItems ?? [];
 
     // Click on the header / menu title (#922). Undefined keeps the title a plain label.
@@ -1517,11 +1556,14 @@ export default function App() {
                 navigate(viewBase ? `${viewBase}/tab/${slug}` : `/tab/${slug}`);
             }}
             layoutUrlBase={layoutUrlBase}
+            pinHeaderSlot={effectiveSettings.layoutDrawerPinned ?? false}
             headerSlot={
                 drawerInTabBar ? (
                     <LayoutDrawer
                         activeLayoutId={layout?.id}
                         activeSectionId={section?.id}
+                        activeTabId={activeTabId}
+                        tabsMode={drawerTabsMode}
                         size={drawerSize}
                         iconOnly
                         showTitle={drawerShowTitle}
@@ -1547,6 +1589,8 @@ export default function App() {
         <LayoutDrawer
             activeLayoutId={layout?.id}
             activeSectionId={section?.id}
+            activeTabId={activeTabId}
+            tabsMode={drawerTabsMode}
             variant="bar"
             barPosition={drawerBarBottom ? 'bottom' : 'top'}
             barAlignment={effectiveSettings.layoutDrawerBarAlignment ?? 'left'}
@@ -1596,7 +1640,7 @@ export default function App() {
             className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`}
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >
-            <ConnectionIndicator showBadge={showBadge} />
+            <ConnectionIndicator showBadge={showBadge} offline={connectionLostSince !== null} />
             <TabSleepHint />
             {connectionLostSince !== null && <ConnectionLostBanner since={connectionLostSince} />}
             {showClientIdBadge && <ClientIdBadge />}
@@ -1607,6 +1651,8 @@ export default function App() {
                 <LayoutDrawer
                     activeLayoutId={layout?.id}
                     activeSectionId={section?.id}
+                    activeTabId={activeTabId}
+                    tabsMode={drawerTabsMode}
                     floating
                     size={drawerSize}
                     autoHide={drawerAutoHide}
@@ -1628,6 +1674,8 @@ export default function App() {
                     <LayoutDrawer
                         activeLayoutId={layout?.id}
                         activeSectionId={section?.id}
+                        activeTabId={activeTabId}
+                        tabsMode={drawerTabsMode}
                         variant="sidebar"
                         width={drawerWidth}
                         topOffset={effectiveSettings.layoutDrawerTopOffset ?? 0}
@@ -1656,6 +1704,8 @@ export default function App() {
                                     <LayoutDrawer
                                         activeLayoutId={layout?.id}
                                         activeSectionId={section?.id}
+                                        activeTabId={activeTabId}
+                                        tabsMode={drawerTabsMode}
                                         size={drawerSize}
                                         showTitle={drawerShowTitle}
                                         drawerTitle={drawerTitle}

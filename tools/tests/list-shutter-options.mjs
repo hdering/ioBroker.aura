@@ -192,6 +192,19 @@ for (const type of TYPES) {
     eq(`${type}: a lock datapoint adds the padlock`, await page.locator(`${ROOT} .aura-contact-lock`).count(), 1);
 }
 
+// ── 7. Button size (#943) ────────────────────────────────────────────────────
+for (const type of TYPES) {
+    const btnBox = () =>
+        page.evaluate((sel) => {
+            const b = document.querySelectorAll(`${sel} .aura-shutter-control button`);
+            return [...b].map((x) => Math.round(x.getBoundingClientRect().width));
+        }, ROOT);
+    await show(type, { shutterTiltDp: TILT_DP }, { [DP]: 40, [TILT_DP]: 25 });
+    eq(`${type}: buttons default to 26 px`, await btnBox(), [26, 26, 26, 26]);
+    await show(type, { shutterTiltDp: TILT_DP, shutterButtonSize: 40 }, { [DP]: 40, [TILT_DP]: 25 });
+    eq(`${type}: shutterButtonSize sizes every button, slats included`, await btnBox(), [40, 40, 40, 40]);
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

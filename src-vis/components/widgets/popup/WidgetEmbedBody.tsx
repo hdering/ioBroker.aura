@@ -7,6 +7,7 @@ import { useConfigStore } from '../../../store/configStore';
 import { DEFAULT_POPUP_PADDING } from '../../../store/popupConfigStore';
 import { stripRenderOverrides } from '../../../utils/conditionSet';
 import { WidgetFrame } from '../../layout/WidgetFrame';
+import { defaultActionForConfig } from '../../config/ClickActionEditor';
 
 interface Props {
     widget: WidgetConfig;
@@ -34,7 +35,9 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
     // A widget whose click action shows itself would open the same popup again on
     // every click inside it — that action is the popup the user is already looking at.
     const shown = useMemo(() => {
-        const own = target.options?.clickAction as ClickAction | undefined;
+        // stored, or the built-in fallback (slider, web component in Aura click mode)
+        const own =
+            (target.options?.clickAction as ClickAction | undefined) ?? defaultActionForConfig(target) ?? undefined;
         if (own?.kind !== 'popup-widget' || (own.widgetId && own.widgetId !== target.id)) return target;
         return { ...target, options: { ...target.options, clickAction: { kind: 'none' } as ClickAction } };
     }, [target]);

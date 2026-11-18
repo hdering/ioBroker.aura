@@ -46,6 +46,36 @@ export function groupRowHeight(cellSize: number, margin: number): number {
 }
 
 /**
+ * "Ohne Rahmen" (#981): the group draws no card — no background, no border, no
+ * inset — and its children sit on the tab's own grid (outer row height and gap),
+ * so they line up with the widgets next to the group and a child of h rows is
+ * exactly as tall as the same widget outside.
+ */
+export function isFramelessGroup(options: Record<string, unknown> | undefined): boolean {
+    return !!options?.frameless;
+}
+
+/** autoShrink only applies to framed groups; a frameless one hugs its visible rows anyway. */
+export function groupAutoShrink(options: Record<string, unknown> | undefined): boolean {
+    return !!options?.autoShrink && !options?.frameless;
+}
+
+/** Inner grid metrics of a filled group: row height, gap between children, inset
+ *  from the group edge and the group's own border width (px). */
+export interface GroupPitch {
+    rowPx: number;
+    gap: number;
+    inset: number;
+    border: number;
+}
+
+export function groupPitch(cellSize: number, margin: number, frameless = false): GroupPitch {
+    return frameless
+        ? { rowPx: cellSize, gap: margin, inset: 0, border: 0 }
+        : { rowPx: groupRowHeight(cellSize, margin), gap: GROUP_GAP, inset: GROUP_GAP, border: 1 };
+}
+
+/**
  * Outer-grid row count for a group box that hugs its children.
  *
  * @param maxBottom  lowest child edge in grid rows (max of y + h)
@@ -57,6 +87,7 @@ export function groupRowHeight(cellSize: number, margin: number): number {
  *                   (autoHeightStore.groupHeaders). The 36/37px fallback below is
  *                   only a guess — a bar with a 20px icon or a master control is
  *                   taller, and being a few px short shows the inner scrollbar.
+ * @param frameless  "Ohne Rahmen" (#981) — children on the outer pitch, no inset/border
  */
 export function groupRows(
     maxBottom: number,
@@ -65,17 +96,21 @@ export function groupRows(
     cellSize: number,
     margin: number,
     measuredHeaderPx?: number,
+    frameless = false,
 ): number {
     if (maxBottom <= 0) return 1;
+    const p = groupPitch(cellSize, margin, frameless);
     const titleBarH =
         measuredHeaderPx !== undefined && measuredHeaderPx >= 0 ? measuredHeaderPx : hasHeader ? (titled ? 37 : 36) : 0;
     // Children on the parity pitch (groupRowHeight), GROUP_GAP between them and
-    // GROUP_GAP inset top+bottom, plus the widget border (1px each side).
-    const gridAreaPx = maxBottom * groupRowHeight(cellSize, margin) + (maxBottom - 1) * GROUP_GAP + 2 * GROUP_GAP;
-    const contentPx = titleBarH + gridAreaPx + 2;
+    // GROUP_GAP inset top+bottom, plus the widget border (1px each side). Frameless:
+    // the outer pitch with no inset and no border, so the box is exactly maxBottom rows.
+    const gridAreaPx = maxBottom * p.rowPx + (maxBottom - 1) * p.gap + 2 * p.inset;
+    const contentPx = titleBarH + gridAreaPx + 2 * p.border;
     // Smallest whole row count that covers the content: P(h) = h*cellSize +
     // (h-1)*margin, so h = ceil((content+margin)/pitch) gives P(h) >= contentPx.
-    return Math.max(1, Math.ceil((contentPx + margin) / (cellSize + margin)));
+    // The epsilon keeps a fractional (stretched) pitch from rounding an exact fit up.
+    return Math.max(1, Math.ceil((contentPx + margin) / (cellSize + margin) - 1e-6));
 }
 
 /**
@@ -92,6 +127,7 @@ export function groupRows(
  * @param padding  widget padding (px) — the child's frame adds it top and bottom
  * @param cellSize outer grid row height (px)
  * @param margin   outer grid gap (px)
+ * @param frameless "Ohne Rahmen" (#981) — rows counted on the outer pitch
  */
 export function withContentHeights(
     children: WidgetConfig[],
@@ -99,17 +135,18 @@ export function withContentHeights(
     padding: number,
     cellSize: number,
     margin: number,
+    frameless = false,
 ): WidgetConfig[] {
     let changed = false;
-    const rowPx = groupRowHeight(cellSize, margin);
+    const { rowPx, gap } = groupPitch(cellSize, margin, frameless);
     const next = children.map((c) => {
         if (!usesContentAutoHeight(c)) return c;
         const px = heights[c.id];
         if (!px || px <= 0) return c;
         // Frame chrome: padding top+bottom (the child's own, #928) plus the 1px
-        // border on each side. A child of h rows is h·rowPx + (h-1)·GROUP_GAP tall.
+        // border on each side. A child of h rows is h·rowPx + (h-1)·gap tall.
         const total = px + cardPadding(c.options, padding).y * 2 + 2;
-        const h = Math.max(1, Math.ceil((total + GROUP_GAP) / (rowPx + GROUP_GAP)));
+        const h = Math.max(1, Math.ceil((total + gap) / (rowPx + gap)));
         if (h === c.gridPos.h) return c;
         changed = true;
         return { ...c, gridPos: { ...c.gridPos, h } };

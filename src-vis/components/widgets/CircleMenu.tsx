@@ -38,14 +38,17 @@ export interface CircleMenuItem {
 /**
  * The entries in the user's order (`circleOrder`, a list of entry keys). Keys
  * that no longer exist drop out; entries the list does not name yet (a preset
- * added later) keep their default order behind the named ones.
+ * added later) keep their default order behind the named ones. Keys listed in
+ * `hidden` (`circleHidden`, #993) are left out of the circle.
  */
-export function applyCircleOrder<T extends { key: string }>(items: T[], order: unknown): T[] {
-    if (!Array.isArray(order) || order.length === 0) return items;
-    const byKey = new Map(items.map((it) => [it.key, it]));
+export function applyCircleOrder<T extends { key: string }>(items: T[], order: unknown, hidden?: unknown): T[] {
+    const hide = new Set(Array.isArray(hidden) ? hidden.filter((k): k is string => typeof k === 'string') : []);
+    const visible = hide.size ? items.filter((it) => !hide.has(it.key)) : items;
+    if (!Array.isArray(order) || order.length === 0) return visible;
+    const byKey = new Map(visible.map((it) => [it.key, it]));
     const named = [...new Set(order.filter((k): k is string => typeof k === 'string' && byKey.has(k)))];
     const seen = new Set(named);
-    return [...named.map((k) => byKey.get(k)!), ...items.filter((it) => !seen.has(it.key))];
+    return [...named.map((k) => byKey.get(k)!), ...visible.filter((it) => !seen.has(it.key))];
 }
 
 const THEME_VAR_NAMES = [

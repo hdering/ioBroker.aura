@@ -12,6 +12,8 @@ import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { WidgetFrame } from '../layout/WidgetFrame';
 import { hostsGroupDef } from '../../utils/groupTypes';
+import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
+import { TouchArrangeToggle } from '../layout/TouchArrangeToggle';
 
 const DEFAULT_MARGIN = 10;
 const clone = (w: WidgetConfig) => JSON.parse(JSON.stringify(w)) as WidgetConfig;
@@ -33,6 +35,8 @@ export function PresetEditDialog({ preset, onClose }: { preset: WidgetPreset; on
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
 
     const [draft, setDraft] = useState<WidgetConfig>(() => clone(preset.widget));
+    // Touch devices: locked unless arranging, grip-only drags (#699).
+    const gridEdit = useGridEditInteraction(true);
 
     // Register the preset's group defs so group/panels children render while editing.
     useEffect(() => {
@@ -113,13 +117,16 @@ export function PresetEditDialog({ preset, onClose }: { preset: WidgetPreset; on
                             {preset.icon ? `${preset.icon} ` : ''}
                             {preset.name}
                         </h2>
-                        <button
-                            onClick={onClose}
-                            className="hover:opacity-60"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <X size={18} />
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <TouchArrangeToggle />
+                            <button
+                                onClick={onClose}
+                                className="hover:opacity-60"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
                     </div>
 
                     <div ref={containerRefCallback} className="aura-scroll flex-1 overflow-auto p-4">
@@ -130,11 +137,16 @@ export function PresetEditDialog({ preset, onClose }: { preset: WidgetPreset; on
                                 cols={cols}
                                 rowHeight={cellSize}
                                 width={containerWidth}
-                                isDraggable
-                                isResizable
+                                isDraggable={gridEdit.editable}
+                                isResizable={gridEdit.editable}
                                 draggableCancel=".nodrag"
-                                onDragStop={syncLayout}
-                                onResizeStop={syncLayout}
+                                draggableHandle={gridEdit.draggableHandle}
+                                onDragStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                                onDrag={(_l, _o, _n, _p, e, node) => gridEdit.onInteract(e, node)}
+                                onResizeStart={(_l, _o, _n, _p, e) => gridEdit.onInteractStart(e)}
+                                onResize={(_l, _o, _n, _p, e, node) => gridEdit.onInteract(e, node)}
+                                onDragStop={(nl, _o, _n, _p, e) => gridEdit.mayPersist(e) && syncLayout(nl)}
+                                onResizeStop={(nl, _o, _n, _p, e) => gridEdit.mayPersist(e) && syncLayout(nl)}
                                 margin={[MARGIN, MARGIN]}
                                 containerPadding={[0, 0]}
                             >

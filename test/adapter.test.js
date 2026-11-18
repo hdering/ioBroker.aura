@@ -39,6 +39,22 @@ assert.ok(
 );
 console.log(`✓ news entries: ${Object.keys(ioPkg.common.news).length}`);
 
+// ── Adapter-Checker W500x: no global timers in main.js ────────────────────
+// js-controller only clears timers created via this.setTimeout/this.setInterval
+// on unload; the release pre-flight rejects bare ones.
+{
+  const fs = require('fs');
+  const lines = fs.readFileSync(path.join(__dirname, '..', 'main.js'), 'utf8').split('\n');
+  const bad = [];
+  lines.forEach((line, i) => {
+    const code = line.replace(/\/\/.*$/, '');
+    if (/^\s*\*/.test(code)) return;
+    if (/(^|[^.\w$])(setTimeout|setInterval|clearTimeout|clearInterval)\s*\(/.test(code)) bad.push(`main.js:${i + 1}: ${line.trim()}`);
+  });
+  assert.deepStrictEqual(bad, [], `main.js uses global timers - use this.setTimeout() etc. (W500x):\n${bad.join('\n')}`);
+  console.log('✓ main.js uses adapter timers only (W500x)');
+}
+
 // ── Main entry point syntax check ────────────────────────────────────────
 // Full load requires js-controller which isn't available in CI.
 // We verify the file is valid JS by checking it parses without syntax errors.

@@ -3526,7 +3526,7 @@ export function CustomCellEditor({
                         </label>
                         <div className="flex gap-1">
                             {(['left', 'center', 'right'] as const).map((a) => {
-                                const active = (cell.align ?? 'left') === a;
+                                const active = (cell.align ?? 'center') === a;
                                 return (
                                     <button
                                         key={a}

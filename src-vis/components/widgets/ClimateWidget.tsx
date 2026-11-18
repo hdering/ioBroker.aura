@@ -521,6 +521,8 @@ export function ClimateWidget({ config }: WidgetProps) {
             <SetpointCircleMenu
                 settings={{
                     order: o.circleOrder,
+                    hidden: o.circleHidden,
+                    center: o.circleCenter !== false,
                     direction: (o.circleDirection as CircleDirection) || 'auto',
                     itemSize: (o.circleItemSize as number) || 48,
                     keepOpen: !!o.circleKeepOpen,

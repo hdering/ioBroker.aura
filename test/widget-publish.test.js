@@ -23,7 +23,7 @@ const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
 
 const T0 = 1760799000000;
-const st = (val, lc = T0) => ({ val, ts: lc, lc });
+const st = (val, lc = T0) => ({ val, ack: true, ts: lc, lc });
 
 /** Engine with every write captured; flushes synchronously. */
 function makeEngine(extra = {}) {
@@ -459,6 +459,10 @@ test('main.js: start without a browser, status registration kept, orphan and rem
     await a.onStateChange(WIN1, st(false, T0 + 50));
     await settle();
     assert.strictEqual(states.get('lists.w1.count').val, 1);
+    // A command (ack=false) to a device datapoint is not a value yet.
+    await a.onStateChange(WIN1, { ...st(true, T0 + 60), ack: false });
+    await settle();
+    assert.strictEqual(states.get('lists.w1.count').val, 1, 'unconfirmed foreign value ignored');
 
     // The Statusübersicht registers through status.register.
     foreign.set('hm.0.win1', st(true));

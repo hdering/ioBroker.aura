@@ -8,6 +8,9 @@
  * answers `/adapter/…` from the file storage and `/lib/esm/react-*.js` itself, and
  * behind the web adapter extension (`/aura/`) web serves both, so
  * `getWebComponentSources(…, document.baseURI)` finds them either way.
+ *
+ * Manifest and module URLs carry the adapter version, so after an update the next
+ * page load fetches the new files instead of cached ones.
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -17,45 +20,162 @@ import {
     type WebComponentSocket,
 } from '@iobroker/web-components';
 import {
+    getDisconnectedSince,
     getObjectDirect,
     getObjectViewDirect,
     getSocket,
     getStateDirect,
+    onDisconnectedSinceChange,
     sendToDirect,
     setStateDirectAsync,
     subscribeObjectDirect,
     subscribeStateDirect,
 } from '../hooks/useIoBroker';
-import { createWebComponentSocket, objectIdOfRow, type HostState } from './webComponentHost';
+import {
+    createWebComponentSocket,
+    mergeCatalog,
+    objectIdOfRow,
+    versionedModule,
+    versionedSources,
+    type HostState,
+    type RepoWebComponent,
+} from './webComponentHost';
+import { NS } from './namespace';
 
 let catalog: Promise<LoadedWebComponent[]> | null = null;
 const catalogListeners = new Set<() => void>();
+// What the last read gave - a read again is merged into it (mergeCatalog).
+let catalogLoaded: LoadedWebComponent[] = [];
 
-async function readCatalog(): Promise<LoadedWebComponent[]> {
+/** A short catalog (none or not every component) is read again after this long ... */
+export const SHORT_CATALOG_RETRY_MS = 10_000;
+/** ... at most this often in a row - a system without components stays short for good */
+export const SHORT_CATALOG_MAX_RETRIES = 6;
+let shortRetries = 0;
+let shortRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function readCatalog(): Promise<{ list: LoadedWebComponent[]; complete: boolean }> {
     const view = await getObjectViewDirect('instance', 'system.adapter.', 'system.adapter.\u9999');
     const instances = (view.rows ?? [])
         .map((row) => row.value as unknown as { _id: string; common?: { version?: string; webComponents?: unknown } })
         .filter((obj) => obj && Array.isArray(obj.common?.webComponents) && obj.common.webComponents.length)
         .map((obj) => ({ _id: obj._id, common: obj.common ?? {} }));
-    if (!instances.length) return [];
-    return loadWebComponents(getWebComponentSources(instances, document.baseURI), { log: console });
+    if (!instances.length) {
+        catalogLoaded = [];
+        return { list: [], complete: false };
+    }
+    const sources = versionedSources(getWebComponentSources(instances, document.baseURI));
+    const loaded = await loadWebComponents(sources, { log: console });
+    catalogLoaded = mergeCatalog(loaded.map(versionedModule), catalogLoaded, (tag) => !!customElements.get(tag));
+    return { list: catalogLoaded, complete: loaded.length >= sources.length };
 }
 
 /**
- * The components of all installed adapters, read once per page and shared.
+ * Read once more, a while after a short catalog: right after an ioBroker restart or
+ * an adapter update the instances or the uploaded files may not all be there yet,
+ * and such a list would otherwise stay until the page is reloaded. Only while
+ * something shows the catalog, and only a few times in a row.
+ */
+function scheduleShortRetry(): void {
+    if (shortRetryTimer || shortRetries >= SHORT_CATALOG_MAX_RETRIES) return;
+    shortRetryTimer = setTimeout(() => {
+        shortRetryTimer = null;
+        if (!catalogListeners.size) return;
+        shortRetries++;
+        void loadWebComponentCatalog(true);
+    }, SHORT_CATALOG_RETRY_MS);
+}
+
+/**
+ * The components of all installed adapters, read once per page and shared. A
+ * short result is read again later (scheduleShortRetry), and after a reconnect.
  *
  * @param force read again (after an adapter was installed or updated)
  */
 export function loadWebComponentCatalog(force = false): Promise<LoadedWebComponent[]> {
     if (!catalog || force) {
-        catalog = readCatalog().catch((e: unknown) => {
-            console.warn('[webcomponent] reading the components failed:', e);
-            catalog = null; // the next widget may try again
-            return [];
-        });
+        catalog = readCatalog().then(
+            ({ list, complete }) => {
+                if (complete) shortRetries = 0;
+                else scheduleShortRetry();
+                return list;
+            },
+            (e: unknown) => {
+                console.warn('[webcomponent] reading the components failed:', e);
+                catalog = null; // the next widget may try again
+                scheduleShortRetry();
+                return [];
+            },
+        );
         if (force) void catalog.then(() => catalogListeners.forEach((fn) => fn()));
     }
     return catalog;
+}
+
+// After a reconnect (ioBroker restarted, an adapter was updated) the catalog read
+// before may be stale or short: read it again once - if anything had read it.
+let wasConnected = false;
+let wasOffline = getDisconnectedSince() !== null;
+onDisconnectedSinceChange(() => {
+    const offline = getDisconnectedSince() !== null;
+    if (wasOffline && !offline) {
+        if (wasConnected && catalog) {
+            shortRetries = 0;
+            void loadWebComponentCatalog(true);
+        }
+        wasConnected = true;
+    }
+    wasOffline = offline;
+});
+
+let repoCatalog: Promise<RepoWebComponent[]> | null = null;
+
+/**
+ * The components of adapters that are not installed, from the short forms in the
+ * active repositories - asked from Aura's backend (`webComponentsRepo`) once per
+ * page. Without an answer (older backend, no repository) the list is empty and the
+ * next caller asks again.
+ */
+export function loadRepoWebComponents(): Promise<RepoWebComponent[]> {
+    if (!repoCatalog) {
+        repoCatalog = sendToDirect(NS, 'webComponentsRepo', {}, 15_000).then(
+            (answer) => {
+                const list = (answer as { components?: unknown } | null)?.components;
+                if (!Array.isArray(list)) {
+                    repoCatalog = null;
+                    return [];
+                }
+                return list.filter(
+                    (c): c is RepoWebComponent =>
+                        !!c && typeof c === 'object' && typeof c.tag === 'string' && typeof c.adapter === 'string',
+                );
+            },
+            (e: unknown) => {
+                console.warn('[webcomponent] reading the components of the repository failed:', e);
+                repoCatalog = null;
+                return [];
+            },
+        );
+    }
+    return repoCatalog;
+}
+
+/**
+ * React access to the repository's components: empty until they are read
+ *
+ * @param enabled ask only when needed (a widget only for a missing component)
+ */
+export function useRepoWebComponents(enabled = true): RepoWebComponent[] {
+    const [list, setList] = useState<RepoWebComponent[]>([]);
+    useEffect(() => {
+        if (!enabled) return;
+        let alive = true;
+        void loadRepoWebComponents().then((l) => alive && setList(l));
+        return () => {
+            alive = false;
+        };
+    }, [enabled]);
+    return list;
 }
 
 /** The component of a widget: by tag, the adapter only as a tie-breaker */
@@ -119,7 +239,8 @@ export function getWebComponentSocket(): Promise<WebComponentSocket> {
             const lang = sys?.common?.language || 'en';
             return createWebComponentSocket(
                 {
-                    subscribeState: (id, cb) => subscribeStateDirect(id, (state) => cb(state as unknown as HostState)),
+                    subscribeState: (id, cb) =>
+                        subscribeStateDirect(id, (state, stateId) => cb(state as unknown as HostState, stateId)),
                     getState: async (id) => (await getStateDirect(id)) as unknown as HostState | null,
                     setState: (id, val, ack) =>
                         setStateDirectAsync(

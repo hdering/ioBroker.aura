@@ -140,6 +140,11 @@ const PRESETS: { label: string; rules: Omit<NameFilterRule, 'id'>[] }[] = [
         label: 'Geräte-Seriennummer weg',
         rules: [{ field: 'Gerät', op: 'regexReplace', value: '/\\s+(?=[A-Z0-9]*\\d)[A-Z0-9]{6,}$/', value2: '' }],
     },
+    // hm-rega names channels "<Gerät>:<Kanal>" ("EG_Küche_Fenster:1").
+    {
+        label: 'HomeMatic-Kanal (:1) weg',
+        rules: [{ field: 'Gerät', op: 'regexReplace', value: '/:\\d+$/', value2: '' }],
+    },
     { label: 'Erstes Wort behalten', rules: [{ field: 'Gerät', op: 'firstWords', value: '1' }] },
     { label: 'Zahlen weg', rules: [{ field: 'Gerät', op: 'stripDigits' }] },
     // The "›" in composed names is not on the keyboard (#950) — these need no typing.

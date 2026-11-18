@@ -44,7 +44,7 @@ Die `…name`-Platzhalter sind für Titel und Texte gedacht, nicht für Datenpun
 | `defId` | neu | Verweis auf den geteilten Aufbau – gleiche `defId` = gleiche Kinder |
 | Als eigene Karte abspalten | — | Karte bekommt eine eigene Kopie des Aufbaus |
 
-Alle Optionen der [Gruppe](./gruppe) (Titel, Icon, Master-Aktion, Einklappen, Smartphone-Raster …) gelten auch hier.
+Alle Optionen der [Gruppe](./gruppe) (Titel, Icon, Master-Aktion, Einklappen, Smartphone-Raster, Ohne Rahmen …) gelten auch hier.
 
 ## Verknüpfte Karten erkennen
 
