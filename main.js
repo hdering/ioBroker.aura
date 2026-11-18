@@ -2473,10 +2473,21 @@ class Aura extends utils.Adapter {
             // that references adapter files directly (see webFsPath, #885).
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
             const reactEsm = req.method === 'GET' || req.method === 'HEAD' ? reactEsmFile(pathname) : null;
+            // The web extension asked for it because web has no copy (before 9.2.0):
+            // handing it back to web would come straight back here.
+            const reactFromExt = !!req.headers['x-aura-react-fallback'];
+            const reactMissing = () => {
+                res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end('not found');
+            };
             if (reactEsm) {
                 serveReactEsm(reactEsm, res, req.method, String(req.headers['accept-encoding'] || ''), () =>
-                    proxyToWebBackend(req, res, req.url),
+                    reactFromExt ? reactMissing() : proxyToWebBackend(req, res, req.url),
                 );
+                return;
+            }
+            if (reactFromExt && /^\/lib\/esm\/react-1[89]\.js$/.test(pathname)) {
+                reactMissing();
                 return;
             }
             const webfsPath = webFsPath(pathname);

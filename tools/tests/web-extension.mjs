@@ -488,6 +488,77 @@ function upgrade(path) {
     await new Promise((resolve) => web4.close(resolve));
 }
 
+// ── 3d. Shared React for web components on web before 9.2.0 (forum, web 8.0.0) ──
+{
+    eq('8.0.0 is below 9.2.0', WebExtension.versionBelow('8.0.0', [9, 2, 0]), true);
+    eq('9.1.17 is below 9.2.0', WebExtension.versionBelow('9.1.17', [9, 2, 0]), true);
+    eq('9.2.0 is not', WebExtension.versionBelow('9.2.0', [9, 2, 0]), false);
+    eq('a pre-release counts as its release', WebExtension.versionBelow('9.2.0-alpha.1', [9, 2, 0]), false);
+    eq('10.0.0 is not', WebExtension.versionBelow('10.0.0', [9, 2, 0]), false);
+    eq('no version: unknown', WebExtension.versionBelow('', [9, 2, 0]), null);
+
+    const webWith = async (version) => {
+        const a = express();
+        const s = http.createServer(a);
+        const e = new WebExtension(
+            s,
+            { secure: false },
+            { ...fakeAdapter, version },
+            { common: { host: 'host-a' }, native: { port: auraPort } },
+            a,
+        );
+        a.use((_req, res) => {
+            res.writeHead(404, { 'X-From': 'web-static' });
+            res.end('static');
+        });
+        const port = await listen(s);
+        const get = (path, headers = {}) =>
+            new Promise((resolve, reject) => {
+                const r = http.request({ host: '127.0.0.1', port, path, headers }, (res) => {
+                    const chunks = [];
+                    res.on('data', (c) => chunks.push(c));
+                    res.on('end', () =>
+                        resolve({
+                            status: res.statusCode,
+                            headers: res.headers,
+                            body: Buffer.concat(chunks).toString(),
+                        }),
+                    );
+                });
+                r.on('error', reject);
+                r.end();
+            });
+        const close = async () => {
+            await e.unload();
+            s.closeAllConnections();
+            await new Promise((resolve) => s.close(resolve));
+        };
+        return { get, close };
+    };
+
+    const old = await webWith('8.0.0');
+    const r = await old.get('/lib/esm/react-19.js?x=1');
+    eq('web 8.0.0: React comes from Aura', r.headers['x-from'], 'aura');
+    const s = JSON.parse(r.body);
+    eq('… at its own path, query kept', s.url, '/lib/esm/react-19.js?x=1');
+    eq('… marked, so Aura does not hand it back', s.headers[WebExtension.REACT_FALLBACK_HEADER], '1');
+    eq('web 8.0.0: react-18 too', (await old.get('/lib/esm/react-18.js')).headers['x-from'], 'aura');
+    eq('web 8.0.0: other /lib files stay with web', (await old.get('/lib/js/x.js')).headers['x-from'], 'web-static');
+    eq(
+        'web 8.0.0: a marked request (back from Aura) stays with web',
+        (await old.get('/lib/esm/react-19.js', { [WebExtension.REACT_FALLBACK_HEADER]: '1' })).headers['x-from'],
+        'web-static',
+    );
+    await old.close();
+
+    const fresh = await webWith('9.2.0');
+    eq('web 9.2.0: its own React', (await fresh.get('/lib/esm/react-19.js')).headers['x-from'], 'web-static');
+    await fresh.close();
+    const unknown = await webWith(undefined);
+    eq('unknown web version: left alone', (await unknown.get('/lib/esm/react-19.js')).headers['x-from'], 'web-static');
+    await unknown.close();
+}
+
 // ── 4. Aura not running ──────────────────────────────────────────────────────
 {
     const closed = new Promise((r) => aura.close(r));

@@ -3700,7 +3700,7 @@ export const de = {
     'wc.failedModule':
         'Komponente <{tag}> lässt sich nicht laden: ihre Datei wird nicht ausgeliefert ({status}). Dateien des Adapters neu hochladen: iobroker upload {adapter}',
     'wc.failedReact':
-        'Komponente <{tag}> lässt sich nicht laden: {file} fehlt ({status}). Hinter der Web-Erweiterung (…/aura/) liefert der web-Adapter diese Datei erst ab Version 9.2.0 – web aktualisieren oder Aura über den eigenen Port öffnen.',
+        'Komponente <{tag}> lässt sich nicht laden: {file} fehlt ({status}). Hinter der Web-Erweiterung (…/aura/) liefert web diese Datei erst ab 9.2.0; bei älterem web springt Aura ein – web-Instanz neu starten, web aktualisieren oder Aura über den eigenen Port öffnen.',
     'wc.noObjects': 'Keine Objekte gefunden',
     'wc.objectNotFound': '{id} (nicht gefunden)',
     'wc.pickDatapoint': 'Aus ioBroker wählen',

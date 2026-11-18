@@ -3666,7 +3666,7 @@ export const en: Record<TranslationKey, string> = {
     'wc.failedModule':
         'Component <{tag}> could not be loaded: its file is not served ({status}). Upload the adapter files again: iobroker upload {adapter}',
     'wc.failedReact':
-        'Component <{tag}> could not be loaded: {file} is missing ({status}). Behind the web extension (…/aura/) the web adapter serves this file only from version 9.2.0 on - update web or open Aura on its own port.',
+        'Component <{tag}> could not be loaded: {file} is missing ({status}). Behind the web extension (…/aura/) web serves this file only from 9.2.0 on; for an older web Aura steps in - restart the web instance, update web or open Aura on its own port.',
     'wc.noObjects': 'No objects found',
     'wc.objectNotFound': '{id} (not found)',
     'wc.pickDatapoint': 'Pick from ioBroker',
