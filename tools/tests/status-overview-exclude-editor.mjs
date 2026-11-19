@@ -108,11 +108,17 @@ check(
 );
 check(
     'alias marked as duplicate of its original',
-    (await pop.locator(`[data-status-dp="${ALIAS}"]`).textContent()).includes(`Alias von ${ORIG}`),
+    (await pop.locator(`[data-status-dp="${ALIAS}"] [data-status-dp-dupe="alias"]`).getAttribute('title')) ===
+        `Alias von ${ORIG}`,
+);
+check(
+    'alias grouped by its own folder, not the room folder',
+    (await pop.locator(`[data-status-dp-device="alias.0.Bad.Fenster"] [data-status-dp="${ALIAS}"]`).count()) === 1,
 );
 check(
     'original marked as aliased',
-    (await pop.locator(`[data-status-dp="${ORIG}"]`).textContent()).includes(`auch als Alias ${ALIAS}`),
+    (await pop.locator(`[data-status-dp="${ORIG}"] [data-status-dp-dupe="original"]`).getAttribute('title')) ===
+        `auch als Alias ${ALIAS}`,
 );
 check(
     'summary counts the pair',

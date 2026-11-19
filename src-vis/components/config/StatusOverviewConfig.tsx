@@ -182,7 +182,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     const namedCount = Object.values(o.deviceNames ?? {}).filter((v) => v.trim()).length;
     const batteryKinds = o.batteryKinds ?? DEFAULT_BATTERY_KINDS;
     const hasVoltKind = batteryKinds.includes('volt') || batteryKinds.includes('millivolt');
-    const scopeKey = JSON.stringify([
+    // Everything discovery reads except excludeIds — the datapoint manager's list key (#1002).
+    const foundKey = JSON.stringify([
         o.catBattery,
         o.catWindow,
         o.catLight,
@@ -196,11 +197,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.filterRooms,
         o.filterFuncs,
         o.filterAdapters,
-        o.excludeIds,
         o.excludeIdPatterns,
         offlineExtraPatterns,
         offlineInvert,
     ]);
+    const scopeKey = JSON.stringify([foundKey, o.excludeIds]);
     useEffect(() => {
         let cancelled = false;
         const opts: StatusOverviewOptions = { ...o, offlineExtraPatterns, offlineInvert };
@@ -209,16 +210,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 if (cancelled) return;
                 // The widget's own discovery, minus the battery-level lookup the preview has no use for.
                 const kept = discoverStatusCandidates(cache, { ...opts, latchBattery: false }, isBatteryDevice);
-                // The datapoint manager also lists what excludeIds hides, so it can be ticked back on (#1002).
-                setFound(
-                    opts.excludeIds?.length
-                        ? discoverStatusCandidates(
-                              cache,
-                              { ...opts, latchBattery: false, excludeIds: undefined },
-                              isBatteryDevice,
-                          )
-                        : kept,
-                );
                 const count = kept.length;
                 setDevices(deviceRowsOf(kept));
                 const byCat = new Map<CategoryKey, NameSource[]>();
@@ -239,6 +230,30 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scopeKey]);
+
+    // The datapoint manager (#1002) lists what excludeIds hides too, so it can be ticked back
+    // on: discovery without excludeIds. Only while the popup is open, and not again per tick —
+    // the list does not depend on excludeIds.
+    useEffect(() => {
+        if (!showDps) return;
+        let cancelled = false;
+        const opts: StatusOverviewOptions = {
+            ...o,
+            offlineExtraPatterns,
+            offlineInvert,
+            latchBattery: false,
+            excludeIds: undefined,
+        };
+        Promise.all([ensureDatapointCache(), opts.catBattery === false ? undefined : loadBatteryDeviceTest()]).then(
+            ([cache, isBatteryDevice]) => {
+                if (!cancelled) setFound(discoverStatusCandidates(cache, opts, isBatteryDevice));
+            },
+        );
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [foundKey, showDps]);
 
     const lightScope = o.lightRoleScope ?? 'light';
 

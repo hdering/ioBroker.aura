@@ -26,6 +26,9 @@ interface DeviceGroup {
 
 type Mode = 'all' | 'hidden' | 'dupes';
 
+/** Groups rendered at once; the rest behind "Weitere anzeigen" (search covers all). */
+const PAGE = 100;
+
 const inputCls = 'text-xs rounded-lg px-2.5 py-1.5 focus:outline-none';
 const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -47,6 +50,16 @@ export function aliasPairsOf(found: StatusCandidate[]): Map<string, string> {
     return pairs;
 }
 
+/**
+ * The device a datapoint is grouped under. Aliases are usually filed as
+ * alias.0.<room>.<device>.<state>: three segments would put a whole room into one group,
+ * so an alias groups by its own folder. Adapter ids keep adapter.instance.device.
+ */
+function groupKeyOf(id: string): string {
+    if (id.startsWith('alias.')) return id.slice(0, id.lastIndexOf('.'));
+    return deviceIdFallback(id);
+}
+
 /** The found datapoints folded into one group per device, sorted by room and name. */
 function groupsOf(found: StatusCandidate[], pairs: Map<string, string>, excluded: Set<string>): DeviceGroup[] {
     const aliasedBy = new Map<string, string>();
@@ -56,7 +69,7 @@ function groupsOf(found: StatusCandidate[], pairs: Map<string, string>, excluded
     for (const { dp, cat } of found) {
         if (seen.has(dp.id)) continue;
         seen.add(dp.id);
-        const key = deviceIdFallback(dp.id);
+        const key = groupKeyOf(dp.id);
         const sep = dp.name.indexOf(' › ');
         let g = map.get(key);
         if (!g) {
@@ -126,6 +139,9 @@ export function StatusDatapointsEditor({
 }) {
     const [query, setQuery] = useState('');
     const [mode, setMode] = useState<Mode>('all');
+    const [limit, setLimit] = useState(PAGE);
+    // A new search or filter starts at the top again.
+    useEffect(() => setLimit(PAGE), [query, mode]);
     const excluded = useMemo(() => new Set(excludeIds ?? []), [excludeIds]);
     const pairs = useMemo(() => aliasPairsOf(found), [found]);
     const groups = useMemo(() => groupsOf(found, pairs, excluded), [found, pairs, excluded]);
@@ -239,89 +255,149 @@ export function StatusDatapointsEditor({
                     Noch keine Datenpunkte gefunden (werden geladen oder keine Kategorie aktiv).
                 </p>
             )}
-            <div className="space-y-2">
-                {visible.map((g) => {
-                    const ids = g.rows.map((r) => r.id);
-                    const hidden = ids.filter((id) => excluded.has(id)).length;
-                    return (
-                        <div
-                            key={g.key || '__orphans'}
-                            className="rounded-lg px-2.5 py-1.5"
-                            style={{ border: '1px solid var(--app-border)' }}
-                            data-status-dp-device={g.key}
-                        >
-                            <label className="flex items-center gap-2 cursor-pointer min-w-0">
-                                <TriCheckbox
-                                    checked={hidden === 0}
-                                    indeterminate={hidden > 0 && hidden < ids.length}
-                                    onChange={(v) => setShown(ids, v)}
-                                    label={`${g.name} anzeigen`}
-                                />
-                                <span className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
-                                    {g.name}
-                                </span>
-                                {g.room && (
-                                    <span className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                                        {g.room}
-                                    </span>
-                                )}
-                            </label>
-                            <div className="mt-1 space-y-0.5 pl-6">
-                                {g.rows.map((r) => {
-                                    const shown = !excluded.has(r.id);
-                                    const dupe = r.aliasOf
-                                        ? `Alias von ${r.aliasOf}`
-                                        : r.aliasedBy
-                                          ? `auch als Alias ${r.aliasedBy}`
-                                          : '';
-                                    return (
-                                        <label
-                                            key={r.id}
-                                            className="flex items-start gap-2 cursor-pointer min-w-0"
-                                            data-status-dp={r.id}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={shown}
-                                                onChange={(e) => setShown([r.id], e.target.checked)}
-                                                className="shrink-0 mt-0.5"
-                                                style={{ accentColor: 'var(--accent)' }}
+            {visible.length > 0 && (
+                <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                    {visible.slice(0, limit).map((g, i) => {
+                        const ids = g.rows.map((r) => r.id);
+                        const hidden = ids.filter((id) => excluded.has(id)).length;
+                        const single = g.rows.length === 1 && g.key !== '';
+                        return (
+                            <div
+                                key={g.key || '__orphans'}
+                                className="px-2.5 py-1"
+                                style={i ? { borderTop: '1px solid var(--app-border)' } : undefined}
+                                data-status-dp-device={g.key}
+                            >
+                                {single ? (
+                                    <DpLine
+                                        row={g.rows[0]}
+                                        title={g.name}
+                                        room={g.room}
+                                        shown={hidden === 0}
+                                        onChange={(v) => setShown(ids, v)}
+                                    />
+                                ) : (
+                                    <>
+                                        <label className="flex items-center gap-2 cursor-pointer min-w-0 py-0.5">
+                                            <TriCheckbox
+                                                checked={hidden === 0}
+                                                indeterminate={hidden > 0 && hidden < ids.length}
+                                                onChange={(v) => setShown(ids, v)}
+                                                label={`${g.name} anzeigen`}
                                             />
-                                            <span className="min-w-0" style={{ opacity: shown ? 1 : 0.55 }}>
+                                            <span
+                                                className="text-xs font-medium truncate"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {g.name}
+                                            </span>
+                                            {g.room && (
                                                 <span
-                                                    className="block text-xs truncate"
-                                                    style={{ color: 'var(--text-primary)' }}
-                                                >
-                                                    {r.label}
-                                                    {r.cat && CAT_LABEL[r.cat] !== r.label
-                                                        ? ` · ${CAT_LABEL[r.cat]}`
-                                                        : ''}
-                                                </span>
-                                                <span
-                                                    className="block text-[10px] truncate"
+                                                    className="text-[10px] shrink-0"
                                                     style={{ color: 'var(--text-secondary)' }}
-                                                    title={r.id}
                                                 >
-                                                    {r.id}
+                                                    {g.room}
                                                 </span>
-                                                {dupe && (
-                                                    <span
-                                                        className="block text-[10px] truncate"
-                                                        style={{ color: 'var(--accent)' }}
-                                                        title={dupe}
-                                                    >
-                                                        doppelt: {dupe}
-                                                    </span>
-                                                )}
+                                            )}
+                                            <span
+                                                className="ml-auto text-[10px] tabular-nums shrink-0"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {ids.length - hidden}/{ids.length}
                                             </span>
                                         </label>
-                                    );
-                                })}
+                                        <div className="pl-5">
+                                            {g.rows.map((r) => (
+                                                <DpLine
+                                                    key={r.id}
+                                                    row={r}
+                                                    title={r.label}
+                                                    shown={!excluded.has(r.id)}
+                                                    onChange={(v) => setShown([r.id], v)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
+            {visible.length > limit && (
+                <button
+                    type="button"
+                    className={btnCls}
+                    style={btnStyle}
+                    onClick={() => setLimit((n) => n + PAGE)}
+                    data-status-dp-more
+                >
+                    Weitere {Math.min(PAGE, visible.length - limit)} von {visible.length - limit} Geräten anzeigen
+                </button>
+            )}
         </div>
+    );
+}
+
+/** One datapoint: checkbox, name (+ room/category), id and alias marker below. */
+function DpLine({
+    row,
+    title,
+    room,
+    shown,
+    onChange,
+}: {
+    row: DpRow;
+    title: string;
+    room?: string;
+    shown: boolean;
+    onChange: (v: boolean) => void;
+}) {
+    const cat = row.cat && CAT_LABEL[row.cat] !== title ? CAT_LABEL[row.cat] : '';
+    const dupe = row.aliasOf ? `Alias von ${row.aliasOf}` : row.aliasedBy ? `auch als Alias ${row.aliasedBy}` : '';
+    return (
+        <label className="flex items-start gap-2 cursor-pointer min-w-0 py-0.5" data-status-dp={row.id}>
+            <input
+                type="checkbox"
+                checked={shown}
+                onChange={(e) => onChange(e.target.checked)}
+                className="shrink-0 mt-0.5"
+                style={{ accentColor: 'var(--accent)' }}
+            />
+            <span className="min-w-0 flex-1" style={{ opacity: shown ? 1 : 0.55 }}>
+                <span className="flex items-baseline gap-1.5 min-w-0">
+                    <span className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
+                        {title}
+                    </span>
+                    {room && (
+                        <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            {room}
+                        </span>
+                    )}
+                    {cat && (
+                        <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            · {cat}
+                        </span>
+                    )}
+                    {dupe && (
+                        <span
+                            className="ml-auto text-[10px] shrink-0 rounded px-1"
+                            style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                            title={dupe}
+                            data-status-dp-dupe={row.aliasOf ? 'alias' : 'original'}
+                        >
+                            {row.aliasOf ? 'Alias' : 'Original'}
+                        </span>
+                    )}
+                </span>
+                <span
+                    className="block text-[10px] truncate"
+                    style={{ color: 'var(--text-secondary)' }}
+                    title={dupe ? `${row.id} – ${dupe}` : row.id}
+                >
+                    {row.id}
+                </span>
+            </span>
+        </label>
     );
 }

@@ -65,7 +65,8 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 | --- | --- |
 | Haken | an = angezeigt, aus = Id landet in `excludeIds` |
 | Haken am Gerät | alle Datenpunkte des Geräts |
-| „doppelt: Alias von …“ | Alias und Original werden beide gefunden |
+| Marke „Alias“ / „Original“ | Alias und Original werden beide gefunden; Ziel im Tooltip |
+| „Weitere … anzeigen“ | ab 100 Geräten; Suche und Filter gelten für alle |
 | Originale / Aliase ausblenden | blendet von jedem Alias-Paar eine Seite aus |
 | Nicht mehr gefunden | ausgeblendete Ids ohne Treffer; Haken setzen = entfernen |
 | `excludeIdPatterns` | wirkt zusätzlich, ausgeblendete Treffer stehen nicht in der Liste |
