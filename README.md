@@ -92,6 +92,12 @@ a single forwarded port is enough.
 
 ---
 
+## Messages for scripts and AI agents
+
+`sendTo('aura.0', 'help', {})` answers with a description of the messages (`notify`, scenes, `staggeredWrite`, …) and the command states of Aura for AI agents (e.g. pi-agent) and script authors; the answer lists all commands with `write` (whether a command changes something).
+
+---
+
 ## Bugs & Feature Requests
 
 Please report directly as a GitHub issue:

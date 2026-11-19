@@ -71,6 +71,7 @@ const { adapterTimers } = require('./lib/timers');
 const { createAutoListSync } = require('./lib/autoListSync');
 const { compareVersions, usableRepoNames, bestRepoVersion, computeAdapterUpdates } = require('./lib/adapterUpdates');
 const { repoWebComponents } = require('./lib/repoWebComponents');
+const { HELP, COMMANDS } = require('./lib/help');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -6517,6 +6518,12 @@ class Aura extends utils.Adapter {
         const reply = (result) => {
             if (msg.callback && msg.from) this.sendTo(msg.from, msg.command, result, msg.callback);
         };
+
+        // A description of all messages for AI agents and scripts (lib/help.js)
+        if (msg.command === 'help') {
+            reply({ help: HELP, commands: COMMANDS });
+            return;
+        }
 
         try {
             // Admin → Ansagen "Test": speak one rule now, conditions and lock aside.
