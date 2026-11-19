@@ -358,6 +358,8 @@ test('battery kinds: voltage rows are judged against the volt threshold', () => 
     assert.strictEqual(shared.evaluateItem(mv, 2950, 'battery', {}, 0, true).label, '2,95 V');
     assert.strictEqual(shared.evaluateItem(mv, 2300, 'battery', {}).severity, 'warn');
     assert.strictEqual(shared.evaluateItem(v, 0, 'battery', {}), null, '0 V measures nothing');
+    assert.strictEqual(shared.evaluateItem(v, 0, 'battery', {}, 0, true), null, '0 V: no row even when listing all');
+    assert.strictEqual(shared.evaluateItem(mv, 0, 'battery', {}, 0, true), null, '0 mV: no row either');
 });
 
 (async () => {

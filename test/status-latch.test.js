@@ -154,6 +154,28 @@ test('a repeated "true" (periodic update) does not count again', () => {
     assert.strictEqual(lists.battery[0].count, 1);
 });
 
+test('0 V of a mains device (OPERATING_VOLTAGE) never opens an entry, drops an open one (#1000)', () => {
+    const PLUG_V = 'hm-rpc.1.0001D3C99C1234.0.OPERATING_VOLTAGE';
+    const { engine, lists } = makeEngine();
+    const reg = (val) => {
+        engine.register({
+            source: 'w1',
+            cat: 'battery',
+            settings: {},
+            watch: [{ id: PLUG_V, kind: 'pct', threshold: 2.4, levelUnit: 'V', name: 'Steckdose' }],
+        });
+        engine.update(PLUG_V, { val, ts: T0, lc: T0 });
+    };
+    reg(0);
+    assert.strictEqual(lists.battery.length, 0, '0 V is no weak battery');
+    engine.update(PLUG_V, { val: '0', ts: T0 + MIN, lc: T0 });
+    assert.strictEqual(lists.battery.length, 0, 'string 0 neither');
+    engine.update(PLUG_V, { val: 2.1, ts: T0 + 2 * MIN, lc: T0 + 2 * MIN });
+    assert.strictEqual(lists.battery.length, 1, 'a real low voltage still opens');
+    engine.update(PLUG_V, { val: 0, ts: T0 + 3 * MIN, lc: T0 + 3 * MIN });
+    assert.strictEqual(lists.battery.length, 0, 'an open entry for 0 V is dropped');
+});
+
 test('ack closes the entry; ack of an unknown live hint creates a closed one', () => {
     const { engine, lists, events } = makeEngine();
     register(engine);

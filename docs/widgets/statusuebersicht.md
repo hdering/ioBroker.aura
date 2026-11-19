@@ -39,7 +39,7 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 | `millivolt` – Spannung (mV) | aus | dasselbe mit Einheit `mV` | ≤ `batteryVoltThreshold` × 1000 |
 
 - Ein Gerät, eine Zeile: Prozent vor Spannung, Spannung vor LOWBAT.
-- Netzspannung (`Voltage` einer Steckdose) zählt nicht. 0 V gilt als „kein Messwert“.
+- Netzspannung (`Voltage` einer Steckdose) zählt nicht. 0 V (netzbetriebene HmIP-Geräte mit `OPERATING_VOLTAGE`) ergibt keine Zeile und keinen gemerkten Hinweis.
 - Mit Optik → „Welche Geräte anzeigen: Alle gefundenen Geräte“ (`valueFilter: all`) stehen die Spannungen auch ohne Warnung in der Liste („2,95 V“).
 
 | Fall | Abhilfe |

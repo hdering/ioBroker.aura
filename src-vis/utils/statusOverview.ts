@@ -623,8 +623,10 @@ export function evaluateItem(
         const kind = batteryKindOf(dp);
         if (kind === 'volt' || kind === 'millivolt') {
             const raw = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
-            // 0 V: a mains device that carries the datapoint but measures nothing.
-            if (isNaN(raw) || raw <= 0) return ok('–');
+            if (isNaN(raw)) return ok('–');
+            // 0 V: a mains device that carries the datapoint but measures nothing — no
+            // battery, so no row, not even under "all found devices" (#1000).
+            if (raw <= 0) return null;
             const label = formatVolt(kind === 'millivolt' ? raw / 1000 : raw);
             if (raw > batteryLimit(dp, opts)) return ok(label);
             return { ...base, severity: 'warn', label, color: SEVERITY_COLOR.warn };
