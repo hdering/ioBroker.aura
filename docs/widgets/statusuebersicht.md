@@ -55,6 +55,21 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 | Zustände geschlossen / gekippt / offen (Drehgriff) | immer |
 | `WINDOW_STATE` (Thermostat, Heizgruppe) oder HomeMatic-Gruppe (`INT…`) | nur in Räumen ohne eigenen Fensterkontakt |
 
+## Einzelne Datenpunkte ausblenden
+
+„Einschränkung“ → **Erkannte Datenpunkte**
+
+![Erkannte Datenpunkte](assets/statusuebersicht/erkannte-datenpunkte.png)
+
+| Element | |
+| --- | --- |
+| Haken | an = angezeigt, aus = Id landet in `excludeIds` |
+| Haken am Gerät | alle Datenpunkte des Geräts |
+| „doppelt: Alias von …“ | Alias und Original werden beide gefunden |
+| Originale / Aliase ausblenden | blendet von jedem Alias-Paar eine Seite aus |
+| Nicht mehr gefunden | ausgeblendete Ids ohne Treffer; Haken setzen = entfernen |
+| `excludeIdPatterns` | wirkt zusätzlich, ausgeblendete Treffer stehen nicht in der Liste |
+
 ## Namen
 
 | Option | |

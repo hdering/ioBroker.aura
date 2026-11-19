@@ -4,6 +4,7 @@
  * lib/shared/auraShared.js, so both sides name and place a datapoint alike.
  */
 import type { ObjectViewResult } from '../types';
+import { aliasTargetOf } from './deviceReach';
 
 export interface DatapointEntry {
     id: string;
@@ -31,6 +32,9 @@ export interface DatapointEntry {
     // in the picker, shown when the user opts into "also show inactive". Undefined
     // (e.g. synthetic entries) counts as active.
     active?: boolean;
+    // alias.* only: the datapoint the alias reads from (common.alias.id or its read side),
+    // so the Statusübersicht editor can pair an alias with its original (#1002).
+    aliasOf?: string;
 }
 
 /**
@@ -263,5 +267,6 @@ export function buildEntry(
         funcs: [...funcsSet],
         logging,
         active,
+        aliasOf: id.startsWith('alias.') ? aliasTargetOf(common) : undefined,
     };
 }

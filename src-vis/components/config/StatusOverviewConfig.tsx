@@ -12,8 +12,10 @@ import {
     DEFAULT_BATTERY_VOLT_THRESHOLD,
     type BatteryKind,
     type StatusOverviewOptions,
+    type StatusCandidate,
     type CategoryKey,
 } from '../../utils/statusOverview';
+import { StatusDatapointsEditor } from './StatusDatapointsEditor';
 import { Unavailable } from './Unavailable';
 
 /** Labels of the battery datapoint kinds (option batteryKinds, #1000). */
@@ -170,6 +172,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     // One row per found device, for the "Gerätenamen" popup.
     const [devices, setDevices] = useState<DeviceNameRow[]>([]);
     const [showNames, setShowNames] = useState(false);
+    // Discovery without excludeIds — the rows of the "Erkannte Datenpunkte" popup (#1002).
+    const [found, setFound] = useState<StatusCandidate[]>([]);
+    const [showDps, setShowDps] = useState(false);
     const namedSamples = samples.map((s) => {
         const own = customDeviceName(s.id, o.deviceNames);
         return own ? { ...s, name: own } : s;
@@ -204,6 +209,16 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 if (cancelled) return;
                 // The widget's own discovery, minus the battery-level lookup the preview has no use for.
                 const kept = discoverStatusCandidates(cache, { ...opts, latchBattery: false }, isBatteryDevice);
+                // The datapoint manager also lists what excludeIds hides, so it can be ticked back on (#1002).
+                setFound(
+                    opts.excludeIds?.length
+                        ? discoverStatusCandidates(
+                              cache,
+                              { ...opts, latchBattery: false, excludeIds: undefined },
+                              isBatteryDevice,
+                          )
+                        : kept,
+                );
                 const count = kept.length;
                 setDevices(deviceRowsOf(kept));
                 const byCat = new Map<CategoryKey, NameSource[]>();
@@ -654,6 +669,23 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 style={inputStyle}
                             />
                         </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Einzelne Datenpunkte ausblenden
+                            </label>
+                            <button
+                                onClick={() => setShowDps(true)}
+                                className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                                style={{ background: 'var(--accent)', color: '#fff' }}
+                                data-status-dp-open
+                            >
+                                Erkannte Datenpunkte
+                                {o.excludeIds?.length ? ` (${o.excludeIds.length} ausgeblendet)` : ''} →
+                            </button>
+                            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Alle gefundenen Datenpunkte mit Haken; doppelte über Alias und Original werden markiert.
+                            </p>
+                        </div>
                     </div>
                 </SubGroup>
                 {(o.catBattery !== false || o.catUnreach !== false || o.catAlarm !== false) && (
@@ -1014,6 +1046,15 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             {showActions && (
                 <ConfigModal title="Zeilen-Aktionen" maxWidth={560} padded onClose={() => setShowActions(false)}>
                     <StatusRowActionsEditor actions={o.rowActions ?? []} onChange={(v) => set({ rowActions: v })} />
+                </ConfigModal>
+            )}
+            {showDps && (
+                <ConfigModal title="Erkannte Datenpunkte" maxWidth={640} padded onClose={() => setShowDps(false)}>
+                    <StatusDatapointsEditor
+                        found={found}
+                        excludeIds={o.excludeIds}
+                        onChange={(v) => set({ excludeIds: v })}
+                    />
                 </ConfigModal>
             )}
             {showNames && (

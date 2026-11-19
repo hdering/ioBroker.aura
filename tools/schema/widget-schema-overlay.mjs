@@ -1097,6 +1097,15 @@ export const WIDGET_OPTION_NOTES = {
             'showAllClear',
             'allClearText',
         ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'] }]),
+        [
+            'excludeIds',
+            {
+                description:
+                    'Diese Datenpunkt-Ids nicht anzeigen (volle Ids). Im Editor über „Erkannte Datenpunkte“ per Haken ' +
+                    'gepflegt; dort werden Alias und Original desselben Geräts als doppelt markiert. Gilt auch für die ' +
+                    'Erkennung und Merkliste im Adapter.',
+            },
+        ],
         // Read as `!== false`: the generator cannot see that default.
         [
             'lightIncludeDimmers',

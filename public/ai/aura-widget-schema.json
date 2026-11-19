@@ -22271,7 +22271,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Diese Datenpunkt-Ids auslassen. Bei gesetztem Filter hier eintragen, was aus entries entfernt wird – sonst fügt der regelmäßige Abgleich es wieder hinzu."
+          "description": "Diese Datenpunkt-Ids nicht anzeigen (volle Ids). Im Editor über „Erkannte Datenpunkte“ per Haken gepflegt; dort werden Alias und Original desselben Geräts als doppelt markiert. Gilt auch für die Erkennung und Merkliste im Adapter."
         },
         "filterAdapters": {
           "type": "string",

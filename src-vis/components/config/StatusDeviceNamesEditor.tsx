@@ -10,7 +10,7 @@ export interface DeviceNameRow {
     cats: CategoryKey[];
 }
 
-const CAT_LABEL: Record<CategoryKey, string> = {
+export const CAT_LABEL: Record<CategoryKey, string> = {
     window: 'Fenster',
     battery: 'Batterie',
     light: 'Licht',
