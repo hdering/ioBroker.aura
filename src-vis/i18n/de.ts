@@ -1771,6 +1771,10 @@ export const de = {
     'dp.picker.showInactive': 'Inaktive anzeigen',
     'dp.picker.showInactiveHint':
         'Auch States von deaktivierten/deinstallierten Adaptern sowie verwaiste oder importierte States anzeigen',
+    'dp.picker.pinFilters': 'Filter fixieren',
+    'dp.picker.pinFiltersHint': 'Aktuelle Filter merken – jeder Auswahldialog öffnet dann mit ihnen',
+    'dp.picker.unpinFilters': 'Fixierung lösen',
+    'dp.picker.unpinFiltersHint': 'Filter sind fixiert, Änderungen werden übernommen. Klicken, um die Fixierung aufzuheben',
     'dp.picker.col.name': 'Name / ID',
     'dp.picker.col.value': 'Wert',
     'dp.picker.col.unit': 'Einheit',

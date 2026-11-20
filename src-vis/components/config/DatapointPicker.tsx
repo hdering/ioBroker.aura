@@ -11,6 +11,8 @@ import {
     ChevronDown,
     List as ListIcon,
     FolderTree,
+    Pin,
+    PinOff,
 } from 'lucide-react';
 import { useDatapointList, lookupObjectName, type DatapointEntry } from '../../hooks/useDatapointList';
 import { useFsRoots, useFsList } from '../../hooks/useFsList';
@@ -153,6 +155,49 @@ const MAX_TREE_ROWS = 600;
 const AUTO_EXPAND_MAX = 300;
 
 const VIEW_KEY = 'aura-dp-picker-view';
+/** Pinned filter set (#1005) – present = pinned; every dialog opens with it. */
+const PINNED_FILTERS_KEY = 'aura-dp-picker-filters';
+
+interface PinnedFilters {
+    adapter: string;
+    room: string;
+    func: string;
+    role: string;
+    type: string;
+    unit: string;
+    history: boolean;
+    inactive: boolean;
+}
+
+function readPinnedFilters(): PinnedFilters | null {
+    try {
+        const raw = localStorage.getItem(PINNED_FILTERS_KEY);
+        if (!raw) return null;
+        const o = JSON.parse(raw) as Partial<PinnedFilters>;
+        const str = (v: unknown) => (typeof v === 'string' ? v : '');
+        return {
+            adapter: str(o.adapter),
+            room: str(o.room),
+            func: str(o.func),
+            role: str(o.role),
+            type: str(o.type),
+            unit: str(o.unit),
+            history: o.history === true,
+            inactive: o.inactive === true,
+        };
+    } catch {
+        return null;
+    }
+}
+
+function writePinnedFilters(f: PinnedFilters | null) {
+    try {
+        if (f) localStorage.setItem(PINNED_FILTERS_KEY, JSON.stringify(f));
+        else localStorage.removeItem(PINNED_FILTERS_KEY);
+    } catch {
+        /* private mode / quota – the filters just aren't remembered */
+    }
+}
 
 function typeColor(type?: string): string {
     if (type === 'boolean') return '#f59e0b';
@@ -313,14 +358,17 @@ function DpModeBody({
 }) {
     const t = useT();
     const [search, setSearch] = useState(() => currentValue ?? '');
-    const [adapter, setAdapter] = useState('');
-    const [room, setRoom] = useState('');
-    const [func, setFunc] = useState('');
-    const [role, setRole] = useState('');
-    const [typeFilter, setTypeFilter] = useState('');
-    const [unitFilter, setUnitFilter] = useState('');
-    const [historyFilter, setHistoryFilter] = useState(false);
-    const [showInactive, setShowInactive] = useState(false);
+    // Pinned filters (#1005) seed every dialog; while pinned, each change is kept.
+    const [initialPin] = useState(readPinnedFilters);
+    const [pinned, setPinned] = useState(initialPin !== null);
+    const [adapterSel, setAdapter] = useState(initialPin?.adapter ?? '');
+    const [roomSel, setRoom] = useState(initialPin?.room ?? '');
+    const [funcSel, setFunc] = useState(initialPin?.func ?? '');
+    const [roleSel, setRole] = useState(initialPin?.role ?? '');
+    const [typeSel, setTypeFilter] = useState(initialPin?.type ?? '');
+    const [unitSel, setUnitFilter] = useState(initialPin?.unit ?? '');
+    const [historyFilter, setHistoryFilter] = useState(initialPin?.history ?? false);
+    const [showInactive, setShowInactive] = useState(initialPin?.inactive ?? false);
     const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
     const [values, setValues] = useState<Map<string, unknown>>(new Map());
     const fetchedIds = useRef<Set<string>>(new Set());
@@ -336,6 +384,23 @@ function DpModeBody({
             /* private mode / quota – the view just isn't remembered */
         }
     }, [view]);
+
+    useEffect(() => {
+        writePinnedFilters(
+            pinned
+                ? {
+                      adapter: adapterSel,
+                      room: roomSel,
+                      func: funcSel,
+                      role: roleSel,
+                      type: typeSel,
+                      unit: unitSel,
+                      history: historyFilter,
+                      inactive: showInactive,
+                  }
+                : null,
+        );
+    }, [pinned, adapterSel, roomSel, funcSel, roleSel, typeSel, unitSel, historyFilter, showInactive]);
 
     // States of disabled/uninstalled adapters (and orphaned/manually imported states
     // with no matching instance) are hidden by default. The toggle reveals them so a
@@ -368,6 +433,16 @@ function DpModeBody({
         [base],
     );
     const hasHistory = loggingAdapters.length > 0;
+
+    // A pinned value this dialog doesn't offer (other allowed types, adapter not
+    // installed here) must not empty the list – it is ignored, not dropped.
+    const pick = (v: string, options: string[]) => (v && options.includes(v) ? v : '');
+    const adapter = pick(adapterSel, adapters);
+    const room = pick(roomSel, rooms);
+    const func = pick(funcSel, funcs);
+    const role = pick(roleSel, roles);
+    const typeFilter = pick(typeSel, types);
+    const unitFilter = pick(unitSel, units);
 
     const filtered = useMemo(() => {
         let list = base;
@@ -722,6 +797,23 @@ function DpModeBody({
                                 {t('dp.picker.showInactive')}
                             </button>
                         )}
+                        <button
+                            onClick={() => setPinned((v) => !v)}
+                            title={pinned ? t('dp.picker.unpinFiltersHint') : t('dp.picker.pinFiltersHint')}
+                            aria-pressed={pinned}
+                            data-testid="dp-picker-pin"
+                            className="aura-dp-pin flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs shrink-0 transition-colors"
+                            style={{
+                                background: pinned
+                                    ? 'color-mix(in srgb, var(--accent) 13%, transparent)'
+                                    : 'var(--app-bg)',
+                                color: pinned ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${pinned ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                        >
+                            {pinned ? <PinOff size={12} /> : <Pin size={12} />}
+                            {pinned ? t('dp.picker.unpinFilters') : t('dp.picker.pinFilters')}
+                        </button>
                         {allowedTypes?.length === 1 &&
                             (() => {
                                 const ty = allowedTypes[0];
