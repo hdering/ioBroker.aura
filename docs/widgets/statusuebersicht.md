@@ -8,7 +8,7 @@ Zeigt von selbst, was Aufmerksamkeit braucht: offene Fenster und Türen, schwach
 | --- | --- |
 | `default` | nach Kategorie gruppiert |
 | `compact` | eine Liste, sortiert |
-| `table` | Tabelle: jede Angabe eine Spalte, über alle Zeilen ausgerichtet; Überschrift nur bei mehreren Kategorien |
+| `table` | Tabelle: jede Angabe eine Spalte, über alle Zeilen ausgerichtet, Kopfzeile mit Spaltennamen; Überschrift nur bei mehreren Kategorien |
 | `twoline` | Zweizeilig: Punkt in der Farbe der Schwere, Name fett, darunter Messwert und Hinweise, große Knöpfe rechts; Überschrift nur bei mehreren Kategorien |
 | `card` | Kacheln |
 | `minimal` | Pillen |
@@ -23,7 +23,7 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 
 ## Zeilenaufbau
 
-Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`
+Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `twoline`
 
 ![Zeilenaufbau](assets/statusuebersicht/zeilenaufbau.png)
 
@@ -31,14 +31,25 @@ Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table
 | --- | --- |
 | Pfeile | Reihenfolge |
 | Haken | anzeigen; Raum, „seit …“, Batterietyp schalten `showRoom`, `showSince`, `batteryTypeEnabled` |
-| links / hinter dem Namen / rechts | Platz in der Zeile; „hinter dem Namen“ = gedämpft an den Namen gehängt |
+| links / hinter dem Namen / rechts | Platz in der Zeile; „links“ hinter dem Namen = direkt neben dem Namen, „hinter dem Namen“ = gedämpft an den Namen gehängt |
 | Standard-Reihenfolge | zurück auf die eingebaute Zeile |
 
 | Layout `table` | |
 | --- | --- |
 | Spalten | jede sichtbare Angabe, in der Reihenfolge der Liste; die Seite zählt nicht |
 | Wert | rechtsbündig |
+| Kopfzeile | Spaltennamen (Gerät, Raum, Seit, Hinweis, Typ, Wert); Haken „Kopfzeile mit Spaltennamen“ (`tableHeader`) |
+| leere Spalte | entfällt, wenn keine Zeile etwas dafür hat |
 | schmales Widget | unter ca. 350 px fallen Raum, „seit …“, Merk-Hinweise weg, unter ca. 240 px auch der Batterietyp |
+
+| Layout `twoline` | |
+| --- | --- |
+| Zeile 1 | hinter dem fetten Namen |
+| Zeile 2 | darunter; Vorgabe: Messwert, Batterietyp, Raum, „seit …“, Merk-Hinweise |
+| rechts | vor den Knöpfen |
+| Symbol | der farbige Punkt |
+
+![Zweizeilig mit Raum in Zeile 1, Wert rechts](assets/statusuebersicht/zeilenaufbau-twoline.png)
 
 ## Batterien erkennen
 

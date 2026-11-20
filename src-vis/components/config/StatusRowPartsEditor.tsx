@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, RotateCcw } from 'lucide-react';
 import {
-    DEFAULT_ROW_PARTS,
     ROW_PART_LABELS,
+    defaultRowParts,
     isDefaultRowParts,
     resolveRowParts,
     type ResolvedRowPart,
@@ -22,6 +22,12 @@ const VISIBILITY_OPTION: Partial<Record<StatusRowPartKey, 'showRoom' | 'showSinc
 const SLOT_LABELS: Record<StatusRowSlot, string> = {
     start: 'links',
     meta: 'hinter dem Namen',
+    end: 'rechts',
+};
+/** Zweizeilig reads the sides as lines. */
+const SLOT_LABELS_2L: Record<StatusRowSlot, string> = {
+    start: 'Zeile 1',
+    meta: 'Zeile 2',
     end: 'rechts',
 };
 
@@ -45,12 +51,15 @@ export function StatusRowPartsEditor({
     layout: string;
     set: (patch: Partial<StatusOverviewOptions>) => void;
 }) {
-    const parts = resolveRowParts(opts.rowParts);
+    const base = defaultRowParts(layout);
+    const parts = resolveRowParts(opts.rowParts, base);
     const isTable = layout === 'table';
-    const applies = layout === 'default' || layout === 'compact' || isTable;
+    const isTwoLine = layout === 'twoline';
+    const applies = layout === 'default' || layout === 'compact' || isTable || isTwoLine;
+    const slotLabels = isTwoLine ? SLOT_LABELS_2L : SLOT_LABELS;
 
     const write = (next: ResolvedRowPart[]) => {
-        if (isDefaultRowParts(next)) {
+        if (isDefaultRowParts(next, base)) {
             set({ rowParts: undefined });
             return;
         }
@@ -83,13 +92,29 @@ export function StatusRowPartsEditor({
     const setSlot = (i: number, slot: StatusRowSlot) => write(parts.map((q, k) => (k === i ? { ...q, slot } : q)));
 
     return (
-        <Unavailable reason={applies ? undefined : 'Nur in den Layouts Standard, Kompakt und Tabelle'}>
+        <Unavailable reason={applies ? undefined : 'Nur in den Layouts Standard, Kompakt, Tabelle und Zweizeilig'}>
             <div className="space-y-1">
                 <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
                     {isTable
                         ? 'Jede sichtbare Angabe ist eine Spalte, in dieser Reihenfolge. Wird das Widget schmal, fallen zuerst Raum, „seit …“ und Merk-Hinweise weg, dann der Batterietyp.'
-                        : 'Reihenfolge und Seite der Angaben in einer Zeile. „Hinter dem Namen“ hängt die Angabe gedämpft an den Namen an.'}
+                        : isTwoLine
+                          ? 'Reihenfolge und Platz der Angaben: Zeile 1 hinter dem Namen, Zeile 2 darunter oder rechts vor den Knöpfen. Das Symbol ist der farbige Punkt.'
+                          : 'Reihenfolge und Seite der Angaben in einer Zeile. „Hinter dem Namen“ hängt die Angabe gedämpft an den Namen an.'}
                 </p>
+                {isTable && (
+                    <label
+                        className="aura-status-theadtoggle flex items-center gap-1.5 text-xs select-none pb-1"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        <input
+                            type="checkbox"
+                            checked={opts.tableHeader !== false}
+                            onChange={() => set({ tableHeader: opts.tableHeader === false ? undefined : false })}
+                            style={{ accentColor: 'var(--accent)' }}
+                        />
+                        Kopfzeile mit Spaltennamen
+                    </label>
+                )}
                 {parts.map((p, i) => {
                     const on = isOn(p);
                     const fixed = p.key === 'name';
@@ -146,11 +171,11 @@ export function StatusRowPartsEditor({
                                     border: '1px solid var(--app-border)',
                                 }}
                             >
-                                {(Object.keys(SLOT_LABELS) as StatusRowSlot[])
+                                {(Object.keys(slotLabels) as StatusRowSlot[])
                                     .filter((s) => !(fixed && s === 'meta'))
                                     .map((s) => (
                                         <option key={s} value={s}>
-                                            {SLOT_LABELS[s]}
+                                            {slotLabels[s]}
                                         </option>
                                     ))}
                             </select>
@@ -160,9 +185,7 @@ export function StatusRowPartsEditor({
                 {opts.rowParts && (
                     <button
                         type="button"
-                        onClick={() =>
-                            write(DEFAULT_ROW_PARTS.map((d) => ({ key: d.key, slot: d.slot, hidden: false })))
-                        }
+                        onClick={() => write(base.map((d) => ({ key: d.key, slot: d.slot, hidden: false })))}
                         className="inline-flex items-center gap-1 text-[11px] rounded-md px-2 py-1 hover:opacity-80"
                         style={btnStyle}
                     >

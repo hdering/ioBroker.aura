@@ -6665,7 +6665,7 @@
         "slot": {
           "type": "string",
           "ref": "StatusRowSlot",
-          "description": "start = left, meta = muted behind the name, end = right edge (default per part); ignored in layout Tabelle"
+          "description": "start = left, meta = muted behind the name, end = right edge (default per part); Zweizeilig: line 1 / line 2 / right; ignored in layout Tabelle"
         },
         "hidden": {
           "type": "boolean",
@@ -22588,11 +22588,12 @@
             "type": "object",
             "ref": "StatusRowPart"
           },
-          "description": "Order, side and visibility of the parts of a row (layouts Standard, Kompakt, Tabelle; #1003). Unset = the built-in order (icon, name, room, since, facts | value, battery type). Parts missing from the list keep their default place at the end of their side. Room, since and battery type are switched by showRoom / showSince / batteryTypeEnabled, the others by `hidden`. In layout Tabelle every visible part is a column in this order.",
+          "description": "Order, side and visibility of the parts of a row (layouts Standard, Kompakt, Tabelle, Zweizeilig; #1003). Unset = the built-in order (icon, name, room, since, facts | value, battery type); Zweizeilig: icon, name | value, battery type, room, since, facts on line 2. In Zweizeilig the sides read start = line 1, meta = line 2, end = right before the buttons. Parts missing from the list keep their default place at the end of their side. Room, since and battery type are switched by showRoom / showSince / batteryTypeEnabled, the others by `hidden`. In layout Tabelle every visible part is a column in this order.",
           "onlyLayouts": [
             "default",
             "compact",
-            "table"
+            "table",
+            "twoline"
           ]
         },
         "rowPopupAutoCloseCountdown": {
@@ -22769,6 +22770,14 @@
             "minimal",
             "count"
           ]
+        },
+        "tableHeader": {
+          "type": "boolean",
+          "description": "layout Tabelle: header row with the column names (default true)",
+          "onlyLayouts": [
+            "table"
+          ],
+          "default": true
         },
         "valueFilter": {
           "type": "string",

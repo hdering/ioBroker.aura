@@ -210,13 +210,16 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     showMore?: boolean; // show the "+N weitere" row when maxRows cuts the list off (default true)
     showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt/Tabelle/Zweizeilig)
     /**
-     * Order, side and visibility of the parts of a row (layouts Standard, Kompakt, Tabelle; #1003).
-     * Unset = the built-in order (icon, name, room, since, facts | value, battery type).
+     * Order, side and visibility of the parts of a row (layouts Standard, Kompakt, Tabelle, Zweizeilig; #1003).
+     * Unset = the built-in order (icon, name, room, since, facts | value, battery type);
+     * Zweizeilig: icon, name | value, battery type, room, since, facts on line 2.
+     * In Zweizeilig the sides read start = line 1, meta = line 2, end = right before the buttons.
      * Parts missing from the list keep their default place at the end of their side.
      * Room, since and battery type are switched by showRoom / showSince / batteryTypeEnabled,
      * the others by `hidden`. In layout Tabelle every visible part is a column in this order.
      */
     rowParts?: StatusRowPart[];
+    tableHeader?: boolean; // layout Tabelle: header row with the column names (default true)
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     /**
      * Categories whose rows show "seit …" (default ['window']). Windows/doors count the
@@ -1097,11 +1100,6 @@ export function formatDay(ts: number): string {
     return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`;
 }
 
-/**
- * The extra facts of a remembered row, in reading order:
- * "seit 05.10." · "3× gemeldet" · "meldet zurzeit nichts, bleibt gemerkt" ·
- * "zurückgestellt bis 07.10." · "trotz Wechsel am 01.10."
- */
 // ── Row parts (option rowParts, #1003) ───────────────────────────────────────
 
 /** A piece of a status row the user can order and place. */
@@ -1112,7 +1110,7 @@ export type StatusRowSlot = 'start' | 'meta' | 'end';
 /** One entry of option rowParts. */
 export interface StatusRowPart {
     key: StatusRowPartKey; // which part: icon, name, room, since ("seit …"), facts (remembered-hint notes), batteryType, value
-    slot?: StatusRowSlot; // start = left, meta = muted behind the name, end = right edge (default per part); ignored in layout Tabelle
+    slot?: StatusRowSlot; // start = left, meta = muted behind the name, end = right edge (default per part); Zweizeilig: line 1 / line 2 / right; ignored in layout Tabelle
     hidden?: boolean; // hide icon, facts or value (room/since/batteryType use showRoom/showSince/batteryTypeEnabled; the name always shows)
 }
 
@@ -1126,6 +1124,33 @@ export const DEFAULT_ROW_PARTS: readonly Required<Omit<StatusRowPart, 'hidden'>>
     { key: 'value', slot: 'end' },
     { key: 'batteryType', slot: 'end' },
 ];
+
+/** The built-in two-line row: dot and name on line 1, everything else on line 2. */
+export const TWOLINE_ROW_PARTS: readonly Required<Omit<StatusRowPart, 'hidden'>>[] = [
+    { key: 'icon', slot: 'start' },
+    { key: 'name', slot: 'start' },
+    { key: 'value', slot: 'meta' },
+    { key: 'batteryType', slot: 'meta' },
+    { key: 'room', slot: 'meta' },
+    { key: 'since', slot: 'meta' },
+    { key: 'facts', slot: 'meta' },
+];
+
+/** The built-in part list of a layout. */
+export function defaultRowParts(layout: string | undefined): readonly Required<Omit<StatusRowPart, 'hidden'>>[] {
+    return layout === 'twoline' ? TWOLINE_ROW_PARTS : DEFAULT_ROW_PARTS;
+}
+
+/** Column names of the table header (layout Tabelle). */
+export const TABLE_HEADER_LABELS: Record<StatusRowPartKey, string> = {
+    icon: '',
+    name: 'Gerät',
+    room: 'Raum',
+    since: 'Seit',
+    facts: 'Hinweis',
+    batteryType: 'Typ',
+    value: 'Wert',
+};
 
 /** German labels of the parts (editor). */
 export const ROW_PART_LABELS: Record<StatusRowPartKey, string> = {
@@ -1150,8 +1175,11 @@ export interface ResolvedRowPart {
  * duplicate keys dropped, the name always shown and never muted), then every part
  * the list does not mention at its default place.
  */
-export function resolveRowParts(stored: readonly StatusRowPart[] | undefined): ResolvedRowPart[] {
-    const defaults = new Map(DEFAULT_ROW_PARTS.map((p) => [p.key, p.slot]));
+export function resolveRowParts(
+    stored: readonly StatusRowPart[] | undefined,
+    base: readonly Required<Omit<StatusRowPart, 'hidden'>>[] = DEFAULT_ROW_PARTS,
+): ResolvedRowPart[] {
+    const defaults = new Map(base.map((p) => [p.key, p.slot]));
     const seen = new Set<StatusRowPartKey>();
     const out: ResolvedRowPart[] = [];
     for (const p of stored ?? []) {
@@ -1165,7 +1193,7 @@ export function resolveRowParts(stored: readonly StatusRowPart[] | undefined): R
                 : { key: p.key, slot, hidden: p.hidden === true },
         );
     }
-    for (const d of DEFAULT_ROW_PARTS) {
+    for (const d of base) {
         if (seen.has(d.key)) continue;
         // Behind the last stored part of the same slot, so a forgotten part does not
         // jump in front of the ones the user placed.
@@ -1186,13 +1214,21 @@ export function resolveRowParts(stored: readonly StatusRowPart[] | undefined): R
 }
 
 /** True when the stored list draws the row exactly like the built-in one (stores nothing then). */
-export function isDefaultRowParts(parts: readonly ResolvedRowPart[]): boolean {
+export function isDefaultRowParts(
+    parts: readonly ResolvedRowPart[],
+    base: readonly Required<Omit<StatusRowPart, 'hidden'>>[] = DEFAULT_ROW_PARTS,
+): boolean {
     return (
-        parts.length === DEFAULT_ROW_PARTS.length &&
-        parts.every((p, i) => p.key === DEFAULT_ROW_PARTS[i].key && p.slot === DEFAULT_ROW_PARTS[i].slot && !p.hidden)
+        parts.length === base.length &&
+        parts.every((p, i) => p.key === base[i].key && p.slot === base[i].slot && !p.hidden)
     );
 }
 
+/**
+ * The extra facts of a remembered row, in reading order:
+ * "seit 05.10." · "3× gemeldet" · "meldet zurzeit nichts, bleibt gemerkt" ·
+ * "zurückgestellt bis 07.10." · "trotz Wechsel am 01.10."
+ */
 export function latchFacts(item: StatusItem, showSince: boolean, long = false): string[] {
     if (item.ignored) return [long ? 'ignoriert, wird nicht gemerkt' : 'ignoriert'];
     const l = item.latch;

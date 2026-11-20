@@ -72,9 +72,12 @@ import {
     ignoredItem,
     latchFacts,
     formatDay,
+    defaultRowParts,
     resolveRowParts,
+    TABLE_HEADER_LABELS,
     type ResolvedRowPart,
     type StatusRowPartKey,
+    type StatusRowSlot,
     hashString,
     actionsFor,
     fillRowTemplate,
@@ -1053,7 +1056,9 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // ── Row parts (option rowParts, #1003) ──────────────────────────────────────
     // Order, side and visibility of icon, name, room, "seit …", the remembered-hint
     // notes, battery type and value. Unset = the row as it always was.
-    const rowParts = resolveRowParts(opts.rowParts);
+    // Zweizeilig has its own built-in order (everything but the name on line 2).
+    const rowParts = resolveRowParts(opts.rowParts, defaultRowParts(layout));
+    const longText = layout === 'twoline';
     const partOn = (p: ResolvedRowPart) =>
         !p.hidden &&
         (p.key === 'room'
@@ -1071,15 +1076,19 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 return item.room || null;
             case 'since':
                 if (item.ignored) return null;
-                if (item.latch) return item.latch.since ? `seit ${formatDay(item.latch.since)}` : null;
+                if (item.latch)
+                    return item.latch.since
+                        ? `${longText ? 'gemeldet seit' : 'seit'} ${formatDay(item.latch.since)}`
+                        : null;
                 return sinceCats.includes(item.category) && item.lc ? formatSince(item.lc) : null;
             case 'facts':
-                // Without the day: that is the "since" part's job.
-                return latchFacts(item, false).join(' · ') || null;
+                // Without the day: that is the "since" part's job. The two-line row has the
+                // room for the longer wording.
+                return latchFacts(item, false, longText).join(' · ') || null;
             case 'batteryType':
                 return batteryLabelFor(item);
             case 'value':
-                return item.label || null;
+                return (longText ? readingFor(item) : item.label) || null;
             default:
                 return null;
         }
@@ -1142,42 +1151,43 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 </span>
             );
         });
-        const startNodes = shownParts
-            .filter((p) => p.slot === 'start')
-            .map((p) => {
-                if (p.key === 'icon') return <Icon key="icon" size={14} className="shrink-0" style={{ color }} />;
-                if (p.key === 'name')
-                    return (
-                        <span
-                            key="name"
-                            className={`${isAligned ? '' : 'flex-1 '}min-w-0 truncate text-xs`}
-                            style={{
-                                color: 'var(--text-primary)',
-                                // The name keeps ~8rem before the buttons give way (flex-wrap above).
-                                ...(buttons.length && !isAligned ? { flex: '1 1 8rem' } : {}),
-                            }}
-                            title={item.latch && sub ? `${labelFor(item)} · ${sub}` : undefined}
-                        >
-                            {labelFor(item)}
-                            {sub && <span className="ml-1 opacity-50">· {sub}</span>}
-                        </span>
-                    );
-                const text = partText(item, p.key);
-                if (!text) return null;
-                return p.key === 'value' ? (
-                    <span key="value" className="text-xs font-semibold shrink-0" style={{ color }}>
-                        {text}
-                    </span>
-                ) : (
+        const startParts = shownParts.filter((p) => p.slot === 'start');
+        const nameAt = startParts.findIndex((p) => p.key === 'name');
+        // Left parts behind the name must sit next to it, not behind the free space the
+        // name takes: then the name and those parts share one group that takes it.
+        const nameGroup =
+            nameAt >= 0 && startParts.slice(nameAt + 1).some((p) => p.key === 'icon' || partText(item, p.key) !== null);
+        // The name keeps ~8rem before the buttons give way (flex-wrap above).
+        const growStyle: React.CSSProperties = buttons.length && !isAligned ? { flex: '1 1 8rem' } : {};
+        const startNodes = startParts.map((p) => {
+            if (p.key === 'icon') return <Icon key="icon" size={14} className="shrink-0" style={{ color }} />;
+            if (p.key === 'name')
+                return (
                     <span
-                        key={p.key}
-                        className="text-xs shrink-0 opacity-60"
-                        style={{ color: 'var(--text-secondary)' }}
+                        key="name"
+                        className={`${isAligned || nameGroup ? '' : 'flex-1 '}min-w-0 truncate text-xs`}
+                        style={{
+                            color: 'var(--text-primary)',
+                            ...(nameGroup ? { flex: '0 1 auto' } : growStyle),
+                        }}
+                        title={item.latch && sub ? `${labelFor(item)} · ${sub}` : undefined}
                     >
-                        {text}
+                        {labelFor(item)}
+                        {sub && <span className="ml-1 opacity-50">· {sub}</span>}
                     </span>
                 );
-            });
+            const text = partText(item, p.key);
+            if (!text) return null;
+            return p.key === 'value' ? (
+                <span key="value" className="text-xs font-semibold shrink-0" style={{ color }}>
+                    {text}
+                </span>
+            ) : (
+                <span key={p.key} className="text-xs shrink-0 opacity-60" style={{ color: 'var(--text-secondary)' }}>
+                    {text}
+                </span>
+            );
+        });
         return (
             <div
                 key={item.id}
@@ -1203,7 +1213,19 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 }}
                 {...rowProps}
             >
-                {startNodes}
+                {nameGroup ? (
+                    <>
+                        {startNodes.slice(0, nameAt)}
+                        <span
+                            className={`aura-status-start flex items-center gap-2 min-w-0${isAligned ? '' : ' flex-1'}`}
+                            style={growStyle}
+                        >
+                            {startNodes.slice(nameAt)}
+                        </span>
+                    </>
+                ) : (
+                    startNodes
+                )}
                 {endCount > 0 && (
                     <span className="text-xs font-semibold shrink-0" style={{ color }}>
                         {endNodes}
@@ -1220,7 +1242,13 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // Narrow widgets drop the room/since/notes columns first, then the battery
     // type (container queries in index.css: .aura-status-col-lo / -mid).
     const table = layout === 'table';
-    const tableCols = shownParts;
+    // A column no row has anything for (no room set, no remembered hints) would only
+    // add a gap and an empty header — icon, name and value always stay.
+    const tableCols = table
+        ? shownParts.filter(
+              (p) => p.key === 'icon' || p.key === 'name' || p.key === 'value' || items.some((i) => partText(i, p.key)),
+          )
+        : shownParts;
     const tableButtons = table ? new Map(items.map((i) => [i.id, rowButtons(i, alertColorFor(i))])) : null;
     const tableHasButtons = !!tableButtons && [...tableButtons.values()].some((b) => b.length > 0);
     const tableTemplate = [
@@ -1313,6 +1341,37 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         );
     };
 
+    // Header row with the column names (option tableHeader, default on). Same cells
+    // and column classes as the rows, so the container queries drop its columns too.
+    const tableHeaderRow =
+        table && opts.tableHeader !== false ? (
+            <div
+                className="aura-status-thead items-end px-1 -mx-1 pb-0.5 mb-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                style={{
+                    display: 'grid',
+                    gridColumn: '1 / -1',
+                    gridTemplateColumns: 'subgrid',
+                    color: 'var(--text-secondary)',
+                    opacity: 0.75,
+                    borderBottom: '1px solid var(--widget-border)',
+                }}
+            >
+                {tableCols.map((p, i) => (
+                    <span
+                        key={p.key}
+                        className={`aura-status-hcell aura-status-cell-${p.key}${colClass(p.key)} min-w-0 truncate`}
+                        style={{
+                            paddingLeft: i === 0 ? undefined : 12,
+                            textAlign: p.key === 'value' ? 'right' : undefined,
+                        }}
+                    >
+                        {TABLE_HEADER_LABELS[p.key]}
+                    </span>
+                ))}
+                {tableHasButtons && <span />}
+            </div>
+        ) : null;
+
     // ── Two-line row (layout 'twoline') ───────────────────────────────────────────
     // Dot · name on line 1 · reading and facts muted on line 2 · touch buttons on the
     // right. No tinted background and no muting of quiet entries: line 2 says it.
@@ -1402,17 +1461,27 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         }
         return buttons;
     };
+    // Row parts here: start = line 1 (behind the name), meta = line 2, end = right
+    // before the buttons. The icon is the status dot.
     const renderTwoLineRow = (item: StatusItem, first: boolean) => {
-        const batteryLabel = batteryLabelFor(item);
-        const sub = [
-            readingFor(item),
-            batteryLabel,
-            opts.showRoom !== false ? item.room : null,
-            !item.latch && showSince && sinceCats.includes(item.category) && item.lc ? formatSince(item.lc) : null,
-            ...latchFacts(item, showSince, true),
-        ]
-            .filter(Boolean)
-            .join(' · ');
+        const dot = (key: string) => (
+            <span
+                key={key}
+                className="aura-status-dot shrink-0 rounded-full inline-block"
+                style={{ width: 8, height: 8, background: dotColorFor(item) }}
+                aria-hidden
+            />
+        );
+        const textsOf = (slot: StatusRowSlot) =>
+            shownParts
+                .filter((p) => p.slot === slot && p.key !== 'name' && p.key !== 'icon')
+                .map((p) => partText(item, p.key))
+                .filter(Boolean)
+                .join(' · ');
+        const iconSlot = shownParts.find((p) => p.key === 'icon')?.slot;
+        const line1 = textsOf('start');
+        const sub = textsOf('meta');
+        const end = textsOf('end');
         const rowProps = rowPopup.row(item.id, labelFor(item));
         const buttons = twoLineButtons(item);
         return (
@@ -1428,21 +1497,38 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 }}
                 {...rowProps}
             >
-                <span
-                    className="shrink-0 rounded-full"
-                    style={{ width: 8, height: 8, background: dotColorFor(item) }}
-                    aria-hidden
-                />
+                {iconSlot === 'start' && dot('dot')}
                 <div className="min-w-0" style={{ flex: '1 1 10rem' }}>
                     <div className="text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                         {labelFor(item)}
+                        {line1 && (
+                            <span
+                                className="aura-status-2l-line1 ml-1.5 text-xs font-normal"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                {line1}
+                            </span>
+                        )}
                     </div>
-                    {sub && (
-                        <div className="text-xs break-words" style={{ color: 'var(--text-secondary)', marginTop: 1 }}>
-                            {sub}
+                    {(sub || iconSlot === 'meta') && (
+                        <div
+                            className={`aura-status-2l-sub text-xs break-words${iconSlot === 'meta' ? ' flex items-center gap-1.5' : ''}`}
+                            style={{ color: 'var(--text-secondary)', marginTop: 1 }}
+                        >
+                            {iconSlot === 'meta' && dot('dot')}
+                            {sub && <span className="min-w-0">{sub}</span>}
                         </div>
                     )}
                 </div>
+                {(end || iconSlot === 'end') && (
+                    <span
+                        className="aura-status-2l-end flex items-center gap-1.5 shrink-0 text-sm font-semibold"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        {end}
+                        {iconSlot === 'end' && dot('dot')}
+                    </span>
+                )}
                 {buttons.length > 0 && (
                     <span className="flex items-center gap-2 shrink-0 ml-auto flex-wrap justify-end">{buttons}</span>
                 )}
@@ -1695,6 +1781,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                                 : undefined
                         }
                     >
+                        {tableHeaderRow}
                         {layout === 'compact' || ((twoLine || table) && enabledCats.length === 1)
                             ? // A single category needs no heading in the two-line layout: the chip counts.
                               rowsOf(items)

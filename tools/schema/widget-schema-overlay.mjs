@@ -1106,8 +1106,9 @@ export const WIDGET_OPTION_NOTES = {
                     'Erkennung und Merkliste im Adapter.',
             },
         ],
-        // The two-line row, tiles and pills keep their own fixed arrangement (#1003).
-        ['rowParts', { onlyLayouts: ['default', 'compact', 'table'] }],
+        // Tiles and pills keep their own fixed arrangement (#1003).
+        ['rowParts', { onlyLayouts: ['default', 'compact', 'table', 'twoline'] }],
+        ['tableHeader', { onlyLayouts: ['table'], default: true }],
         // Read as `!== false`: the generator cannot see that default.
         [
             'lightIncludeDimmers',

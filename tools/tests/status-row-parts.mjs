@@ -92,7 +92,9 @@ async function open(options, layout, width = 900, cols = 8) {
     await page
         .waitForFunction(
             () =>
-                document.querySelectorAll('.react-grid-item .aura-status-trow, .react-grid-item div.py-1').length >= 3,
+                document.querySelectorAll(
+                    '.react-grid-item .aura-status-trow, .react-grid-item div.py-1, .react-grid-item .aura-status-row-2l',
+                ).length >= 3,
             null,
             { timeout: 30000 },
         )
@@ -149,6 +151,108 @@ const listRows = (page) =>
     await ctx.close();
 }
 
+// ── 2b. "links" behind the name sits next to the name, not at the right edge ──
+const geom = (page, needle) =>
+    page.evaluate((n) => {
+        const row = [...document.querySelectorAll('.react-grid-item div.flex.items-center.gap-2.py-1')].find((r) =>
+            r.textContent.includes(n),
+        );
+        if (!row) {
+            return null;
+        }
+        const rr = row.getBoundingClientRect();
+        const spans = [...row.querySelectorAll('span')];
+        const find = (t) => spans.find((s) => s.textContent === t && !s.querySelector('span'));
+        const box = (el) => {
+            if (!el) {
+                return null;
+            }
+            const r = el.getBoundingClientRect();
+            return { l: Math.round(r.left - rr.left), r: Math.round(rr.right - r.right) };
+        };
+        const nameEl = spans.filter((s) => s.textContent.startsWith(n)).pop();
+        const range = document.createRange();
+        if (nameEl) {
+            range.selectNodeContents(nameEl);
+        }
+        const nr = nameEl ? range.getBoundingClientRect() : null;
+        return {
+            rowW: Math.round(rr.width),
+            name: nr ? { l: Math.round(nr.left - rr.left), r: Math.round(rr.right - nr.right) } : null,
+            value: box(find('12 %')),
+            room: box(find('Küche')),
+        };
+    }, needle);
+for (const layout of ['default', 'compact']) {
+    {
+        // value "links", behind the name (the reported case)
+        const { ctx, page } = await open(
+            {
+                rowParts: [
+                    { key: 'icon', slot: 'start' },
+                    { key: 'name', slot: 'start' },
+                    { key: 'value', slot: 'start' },
+                ],
+            },
+            layout,
+            900,
+            24,
+        );
+        const g = await geom(page, 'Kühlschranktür');
+        // right after the name text, far from the right edge
+        check(
+            `${layout}: value "links" behind the name sits next to the name`,
+            !!g?.value && !!g.name && g.rowW - g.name.r - g.value.l <= 12 && g.value.r > 100,
+            JSON.stringify(g),
+        );
+        await ctx.close();
+    }
+    {
+        // value "links", in front of the name
+        const { ctx, page } = await open(
+            {
+                rowParts: [
+                    { key: 'value', slot: 'start' },
+                    { key: 'icon', slot: 'start' },
+                    { key: 'name', slot: 'start' },
+                ],
+            },
+            layout,
+            900,
+            24,
+        );
+        const g = await geom(page, 'Kühlschranktür');
+        check(
+            `${layout}: value "links" before the name sits at the left edge`,
+            !!g?.value && !!g.name && g.value.l <= 8 && g.name.l > g.value.l,
+            JSON.stringify(g),
+        );
+        await ctx.close();
+    }
+    {
+        // room "links" behind the name: plain text next to the name, value stays right
+        const { ctx, page } = await open(
+            {
+                rowParts: [
+                    { key: 'icon', slot: 'start' },
+                    { key: 'name', slot: 'start' },
+                    { key: 'room', slot: 'start' },
+                ],
+            },
+            layout,
+            900,
+            24,
+        );
+        const g = await geom(page, 'Kühlschranktür');
+        check(
+            `${layout}: room "links" next to the name, value at the right edge`,
+            !!g?.room && !!g.name && g.rowW - g.name.r - g.room.l <= 12 && g.room.r > 100 && g.value?.r <= 8,
+            JSON.stringify(g),
+        );
+        await ctx.close();
+    }
+}
+
 // ── 3. table: aligned columns ─────────────────────────────────────────────────
 const cells = (page) =>
     page.evaluate(() => {
@@ -191,6 +295,104 @@ const cells = (page) =>
     await ctx.close();
 }
 
+// ── 3b. table header: column names, right-aligned "Wert", narrow drops "Raum" ──
+const head = (page) =>
+    page.evaluate(() => {
+        const h = document.querySelector('.aura-status-thead');
+        if (!h) {
+            return null;
+        }
+        const vis = [...h.children].filter((c) => getComputedStyle(c).display !== 'none');
+        const val = h.querySelector('.aura-status-cell-value');
+        const rowVal = document.querySelector('.aura-status-trow .aura-status-cell-value');
+        return {
+            labels: vis.map((c) => c.textContent),
+            valueRight: val ? Math.round(val.getBoundingClientRect().right) : null,
+            rowValueRight: rowVal ? Math.round(rowVal.getBoundingClientRect().right) : null,
+        };
+    });
+{
+    const { ctx, page } = await open({}, 'table', 900, 24);
+    const h = await head(page);
+    check(
+        'table header: column names in row order',
+        !!h && h.labels.join('|') === '|Gerät|Raum|Wert',
+        JSON.stringify(h),
+    );
+    check(
+        'table header: "Wert" ends with the value column',
+        !!h && h.valueRight === h.rowValueRight,
+        JSON.stringify(h),
+    );
+    await ctx.close();
+}
+{
+    const { ctx, page } = await open({}, 'table', 900, 8);
+    const h = await head(page);
+    check(
+        'table header narrow: "Raum" dropped with its column',
+        !!h && h.labels.join('|') === '|Gerät|Wert',
+        JSON.stringify(h),
+    );
+    await ctx.close();
+}
+{
+    const { ctx, page } = await open({ tableHeader: false }, 'table', 900, 24);
+    check('table header: tableHeader false hides it', (await head(page)) === null);
+    await ctx.close();
+}
+
+// ── 3c. twoline: built-in row unchanged, rowParts move parts between lines ────
+const twoRows = (page) =>
+    page.evaluate(() =>
+        [...document.querySelectorAll('.aura-status-row-2l')].map((r) => ({
+            text: r.textContent,
+            dot: !!r.querySelector('.aura-status-dot'),
+            dotFirst: r.firstElementChild?.classList.contains('aura-status-dot') ?? false,
+            line1: r.querySelector('.aura-status-2l-line1')?.textContent ?? null,
+            sub: r.querySelector('.aura-status-2l-sub')?.textContent ?? null,
+            end: r.querySelector('.aura-status-2l-end')?.textContent ?? null,
+        })),
+    );
+const waitTwo = (page) =>
+    page
+        .waitForFunction(() => document.querySelectorAll('.aura-status-row-2l').length >= 3, null, { timeout: 30000 })
+        .catch(() => {});
+{
+    const { ctx, page } = await open({}, 'twoline');
+    await waitTwo(page);
+    const r = await twoRows(page);
+    const k = r.find((x) => x.text.includes('Kühlschranktür'));
+    check(
+        'twoline default: dot first, reading and room on line 2',
+        !!k && k.dotFirst && k.sub === 'Batterie bei 12 % · Küche' && k.line1 === null && k.end === null,
+        JSON.stringify(k),
+    );
+    await ctx.close();
+}
+{
+    const { ctx, page } = await open(
+        {
+            rowParts: [
+                { key: 'icon', slot: 'start', hidden: true },
+                { key: 'name', slot: 'start' },
+                { key: 'room', slot: 'start' },
+                { key: 'value', slot: 'end' },
+            ],
+        },
+        'twoline',
+    );
+    await waitTwo(page);
+    const r = await twoRows(page);
+    const k = r.find((x) => x.text.includes('Kühlschranktür'));
+    check(
+        'twoline rowParts: room on line 1, value on the right, no dot, no line 2',
+        !!k && !k.dot && k.line1 === 'Küche' && k.end === 'Batterie bei 12 %' && k.sub === null,
+        JSON.stringify(k),
+    );
+    await ctx.close();
+}
+
 // ── 4. resolveRowParts: cleanup and default places ───────────────────────────
 {
     const ctx = await browser.newContext();
@@ -200,6 +402,11 @@ const cells = (page) =>
         const m = await import('/src-vis/utils/statusOverview.ts');
         const keys = (parts) => parts.map((p) => `${p.key}:${p.slot}${p.hidden ? '!' : ''}`).join(' ');
         return {
+            twoline: keys(m.resolveRowParts(undefined, m.defaultRowParts('twoline'))),
+            twolineIsDefault: m.isDefaultRowParts(
+                m.resolveRowParts(undefined, m.defaultRowParts('twoline')),
+                m.defaultRowParts('twoline'),
+            ),
             unset: keys(m.resolveRowParts(undefined)),
             unsetIsDefault: m.isDefaultRowParts(m.resolveRowParts(undefined)),
             // type before value; the rest falls into place
@@ -224,6 +431,12 @@ const cells = (page) =>
         'resolveRowParts: unset = built-in row',
         r.unset === 'icon:start name:start room:meta since:meta facts:meta value:end batteryType:end' &&
             r.unsetIsDefault,
+        JSON.stringify(r),
+    );
+    check(
+        'resolveRowParts: twoline default = everything but the name on line 2',
+        r.twoline === 'icon:start name:start value:meta batteryType:meta room:meta since:meta facts:meta' &&
+            r.twolineIsDefault,
         JSON.stringify(r),
     );
     check(
