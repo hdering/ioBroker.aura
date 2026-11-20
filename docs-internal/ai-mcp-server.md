@@ -2243,6 +2243,7 @@ Neue Optionen an `statusoverview` (alle aus `StatusOverviewOptions`, Beschreibun
 | `showIgnored` | Ignorierte gedämpft zeigen, mit „Aufnehmen“ (`unignore:`) |
 | `rowActions: StatusRowAction[]` | Knöpfe am Zeilenende (default/compact/twoline), Platzhalter `{id} {device} {serial} {name} {room}` |
 | `sinceCategories` (`['window']`) | „seit …“ auch für `battery` / `unreach` |
+| `rowParts: StatusRowPart[]` | Reihenfolge, Seite und Sichtbarkeit der Zeilen-Bausteine (default/compact/table, #1003); im Layout `table` ist jede sichtbare Angabe eine ausgerichtete Spalte |
 
 Adapter-Seite (`lib/statusLatch.js`, Verdrahtung in `main.js` `_initStatusLatch`):
 

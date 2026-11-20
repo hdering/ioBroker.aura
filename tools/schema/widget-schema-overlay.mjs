@@ -1096,7 +1096,7 @@ export const WIDGET_OPTION_NOTES = {
             'showOkCategories',
             'showAllClear',
             'allClearText',
-        ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'] }]),
+        ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'table', 'twoline', 'card', 'minimal', 'count'] }]),
         [
             'excludeIds',
             {
@@ -1106,10 +1106,12 @@ export const WIDGET_OPTION_NOTES = {
                     'Erkennung und Merkliste im Adapter.',
             },
         ],
+        // The two-line row, tiles and pills keep their own fixed arrangement (#1003).
+        ['rowParts', { onlyLayouts: ['default', 'compact', 'table'] }],
         // Read as `!== false`: the generator cannot see that default.
         [
             'lightIncludeDimmers',
-            { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'], default: true },
+            { onlyLayouts: ['default', 'compact', 'table', 'twoline', 'card', 'minimal', 'count'], default: true },
         ],
         [
             'catBattery',

@@ -71,6 +71,10 @@ import {
     parseIgnoredList,
     ignoredItem,
     latchFacts,
+    formatDay,
+    resolveRowParts,
+    type ResolvedRowPart,
+    type StatusRowPartKey,
     hashString,
     actionsFor,
     fillRowTemplate,
@@ -776,7 +780,6 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             color: SEVERITY_COLOR.warn,
         }));
     }, [fillCount, discoveredItems, opts]);
-    const probeMark = fillCount ? { 'data-aura-probe-filled': fillCount } : {};
     const items = useMemo(() => (maxRows ? allItems.slice(0, maxRows) : allItems), [allItems, maxRows]);
     const hiddenCount = allItems.length - items.length;
     const moreRow =
@@ -793,6 +796,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const loadedStates = candidates.reduce((n, c) => (states[c.dp.id] === undefined ? n : n + 1), 0);
     const loading =
         !fillCount && isStatusLoading({ discovered, settled, loaded: loadedStates, expected: candidates.length });
+    // data-aura-status-ready: the rows (or the verdict) are in — the metrics script
+    // waits for it instead of measuring the loading panel.
+    const probeMark = {
+        ...(fillCount ? { 'data-aura-probe-filled': fillCount } : {}),
+        ...(loading ? {} : { 'data-aura-status-ready': '' }),
+    };
 
     // Label pipeline: name pattern (incl. the `{{parent}}` variables) → live `[[dp]]`
     // values. The resolver is a hook, so it has to run above the layout branches below —
@@ -909,6 +918,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         return (
             <div
                 ref={measureRef}
+                {...probeMark}
                 className={`${autoHeight ? 'w-full py-2' : 'h-full w-full'} flex flex-col items-center justify-center gap-1`}
             >
                 {showTitle && (
@@ -1040,26 +1050,134 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const isMuted = (item: StatusItem) =>
         !!item.ignored || (!!item.latch && (!item.latch.active || !!item.latch.snoozedUntil));
 
+    // ── Row parts (option rowParts, #1003) ──────────────────────────────────────
+    // Order, side and visibility of icon, name, room, "seit …", the remembered-hint
+    // notes, battery type and value. Unset = the row as it always was.
+    const rowParts = resolveRowParts(opts.rowParts);
+    const partOn = (p: ResolvedRowPart) =>
+        !p.hidden &&
+        (p.key === 'room'
+            ? opts.showRoom !== false
+            : p.key === 'since'
+              ? showSince
+              : p.key === 'batteryType'
+                ? wantBatteryTypes
+                : true);
+    const shownParts = rowParts.filter(partOn);
+    /** The text of a muted part for one row, or null when the row has none. */
+    const partText = (item: StatusItem, key: StatusRowPartKey): string | null => {
+        switch (key) {
+            case 'room':
+                return item.room || null;
+            case 'since':
+                if (item.ignored) return null;
+                if (item.latch) return item.latch.since ? `seit ${formatDay(item.latch.since)}` : null;
+                return sinceCats.includes(item.category) && item.lc ? formatSince(item.lc) : null;
+            case 'facts':
+                // Without the day: that is the "since" part's job.
+                return latchFacts(item, false).join(' · ') || null;
+            case 'batteryType':
+                return batteryLabelFor(item);
+            case 'value':
+                return item.label || null;
+            default:
+                return null;
+        }
+    };
+    /** Muted parts behind the name, joined (" · "). */
+    const metaOf = (item: StatusItem) =>
+        shownParts
+            .filter((p) => p.slot === 'meta')
+            .map((p) => partText(item, p.key))
+            .filter(Boolean)
+            .join(' · ');
+
     // A plain function, not a component: an inline component is a new type on every
     // render, and the remount would drop an armed confirm button mid-tap.
     const renderRow = (item: StatusItem) => {
-        const batteryLabel = batteryLabelFor(item);
         const color = alertColorFor(item);
         const customBg = alertBgFor(item);
         const alert = item.severity !== 'ok';
         const { Icon } = CATEGORY_META[item.category];
-        const sub = [
-            opts.showRoom !== false ? item.room : null,
-            !item.latch && showSince && sinceCats.includes(item.category) && item.lc ? formatSince(item.lc) : null,
-            ...latchFacts(item, showSince),
-        ]
-            .filter(Boolean)
-            .join(' · ');
+        const sub = metaOf(item);
         const rowProps = rowPopup.row(item.id, labelFor(item));
         // A remembered entry that reports nothing right now, or one put back with
         // "Später", stays in the list — muted, so the live problems stand out.
         const muted = isMuted(item);
         const buttons = rowButtons(item, color);
+        // The end parts sit in one inline group (value · type), like the row always
+        // looked: a muted part behind anything gets the separating dot.
+        const endParts = shownParts.filter((p) => p.slot === 'end');
+        let endCount = 0;
+        const endNodes = endParts.map((p) => {
+            if (p.key === 'icon') {
+                endCount++;
+                return (
+                    <Icon
+                        key="icon"
+                        size={14}
+                        className={`inline-block align-middle${endCount > 1 ? ' ml-1' : ''}`}
+                        style={{ color }}
+                    />
+                );
+            }
+            const text = partText(item, p.key);
+            if (!text) return null;
+            const first = endCount === 0;
+            endCount++;
+            if (p.key === 'value')
+                return (
+                    <span key="value" className={first ? undefined : 'ml-1'}>
+                        {text}
+                    </span>
+                );
+            return (
+                <span
+                    key={p.key}
+                    className={`${first ? '' : 'ml-1 '}font-normal opacity-60`}
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    {first ? '' : '· '}
+                    {text}
+                </span>
+            );
+        });
+        const startNodes = shownParts
+            .filter((p) => p.slot === 'start')
+            .map((p) => {
+                if (p.key === 'icon') return <Icon key="icon" size={14} className="shrink-0" style={{ color }} />;
+                if (p.key === 'name')
+                    return (
+                        <span
+                            key="name"
+                            className={`${isAligned ? '' : 'flex-1 '}min-w-0 truncate text-xs`}
+                            style={{
+                                color: 'var(--text-primary)',
+                                // The name keeps ~8rem before the buttons give way (flex-wrap above).
+                                ...(buttons.length && !isAligned ? { flex: '1 1 8rem' } : {}),
+                            }}
+                            title={item.latch && sub ? `${labelFor(item)} · ${sub}` : undefined}
+                        >
+                            {labelFor(item)}
+                            {sub && <span className="ml-1 opacity-50">· {sub}</span>}
+                        </span>
+                    );
+                const text = partText(item, p.key);
+                if (!text) return null;
+                return p.key === 'value' ? (
+                    <span key="value" className="text-xs font-semibold shrink-0" style={{ color }}>
+                        {text}
+                    </span>
+                ) : (
+                    <span
+                        key={p.key}
+                        className="text-xs shrink-0 opacity-60"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {text}
+                    </span>
+                );
+            });
         return (
             <div
                 key={item.id}
@@ -1085,28 +1203,112 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 }}
                 {...rowProps}
             >
-                <Icon size={14} className="shrink-0" style={{ color }} />
-                <span
-                    className={`${isAligned ? '' : 'flex-1 '}min-w-0 truncate text-xs`}
-                    style={{
-                        color: 'var(--text-primary)',
-                        // The name keeps ~8rem before the buttons give way (flex-wrap above).
-                        ...(buttons.length && !isAligned ? { flex: '1 1 8rem' } : {}),
-                    }}
-                    title={item.latch && sub ? `${labelFor(item)} · ${sub}` : undefined}
-                >
-                    {labelFor(item)}
-                    {sub && <span className="ml-1 opacity-50">· {sub}</span>}
-                </span>
-                <span className="text-xs font-semibold shrink-0" style={{ color }}>
-                    {item.label}
-                    {batteryLabel && (
-                        <span className="ml-1 font-normal opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                            · {batteryLabel}
-                        </span>
-                    )}
-                </span>
+                {startNodes}
+                {endCount > 0 && (
+                    <span className="text-xs font-semibold shrink-0" style={{ color }}>
+                        {endNodes}
+                    </span>
+                )}
                 {buttons.length > 0 && <span className="flex items-center gap-1 shrink-0 ml-auto">{buttons}</span>}
+            </div>
+        );
+    };
+
+    // ── Table rows (layout 'table', #1003) ──────────────────────────────────────
+    // Every shown part is a column of one grid shared by all rows (subgrid), so
+    // values, types and rooms line up. Slots do not matter here, only the order.
+    // Narrow widgets drop the room/since/notes columns first, then the battery
+    // type (container queries in index.css: .aura-status-col-lo / -mid).
+    const table = layout === 'table';
+    const tableCols = shownParts;
+    const tableButtons = table ? new Map(items.map((i) => [i.id, rowButtons(i, alertColorFor(i))])) : null;
+    const tableHasButtons = !!tableButtons && [...tableButtons.values()].some((b) => b.length > 0);
+    const tableTemplate = [
+        ...tableCols.map((p) =>
+            p.key === 'name' ? 'minmax(4rem, 1fr)' : p.key === 'facts' ? 'minmax(0, max-content)' : 'auto',
+        ),
+        ...(tableHasButtons ? ['auto'] : []),
+    ].join(' ');
+    const colClass = (key: StatusRowPartKey) =>
+        key === 'room' || key === 'since' || key === 'facts'
+            ? ' aura-status-col-lo'
+            : key === 'batteryType'
+              ? ' aura-status-col-mid'
+              : '';
+    const renderTableRow = (item: StatusItem) => {
+        const color = alertColorFor(item);
+        const customBg = alertBgFor(item);
+        const alert = item.severity !== 'ok';
+        const { Icon } = CATEGORY_META[item.category];
+        const rowProps = rowPopup.row(item.id, labelFor(item));
+        const muted = isMuted(item);
+        const buttons = tableButtons?.get(item.id) ?? [];
+        return (
+            <div
+                key={item.id}
+                className="aura-status-trow items-center py-1 px-1 -mx-1 rounded-md min-w-0"
+                data-latch={item.latch ? (muted ? 'muted' : 'active') : undefined}
+                data-ignored={item.ignored ? '' : undefined}
+                style={{
+                    display: 'grid',
+                    gridColumn: '1 / -1',
+                    gridTemplateColumns: 'subgrid',
+                    ...(alert
+                        ? {
+                              background: muted
+                                  ? `color-mix(in srgb, ${color} 5%, transparent)`
+                                  : (customBg ?? `color-mix(in srgb, ${color} 12%, transparent)`),
+                          }
+                        : undefined),
+                    cursor: rowProps ? 'pointer' : undefined,
+                    opacity: muted ? 0.65 : undefined,
+                }}
+                {...rowProps}
+            >
+                {tableCols.map((p, i) => {
+                    const cls = `aura-status-cell aura-status-cell-${p.key}${colClass(p.key)} min-w-0 text-xs`;
+                    const pad = i === 0 ? undefined : 12;
+                    if (p.key === 'icon')
+                        return (
+                            <span key="icon" className={`${cls} flex items-center`} style={{ paddingLeft: pad }}>
+                                <Icon size={14} style={{ color }} />
+                            </span>
+                        );
+                    if (p.key === 'name')
+                        return (
+                            <span
+                                key="name"
+                                className={`${cls} truncate`}
+                                style={{ paddingLeft: pad, color: 'var(--text-primary)' }}
+                                title={labelFor(item)}
+                            >
+                                {labelFor(item)}
+                            </span>
+                        );
+                    const text = partText(item, p.key);
+                    return p.key === 'value' ? (
+                        <span
+                            key="value"
+                            className={`${cls} font-semibold whitespace-nowrap`}
+                            style={{ paddingLeft: pad, color, textAlign: 'right' }}
+                        >
+                            {text}
+                        </span>
+                    ) : (
+                        <span
+                            key={p.key}
+                            className={`${cls} ${p.key === 'facts' ? 'break-words' : 'whitespace-nowrap'}`}
+                            style={{ paddingLeft: pad, color: 'var(--text-secondary)' }}
+                        >
+                            {text}
+                        </span>
+                    );
+                })}
+                {tableHasButtons && (
+                    <span className="flex items-center gap-1 justify-end" style={{ paddingLeft: 12 }}>
+                        {buttons}
+                    </span>
+                )}
             </div>
         );
     };
@@ -1248,7 +1450,11 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         );
     };
     const rowsOf = (list: StatusItem[]) =>
-        twoLine ? list.map((item, i) => renderTwoLineRow(item, i === 0)) : list.map((item) => renderRow(item));
+        twoLine
+            ? list.map((item, i) => renderTwoLineRow(item, i === 0))
+            : table
+              ? list.map(renderTableRow)
+              : list.map((item) => renderRow(item));
 
     const header = (
         <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
@@ -1475,47 +1681,65 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             ) : allClear ? (
                 allClearBlock
             ) : (
-                <div className={`${scrollCls} pr-0.5`}>
-                    {layout === 'compact' || (twoLine && enabledCats.length === 1)
-                        ? // A single category needs no heading in the two-line layout: the chip counts.
-                          rowsOf(items)
-                        : // default (and twoline with several categories): grouped by category
-                          enabledCats.map((cat) => {
-                              const catItems = items.filter((i) => i.category === cat);
-                              if (catItems.length === 0 && !opts.showOkCategories) return null;
-                              const catAlerts = catItems.reduce((n, i) => (countsAsHint(i) ? n + 1 : n), 0);
-                              const { Icon, label } = CATEGORY_META[cat];
-                              return (
-                                  <div key={cat} className="mb-1.5 last:mb-0">
-                                      <div
-                                          className="flex items-center gap-1.5 mt-1 mb-0.5"
-                                          style={{ justifyContent: alignFlex }}
-                                      >
-                                          <Icon
-                                              size={12}
-                                              style={{ color: catAlerts ? SEVERITY_COLOR.warn : SEVERITY_COLOR.ok }}
-                                          />
-                                          <span
-                                              className="text-[11px] font-semibold uppercase tracking-wide"
-                                              style={{ color: 'var(--text-secondary)' }}
+                <div className={`${scrollCls} pr-0.5${table ? ' aura-status-table-wrap' : ''}`}>
+                    <div
+                        className={table ? 'aura-status-table' : 'contents'}
+                        style={
+                            table
+                                ? {
+                                      display: 'grid',
+                                      gridTemplateColumns: tableTemplate,
+                                      rowGap: 2,
+                                      alignContent: 'start',
+                                  }
+                                : undefined
+                        }
+                    >
+                        {layout === 'compact' || ((twoLine || table) && enabledCats.length === 1)
+                            ? // A single category needs no heading in the two-line layout: the chip counts.
+                              rowsOf(items)
+                            : // default (and twoline/table with several categories): grouped by category
+                              enabledCats.map((cat) => {
+                                  const catItems = items.filter((i) => i.category === cat);
+                                  if (catItems.length === 0 && !opts.showOkCategories) return null;
+                                  const catAlerts = catItems.reduce((n, i) => (countsAsHint(i) ? n + 1 : n), 0);
+                                  const { Icon, label } = CATEGORY_META[cat];
+                                  return (
+                                      // In the table the group is transparent, so its rows join the shared grid.
+                                      <div key={cat} className={table ? 'contents' : 'mb-1.5 last:mb-0'}>
+                                          <div
+                                              className="flex items-center gap-1.5 mt-1 mb-0.5"
+                                              style={{
+                                                  justifyContent: alignFlex,
+                                                  ...(table ? { gridColumn: '1 / -1' } : {}),
+                                              }}
                                           >
-                                              {label}
-                                          </span>
-                                          {catAlerts > 0 ? (
+                                              <Icon
+                                                  size={12}
+                                                  style={{ color: catAlerts ? SEVERITY_COLOR.warn : SEVERITY_COLOR.ok }}
+                                              />
                                               <span
-                                                  className="text-[11px] font-semibold"
-                                                  style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                  className="text-[11px] font-semibold uppercase tracking-wide"
+                                                  style={{ color: 'var(--text-secondary)' }}
                                               >
-                                                  {catAlerts}
+                                                  {label}
                                               </span>
-                                          ) : (
-                                              <ShieldCheck size={11} style={{ color: SEVERITY_COLOR.ok }} />
-                                          )}
+                                              {catAlerts > 0 ? (
+                                                  <span
+                                                      className="text-[11px] font-semibold"
+                                                      style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                  >
+                                                      {catAlerts}
+                                                  </span>
+                                              ) : (
+                                                  <ShieldCheck size={11} style={{ color: SEVERITY_COLOR.ok }} />
+                                              )}
+                                          </div>
+                                          {rowsOf(catItems)}
                                       </div>
-                                      {rowsOf(catItems)}
-                                  </div>
-                              );
-                          })}
+                                  );
+                              })}
+                    </div>
                 </div>
             )}
             {moreRow}
@@ -1805,7 +2029,7 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
         ) : null;
 
     return (
-        <div ref={measureRef} className={rootCls}>
+        <div ref={measureRef} className={rootCls} data-aura-status-ready="">
             {header}
             {rowPopup.node}
             {rows.length === 0 ? (

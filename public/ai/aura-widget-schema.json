@@ -6653,6 +6653,46 @@
         "millivolt"
       ]
     },
+    "StatusRowPart": {
+      "type": "object",
+      "fields": {
+        "key": {
+          "type": "string",
+          "ref": "StatusRowPartKey",
+          "required": true,
+          "description": "which part: icon, name, room, since (\"seit …\"), facts (remembered-hint notes), batteryType, value"
+        },
+        "slot": {
+          "type": "string",
+          "ref": "StatusRowSlot",
+          "description": "start = left, meta = muted behind the name, end = right edge (default per part); ignored in layout Tabelle"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "hide icon, facts or value (room/since/batteryType use showRoom/showSince/batteryTypeEnabled; the name always shows)"
+        }
+      }
+    },
+    "StatusRowPartKey": {
+      "type": "string",
+      "enum": [
+        "icon",
+        "name",
+        "room",
+        "since",
+        "facts",
+        "batteryType",
+        "value"
+      ]
+    },
+    "StatusRowSlot": {
+      "type": "string",
+      "enum": [
+        "start",
+        "meta",
+        "end"
+      ]
+    },
     "CategoryKey": {
       "type": "string",
       "enum": [
@@ -22038,6 +22078,7 @@
       "layouts": [
         "default",
         "compact",
+        "table",
         "twoline",
         "card",
         "minimal",
@@ -22086,6 +22127,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22102,6 +22144,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22114,6 +22157,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22126,6 +22170,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22138,6 +22183,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22160,6 +22206,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22174,6 +22221,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22204,6 +22252,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22234,6 +22283,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22251,6 +22301,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22292,6 +22343,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22315,6 +22367,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22327,6 +22380,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22339,6 +22393,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22351,6 +22406,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22363,6 +22419,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22375,6 +22432,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22387,6 +22445,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22399,6 +22458,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22411,6 +22471,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22423,6 +22484,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22440,6 +22502,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22452,6 +22515,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22503,6 +22567,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22516,6 +22581,19 @@
           ],
           "ref": "RowClickSetting",
           "description": "undefined = off (rows are not clickable). `'auto'` derives from the role."
+        },
+        "rowParts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "StatusRowPart"
+          },
+          "description": "Order, side and visibility of the parts of a row (layouts Standard, Kompakt, Tabelle; #1003). Unset = the built-in order (icon, name, room, since, facts | value, battery type). Parts missing from the list keep their default place at the end of their side. Room, since and battery type are switched by showRoom / showSince / batteryTypeEnabled, the others by `hidden`. In layout Tabelle every visible part is a column in this order.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "table"
+          ]
         },
         "rowPopupAutoCloseCountdown": {
           "type": "string",
@@ -22573,6 +22651,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22598,6 +22677,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22623,6 +22703,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22648,6 +22729,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22664,6 +22746,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22680,6 +22763,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",
@@ -22696,6 +22780,7 @@
           "onlyLayouts": [
             "default",
             "compact",
+            "table",
             "twoline",
             "card",
             "minimal",

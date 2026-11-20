@@ -146,6 +146,8 @@ export type WidgetLayout =
     | 'bar'
     /** Status overview: two-line rows (dot, bold name, muted facts) with touch buttons. */
     | 'twoline'
+    /** Status overview: rows as a table — every row part is a column aligned across all rows. */
+    | 'table'
     /** Status overview: the closed hints from the adapter's history ("Zuletzt gewechselt"). */
     | 'history'
     /** News: the headlines as one scrolling line. */

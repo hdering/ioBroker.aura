@@ -8,15 +8,37 @@ Zeigt von selbst, was Aufmerksamkeit braucht: offene Fenster und Türen, schwach
 | --- | --- |
 | `default` | nach Kategorie gruppiert |
 | `compact` | eine Liste, sortiert |
+| `table` | Tabelle: jede Angabe eine Spalte, über alle Zeilen ausgerichtet; Überschrift nur bei mehreren Kategorien |
 | `twoline` | Zweizeilig: Punkt in der Farbe der Schwere, Name fett, darunter Messwert und Hinweise, große Knöpfe rechts; Überschrift nur bei mehreren Kategorien |
 | `card` | Kacheln |
 | `minimal` | Pillen |
 | `count` | nur der Zähler |
 | `history` | Zuletzt gewechselt – geschlossene Hinweise aus dem Adapter-Verlauf, siehe unten |
 
-Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`, `compact` und `twoline`.
+Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`, `compact`, `table` und `twoline`.
 
 ![Layout „Zweizeilig“](assets/statusuebersicht/layout-twoline.png)
+
+![Layout „Tabelle“](assets/statusuebersicht/layout-table.png)
+
+## Zeilenaufbau
+
+Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`
+
+![Zeilenaufbau](assets/statusuebersicht/zeilenaufbau.png)
+
+| Element | |
+| --- | --- |
+| Pfeile | Reihenfolge |
+| Haken | anzeigen; Raum, „seit …“, Batterietyp schalten `showRoom`, `showSince`, `batteryTypeEnabled` |
+| links / hinter dem Namen / rechts | Platz in der Zeile; „hinter dem Namen“ = gedämpft an den Namen gehängt |
+| Standard-Reihenfolge | zurück auf die eingebaute Zeile |
+
+| Layout `table` | |
+| --- | --- |
+| Spalten | jede sichtbare Angabe, in der Reihenfolge der Liste; die Seite zählt nicht |
+| Wert | rechtsbündig |
+| schmales Widget | unter ca. 350 px fallen Raum, „seit …“, Merk-Hinweise weg, unter ca. 240 px auch der Batterietyp |
 
 ## Batterien erkennen
 
@@ -297,7 +319,7 @@ Ein Knopf erscheint, wenn alles drei zutrifft:
 | --- | --- |
 | Zeile wird gezeigt | Standard: nur Auffälliges (Licht an, Fenster offen …); mit „Alle gefundenen Geräte“ an jeder Zeile |
 | Kategorie passt | `categories` leer = jede Zeile |
-| Layout | `default`, `compact` oder `twoline` |
+| Layout | `default`, `compact`, `table` oder `twoline` |
 
 | Vorlage | Knopf | Ziel / Wert | Kategorie |
 | --- | --- | --- | --- |

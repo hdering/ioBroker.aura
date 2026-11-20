@@ -691,6 +691,8 @@ const COUNTED = [
         variantCounts: [2, 8],
         variants: [
             { key: 'compact', layout: 'compact', label: 'Layout "compact"' },
+            // One line per row like "compact", the columns shared by all rows (#1003).
+            { key: 'table', layout: 'table', label: 'Layout "table"' },
             {
                 // Dot, name, a muted second line and touch buttons beside them. Measured
                 // with two buttons per row (the remembered battery: „2 Tage später“ and
@@ -1304,6 +1306,10 @@ const CONTENT = {
     chips: { need: '.aura-chip, button', what: 'die Chips' },
     // The loading/empty notice is a single row — two rows means history arrived.
     historytable: { need: 'tbody tr:nth-child(2)', what: 'die Zeilen' },
+    // Discovery runs after the mount; two equal readings of the loading panel
+    // were taken as settled and the base line came out flat (144 px for 2/4/8 rows).
+    // The first mount is slow (cold datapoint cache) — `polls` lets it take ~9 s.
+    statusoverview: { need: '[data-aura-status-ready]', what: 'die Zeilen', polls: 150 },
 };
 
 /**
@@ -1436,7 +1442,7 @@ async function render(type, { rows, cols, datapoint, options, mock, sendTo, layo
     const content = CONTENT[type] || {};
     let last = null;
     let prev = '';
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < (content.polls ?? 16); i++) {
         await page.waitForTimeout(60);
         last = await page.evaluate(FITS, { id: wid, need: content.need, plot: content.plot });
         const key = JSON.stringify(last);
