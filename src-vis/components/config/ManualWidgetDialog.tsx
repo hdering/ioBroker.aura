@@ -961,6 +961,16 @@ export function ManualWidgetDialog({
                                         >
                                             {t('editor.manual.wc.title')}
                                         </p>
+                                        <span
+                                            data-wc-count={wcEntries.length}
+                                            className="text-[10px] font-semibold tabular-nums px-1.5 rounded-full"
+                                            style={{
+                                                color: WC_COLOR,
+                                                background: `color-mix(in srgb, ${WC_COLOR} 14%, var(--app-bg))`,
+                                            }}
+                                        >
+                                            {wcEntries.length}
+                                        </span>
                                     </div>
                                     <p
                                         className="text-[11px] mt-0.5 mb-2 leading-snug"
