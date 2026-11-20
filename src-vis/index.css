@@ -338,6 +338,23 @@ iframe {
     }
 }
 
+/* Statusübersicht, layout "table" (#1003): the columns follow the width the widget
+   actually gets — narrow, the room/"seit"/notes columns go first, then the battery
+   type. A hidden cell leaves its auto column at zero width (cells pad themselves). */
+.aura-status-table-wrap {
+    container-type: inline-size;
+}
+@container (max-width: 22rem) {
+    .aura-status-col-lo {
+        display: none;
+    }
+}
+@container (max-width: 15rem) {
+    .aura-status-col-mid {
+        display: none;
+    }
+}
+
 @keyframes tabPulse {
     0%,
     100% {

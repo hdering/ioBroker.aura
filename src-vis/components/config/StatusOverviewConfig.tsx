@@ -16,6 +16,7 @@ import {
     type CategoryKey,
 } from '../../utils/statusOverview';
 import { StatusDatapointsEditor } from './StatusDatapointsEditor';
+import { StatusRowPartsEditor } from './StatusRowPartsEditor';
 import { Unavailable } from './Unavailable';
 
 /** Labels of the battery datapoint kinds (option batteryKinds, #1000). */
@@ -365,7 +366,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             hidden: config.layout !== 'history',
         },
         { key: 'showCount', label: 'Anzahl der Hinweise', hint: 'oben rechts' },
-        { key: 'showRoom', label: 'Raum', hint: 'hinter dem Gerätenamen (nur Layout Standard und Kompakt)' },
+        {
+            key: 'showRoom',
+            label: 'Raum',
+            hint: 'hinter dem Gerätenamen (Layouts Standard, Kompakt, Tabelle, Zweizeilig) – Platz unter Darstellung → Zeilenaufbau',
+        },
         {
             key: 'showSince',
             label: '„seit …“',
@@ -929,6 +934,12 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 <option value="center">Mittig</option>
                                 <option value="right">Rechtsbündig</option>
                             </select>
+                        </div>
+                        <div className="aura-status-rowparts">
+                            <label className={labelCls} style={labelStyle}>
+                                Zeilenaufbau
+                            </label>
+                            <StatusRowPartsEditor opts={o} layout={config.layout ?? 'default'} set={set} />
                         </div>
                         {config.layout === 'card' && (
                             <div>

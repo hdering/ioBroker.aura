@@ -50,16 +50,6 @@ export function aliasPairsOf(found: StatusCandidate[]): Map<string, string> {
     return pairs;
 }
 
-/**
- * The device a datapoint is grouped under. Aliases are usually filed as
- * alias.0.<room>.<device>.<state>: three segments would put a whole room into one group,
- * so an alias groups by its own folder. Adapter ids keep adapter.instance.device.
- */
-function groupKeyOf(id: string): string {
-    if (id.startsWith('alias.')) return id.slice(0, id.lastIndexOf('.'));
-    return deviceIdFallback(id);
-}
-
 /** The found datapoints folded into one group per device, sorted by room and name. */
 function groupsOf(found: StatusCandidate[], pairs: Map<string, string>, excluded: Set<string>): DeviceGroup[] {
     const aliasedBy = new Map<string, string>();
@@ -69,7 +59,7 @@ function groupsOf(found: StatusCandidate[], pairs: Map<string, string>, excluded
     for (const { dp, cat } of found) {
         if (seen.has(dp.id)) continue;
         seen.add(dp.id);
-        const key = groupKeyOf(dp.id);
+        const key = deviceIdFallback(dp.id);
         const sep = dp.name.indexOf(' › ');
         let g = map.get(key);
         if (!g) {

@@ -208,7 +208,15 @@ export interface StatusOverviewOptions extends RowPopupOptions {
      */
     maxRows?: number;
     showMore?: boolean; // show the "+N weitere" row when maxRows cuts the list off (default true)
-    showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt/Zweizeilig)
+    showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt/Tabelle/Zweizeilig)
+    /**
+     * Order, side and visibility of the parts of a row (layouts Standard, Kompakt, Tabelle; #1003).
+     * Unset = the built-in order (icon, name, room, since, facts | value, battery type).
+     * Parts missing from the list keep their default place at the end of their side.
+     * Room, since and battery type are switched by showRoom / showSince / batteryTypeEnabled,
+     * the others by `hidden`. In layout Tabelle every visible part is a column in this order.
+     */
+    rowParts?: StatusRowPart[];
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     /**
      * Categories whose rows show "seit …" (default ['window']). Windows/doors count the
@@ -742,9 +750,21 @@ export interface RowTemplateCtx {
 /**
  * Device id without channel and datapoint — the fallback when no device object is
  * known: adapter.instance.device (`hm-rpc.1.0020DA499B8F41.0.LOW_BAT` →
- * `hm-rpc.1.0020DA499B8F41`).
+ * `hm-rpc.1.0020DA499B8F41`). An alias is its own folder: aliases are usually filed as
+ * alias.0.<room>.<device>.<state>, and three segments would make a whole room one
+ * device — its battery rows folded into one, its names shared (#1002).
  */
 export function deviceIdFallback(id: string): string {
+    if (id.startsWith('alias.')) {
+        const cut = id.lastIndexOf('.');
+        // alias.0.<state> directly: no folder to stand for the device.
+        if (cut > 'alias.0'.length && id.split('.').length > 3) return id.slice(0, cut);
+    }
+    return legacyDeviceId(id);
+}
+
+/** adapter.instance.device — the key deviceNames used for aliases before #1002 too. */
+function legacyDeviceId(id: string): string {
     const parts = id.split('.');
     return parts.slice(0, Math.min(3, Math.max(1, parts.length - 1))).join('.');
 }
@@ -756,7 +776,8 @@ export function deviceIdFallback(id: string): string {
  */
 export function customDeviceName(id: string, names: Record<string, string> | undefined): string | undefined {
     if (!names) return undefined;
-    const own = names[id]?.trim() || names[deviceIdFallback(id)]?.trim();
+    // legacyDeviceId: an alias name saved before #1002 sits on the room folder.
+    const own = names[id]?.trim() || names[deviceIdFallback(id)]?.trim() || names[legacyDeviceId(id)]?.trim();
     return own || undefined;
 }
 
@@ -1081,6 +1102,97 @@ export function formatDay(ts: number): string {
  * "seit 05.10." · "3× gemeldet" · "meldet zurzeit nichts, bleibt gemerkt" ·
  * "zurückgestellt bis 07.10." · "trotz Wechsel am 01.10."
  */
+// ── Row parts (option rowParts, #1003) ───────────────────────────────────────
+
+/** A piece of a status row the user can order and place. */
+export type StatusRowPartKey = 'icon' | 'name' | 'room' | 'since' | 'facts' | 'batteryType' | 'value';
+/** Where a part sits: before the free space, muted behind the name, or at the row end. */
+export type StatusRowSlot = 'start' | 'meta' | 'end';
+
+/** One entry of option rowParts. */
+export interface StatusRowPart {
+    key: StatusRowPartKey; // which part: icon, name, room, since ("seit …"), facts (remembered-hint notes), batteryType, value
+    slot?: StatusRowSlot; // start = left, meta = muted behind the name, end = right edge (default per part); ignored in layout Tabelle
+    hidden?: boolean; // hide icon, facts or value (room/since/batteryType use showRoom/showSince/batteryTypeEnabled; the name always shows)
+}
+
+/** The built-in row, as it was before rowParts existed. */
+export const DEFAULT_ROW_PARTS: readonly Required<Omit<StatusRowPart, 'hidden'>>[] = [
+    { key: 'icon', slot: 'start' },
+    { key: 'name', slot: 'start' },
+    { key: 'room', slot: 'meta' },
+    { key: 'since', slot: 'meta' },
+    { key: 'facts', slot: 'meta' },
+    { key: 'value', slot: 'end' },
+    { key: 'batteryType', slot: 'end' },
+];
+
+/** German labels of the parts (editor). */
+export const ROW_PART_LABELS: Record<StatusRowPartKey, string> = {
+    icon: 'Symbol',
+    name: 'Name',
+    room: 'Raum',
+    since: '„seit …“',
+    facts: 'Merk-Hinweise',
+    batteryType: 'Batterietyp',
+    value: 'Wert',
+};
+
+/** A part with everything decided: its slot and whether its own `hidden` flag is set. */
+export interface ResolvedRowPart {
+    key: StatusRowPartKey;
+    slot: StatusRowSlot;
+    hidden: boolean;
+}
+
+/**
+ * The full, ordered part list of a row: the stored list cleaned up (unknown and
+ * duplicate keys dropped, the name always shown and never muted), then every part
+ * the list does not mention at its default place.
+ */
+export function resolveRowParts(stored: readonly StatusRowPart[] | undefined): ResolvedRowPart[] {
+    const defaults = new Map(DEFAULT_ROW_PARTS.map((p) => [p.key, p.slot]));
+    const seen = new Set<StatusRowPartKey>();
+    const out: ResolvedRowPart[] = [];
+    for (const p of stored ?? []) {
+        if (!p || !defaults.has(p.key) || seen.has(p.key)) continue;
+        seen.add(p.key);
+        const slot: StatusRowSlot =
+            p.slot === 'start' || p.slot === 'meta' || p.slot === 'end' ? p.slot : defaults.get(p.key)!;
+        out.push(
+            p.key === 'name'
+                ? { key: 'name', slot: slot === 'meta' ? 'start' : slot, hidden: false }
+                : { key: p.key, slot, hidden: p.hidden === true },
+        );
+    }
+    for (const d of DEFAULT_ROW_PARTS) {
+        if (seen.has(d.key)) continue;
+        // Behind the last stored part of the same slot, so a forgotten part does not
+        // jump in front of the ones the user placed.
+        // No part of that slot yet: start goes first, meta behind the start parts,
+        // end last — the column order of layout Tabelle follows from that.
+        const rank = { start: 0, meta: 1, end: 2 } as const;
+        let at = out.findIndex((p) => rank[p.slot] > rank[d.slot]);
+        if (at < 0) at = out.length;
+        for (let i = out.length - 1; i >= 0; i--) {
+            if (out[i].slot === d.slot) {
+                at = i + 1;
+                break;
+            }
+        }
+        out.splice(at, 0, { key: d.key, slot: d.slot, hidden: false });
+    }
+    return out;
+}
+
+/** True when the stored list draws the row exactly like the built-in one (stores nothing then). */
+export function isDefaultRowParts(parts: readonly ResolvedRowPart[]): boolean {
+    return (
+        parts.length === DEFAULT_ROW_PARTS.length &&
+        parts.every((p, i) => p.key === DEFAULT_ROW_PARTS[i].key && p.slot === DEFAULT_ROW_PARTS[i].slot && !p.hidden)
+    );
+}
+
 export function latchFacts(item: StatusItem, showSince: boolean, long = false): string[] {
     if (item.ignored) return [long ? 'ignoriert, wird nicht gemerkt' : 'ignoriert'];
     const l = item.latch;
