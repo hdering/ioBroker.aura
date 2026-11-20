@@ -1053,20 +1053,20 @@
         },
         "table": {
           "label": "Layout \"table\"",
-          "basePx": 56,
+          "basePx": 78,
           "perItemPx": 26,
           "fontScalePx": {
-            "basePx": 23.3,
+            "basePx": 36.7,
             "perItemPx": 15.7
           },
           "measured": [
             {
               "n": 2,
-              "px": 108
+              "px": 130
             },
             {
               "n": 8,
-              "px": 264
+              "px": 286
             }
           ]
         },
