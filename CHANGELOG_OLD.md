@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.111.1 (2026-11-10)
+- 🌟 **New feature:** Web components - dialogs of a component (a form or its own content) open in Aura's popup style instead of the browser dialog, full width on phones ([#957](https://github.com/hdering/ioBroker.aura/issues/957))
+- 🌟 **New feature:** AI access (MCP) - new tool aura_web_components lists the installed web components with their tag, adapter, name, size and settings, so an AI can build web component widgets without guessing ([#956](https://github.com/hdering/ioBroker.aura/issues/956))
+- 🐛 **Bug fix:** Web components - after an ioBroker restart or an adapter update the list of components no longer stays incomplete until the page is reloaded
+
 ## 0.111.0 (2026-11-09)
 - 🌟 **New feature:** Timer - switching times are listed in ascending order of time instead of order of entry ([#960](https://github.com/hdering/ioBroker.aura/issues/960))
 - 🐛 **Bug fix:** Web components - a component that subscribes to datapoints with a wildcard (e.g. `assistant-satellite.0.*`) now gets their changes ([#955](https://github.com/hdering/ioBroker.aura/issues/955))
