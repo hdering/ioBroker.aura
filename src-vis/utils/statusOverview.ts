@@ -742,9 +742,21 @@ export interface RowTemplateCtx {
 /**
  * Device id without channel and datapoint — the fallback when no device object is
  * known: adapter.instance.device (`hm-rpc.1.0020DA499B8F41.0.LOW_BAT` →
- * `hm-rpc.1.0020DA499B8F41`).
+ * `hm-rpc.1.0020DA499B8F41`). An alias is its own folder: aliases are usually filed as
+ * alias.0.<room>.<device>.<state>, and three segments would make a whole room one
+ * device — its battery rows folded into one, its names shared (#1002).
  */
 export function deviceIdFallback(id: string): string {
+    if (id.startsWith('alias.')) {
+        const cut = id.lastIndexOf('.');
+        // alias.0.<state> directly: no folder to stand for the device.
+        if (cut > 'alias.0'.length && id.split('.').length > 3) return id.slice(0, cut);
+    }
+    return legacyDeviceId(id);
+}
+
+/** adapter.instance.device — the key deviceNames used for aliases before #1002 too. */
+function legacyDeviceId(id: string): string {
     const parts = id.split('.');
     return parts.slice(0, Math.min(3, Math.max(1, parts.length - 1))).join('.');
 }
@@ -756,7 +768,8 @@ export function deviceIdFallback(id: string): string {
  */
 export function customDeviceName(id: string, names: Record<string, string> | undefined): string | undefined {
     if (!names) return undefined;
-    const own = names[id]?.trim() || names[deviceIdFallback(id)]?.trim();
+    // legacyDeviceId: an alias name saved before #1002 sits on the room folder.
+    const own = names[id]?.trim() || names[deviceIdFallback(id)]?.trim() || names[legacyDeviceId(id)]?.trim();
     return own || undefined;
 }
 
