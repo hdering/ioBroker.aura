@@ -618,7 +618,7 @@ export type ClickAction =
     | { kind: 'popup-image'; url?: string; dp?: string; fit?: 'contain' | 'cover' }
     | {
           kind: 'popup-iframe';
-          url: string;
+          url: string; // Page address; may hold {dp} (own/row datapoint value) and {adapter.0.id} placeholders (#1006)
           sandbox?: boolean;
           sandboxPreset?: 'off' | 'minimal' | 'standard' | 'extended' | 'full' | 'custom';
           sandboxCustom?: string;
@@ -627,7 +627,11 @@ export type ClickAction =
     | { kind: 'popup-html'; html?: string; dp?: string }
     | { kind: 'popup-widget'; widgetId?: string }
     | { kind: 'link-tab'; layoutId: string; tabId: string; sectionId?: string }
-    | { kind: 'link-external'; url: string; newTab?: boolean }
+    | {
+          kind: 'link-external';
+          url: string; // Target address; may hold {dp} (own/row datapoint value) and {adapter.0.id} placeholders (#1006)
+          newTab?: boolean;
+      }
     | { kind: 'link-widget'; layoutId: string; tabId: string; widgetId: string; sectionId?: string }
     | { kind: 'popup-view'; viewId: string; dp?: string }
     /**

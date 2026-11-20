@@ -369,7 +369,15 @@ function PopupDialog({ onClose, custom, ...initial }: Props) {
             case 'popup-image':
                 return <ImagePopupBody action={action} />;
             case 'popup-iframe':
-                return <IframePopupBody action={action} width={customWidth} height={customHeight} fill={fullscreen} />;
+                return (
+                    <IframePopupBody
+                        action={action}
+                        width={customWidth}
+                        height={customHeight}
+                        fill={fullscreen}
+                        dpId={widget.datapoint}
+                    />
+                );
             case 'popup-json':
                 return <JsonPopupBody action={action} />;
             case 'popup-html':

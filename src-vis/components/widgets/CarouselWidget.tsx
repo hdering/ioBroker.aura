@@ -350,7 +350,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
             }
             return;
         }
-        if (runNavigation(a)) return;
+        if (runNavigation(a, item.dp)) return;
         setPopup({ action: a, title: item.label });
     };
 

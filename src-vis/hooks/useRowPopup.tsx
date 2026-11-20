@@ -90,7 +90,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                 e.stopPropagation();
                 // Navigation kinds have no popup body - they act immediately, exactly
                 // like WidgetFrame.runClickAction does for a widget-level click.
-                if (runNavigation(action)) return;
+                if (runNavigation(action, dpId)) return;
                 setOpen({ dpId, label, action, title: popupTitle, hideTitle: popupHideTitle, popupOpts, vars });
             },
         };

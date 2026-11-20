@@ -83,6 +83,7 @@ import {
 import { pinUnlock } from './utils/pinApi';
 import { tabBgImage } from './utils/backgroundImage';
 import { findLinkSource } from './utils/tabLink';
+import { openActionUrl } from './utils/openActionUrl';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from './components/common/BackgroundImageLayer';
 
 /** The datapoint that forces a brightness on every device. */
@@ -1526,8 +1527,7 @@ export default function App() {
                         .navigateTo(action.layoutId, action.tabId, undefined, action.sectionId);
                     break;
                 case 'link-external':
-                    if (action.newTab) window.open(action.url, '_blank', 'noopener');
-                    else window.location.href = action.url;
+                    openActionUrl(action.url, action.newTab);
                     break;
             }
         };

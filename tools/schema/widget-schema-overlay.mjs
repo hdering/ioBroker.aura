@@ -2983,7 +2983,11 @@ export const TYPE_NOTES = {
         'Aktionsleiste), eine Listenzeile mit displayType "momentary" (Taster), "switch", "buttons" oder ' +
         '"states", das "enum"-Widget für feste Werte, oder "httpRequest" für einen Webhook. ' +
         'popup-dimmer/-thermostat/-switch/-shutter/-mediaplayer sind Altbestand und werden beim Rendern auf ' +
-        'popup-view mit der eingebauten View umgeschrieben; neu immer popup-view mit viewId.',
+        'popup-view mit der eingebauten View umgeschrieben; neu immer popup-view mit viewId. ' +
+        'Die url von link-external und popup-iframe darf Platzhalter enthalten: {dp} = Rohwert des eigenen ' +
+        'Datenpunkts (bei Listen der angeklickten Zeile, sonst datapoint des Widgets), {adapter.0.id} = Rohwert ' +
+        'eines anderen, {dp}#feld = Feld eines JSON-Werts. Ohne Schema wird http:// ergänzt, mit Platzhaltern ' +
+        'kommt nur http/https heraus; leerer Wert = Klick tut nichts. Beispiel IP im Datenpunkt: url "http://{dp}/".',
     RowClickSetting:
         'Was ein Klick auf eine Listenzeile auslöst (rowClickAction / clickAction einer Zeile). Nicht gesetzt = ' +
         'Zeilen sind nicht anklickbar. "auto" leitet das Popup aus der Rolle des Datenpunkts der Zeile ab ' +

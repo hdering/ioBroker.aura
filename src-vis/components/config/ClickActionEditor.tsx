@@ -150,6 +150,16 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     );
 }
 
+/** Placeholders an action URL takes (#1006) — utils/actionUrl. */
+function UrlPlaceholderHint() {
+    return (
+        <p className="text-[10px] leading-snug mt-1" style={{ color: 'var(--text-secondary)' }}>
+            <code>{'{dp}'}</code> = Wert des eigenen Datenpunkts (in Listen: der angeklickten Zeile),{' '}
+            <code>{'{adapter.0.id}'}</code> = Wert eines anderen. Fehlt <code>http://</code>, wird es ergänzt.
+        </p>
+    );
+}
+
 export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopupOptions, hideNone }: Props) {
     const o = config.options ?? {};
     const rawStoredAction = o.clickAction as ClickAction | undefined;
@@ -415,10 +425,11 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                             type="text"
                             value={action.url}
                             onChange={(e) => setAction({ ...action, url: e.target.value })}
-                            placeholder="https://…"
+                            placeholder="https://… oder http://{dp}/"
                             className={inputCls}
                             style={inputStyle}
                         />
+                        <UrlPlaceholderHint />
                     </div>
                     {(() => {
                         const preset = (action.sandboxPreset ?? (action.sandbox ? 'extended' : 'off')) as SandboxPreset;
@@ -898,10 +909,11 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                             type="text"
                             value={action.url}
                             onChange={(e) => setAction({ ...action, url: e.target.value })}
-                            placeholder="https://…"
+                            placeholder="https://… oder http://{dp}/"
                             className={inputCls}
                             style={inputStyle}
                         />
+                        <UrlPlaceholderHint />
                     </div>
                     <Toggle
                         checked={action.newTab ?? false}

@@ -164,6 +164,24 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 
 Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an. Ein- und ausschalten geht auch direkt im Dialog `Klick-Aktion`.
 
+## Datenpunkte in Link-URLs
+
+Klick-Aktion `Link extern` und `iFrame-Popup`: Die URL darf Platzhalter enthalten — auch bei `Klick auf Zeile` in Listen.
+
+| Platzhalter | Wert |
+| --- | --- |
+| `{dp}` | Datenpunkt der angeklickten Listenzeile bzw. des Widgets |
+| `{adapter.0.id}` | beliebiger Datenpunkt |
+| `{dp}#feld` | Feld eines JSON-Werts |
+
+| Beispiel | Datenpunkt | Ergebnis |
+| --- | --- | --- |
+| `http://{dp}/` | `192.168.1.5` | `http://192.168.1.5/` |
+| `{dp}` | `fritz.box:8080` | `http://fritz.box:8080/` |
+| `https://{dp}:{0_userdata.0.port}` | `192.168.1.5`, `8443` | `https://192.168.1.5:8443/` |
+
+Fehlt `http://`, wird es ergänzt. Leerer Wert = Klick tut nichts. Es kommt nur `http`/`https` heraus.
+
 ## Innenabstand je Widget
 
 `Bearbeiten` → **Erweitert**. Überschreibt den Innenabstand des Layouts ([Layouts](./layouts#typografie-spacing) → Typografie & Spacing) nur für diese Karte — z. B. für schmale Leisten aus Chips oder Datumsfeldern.

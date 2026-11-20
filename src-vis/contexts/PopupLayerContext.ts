@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext } from 'react';
 import type { ClickAction, WidgetConfig } from '../types';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useNavigationStore } from '../store/navigationStore';
+import { openActionUrl } from '../utils/openActionUrl';
 
 /**
  * Popups opened from inside a popup stack on top of each other (issue #829): a
@@ -46,15 +47,17 @@ export function usePopupLayer(): PopupLayer | null {
  * Inside a popup the whole popup stack closes as well: the jump happens behind
  * the dialog, and visited tabs stay mounted, so the popup would otherwise stay
  * open over the new tab and the click look like it did nothing (#829).
+ *
+ * `dpId` is the datapoint `{dp}` stands for in an external link's URL (#1006): the
+ * clicked list row's, or the widget's own.
  */
-export function useRunNavigationAction(): (action: ClickAction) => boolean {
+export function useRunNavigationAction(): (action: ClickAction, dpId?: string) => boolean {
     const layer = usePopupLayer();
     return useCallback(
-        (action: ClickAction) => {
+        (action: ClickAction, dpId?: string) => {
             switch (action.kind) {
                 case 'link-external':
-                    if (action.newTab) window.open(action.url, '_blank', 'noopener');
-                    else window.location.href = action.url;
+                    openActionUrl(action.url, action.newTab, dpId);
                     break;
                 case 'link-tab': {
                     const tab = useDashboardStore

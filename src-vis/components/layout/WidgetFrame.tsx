@@ -7430,7 +7430,7 @@ function WidgetFrameInner({
     // need (a click inside a foreign document never reaches us — issue #527).
     const runNavigation = useRunNavigationAction();
     const runClickAction = () => {
-        if (!runNavigation(clickAction)) setPopupOpen(true);
+        if (!runNavigation(clickAction, config.datapoint)) setPopupOpen(true);
     };
 
     const handleWidgetClick = (e: React.MouseEvent) => {
