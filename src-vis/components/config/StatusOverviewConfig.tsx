@@ -2,7 +2,7 @@ import { ConfigSection, SubGroup } from './ConfigSection';
 import { useT } from '../../i18n';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, Plus, SlidersHorizontal } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import {
     customDeviceName,
@@ -39,6 +39,20 @@ import { NamePreview } from './NamePreview';
 import { RowClickSection } from './RowClickSection';
 import { StatusRowActionsEditor } from './StatusRowActionsEditor';
 import { PublishSection } from './list/PublishSection';
+import { DatapointPicker } from './DatapointPicker';
+
+/**
+ * Appends picked datapoint ids to a comma list of patterns, skipping ones already in
+ * it. Exported for the test.
+ */
+export function appendPatternIds(current: string | undefined, ids: string[]): string {
+    const parts = (current ?? '')
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+    for (const id of ids) if (id && !parts.includes(id)) parts.push(id);
+    return parts.join(', ');
+}
 
 // Lazy - the rule editor is only needed once step 2 of the Namen tab is opened.
 const NameFilterEditor = lazy(() => import('./NameFilterEditor').then((m) => ({ default: m.NameFilterEditor })));
@@ -239,6 +253,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     // A Merkliste chip jumps to its category; the latch switch there blinks so the eye finds it.
     // `n` re-triggers the blink on a second click of the same chip.
     const [latchFlash, setLatchFlash] = useState<{ cat: CategoryKey; n: number } | null>(null);
+    // "+ Datenpunkt" next to a pattern field: the field's value and how to write it back.
+    const [pickExtra, setPickExtra] = useState<{ value: string; apply: (next: string) => void } | null>(null);
     useEffect(() => {
         if (!latchFlash) return;
         // After the tab switch has painted - the detail is hidden until then.
@@ -577,29 +593,63 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     };
 
     /** "Zusätzliche … Datenpunkte": ids or /regex/ that join a category whatever their role. */
+    const patternField = (p: {
+        attr: Record<string, string>;
+        label: string;
+        value: string;
+        onChange: (next: string) => void;
+        placeholder: string;
+        hint?: string;
+    }) => (
+        <div {...p.attr}>
+            <label className={labelCls} style={labelStyle}>
+                {p.label}
+            </label>
+            <div className="flex gap-1.5">
+                <input
+                    type="text"
+                    value={p.value}
+                    onChange={(e) => p.onChange(e.target.value)}
+                    placeholder={p.placeholder}
+                    className={`${inputCls} flex-1 min-w-0`}
+                    style={inputStyle}
+                />
+                <button
+                    type="button"
+                    data-extra-pick
+                    onClick={() => setPickExtra({ value: p.value, apply: p.onChange })}
+                    title="Einzelne Datenpunkte auswählen und anhängen"
+                    className="shrink-0 flex items-center gap-1 text-xs rounded-lg px-2.5 hover:opacity-80"
+                    style={{ border: '1px solid var(--app-border)', color: 'var(--text-secondary)' }}
+                >
+                    <Plus size={12} />
+                    Datenpunkt
+                </button>
+            </div>
+            {p.hint && (
+                <p className={`${hintCls} mt-1`} style={hintStyle}>
+                    {p.hint}
+                </p>
+            )}
+        </div>
+    );
+
+    /** "Zusätzliche … Datenpunkte": ids or /regex/ that join a category whatever their role. */
     const extraField = (
-        key: 'alarmExtraPatterns' | 'windowExtraPatterns' | 'lightExtraPatterns',
+        key: 'batteryExtraPatterns' | 'alarmExtraPatterns' | 'windowExtraPatterns' | 'lightExtraPatterns',
         label: string,
         placeholder: string,
         hint: string,
-    ) => (
-        <div data-extra-patterns={key}>
-            <label className={labelCls} style={labelStyle}>
-                {label} (Muster, Text oder /regex/)
-            </label>
-            <input
-                type="text"
-                value={o[key] ?? ''}
-                onChange={(e) => set({ [key]: e.target.value || undefined })}
-                placeholder={placeholder}
-                className={inputCls}
-                style={inputStyle}
-            />
-            <p className={`${hintCls} mt-1`} style={hintStyle}>
-                {hint}
-            </p>
-        </div>
-    );
+        attr: Record<string, string> = {},
+    ) =>
+        patternField({
+            attr: { 'data-extra-patterns': key, ...attr },
+            label: `${label} (Muster, Text oder /regex/)`,
+            value: o[key] ?? '',
+            onChange: (v) => set({ [key]: v || undefined }),
+            placeholder,
+            hint,
+        });
 
     const catBody = (cat: CategoryKey, goTo: (key: string) => void) => {
         switch (cat) {
@@ -654,25 +704,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 label="Auch LOWBAT-Datenpunkte ohne Batterie-Rolle (nach Name)"
                             />
                         </Unavailable>
-                        <div data-battery-extra>
-                            <label className={labelCls} style={labelStyle}>
-                                Zusätzliche Batterie-Datenpunkte (Muster, Text oder /regex/)
-                            </label>
-                            <input
-                                type="text"
-                                value={o.batteryExtraPatterns ?? ''}
-                                onChange={(e) => set({ batteryExtraPatterns: e.target.value || undefined })}
-                                placeholder="mqtt.0.shelly., /.battery$/"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                            <p className={`${hintCls} mt-1`} style={hintStyle}>
-                                Für Datenpunkte ohne Batterie-Rolle, z. B. über MQTT gespiegelte Geräte. Kommagetrennt;
-                                jeder Treffer zählt als Batterie: Zahl oder Text = Ladestand in %, boolesch = LOWBAT
-                                (true = schwach). Muster möglichst genau fassen, sonst landen z. B. Hausspeicher mit in
-                                der Liste.
-                            </p>
-                        </div>
+                        {extraField(
+                            'batteryExtraPatterns',
+                            'Zusätzliche Batterie-Datenpunkte',
+                            'mqtt.0.shelly., /.battery$/',
+                            'Für Datenpunkte ohne Batterie-Rolle, z. B. über MQTT gespiegelte Geräte. Kommagetrennt; jeder Treffer zählt als Batterie: Zahl oder Text = Ladestand in %, boolesch = LOWBAT (true = schwach). Muster möglichst genau fassen, sonst landen z. B. Hausspeicher mit in der Liste.',
+                            { 'data-battery-extra': '' },
+                        )}
                         <div className="flex gap-3 items-start">
                             <div className="flex-1">
                                 <Unavailable
@@ -795,19 +833,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird
                             ignoriert). Nur für Sonderfälle: zusätzliche Offline-Datenpunkte.
                         </p>
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/) · gilt für alle Widgets
-                            </label>
-                            <input
-                                type="text"
-                                value={offlineExtraPatterns}
-                                onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
-                                placeholder=".UNREACHABLE, /\\.offline$/"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
+                        {patternField({
+                            attr: { 'data-extra-patterns': 'offlineExtraPatterns' },
+                            label: 'Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/) · gilt für alle Widgets',
+                            value: offlineExtraPatterns,
+                            onChange: (v) => updateFrontend({ offlineExtraPatterns: v }),
+                            placeholder: '.UNREACHABLE, /\\.offline$/',
+                        })}
                         <Toggle
                             checked={offlineInvert}
                             onChange={(v) => updateFrontend({ offlineInvert: v })}
@@ -1207,6 +1239,26 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
 
     return (
         <div className="space-y-2.5">
+            {pickExtra && (
+                <DatapointPicker
+                    currentValue=""
+                    multiSelect
+                    onMultiSelect={(picks) => {
+                        pickExtra.apply(
+                            appendPatternIds(
+                                pickExtra.value,
+                                picks.map((d) => d.id),
+                            ),
+                        );
+                        setPickExtra(null);
+                    }}
+                    onSelect={(id) => {
+                        pickExtra.apply(appendPatternIds(pickExtra.value, [id]));
+                        setPickExtra(null);
+                    }}
+                    onClose={() => setPickExtra(null)}
+                />
+            )}
             <VisibleFieldsSection fields={visibleFields} values={o as Record<string, unknown>} onChange={setVisible} />
             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                 <div>

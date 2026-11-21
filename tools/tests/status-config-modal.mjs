@@ -126,6 +126,24 @@ async function openEditor(viewport, options = {}, objects = { state: [], device:
         await dlg.locator(`[data-status-cat-detail="${cat}"] [data-extra-patterns="${key}"] input`).fill('mqtt.0.x.');
         check(`extra ${cat} patterns write the option`, (await opts())?.[key] === 'mqtt.0.x.');
     }
+    // "+ Datenpunkt" opens the datapoint picker on top of the dialog; closing it keeps the field.
+    await dlg.locator('[data-extra-patterns="lightExtraPatterns"] [data-extra-pick]').click();
+    const picker = page.locator('.fixed.inset-0.bg-black\\/70');
+    await picker.first().waitFor({ timeout: 5000 });
+    check('picker opens from the pattern field', (await picker.count()) >= 1);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    check(
+        'closing the picker keeps the dialog and the value',
+        (await page.locator('.aura-config-modal').count()) === 1 && (await opts())?.lightExtraPatterns === 'mqtt.0.x.',
+    );
+    const withButton = [];
+    for (const cat of ['window', 'battery', 'light', 'unreach', 'alarm']) {
+        await dlg.locator(`[data-status-cat="${cat}"] button`).first().click();
+        if ((await dlg.locator(`[data-status-cat-detail="${cat}"] [data-extra-pick]`).count()) === 1)
+            withButton.push(cat);
+    }
+    check('every category pattern field has the button', withButton.length === 5, withButton.join());
 
     // A hidden tab keeps its state: type into a filter, switch away and back.
     await dlg.locator('[data-config-tab="datapoints"]').click();
