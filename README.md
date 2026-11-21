@@ -128,6 +128,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.4.0-next.3 (2026-11-21) — next/test release
+- 🐛 **Bug fix:** Status overview - in the card layout long values (e.g. a text datapoint) no longer run past the tile: they end in "…" on one line; the new option "Wrap long values" (Optik, card layout) wraps them onto several lines instead
+
+
 ### 1.4.0-next.2 (2026-11-21) — next/test release
 - 🌟 **New feature:** Device card - new "Further datapoints": besides its own datapoint a card can hold more datapoints under a short name (e.g. an outdoor sensor as "outside"), usable in the card's widgets as {{outside}}, {{outside_parent}}, {{outside_dpname}} …; linked cards show the short names of the others as empty rows to fill in ([#1007](https://github.com/hdering/ioBroker.aura/issues/1007))
 - 🌟 **New feature:** Editor - the options menu of a group or device card with hidden title and icon now starts with a heading in the colour of its nesting level (widget type and title), so with nested frameless boxes it is clear which level the menu belongs to
@@ -245,10 +249,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Web components - settings of type selectSendTo and autocompleteSendTo (@iobroker/web-components 0.8) show the choices the adapter returns instead of a plain text field, e.g. the location of openmeteo-notify ([#975](https://github.com/hdering/ioBroker.aura/issues/975))
 
 
-### 0.113.1 (2026-11-11)
-- 🐛 **Bug fix:** PIN-protected sections - an unlocked view now picks up changes made via MCP (edited widgets, new tabs) without a page reload
-
-
 ## License
 
 MIT License
@@ -260,6 +260,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
