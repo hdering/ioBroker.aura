@@ -128,6 +128,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.4.0-next.2 (2026-11-21) — next/test release
+- 🌟 **New feature:** Device card - new "Further datapoints": besides its own datapoint a card can hold more datapoints under a short name (e.g. an outdoor sensor as "outside"), usable in the card's widgets as {{outside}}, {{outside_parent}}, {{outside_dpname}} …; linked cards show the short names of the others as empty rows to fill in ([#1007](https://github.com/hdering/ioBroker.aura/issues/1007))
+- 🌟 **New feature:** Editor - the options menu of a group or device card with hidden title and icon now starts with a heading in the colour of its nesting level (widget type and title), so with nested frameless boxes it is clear which level the menu belongs to
+
+
 ### 1.4.0-next.1 (2026-11-21) — next/test release
 - 🐛 **Bug fix:** Status overview / lists - the row popup "Datapoints of the device" opens much faster: it reads only the clicked device's branch instead of the whole object database, which took up to 20 seconds on large installations
 - 🌟 **New feature:** Status overview - new setting "Additional alarm datapoints" in the smoke & water alarm category: datapoints matching these patterns (text or /regex/) count as alarms even without an alarm role, e.g. a Shelly Flood mirrored over MQTT; true (or 1) triggers the alarm. The same field also exists for open windows & doors ("Additional window and door datapoints") and lights on ("Additional light datapoints"; a number counts as brightness). A "+ Datapoint" button next to each of these fields (and next to "Additional offline datapoints") picks single datapoints from the datapoint picker and appends their ids
@@ -244,13 +249,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** PIN-protected sections - an unlocked view now picks up changes made via MCP (edited widgets, new tabs) without a page reload
 
 
-### 0.113.0 (2026-11-11)
-- 🌟 **New feature:** Adapter logs - all five ioBroker log levels (Silly, Debug, Info, Warn, Error) can be filtered separately; Silly entries no longer appear under Debug ([#969](https://github.com/hdering/ioBroker.aura/issues/969))
-- 🌟 **New feature:** Adapter logs - adjustable font size for the log table ([#970](https://github.com/hdering/ioBroker.aura/issues/970))
-- 🌟 **New feature:** Adapter status - adjustable font size and larger restart/update buttons with bigger touch targets ([#971](https://github.com/hdering/ioBroker.aura/issues/971))
-- 🌟 **New feature:** Layouts - flow columns can be filled by height (masonry) or compactly with as few columns as needed, centred; columns are only re-dealt when a tab opens or the window width changes ([#939](https://github.com/hdering/ioBroker.aura/issues/939))
-
-
 ## License
 
 MIT License
@@ -262,6 +260,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
