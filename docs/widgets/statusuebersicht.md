@@ -21,9 +21,26 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 
 ![Layout „Tabelle“](assets/statusuebersicht/layout-table.png)
 
+## Einstellungen
+
+Einstellungen → **Statusübersicht konfigurieren** öffnet einen Dialog mit Tabs; im Panel bleiben nur die Anzeige-Optionen.
+
+![Dialog „Statusübersicht konfigurieren“](assets/statusuebersicht/konfiguration.png)
+
+| Ort | Inhalt |
+| --- | --- |
+| Panel › Optik | Textausrichtung, Kartengröße, Welche Geräte, Höchstzahl Zeilen, Tage (), Sortierung |
+| Panel › Einstellungen | Knopf zum Dialog mit Kurzfassung, Veröffentlichen |
+| Tab Kategorien | links Kategorien an/aus, rechts deren Optionen, Farben und Merkliste der Kategorie |
+| Tab Datenpunkte | Räume, Funktionen, Adapter, Ausschluss-Muster, Erkannte Datenpunkte |
+| Tab Merkliste | gemeinsame Merkliste-Optionen, Ignorieren, Knopf-Farben |
+| Tab Zeilen | Zeilenaufbau, Zeilen-Aktionen, Klick auf Zeile |
+| Tab Namen | Gerätenamen, Namensmuster und -filter |
+| Tab Batterietypen | Batterietypen zuordnen (nur mit Kategorie Batterien) |
+
 ## Zeilenaufbau
 
-Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `twoline`
+Tab Zeilen → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `twoline`
 
 ![Zeilenaufbau](assets/statusuebersicht/zeilenaufbau.png)
 
@@ -90,7 +107,7 @@ Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table
 
 ## Einzelne Datenpunkte ausblenden
 
-„Einschränkung“ → **Erkannte Datenpunkte**
+Tab Datenpunkte → **Erkannte Datenpunkte**
 
 ![Erkannte Datenpunkte](assets/statusuebersicht/erkannte-datenpunkte.png)
 
@@ -108,7 +125,7 @@ Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table
 
 | Option | |
 | --- | --- |
-| `deviceNames` | eigener Name je Gerät („Gerätenamen bearbeiten“); gilt für alle Zeilen des Geräts |
+| `deviceNames` | eigener Name je Gerät (Tab Namen); gilt für alle Zeilen des Geräts |
 | `namePattern` / `nameFilters` | laufen danach; Vorlage „HomeMatic-Kanal (:1) weg“ |
 
 | Erkannter Name | Regel |
@@ -118,7 +135,7 @@ Optik → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table
 
 ## Merkliste
 
-Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz auf `true` und danach wieder auf `false`. Mit der **Merkliste** (eigener Abschnitt unter den Kategorien) bleibt ein solcher Hinweis stehen, bis er geschlossen wird – für Batterien, nicht erreichbare Geräte und ausgelöste Rauch-/Wassermelder.
+Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz auf `true` und danach wieder auf `false`. Mit der **Merkliste** (je Kategorie im Tab Kategorien, gemeinsame Optionen im Tab Merkliste) bleibt ein solcher Hinweis stehen, bis er geschlossen wird – für Batterien, nicht erreichbare Geräte und ausgelöste Rauch-/Wassermelder.
 
 | Option | Vorgabe | |
 | --- | --- | --- |

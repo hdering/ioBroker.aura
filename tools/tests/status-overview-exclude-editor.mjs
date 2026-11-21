@@ -90,9 +90,11 @@ await page.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 await page.locator('.aura-widget-edit-modal').waitFor({ timeout: 10000 });
 await page.evaluate(() => window.__auraShot.unfoldSections?.());
-const openBtn = page.locator('[data-status-dp-open]');
+// The detected datapoints live in the config dialog, tab "Datenpunkte".
+const openBtn = page.locator('[data-status-config-open]');
 await openBtn.waitFor({ timeout: 10000 });
 await openBtn.click();
+await page.locator('[data-config-tab="datapoints"]').click();
 const pop = page.locator('[data-aura-status-datapoints]');
 await pop.waitFor({ timeout: 10000 });
 await page.waitForTimeout(500);
@@ -207,14 +209,16 @@ await ctx.close();
     await p.locator('.aura-edit-chrome button').first().click();
     await p.locator('button:text-is("Bearbeiten")').click();
     await p.evaluate(() => window.__auraShot.unfoldSections?.());
-    const btn = p.locator('[data-status-dp-open]');
+    const btn = p.locator('[data-status-config-open]');
     await btn.waitFor({ timeout: 10000 });
+    const sum = p.locator('[data-status-config-summary]');
     check(
-        'button counts hidden datapoints',
-        (await btn.textContent()).includes('1 ausgeblendet'),
-        await btn.textContent(),
+        'summary counts hidden datapoints',
+        (await sum.textContent()).includes('1 ausgeblendet'),
+        await sum.textContent(),
     );
     await btn.click();
+    await p.locator('[data-config-tab="datapoints"]').click();
     const pp = p.locator('[data-aura-status-datapoints]');
     await pp.waitFor({ timeout: 10000 });
     await p.waitForTimeout(500);

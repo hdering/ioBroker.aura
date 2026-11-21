@@ -284,61 +284,79 @@ const ACTION = {
     await ctx.close();
 }
 
-// ── 5. options panel: latch toggle and the row-action editor write the options ──
+// ── 5. config dialog: latch toggle and the row-action editor write the options ──
 {
     const { ctx, page } = await open({});
     await page.evaluate(() => window.__auraShot.setEditMode(true));
     const opts = () => page.evaluate(() => window.__auraShot.widgetOptions('w-latch'));
     await page.locator('.aura-edit-chrome button').first().click();
     await page.locator('button:text-is("Bearbeiten")').click();
-    // The Merkliste is a topic in "Einstellungen", right above "Zeilen-Aktionen"; the section starts folded.
+    // Everything beyond the quick look options sits in the dialog behind "Statusübersicht konfigurieren".
     const settings = page.locator('.aura-widget-edit-modal details[data-aura-config-section="settings"]');
     await settings.waitFor({ timeout: 10000 });
-    check('Merkliste starts collapsed', !(await settings.evaluate((d) => d.open)));
+    check('settings start collapsed', !(await settings.evaluate((d) => d.open)));
     await settings.locator(':scope > summary').click();
-    const card = page.locator('.aura-status-merkliste');
+    const panelSummary = page.locator('[data-status-config-summary]');
+    check('panel summary: Merkliste aus', (await panelSummary.textContent()).includes('Merkliste aus'));
+    await page.locator('[data-status-config-open]').click();
+    const dlg = page.locator('.aura-config-modal');
+    await dlg.waitFor({ timeout: 10000 });
+    check('dialog opens on "Kategorien"', (await dlg.locator('[data-config-pane="categories"]').count()) === 1);
+
+    // Merkliste tab: the shared settings are greyed out while nothing is remembered.
+    await dlg.locator('[data-config-tab="latch"]').click();
+    const card = dlg.locator('.aura-status-merkliste');
     await card.waitFor({ timeout: 10000 });
-    const order = await page.evaluate(() => {
-        const c = document.querySelector('.aura-status-merkliste')?.getBoundingClientRect().top ?? -1;
-        const a = document.querySelector('.aura-status-row-actions')?.getBoundingClientRect().top ?? -1;
-        return { card: c, actions: a };
-    });
+    const latchSum = card.locator('[data-latch-summary]');
+    check('summary says "Batterien: aus"', (await latchSum.textContent()).includes('Batterien: aus'));
     check(
-        'Merkliste right above "Zeilen-Aktionen"',
-        order.card > 0 && order.card < order.actions,
-        JSON.stringify(order),
+        'shared latch settings greyed while off',
+        (await card.locator('.aura-cfg-unavailable input[type=number]').count()) === 2,
     );
-    // The topic heading says what is on.
-    const summary = card.locator(':scope > div').first();
-    check('summary says "aus"', (await summary.textContent()).includes('aus'), await summary.textContent());
-    check('Merkliste settings hidden while off', (await card.locator('input[type=number]').count()) === 0);
-    await card.locator('[data-latch-toggle="battery"] label > div').click();
+    // The chip jumps to the battery category, where the switch lives.
+    await card.locator('[data-latch-jump="battery"]').click();
+    const detail = dlg.locator('[data-status-cat-detail="battery"]');
+    await detail.waitFor({ timeout: 5000 });
+    await detail.locator('[data-latch-toggle="battery"] label > div').click();
     check('latch toggle writes latchBattery', (await opts())?.latchBattery === true, JSON.stringify(await opts()));
+    await dlg.locator('[data-config-tab="latch"]').click();
     check(
         'summary names what is on',
-        (await summary.textContent()).includes('an: Batterien'),
-        await summary.textContent(),
+        (await latchSum.textContent()).includes('Batterien: an'),
+        await latchSum.textContent(),
     );
-    // The test widget has reachability and alarms switched off: their toggles must not be usable.
-    const blocked = await card.evaluate((d) =>
-        ['unreach', 'alarm'].map((c) => getComputedStyle(d.querySelector(`[data-latch-toggle="${c}"]`)).pointerEvents),
-    );
+    check('shared latch settings usable', (await card.locator('.aura-cfg-unavailable').count()) === 0);
     check(
-        'toggles of switched-off categories are blocked',
+        'shared latch settings appear',
+        (await dlg.locator('label:text-is("Nachkontrolle nach Schließen (Tage)")').count()) === 1,
+    );
+    // The test widget has reachability and alarms switched off: their latch switches must not be usable.
+    await dlg.locator('[data-config-tab="categories"]').click();
+    const blocked = [];
+    for (const c of ['unreach', 'alarm']) {
+        await dlg.locator(`[data-status-cat="${c}"] button`).first().click();
+        blocked.push(
+            await dlg
+                .locator(`[data-status-cat-detail="${c}"] [data-latch-toggle="${c}"]`)
+                .evaluate((d) => getComputedStyle(d).pointerEvents),
+        );
+    }
+    check(
+        'latch of switched-off categories is blocked',
         blocked.every((v) => v === 'none'),
         JSON.stringify(blocked),
     );
-    check(
-        'shared latch settings appear',
-        (await page.locator('label:text-is("Nachkontrolle nach Schließen (Tage)")').count()) === 1,
-    );
-    // Zeilen-Aktionen: a topic like the Merkliste, the heading counts the buttons.
-    const actSec = page.locator('.aura-status-row-actions');
+
+    // Zeilen tab: row actions edited in place, right above "Klick auf Zeile".
+    await dlg.locator('[data-config-tab="rows"]').click();
+    const actSec = dlg.locator('.aura-status-row-actions');
     const actSummary = actSec.locator(':scope > div').first();
     check('summary says "keine"', (await actSummary.textContent()).includes('keine'), await actSummary.textContent());
     const actOrder = await page.evaluate(() => {
         const sec = document.querySelector('.aura-status-row-actions')?.getBoundingClientRect().top ?? -1;
-        const click = [...document.querySelectorAll('label')].find((l) => l.textContent === 'Klick auf Zeile');
+        const click = [...document.querySelectorAll('.aura-config-modal label')].find(
+            (l) => l.textContent === 'Klick auf Zeile',
+        );
         return { sec, click: click?.getBoundingClientRect().top ?? -1 };
     });
     check(
@@ -346,14 +364,12 @@ const ACTION = {
         actOrder.sec > 0 && actOrder.sec < actOrder.click,
         JSON.stringify(actOrder),
     );
-    await actSec.locator('button:has-text("Knöpfe bearbeiten")').click();
-    const dlg = page.locator('.aura-config-modal');
-    await dlg.locator('button:has-text("Knopf hinzufügen")').click();
-    await dlg.locator('input[aria-label="Beschriftung"]').fill('Gewechselt');
-    await dlg.locator('input[aria-label="Ziel-Datenpunkt"]').fill('0_userdata.0.Batterien.Befehl');
-    await dlg.locator('input[aria-label="Wert"]').fill('gewechselt:{serial}');
-    await dlg.locator('button:text-is("Batterien")').click();
-    await dlg.locator('label:has-text("Rückfrage") input[type=checkbox]').check();
+    await actSec.locator('button:has-text("Knopf hinzufügen")').click();
+    await actSec.locator('input[aria-label="Beschriftung"]').fill('Gewechselt');
+    await actSec.locator('input[aria-label="Ziel-Datenpunkt"]').fill('0_userdata.0.Batterien.Befehl');
+    await actSec.locator('input[aria-label="Wert"]').fill('gewechselt:{serial}');
+    await actSec.locator('button:text-is("Batterien")').click();
+    await actSec.locator('label:has-text("Rückfrage") input[type=checkbox]').check();
     const ra = (await opts())?.rowActions;
     check(
         'editor writes the row action',
@@ -371,7 +387,7 @@ const ACTION = {
     );
 
     // Presets: "Licht aus" adds a working button, a second click is blocked.
-    const preset = dlg.locator('[data-row-action-presets] button:has-text("Licht aus")');
+    const preset = actSec.locator('[data-row-action-presets] button:has-text("Licht aus")');
     await preset.click();
     const ra2 = (await opts())?.rowActions;
     check(
@@ -381,16 +397,17 @@ const ACTION = {
         JSON.stringify(ra2),
     );
     check('preset cannot be added twice', await preset.isDisabled());
-    await dlg.locator('[data-row-action-presets] button:has-text("Fenster: Erinnern")').click();
+    await actSec.locator('[data-row-action-presets] button:has-text("Fenster: Erinnern")').click();
     check(
         'example target asks to be adjusted',
-        (await dlg.locator('[data-row-action]').last().locator('text=Beispiel aus der Vorlage').count()) === 1,
+        (await actSec.locator('[data-row-action]').last().locator('text=Beispiel aus der Vorlage').count()) === 1,
     );
+    check('tab heading counts the buttons', (await actSummary.textContent()).includes('3 Knöpfe'));
     await page.keyboard.press('Escape');
     check(
-        'summary counts the buttons',
-        (await actSummary.textContent()).includes('3 Knöpfe'),
-        await actSummary.textContent(),
+        'panel summary counts the buttons',
+        (await panelSummary.textContent()).includes('3 Knöpfe'),
+        await panelSummary.textContent(),
     );
     await ctx.close();
 }

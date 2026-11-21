@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ConfigModal } from '../ConfigModal';
+import { ConfigModalTabBar } from '../ConfigModalTabs';
 import { EntryMasterList, entryDisplayName } from './EntryMasterList';
 import type { ManagedEntry } from './EntryListItem';
 
@@ -146,27 +147,7 @@ export function DatapointManagerModal({
                         {header}
                     </div>
                 )}
-                {allTabs.length > 1 && (
-                    <div
-                        className="aura-config-modal-tabs flex flex-wrap items-center gap-1 px-3 pt-2.5 pb-2 shrink-0"
-                        style={{ borderBottom: '1px solid var(--app-border)' }}
-                    >
-                        {allTabs.map((tab) => (
-                            <button
-                                key={tab.key}
-                                onClick={() => setActiveTab(tab.key)}
-                                className="text-xs rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap"
-                                style={{
-                                    background: activeTab === tab.key ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: activeTab === tab.key ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${activeTab === tab.key ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {allTabs.length > 1 && <ConfigModalTabBar tabs={allTabs} active={activeTab} onSelect={setActiveTab} />}
 
                 {/* Entries tab */}
                 <div
