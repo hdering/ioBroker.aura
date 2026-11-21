@@ -10,7 +10,8 @@ import { baseDpId } from '../utils/dpRef';
 import { CLIMATE_PROFILES, MODE_PLACEHOLDER, applyModeSlug, getProfile } from '../utils/climateProfiles';
 import type { WidgetConfig } from '../types';
 import { hostsGroupDef } from '../utils/groupTypes';
-import { buildPopupSubMap, substituteWidget } from '../utils/popupPlaceholders';
+import { deviceCardVars } from '../utils/deviceCard';
+import { substituteWidget } from '../utils/popupPlaceholders';
 
 export interface BrokenRef {
     widgetId: string;
@@ -120,7 +121,7 @@ function collectAllRefs(): BrokenRef[] {
     const collectCard = (card: WidgetConfig, location: string, route: string): void => {
         if (card.type !== 'devicecard' || !hostsGroupDef(card)) return;
         cardDefs.add(card.options.defId);
-        const vars = buildPopupSubMap(card, card.datapoint);
+        const vars = deviceCardVars(card);
         const where = `${location} · in ${card.title || card.type}`;
         for (const child of defs[card.options.defId] ?? []) {
             out.push(...collectRefs(substituteWidget(child, vars), where, route));

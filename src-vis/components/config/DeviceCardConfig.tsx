@@ -1,11 +1,20 @@
 import { useState } from 'react';
-import { Database, Unlink } from 'lucide-react';
+import { Database, Plus, Unlink, X } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
 import { dpVarMap } from '../../utils/popupPlaceholders';
-import { detachDeviceCard, deviceCardColor } from '../../utils/deviceCard';
-import { useDeviceCardShareCount } from '../../hooks/useDeviceCardShareCount';
-import { useDpNameVars } from '../../hooks/useDpNameVars';
+import {
+    detachDeviceCard,
+    deviceCardColor,
+    deviceCardExtraDpsRaw,
+    extraDpKeyProblem,
+    extraDpVarMap,
+    prefixVars,
+    type DeviceCardExtraDp,
+    type ExtraDpKeyProblem,
+} from '../../utils/deviceCard';
+import { useDeviceCardShareCount, useDeviceCardSiblingExtraKeys } from '../../hooks/useDeviceCardShareCount';
+import { useDpNameVars, useDpNameVarsList } from '../../hooks/useDpNameVars';
 import { useT } from '../../i18n';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
@@ -30,11 +39,41 @@ interface Props {
  */
 export function DeviceCardConfig({ config, onConfigChange }: Props) {
     const t = useT();
-    const [picker, setPicker] = useState(false);
+    // 'main' = the card's own datapoint, a number = that row of the further datapoints.
+    const [picker, setPicker] = useState<'main' | number | null>(null);
     const [confirmDetach, setConfirmDetach] = useState(false);
     const dp = config.datapoint ?? '';
     const tokens = Object.entries({ ...dpVarMap(dp.trim()), ...useDpNameVars(dp.trim()) });
-    const shareCount = useDeviceCardShareCount(config.options?.defId as string | undefined);
+    const defId = config.options?.defId as string | undefined;
+    const shareCount = useDeviceCardShareCount(defId);
+
+    // Further datapoints (#1007): the card's own rows, then the short names that
+    // linked cards use and this one still lacks - empty, ready to be filled in.
+    const raw = deviceCardExtraDpsRaw(config);
+    const siblingKeys = useDeviceCardSiblingExtraKeys(defId);
+    const rows: (DeviceCardExtraDp & { index: number })[] = [
+        ...raw.map((e, index) => ({ ...e, index })),
+        ...siblingKeys.filter((k) => !raw.some((e) => e.key.trim() === k)).map((key) => ({ key, dp: '', index: -1 })),
+    ];
+    const problems: (ExtraDpKeyProblem | null)[] = [];
+    {
+        const seen: string[] = [];
+        for (const r of rows) {
+            const key = r.key.trim();
+            problems.push(key ? extraDpKeyProblem(key, seen) : null);
+            seen.push(key);
+        }
+    }
+    const extraNames = useDpNameVarsList(rows.map((r) => r.dp.trim()).filter(Boolean), '{{dpname}}');
+    const writeExtras = (next: DeviceCardExtraDp[]) => {
+        const { extraDps: _drop, ...rest } = config.options ?? {};
+        onConfigChange({ ...config, options: next.length ? { ...rest, extraDps: next } : rest });
+    };
+    const setRow = (pos: number, patch: Partial<DeviceCardExtraDp>) => {
+        const row = rows[pos];
+        if (row.index >= 0) writeExtras(raw.map((e, i) => (i === row.index ? { ...e, ...patch } : e)));
+        else writeExtras([...raw, { key: row.key, dp: row.dp, ...patch }]);
+    };
 
     return (
         <div className="space-y-3" data-aura-devicecard-config="">
@@ -54,7 +93,7 @@ export function DeviceCardConfig({ config, onConfigChange }: Props) {
                     />
                     <button
                         type="button"
-                        onClick={() => setPicker(true)}
+                        onClick={() => setPicker('main')}
                         className="px-2 rounded-lg shrink-0"
                         style={{ ...inputStyle, color: 'var(--accent)' }}
                         title={t('devicecard.pickDp')}
@@ -88,6 +127,123 @@ export function DeviceCardConfig({ config, onConfigChange }: Props) {
                     </table>
                 </div>
             )}
+
+            <div data-aura-devicecard-extras="">
+                <label className={labelCls} style={labelStyle}>
+                    {t('devicecard.extraDps')}
+                </label>
+                <div className="space-y-1.5">
+                    {rows.map((row, pos) => {
+                        const problem = problems[pos];
+                        const key = row.key.trim();
+                        const rowTokens =
+                            key && !problem && row.dp.trim()
+                                ? Object.entries({
+                                      ...extraDpVarMap(key, row.dp.trim()),
+                                      ...prefixVars(key, extraNames[row.dp.trim()] ?? {}),
+                                  })
+                                : [];
+                        return (
+                            <div key={`${row.index}:${pos}`} data-aura-devicecard-extra={key}>
+                                <div className="flex gap-1">
+                                    <input
+                                        type="text"
+                                        value={row.key}
+                                        onChange={(e) => setRow(pos, { key: e.target.value })}
+                                        placeholder={t('devicecard.extraKey')}
+                                        className={inputCls}
+                                        style={{
+                                            ...inputStyle,
+                                            width: '7rem',
+                                            flex: 'none',
+                                            ...(problem ? { borderColor: '#ef4444' } : {}),
+                                        }}
+                                        data-aura-devicecard-extra-key=""
+                                    />
+                                    <input
+                                        type="text"
+                                        value={row.dp}
+                                        onChange={(e) => setRow(pos, { dp: e.target.value })}
+                                        placeholder="hm-rpc.0.XYZ789.1.TEMPERATURE"
+                                        className={inputCls}
+                                        style={inputStyle}
+                                        data-aura-devicecard-extra-dp=""
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setPicker(pos)}
+                                        className="px-2 rounded-lg shrink-0"
+                                        style={{ ...inputStyle, color: 'var(--accent)' }}
+                                        title={t('devicecard.pickDp')}
+                                    >
+                                        <Database size={14} />
+                                    </button>
+                                    {row.index >= 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => writeExtras(raw.filter((_, i) => i !== row.index))}
+                                            className="px-2 rounded-lg shrink-0"
+                                            style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                                            title={t('devicecard.extraRemove')}
+                                            data-aura-devicecard-extra-remove=""
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                                {problem && (
+                                    <p className="text-[10px] mt-0.5" style={{ color: '#ef4444' }}>
+                                        {t(`devicecard.extraKey.${problem}`)}
+                                    </p>
+                                )}
+                                {row.index < 0 && (
+                                    <p className="text-[10px] mt-0.5" style={hintStyle}>
+                                        {t('devicecard.extraFromLinked')}
+                                    </p>
+                                )}
+                                {rowTokens.length > 0 && (
+                                    <table
+                                        className="w-full text-[11px] font-mono mt-1"
+                                        data-aura-devicecard-extra-tokens=""
+                                    >
+                                        <tbody>
+                                            {rowTokens.map(([token, value]) => (
+                                                <tr key={token}>
+                                                    <td
+                                                        className="pr-2 py-0.5 whitespace-nowrap"
+                                                        style={{ color: 'var(--accent)' }}
+                                                    >
+                                                        {`{{${token}}}`}
+                                                    </td>
+                                                    <td
+                                                        className="py-0.5 break-all"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        {value}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+                <button
+                    type="button"
+                    onClick={() => writeExtras([...raw, { key: '', dp: '' }])}
+                    className="flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-md mt-1.5"
+                    style={{ ...inputStyle, color: 'var(--accent)' }}
+                    data-aura-devicecard-extra-add=""
+                >
+                    <Plus size={12} />
+                    {t('devicecard.extraAdd')}
+                </button>
+                <p className="text-[10px] mt-1" style={hintStyle}>
+                    {t('devicecard.extraHint')}
+                </p>
+            </div>
 
             <p className="text-[10px]" style={hintStyle}>
                 {t('devicecard.childHint')}
@@ -163,14 +319,15 @@ export function DeviceCardConfig({ config, onConfigChange }: Props) {
                     ))}
             </div>
 
-            {picker && (
+            {picker !== null && (
                 <DatapointPicker
-                    currentValue={dp}
+                    currentValue={picker === 'main' ? dp : (rows[picker]?.dp ?? '')}
                     onSelect={(id) => {
-                        onConfigChange({ ...config, datapoint: id });
-                        setPicker(false);
+                        if (picker === 'main') onConfigChange({ ...config, datapoint: id });
+                        else if (rows[picker]) setRow(picker, { dp: id });
+                        setPicker(null);
                     }}
-                    onClose={() => setPicker(false)}
+                    onClose={() => setPicker(null)}
                 />
             )}
         </div>

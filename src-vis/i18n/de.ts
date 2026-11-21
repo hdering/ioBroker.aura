@@ -2712,6 +2712,16 @@ export const de = {
     'devicecard.dpHint':
         'Irgendein Datenpunkt des Geräts. Die Widgets in der Karte setzen daraus ihre Datenpunkte zusammen.',
     'devicecard.tokens': 'Platzhalter mit diesem Datenpunkt',
+    'devicecard.extraDps': 'Weitere Datenpunkte',
+    'devicecard.extraKey': 'Kurzname',
+    'devicecard.extraAdd': 'Datenpunkt hinzufügen',
+    'devicecard.extraRemove': 'Entfernen',
+    'devicecard.extraHint':
+        'Für Datenpunkte anderer Geräte, z. B. einen Außenfühler. Kurzname „aussen“ ergibt {{aussen}}, {{aussen_parent}}, {{aussen_dpname}} … Jede verknüpfte Karte trägt ihren eigenen Datenpunkt ein.',
+    'devicecard.extraFromLinked': 'Kommt von einer verknüpften Karte – Datenpunkt für diese Karte eintragen.',
+    'devicecard.extraKey.invalid': 'Nur Buchstaben und Ziffern, beginnend mit einem Buchstaben.',
+    'devicecard.extraKey.reserved': 'Dieser Name ist schon ein Platzhalter der Karte.',
+    'devicecard.extraKey.duplicate': 'Kurzname kommt doppelt vor.',
     'devicecard.childHint':
         'In den Widgets der Karte Datenpunkte mit Platzhaltern angeben, z. B. {{parent}}.ACTUAL_TEMPERATURE. Der Titel der Karte darf sie auch enthalten.',
     'devicecard.sharedWith': 'Aufbau geteilt mit {count} weiteren Karten – Änderungen gelten für alle.',

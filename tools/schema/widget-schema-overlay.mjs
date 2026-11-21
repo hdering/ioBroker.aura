@@ -2717,6 +2717,18 @@ export const EXTRA_OPTIONS = {
                 'ein weiteres gleiches Gerät eine Karte mit derselben defId und anderem `datapoint` anlegen, ' +
                 'ohne groupDefs. Eine neue defId nur für einen neuen Aufbau (dann mit groupDefs).',
         },
+        extraDps: {
+            type: 'array',
+            items: { type: 'object' },
+            description:
+                'Weitere Datenpunkte der Karte (#1007), z. B. ein Außenfühler neben dem Gerät: ' +
+                '[{ key: "aussen", dp: "hm-rpc.0.XYZ.1.TEMPERATURE" }]. Jeder Eintrag ergibt Platzhalter mit ' +
+                'dem Kurznamen als Präfix: {{aussen}} (= dp), {{aussen_name}}, {{aussen_parent}}, ' +
+                '{{aussen_parent2}} …, {{aussen_dpname}}, {{aussen_parentname}} … key: nur Buchstaben/Ziffern, ' +
+                'mit Buchstabe beginnend, nicht dp/name/parent…/dpname/dpunit. Die Kinder der geteilten ' +
+                'Vorlage verwenden die Kurznamen; JEDE Karte mit derselben defId braucht deshalb einen Eintrag ' +
+                'mit demselben key und ihrem eigenen dp. Fehlt er, bleibt der Platzhalter unaufgelöst.',
+        },
     },
 
     // ── Umrechnung an bedienbaren Reglern (#682) ─────────────────────────────

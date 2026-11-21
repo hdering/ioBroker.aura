@@ -6,7 +6,7 @@
 // Copying a card keeps that defId (widgetCopy only re-issues group/panels defs),
 // so every copy shows the same layout; detaching gives one card a def of its own.
 import type { WidgetConfig } from '../types';
-import { buildPopupSubMap, resolvePopupWidget } from './popupPlaceholders';
+import { buildPopupSubMap, dpVarMap, resolvePopupWidget } from './popupPlaceholders';
 import { runtimeId } from '../contexts/RenderTransformContext';
 import { hostsGroupDef } from './groupTypes';
 import { cloneGroupDef, newCloneScope, finishClone } from './widgetCopy';
@@ -14,10 +14,75 @@ import { cloneGroupDef, newCloneScope, finishClone } from './widgetCopy';
 /**
  * Token table of one card: `{{dp}}`, `{{name}}`, `{{parent}}`, `{{parent2}}` … from
  * the card's datapoint, plus the card's own string options as `{{key}}` — the same
- * table a popup view gets from the widget that opened it.
+ * table a popup view gets from the widget that opened it — and the tokens of the
+ * card's further datapoints (`{{aussen}}`, `{{aussen_parent}}` …, #1007).
  */
 export function deviceCardVars(card: WidgetConfig): Record<string, string> {
-    return buildPopupSubMap(card, card.datapoint ?? '');
+    const extra: Record<string, string> = {};
+    for (const { key, dp } of deviceCardExtraDps(card)) Object.assign(extra, extraDpVarMap(key, dp));
+    return { ...extra, ...buildPopupSubMap(card, card.datapoint ?? '') };
+}
+
+// ── Further datapoints of one card (#1007) ──────────────────────────────────────
+// A card may draw on more than its own device: each entry of `options.extraDps`
+// adds that datapoint's token set under a short name — `{{aussen}}`,
+// `{{aussen_parent}}`, `{{aussen_dpname}}` … The names belong to the shared layout
+// (the children use them), the datapoints to each card.
+
+/** One further datapoint of a card: `key` is the token prefix, `dp` the id. */
+export interface DeviceCardExtraDp {
+    key: string;
+    dp: string;
+}
+
+/** Letters and digits only, starting with a letter — no `_`, so `{{key_parent}}` stays unambiguous. */
+const EXTRA_KEY_RE = /^[A-Za-z][A-Za-z0-9]*$/;
+/** Token names of the card's own datapoint, which a short name must not hide. */
+const RESERVED_KEY_RE = /^(?:dp|name|dpname|dpunit|parent\d*|parent\d*name)$/i;
+
+export type ExtraDpKeyProblem = 'invalid' | 'reserved' | 'duplicate';
+
+/** Why a short name cannot be used (`others` = the names before it), or null when it can. */
+export function extraDpKeyProblem(key: string, others: string[]): ExtraDpKeyProblem | null {
+    if (!EXTRA_KEY_RE.test(key)) return 'invalid';
+    if (RESERVED_KEY_RE.test(key)) return 'reserved';
+    if (others.includes(key)) return 'duplicate';
+    return null;
+}
+
+/** The entries of a card as stored — may hold half-typed rows. */
+export function deviceCardExtraDpsRaw(card: WidgetConfig): DeviceCardExtraDp[] {
+    const list = card.options?.extraDps;
+    if (!Array.isArray(list)) return [];
+    return list
+        .filter((e): e is Partial<DeviceCardExtraDp> => !!e && typeof e === 'object')
+        .map((e) => ({ key: typeof e.key === 'string' ? e.key : '', dp: typeof e.dp === 'string' ? e.dp : '' }));
+}
+
+/** The usable entries of a card: a valid, unique short name and a datapoint. */
+export function deviceCardExtraDps(card: WidgetConfig): DeviceCardExtraDp[] {
+    const seen: string[] = [];
+    const out: DeviceCardExtraDp[] = [];
+    for (const e of deviceCardExtraDpsRaw(card)) {
+        const key = e.key.trim();
+        const dp = e.dp.trim();
+        if (!dp || extraDpKeyProblem(key, seen)) continue;
+        seen.push(key);
+        out.push({ key, dp });
+    }
+    return out;
+}
+
+/** Renames a token table of one datapoint to a short name: `dp` → `key`, the rest → `key_<token>`. */
+export function prefixVars(key: string, vars: Record<string, string>): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const [token, value] of Object.entries(vars)) out[token === 'dp' ? key : `${key}_${token}`] = value;
+    return out;
+}
+
+/** The id tokens of one further datapoint: `key`, `key_name`, `key_parent`, `key_parent2` … */
+export function extraDpVarMap(key: string, dp: string): Record<string, string> {
+    return prefixVars(key, dpVarMap(dp));
 }
 
 /**

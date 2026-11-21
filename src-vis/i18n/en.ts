@@ -2682,6 +2682,16 @@ export const en: Record<TranslationKey, string> = {
     'devicecard.pickDp': 'Pick datapoint',
     'devicecard.dpHint': 'Any datapoint of the device. The widgets inside the card build their datapoints from it.',
     'devicecard.tokens': 'Placeholders with this datapoint',
+    'devicecard.extraDps': 'Further datapoints',
+    'devicecard.extraKey': 'Short name',
+    'devicecard.extraAdd': 'Add datapoint',
+    'devicecard.extraRemove': 'Remove',
+    'devicecard.extraHint':
+        'For datapoints of other devices, e.g. an outdoor sensor. Short name "outside" gives {{outside}}, {{outside_parent}}, {{outside_dpname}} … Every linked card enters its own datapoint.',
+    'devicecard.extraFromLinked': 'Comes from a linked card – enter the datapoint for this card.',
+    'devicecard.extraKey.invalid': 'Letters and digits only, starting with a letter.',
+    'devicecard.extraKey.reserved': 'This name is already a placeholder of the card.',
+    'devicecard.extraKey.duplicate': 'Short name appears twice.',
     'devicecard.childHint':
         'In the widgets of the card, give datapoints with placeholders, e.g. {{parent}}.ACTUAL_TEMPERATURE. The card title may use them too.',
     'devicecard.sharedWith': 'Layout shared with {count} more cards – changes apply to all.',

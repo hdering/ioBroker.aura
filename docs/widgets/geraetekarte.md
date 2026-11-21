@@ -32,6 +32,23 @@ Aufgelöst gegen den Datenpunkt der jeweiligen Karte – die Tabelle steht auch 
 
 Gilt überall, wo ein Kind einen Datenpunkt hat: Hauptdatenpunkt, weitere Datenpunkt-Felder, Listenzeilen, Bedingungen, Badges, Diagramm-Serien. Auch der Kartentitel darf Platzhalter enthalten.
 
+## Weitere Datenpunkte
+
+Für Datenpunkte außerhalb des Geräts, z. B. ein Außenfühler, den jedes Diagramm der Karte mit anzeigt. Jeder Eintrag hat einen Kurznamen; daraus werden Platzhalter mit diesem Präfix.
+
+| Platzhalter | Kurzname `aussen`, Datenpunkt `hm-rpc.0.garten.1.TEMPERATURE` |
+| --- | --- |
+| `{{aussen}}` | `hm-rpc.0.garten.1.TEMPERATURE` |
+| `{{aussen_name}}` | `TEMPERATURE` |
+| `{{aussen_parent}}` · `{{aussen_parent2}}` … | `hm-rpc.0.garten.1` · `hm-rpc.0.garten` … |
+| `{{aussen_dpname}}` · `{{aussen_parentname}}` … | `common.name` wie oben |
+
+| Regel | |
+| --- | --- |
+| Kurzname | Buchstaben und Ziffern, beginnt mit einem Buchstaben; nicht `dp`, `name`, `parent…`, `dpname`, `dpunit` |
+| Verknüpfte Karten | jede Karte trägt ihren eigenen Datenpunkt ein; Kurznamen der anderen Karten erscheinen als leere Zeile |
+| Ohne Eintrag | Platzhalter bleibt stehen |
+
 Die `…name`-Platzhalter sind für Titel und Texte gedacht, nicht für Datenpunkt-IDs. Mehrsprachige Namen folgen der Oberflächensprache; fehlt ein Name, bleibt der Platzhalter stehen.
 
 ## Einstellungen
@@ -41,6 +58,7 @@ Die `…name`-Platzhalter sind für Titel und Texte gedacht, nicht für Datenpun
 | Option | Standard | |
 | --- | --- | --- |
 | Datenpunkt dieser Karte (`datapoint`) | — | Grundlage der Platzhalter |
+| Weitere Datenpunkte (`extraDps`) | — | Kurzname + Datenpunkt je Zeile, siehe oben |
 | `defId` | neu | Verweis auf den geteilten Aufbau – gleiche `defId` = gleiche Kinder |
 | Als eigene Karte abspalten | — | Karte bekommt eine eigene Kopie des Aufbaus |
 

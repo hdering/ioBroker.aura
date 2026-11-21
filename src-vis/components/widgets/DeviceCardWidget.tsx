@@ -8,10 +8,16 @@ import {
     runtimeId,
     useRuntimeScope,
 } from '../../contexts/RenderTransformContext';
-import { deviceCardColor, deviceCardTransform, deviceCardVars } from '../../utils/deviceCard';
+import {
+    deviceCardColor,
+    deviceCardExtraDps,
+    deviceCardTransform,
+    deviceCardVars,
+    prefixVars,
+} from '../../utils/deviceCard';
 import { subAll } from '../../utils/popupPlaceholders';
 import { useDeviceCardShareCount } from '../../hooks/useDeviceCardShareCount';
-import { useDpNameVars } from '../../hooks/useDpNameVars';
+import { useDpNameVars, useDpNameVarsList } from '../../hooks/useDpNameVars';
 import { useT } from '../../i18n';
 
 /**
@@ -30,7 +36,18 @@ export function DeviceCardWidget(props: WidgetProps) {
     const t = useT();
     // `{{dpname}}`, `{{parentname}}` … (#841) join once the objects are loaded.
     const nameVars = useDpNameVars(config.datapoint ?? '');
-    const vars = useMemo(() => ({ ...nameVars, ...deviceCardVars(config) }), [config, nameVars]);
+    // The further datapoints (#1007) bring their names as `{{aussen_dpname}}` …
+    const extras = deviceCardExtraDps(config);
+    const extraNames = useDpNameVarsList(
+        extras.map((e) => e.dp),
+        '{{dpname}}',
+    );
+    const vars = useMemo(() => {
+        const extraNameVars: Record<string, string> = {};
+        for (const { key, dp } of deviceCardExtraDps(config))
+            Object.assign(extraNameVars, prefixVars(key, extraNames[dp] ?? {}));
+        return { ...extraNameVars, ...nameVars, ...deviceCardVars(config) };
+    }, [config, nameVars, extraNames]);
     // Stable while the resolved table is the same — a new transform remounts nothing,
     // but it re-derives every child's render config.
     const varsKey = JSON.stringify(vars);
