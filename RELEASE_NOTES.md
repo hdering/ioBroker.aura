@@ -29,3 +29,4 @@
 - feat: Add widget dialog - the "Web components" section shows how many components are available
 - feat: Status overview - the many settings moved from the options panel into a tabbed dialog "Configure status overview" (categories with a list on the left and their settings on the right, datapoints, reminder list, rows, names, battery types); the panel keeps only the quick display options
 - feat: Status overview - new setting "Additional battery datapoints" in the battery category: datapoints matching these patterns (text or /regex/) count as batteries even without a battery role, e.g. Shelly devices mirrored over MQTT; numbers or text are read as a level in %, booleans as a low-battery flag
+- fix: Status overview / lists - the row popup "Datapoints of the device" opens much faster: it reads only the clicked device's branch instead of the whole object database, which took up to 20 seconds on large installations

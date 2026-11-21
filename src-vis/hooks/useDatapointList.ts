@@ -6,6 +6,7 @@ import {
     KNOWN_LOGGING_ADAPTERS,
     resolveName,
     type DatapointEntry,
+    type EnumMap,
     type StateCommon,
 } from '../utils/datapointEntry';
 import { getObjectDirect, getObjectViewDirect, whenStateReadsIdle } from './useIoBroker';
@@ -184,6 +185,47 @@ export async function fetchDatapointEntries(
         out.set(id, entry);
     });
     return out;
+}
+
+/**
+ * Entries of every state below `base` (the branch `base.*`), without loading the whole
+ * object DB. A row popup ("Datenpunkte des Geräts") needs a handful of siblings - reading
+ * all objects for that took up to 20 s on a large installation once the dashboard
+ * stopped warming the full cache (#882). Uses the full list when it is fresh anyway,
+ * otherwise one ranged getObjectView plus the branch's parent objects (for the names).
+ * Rooms/functions stay empty; `active` stays unset.
+ */
+export async function fetchDatapointBranch(base: string): Promise<DatapointEntry[]> {
+    const prefix = `${base}.`;
+    if (cache && !isCacheStale()) return cache.filter((d) => d.id.startsWith(prefix));
+    const res = await getObjectViewDirect('state', prefix, `${prefix}香`);
+    const rows = res.rows.filter((r) => r.id.startsWith(prefix) && r.value?.common);
+    const parentIds = new Set<string>();
+    for (const r of rows) {
+        const parts = r.id.split('.');
+        for (let i = parts.length - 1; i >= 2; i--) parentIds.add(parts.slice(0, i).join('.'));
+    }
+    const parents = await Promise.all([...parentIds].map(async (id) => [id, await getObjectDirect(id)] as const));
+    // Same rule as loadAll: only device and channel objects name a datapoint.
+    const parentNames = new Map<string, string>();
+    for (const [id, obj] of parents) {
+        if (!obj || (obj.type !== 'device' && obj.type !== 'channel')) continue;
+        const n = resolveName(obj.common?.name, '');
+        if (n) parentNames.set(id, n);
+    }
+    const enumMap: EnumMap = new Map();
+    return rows.map((r) => {
+        const entry = buildEntry(
+            r.id,
+            r.value.common as StateCommon,
+            parentNames,
+            enumMap,
+            (instanceId) => KNOWN_LOGGING_ADAPTERS.has(instanceId.replace(/\.\d+$/, '')),
+            undefined,
+        );
+        if (!cacheById.has(r.id)) partialById.set(r.id, entry);
+        return entry;
+    });
 }
 
 async function loadAll(): Promise<DatapointEntry[]> {

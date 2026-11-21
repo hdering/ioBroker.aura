@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { ClickAction, WidgetConfig } from '../../../types';
-import { ensureDatapointCache, type DatapointEntry } from '../../../hooks/useDatapointList';
-import { loadDeviceModelIndex, resolveDeviceIdForDp, type DeviceModel } from '../../../utils/batteryLibrary';
+import { fetchDatapointBranch, type DatapointEntry } from '../../../hooks/useDatapointList';
+import { getObjectDirect } from '../../../hooks/useIoBroker';
+import { resolveDeviceIdForDp, type DeviceModel } from '../../../utils/batteryLibrary';
 import { isRelevantDp } from '../../../utils/dpRelevance';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { DEFAULT_POPUP_PADDING } from '../../../store/popupConfigStore';
@@ -19,6 +20,24 @@ function resolveChannelId(dpId: string, index: Map<string, DeviceModel>): string
     return parts.slice(0, Math.max(2, parts.length - 1)).join('.');
 }
 
+/**
+ * The device/channel objects above `dpId`, read one by one (cached per session) - instead
+ * of the whole device + channel list, which on a large installation held the popup back
+ * for many seconds. Only `kind` is filled; the resolvers above read nothing else.
+ */
+async function ancestorKinds(dpId: string): Promise<Map<string, DeviceModel>> {
+    const parts = dpId.split('.');
+    const ids: string[] = [];
+    for (let i = parts.length - 1; i >= 2; i--) ids.push(parts.slice(0, i).join('.'));
+    const objs = await Promise.all(ids.map((id) => getObjectDirect(id).catch(() => null)));
+    const index = new Map<string, DeviceModel>();
+    ids.forEach((id, i) => {
+        const t = objs[i]?.type;
+        if (t === 'device' || t === 'channel') index.set(id, { id, name: '', kind: t });
+    });
+    return index;
+}
+
 /** Lexical parent strang, e.g. `alias.0.Steckdose.on` -> `alias.0.Steckdose`. */
 function parentId(dpId: string): string {
     const i = dpId.lastIndexOf('.');
@@ -28,8 +47,7 @@ function parentId(dpId: string): string {
 /**
  * "Alle Datenpunkte dieses Geraets" popup body (issue #524).
  *
- * Reads the sibling datapoints straight from the datapoint cache (which already
- * contains aliases) and renders them through the static list widget, so switches,
+ * Reads the sibling datapoints with one ranged object query on their branch and renders them through the static list widget, so switches,
  * sliders, multi-state displays and value formatting all come for free. Rows are
  * pinned to `clickAction: none` - a popup inside a popup helps nobody.
  */
@@ -55,16 +73,15 @@ export function DeviceDpsBody({
                 setDps([]);
                 return;
             }
-            const cache = await ensureDatapointCache();
             let base: string;
             if (scope === 'parent') {
                 base = parentId(dpId);
             } else {
-                const index = await loadDeviceModelIndex();
+                const index = await ancestorKinds(dpId);
                 base = scope === 'channel' ? resolveChannelId(dpId, index) : resolveDeviceIdForDp(dpId, index);
             }
-            const prefix = `${base}.`;
-            let found = cache.filter((d) => d.id.startsWith(prefix));
+            // Just this branch - not the whole object DB (#882).
+            let found = await fetchDatapointBranch(base);
             if (relevantOnly) found = found.filter((d) => isRelevantDp(d.role, d.type));
             found.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }));
             if (!cancelled) setDps(found);
