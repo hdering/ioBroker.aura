@@ -172,6 +172,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     lightRoleScope?: 'light' | 'all'; // which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers
     lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum for the switches
     lightIncludeDimmers?: boolean; // also list dimmers (role level.dimmer/level.brightness) as lights — only those in a "Licht"/"Light" function, in every scope; on = value > 0, row label "An · 60 %"; a channel with both a switch and a dimmer counts once (default true)
+    alarmExtraPatterns?: string; // extra smoke/water alarm DPs the roles miss (MQTT, scripts): comma list, text or /regex/; truthy value = alarm
     batteryExtraPatterns?: string; // extra battery DPs the roles miss (MQTT, scripts): comma list, text or /regex/; number/text = level in %, boolean = LOWBAT (true = weak)
     // Reachability (global escape hatch — merged from config store)
     offlineExtraPatterns?: string; // extra DP id patterns to treat as offline indicators (text or /regex/)
@@ -384,6 +385,7 @@ export function categoryOf(
 
     // Explicit user patterns win over every role guess - the user named this datapoint.
     if (opts.catBattery !== false && matchesBatteryExtra(dp, opts)) return 'battery';
+    if (opts.catAlarm !== false && matchesAlarmExtra(dp, opts)) return 'alarm';
     if (opts.catAlarm !== false && isAlarmRole(r)) return 'alarm';
     if (opts.catWindow !== false) {
         if (isWindowRole(r)) return 'window';
@@ -561,6 +563,16 @@ export function dimmerPercent(dp: DatapointEntry, val: unknown): number {
     const max = declaredMax ?? ((dp.unit ?? '').trim() === '%' || num > 1 ? 100 : 1);
     const min = Number.isFinite(dp.min) && (dp.min as number) < max ? (dp.min as number) : 0;
     return Math.max(0, Math.min(100, ((num - min) / (max - min)) * 100));
+}
+
+/**
+ * User-defined extra alarm DPs (option alarmExtraPatterns) - a flood or smoke sensor
+ * without an alarm role, e.g. a Shelly Flood mirrored over MQTT (`….sensor.flood`,
+ * role "state"). A truthy value is an alarm, as for the role-detected ones.
+ */
+export function matchesAlarmExtra(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    const patterns = splitList(opts.alarmExtraPatterns);
+    return patterns.length > 0 && patterns.some((p) => matchesIdPattern(dp.id, p));
 }
 
 /**
@@ -1497,6 +1509,7 @@ export const STATUS_DISCOVERY_KEYS = [
     'catLight',
     'catUnreach',
     'catAlarm',
+    'alarmExtraPatterns',
     'includeLowbatBoolean',
     'batteryKinds',
     'batteryExtraPatterns',

@@ -1072,6 +1072,7 @@ export const WIDGET_OPTION_NOTES = {
             'includeLowbatBoolean',
             'batteryKinds',
             'batteryExtraPatterns',
+            'alarmExtraPatterns',
             'batteryVoltThreshold',
             'lightRoleScope',
             'lightsOnlyFunction',
@@ -1106,6 +1107,15 @@ export const WIDGET_OPTION_NOTES = {
                     '(Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Batterie, vor allen Rollen: Zahl oder ' +
                     'Text = Ladestand in % gegen batteryThreshold, boolesch = LOWBAT (true = schwach). Eng fassen – ' +
                     'ein Hausspeicher (SoC in %) würde sonst als schwache Batterie gemeldet. Wirkt nur mit catBattery.',
+            },
+        ],
+        [
+            'alarmExtraPatterns',
+            {
+                description:
+                    'Zusätzliche Rauch-/Wasseralarm-Datenpunkte ohne Alarm-Rolle, z. B. ein über MQTT gespiegelter ' +
+                    'Shelly Flood (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Alarm, vor allen ' +
+                    'Rollen; ausgelöst bei true bzw. einem Wert ungleich 0. Wirkt nur mit catAlarm.',
             },
         ],
         [

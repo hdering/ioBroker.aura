@@ -415,6 +415,41 @@ test('batteryExtraPatterns: text level in %, boolean as LOWBAT', () => {
     assert.strictEqual(shared.evaluateItem(flag, false, 'battery', opts), null);
 });
 
+test('alarmExtraPatterns: a flood sensor without an alarm role comes in', async () => {
+    const shared = require('../lib/shared/auraShared');
+    const flood = 'mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.flood';
+    const views = {
+        state: [
+            obj(flood, 'state', {
+                name: 'shelly/1/SHWT-1_08F9E0444075_1/sensor/flood',
+                role: 'state',
+                type: 'boolean',
+            }),
+            obj('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.battery', 'state', {
+                name: 'battery',
+                role: 'state',
+                type: 'number',
+            }),
+        ],
+    };
+    const d = createStatusDiscovery({
+        getObjectView: async (type, startkey) =>
+            type === 'state' && startkey === 'alias.' ? { rows: [] } : { rows: views[type] ?? [] },
+    });
+    assert.ok(!byId(await d.discover({}, {})).has(flood), 'no pattern, no row');
+    const m = byId(await d.discover({ alarmExtraPatterns: '/\\.sensor\\.flood$/' }, {}));
+    assert.strictEqual(m.get(flood)?.cat, 'alarm');
+    assert.ok(!m.has('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.battery'), 'only the pattern hit');
+    const off = byId(await d.discover({ alarmExtraPatterns: 'sensor.flood', catAlarm: false }, {}));
+    assert.ok(!off.has(flood), 'category off wins');
+    d.stop();
+
+    const dp = { id: flood, name: 'x', type: 'boolean', role: 'state', rooms: [], funcs: [] };
+    const opts = { alarmExtraPatterns: 'sensor.flood' };
+    assert.strictEqual(shared.evaluateItem(dp, true, 'alarm', opts).severity, 'crit');
+    assert.strictEqual(shared.evaluateItem(dp, false, 'alarm', opts), null);
+});
+
 (async () => {
     for (const t of tests) {
         try {

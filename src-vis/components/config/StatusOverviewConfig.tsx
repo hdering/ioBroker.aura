@@ -288,6 +288,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.includeLowbatBoolean,
         o.batteryKinds,
         o.batteryExtraPatterns,
+        o.alarmExtraPatterns,
         o.lightRoleScope,
         o.lightsOnlyFunction,
         o.lightIncludeDimmers,
@@ -734,6 +735,24 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 return (
                     <>
                         <CatColor cat="alarm" />
+                        <div data-alarm-extra>
+                            <label className={labelCls} style={labelStyle}>
+                                Zusätzliche Alarm-Datenpunkte (Muster, Text oder /regex/)
+                            </label>
+                            <input
+                                type="text"
+                                value={o.alarmExtraPatterns ?? ''}
+                                onChange={(e) => set({ alarmExtraPatterns: e.target.value || undefined })}
+                                placeholder="/.sensor.flood$/"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                            <p className={`${hintCls} mt-1`} style={hintStyle}>
+                                Für Rauch- oder Wassermelder ohne Alarm-Rolle, z. B. über MQTT gespiegelte Geräte.
+                                Kommagetrennt; jeder Treffer zählt als Alarm, ausgelöst bei true bzw. einem Wert
+                                ungleich 0.
+                            </p>
+                        </div>
                         {latchToggle('alarm')}
                     </>
                 );
