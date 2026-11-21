@@ -172,6 +172,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     lightRoleScope?: 'light' | 'all'; // which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers
     lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum for the switches
     lightIncludeDimmers?: boolean; // also list dimmers (role level.dimmer/level.brightness) as lights — only those in a "Licht"/"Light" function, in every scope; on = value > 0, row label "An · 60 %"; a channel with both a switch and a dimmer counts once (default true)
+    batteryExtraPatterns?: string; // extra battery DPs the roles miss (MQTT, scripts): comma list, text or /regex/; number/text = level in %, boolean = LOWBAT (true = weak)
     // Reachability (global escape hatch — merged from config store)
     offlineExtraPatterns?: string; // extra DP id patterns to treat as offline indicators (text or /regex/)
     offlineInvert?: boolean; // for those extra DPs: true = value FALSE means offline (reachable semantics)
@@ -381,6 +382,8 @@ export function categoryOf(
     const r = (dp.role ?? '').toLowerCase();
     const id = dp.id.toLowerCase();
 
+    // Explicit user patterns win over every role guess - the user named this datapoint.
+    if (opts.catBattery !== false && matchesBatteryExtra(dp, opts)) return 'battery';
     if (opts.catAlarm !== false && isAlarmRole(r)) return 'alarm';
     if (opts.catWindow !== false) {
         if (isWindowRole(r)) return 'window';
@@ -560,6 +563,26 @@ export function dimmerPercent(dp: DatapointEntry, val: unknown): number {
     return Math.max(0, Math.min(100, ((num - min) / (max - min)) * 100));
 }
 
+/**
+ * User-defined extra battery DPs (option batteryExtraPatterns) - for datapoints without a
+ * battery role, e.g. a Shelly mirrored over MQTT (`mqtt.0.….battery`, role "variable").
+ */
+export function matchesBatteryExtra(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    const patterns = splitList(opts.batteryExtraPatterns);
+    return patterns.length > 0 && patterns.some((p) => matchesIdPattern(dp.id, p));
+}
+
+/**
+ * A battery datapoint whose value is the level in % rather than a LOWBAT flag. A user
+ * pattern hit counts as a level unless it is a boolean - MQTT states are often "mixed"
+ * or "string" with "85" as the value.
+ */
+export function isPercentBattery(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    const r = (dp.role ?? '').toLowerCase();
+    if (r === 'value.battery' || dp.type === 'number') return true;
+    return dp.type !== 'boolean' && matchesBatteryExtra(dp, opts);
+}
+
 /** User-defined extra offline-indicator DPs (global escape hatch). */
 function matchesOfflineExtra(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
     const patterns = splitList(opts.offlineExtraPatterns);
@@ -630,7 +653,6 @@ export function evaluateItem(
     const ok = (label: string): StatusItem | null => (includeOk ? { ...base, severity: 'ok', label, color: OK } : null);
 
     if (cat === 'battery') {
-        const r = (dp.role ?? '').toLowerCase();
         const kind = batteryKindOf(dp);
         if (kind === 'volt' || kind === 'millivolt') {
             const raw = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
@@ -642,9 +664,13 @@ export function evaluateItem(
             if (raw > batteryLimit(dp, opts)) return ok(label);
             return { ...base, severity: 'warn', label, color: SEVERITY_COLOR.warn };
         }
-        const isPercent = r === 'value.battery' || dp.type === 'number';
-        if (isPercent) {
+        if (isPercentBattery(dp, opts)) {
             const num = typeof val === 'number' ? val : parseFloat(String(val ?? ''));
+            // A pattern hit of type "mixed" may carry a flag after all.
+            if (isNaN(num) && typeof val === 'boolean' && matchesBatteryExtra(dp, opts)) {
+                if (!val) return ok('OK');
+                return { ...base, severity: 'warn', label: 'schwach', color: SEVERITY_COLOR.warn };
+            }
             if (isNaN(num)) return ok('–');
             if (num > (opts.batteryThreshold ?? 20)) return ok(`${Math.round(num)} %`);
             return { ...base, severity: 'warn', label: `${Math.round(num)} %`, color: SEVERITY_COLOR.warn };
@@ -958,7 +984,7 @@ export function parseLatchList(val: unknown): Map<string, LatchEntry> {
  */
 export function latchKind(dp: DatapointEntry, cat: CategoryKey, opts: StatusOverviewOptions): LatchWatch['kind'] {
     const r = (dp.role ?? '').toLowerCase();
-    if (cat === 'battery') return r === 'value.battery' || dp.type === 'number' ? 'pct' : 'bool';
+    if (cat === 'battery') return isPercentBattery(dp, opts) ? 'pct' : 'bool';
     if (cat === 'unreach') {
         const reach = isReachableRole(r) || (opts.offlineInvert === true && matchesOfflineExtra(dp, opts));
         return reach ? 'boolInv' : 'bool';
@@ -975,9 +1001,9 @@ export function latchKind(dp: DatapointEntry, cat: CategoryKey, opts: StatusOver
 export function findBatteryLevelDp(
     dp: DatapointEntry,
     cache: DatapointEntry[],
+    opts: StatusOverviewOptions = {},
 ): { id: string; unit: 'V' | '%' } | null {
-    const r = (dp.role ?? '').toLowerCase();
-    if (r === 'value.battery' || dp.type === 'number') return null; // the value itself is the level
+    if (isPercentBattery(dp, opts)) return null; // the value itself is the level
     const parent = dp.id.slice(0, dp.id.lastIndexOf('.'));
     const device = deviceIdFallback(dp.id);
     let sameDevice: string | null = null;
@@ -1458,7 +1484,7 @@ export function discoverStatusCandidates(
         found.push({
             dp,
             cat,
-            ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
+            ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache, opts) } : {}),
         });
     }
     return dedupeDerivedWindows(dedupeBatteryKinds(dedupeHmLowbat(dedupeLights(found))));
@@ -1473,6 +1499,7 @@ export const STATUS_DISCOVERY_KEYS = [
     'catAlarm',
     'includeLowbatBoolean',
     'batteryKinds',
+    'batteryExtraPatterns',
     'lightRoleScope',
     'lightsOnlyFunction',
     'lightIncludeDimmers',

@@ -362,6 +362,59 @@ test('battery kinds: voltage rows are judged against the volt threshold', () => 
     assert.strictEqual(shared.evaluateItem(mv, 0, 'battery', {}, 0, true), null, '0 mV: no row either');
 });
 
+test('batteryExtraPatterns: MQTT datapoints without a battery role come in', async () => {
+    const views = {
+        state: [
+            // Shelly Flood mirrored over MQTT: role "variable", type mixed, value as text.
+            obj('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.battery', 'state', {
+                name: 'battery',
+                role: 'variable',
+                type: 'mixed',
+            }),
+            obj('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.flood', 'state', {
+                name: 'flood',
+                role: 'variable',
+                type: 'mixed',
+            }),
+            // A home storage battery - must stay out unless a pattern names it.
+            obj('modbus.0.storage.battery', 'state', { name: 'SoC', role: 'value', type: 'number', unit: '%' }),
+            obj('mqtt.0.other.lowbat', 'state', { name: 'lowbat', role: 'variable', type: 'boolean' }),
+        ],
+    };
+    const d = createStatusDiscovery({
+        getObjectView: async (type, startkey) =>
+            type === 'state' && startkey === 'alias.' ? { rows: [] } : { rows: views[type] ?? [] },
+    });
+    const none = byId(await d.discover({}, {}));
+    assert.ok(!none.has('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.battery'), 'no pattern, no row');
+
+    const m = byId(
+        await d.discover({ batteryExtraPatterns: '/^mqtt\\.0\\.shelly\\..*\\.battery$/, mqtt.0.other.lowbat' }, {}),
+    );
+    assert.strictEqual(m.get('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.battery')?.cat, 'battery');
+    assert.strictEqual(m.get('mqtt.0.other.lowbat')?.cat, 'battery');
+    assert.ok(!m.has('mqtt.0.shelly.1.SHWT-1_08F9E0444075_1.sensor.flood'));
+    assert.ok(!m.has('modbus.0.storage.battery'), 'storage battery stays out');
+
+    const off = byId(await d.discover({ batteryExtraPatterns: 'mqtt.0.', catBattery: false }, {}));
+    assert.ok(!off.has('mqtt.0.other.lowbat'), 'category off wins');
+    d.stop();
+});
+
+test('batteryExtraPatterns: text level in %, boolean as LOWBAT', () => {
+    const shared = require('../lib/shared/auraShared');
+    const opts = { batteryExtraPatterns: 'mqtt.0.' };
+    const mixed = { id: 'mqtt.0.a.battery', name: 'x', type: 'mixed', role: 'variable', rooms: [], funcs: [] };
+    const flag = { ...mixed, id: 'mqtt.0.b.lowbat', type: 'boolean' };
+    assert.strictEqual(shared.evaluateItem(mixed, '85', 'battery', opts, 0, true).label, '85 %');
+    assert.strictEqual(shared.evaluateItem(mixed, '12', 'battery', opts).severity, 'warn');
+    assert.strictEqual(shared.evaluateItem(mixed, 12, 'battery', opts).label, '12 %');
+    assert.strictEqual(shared.evaluateItem(mixed, true, 'battery', opts).label, 'schwach', 'mixed carrying a flag');
+    assert.strictEqual(shared.evaluateItem(mixed, false, 'battery', opts), null);
+    assert.strictEqual(shared.evaluateItem(flag, true, 'battery', opts).label, 'schwach');
+    assert.strictEqual(shared.evaluateItem(flag, false, 'battery', opts), null);
+});
+
 (async () => {
     for (const t of tests) {
         try {

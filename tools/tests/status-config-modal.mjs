@@ -110,6 +110,11 @@ async function openEditor(viewport, options = {}, objects = { state: [], device:
     );
     await dlg.locator('[data-status-cat="battery"] [role="switch"]').click();
 
+    // Extra battery datapoints (e.g. Shelly over MQTT) sit in the battery category.
+    await dlg.locator('[data-status-cat="battery"] button').first().click();
+    await dlg.locator('[data-battery-extra] input').fill('mqtt.0.shelly.');
+    check('extra battery patterns write the option', (await opts())?.batteryExtraPatterns === 'mqtt.0.shelly.');
+
     // A hidden tab keeps its state: type into a filter, switch away and back.
     await dlg.locator('[data-config-tab="datapoints"]').click();
     const rooms = dlg.locator('[data-config-pane="datapoints"] input[type=text]').first();

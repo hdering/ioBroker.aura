@@ -77,6 +77,7 @@ Tab **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `tw
 | `LOWBAT`/`LOW_BAT` (Rolle `indicator.lowbat` oder Name) | außer HomeMatic immer |
 | HomeMatic-`LOWBAT` | nur wenn das Gerät `OPERATING_VOLTAGE` hat **oder** sein Modell in der Batterie-Bibliothek steht (klassische Geräte wie HM-Sec-SCo, HM-Sec-RHS, HM-Sec-SD-2) **oder** ihm ein Batterietyp zugewiesen ist |
 | HomeMatic, Modell unbekannt, ohne Spannung | nein – Netz-Aktoren tragen ebenfalls ein `LOWBAT` |
+| Treffer in `batteryExtraPatterns` | immer, egal welche Rolle – Zahl oder Text = Prozent, boolesch = LOWBAT |
 
 `LOWBAT` in Kanal 0 und 1 desselben Geräts ergibt eine Zeile (Kanal 0).
 
@@ -95,6 +96,7 @@ Tab **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `tw
 
 | Fall | Abhilfe |
 | --- | --- |
+| Gerät ohne Batterie-Rolle, z. B. Shelly über MQTT (`mqtt.0.shelly.…`, Rolle `variable`) | Kategorie Batterien → „Zusätzliche Batterie-Datenpunkte“ (`batteryExtraPatterns`, Text oder `/regex/`, z. B. `/^mqtt.0.shelly..*.battery$/`); eng fassen, sonst zählt ein Hausspeicher mit |
 | Tote Doubletten: dieselben HmIP-Seriennummern (`000…`) zusätzlich unter einer alten `hm-rpc`-Instanz, Werte eingefroren | `excludeIdPatterns` (Teilstring oder `/regex/`, z. B. `/^hm-rpc.2.000/`) – sonst werden sie mitüberwacht |
 
 ## Fenster & Türen erkennen

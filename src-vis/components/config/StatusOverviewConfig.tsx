@@ -287,6 +287,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.catAlarm,
         o.includeLowbatBoolean,
         o.batteryKinds,
+        o.batteryExtraPatterns,
         o.lightRoleScope,
         o.lightsOnlyFunction,
         o.lightIncludeDimmers,
@@ -615,6 +616,25 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 label="Auch LOWBAT-Datenpunkte ohne Batterie-Rolle (nach Name)"
                             />
                         </Unavailable>
+                        <div data-battery-extra>
+                            <label className={labelCls} style={labelStyle}>
+                                Zusätzliche Batterie-Datenpunkte (Muster, Text oder /regex/)
+                            </label>
+                            <input
+                                type="text"
+                                value={o.batteryExtraPatterns ?? ''}
+                                onChange={(e) => set({ batteryExtraPatterns: e.target.value || undefined })}
+                                placeholder="mqtt.0.shelly., /.battery$/"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                            <p className={`${hintCls} mt-1`} style={hintStyle}>
+                                Für Datenpunkte ohne Batterie-Rolle, z. B. über MQTT gespiegelte Geräte. Kommagetrennt;
+                                jeder Treffer zählt als Batterie: Zahl oder Text = Ladestand in %, boolesch = LOWBAT
+                                (true = schwach). Muster möglichst genau fassen, sonst landen z. B. Hausspeicher mit in
+                                der Liste.
+                            </p>
+                        </div>
                         <div className="flex gap-3 items-start">
                             <div className="flex-1">
                                 <Unavailable

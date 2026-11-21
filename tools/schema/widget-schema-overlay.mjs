@@ -1071,6 +1071,7 @@ export const WIDGET_OPTION_NOTES = {
             'batteryThreshold',
             'includeLowbatBoolean',
             'batteryKinds',
+            'batteryExtraPatterns',
             'batteryVoltThreshold',
             'lightRoleScope',
             'lightsOnlyFunction',
@@ -1097,6 +1098,16 @@ export const WIDGET_OPTION_NOTES = {
             'showAllClear',
             'allClearText',
         ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'table', 'twoline', 'card', 'minimal', 'count'] }]),
+        [
+            'batteryExtraPatterns',
+            {
+                description:
+                    'Zusätzliche Batterie-Datenpunkte ohne Batterie-Rolle, z. B. über MQTT gespiegelte Shelly ' +
+                    '(Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Batterie, vor allen Rollen: Zahl oder ' +
+                    'Text = Ladestand in % gegen batteryThreshold, boolesch = LOWBAT (true = schwach). Eng fassen – ' +
+                    'ein Hausspeicher (SoC in %) würde sonst als schwache Batterie gemeldet. Wirkt nur mit catBattery.',
+            },
+        ],
         [
             'excludeIds',
             {
