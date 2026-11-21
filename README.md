@@ -128,6 +128,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.4.0-next.0 (2026-11-21) — next/test release
+- 🌟 **New feature:** Add widget dialog - the "Web components" section shows how many components are available
+- 🌟 **New feature:** Status overview - the many settings moved from the options panel into a tabbed dialog "Configure status overview" (categories with a list on the left and their settings on the right, datapoints, reminder list, rows, names, battery types); the panel keeps only the quick display options
+- 🌟 **New feature:** Status overview - new setting "Additional battery datapoints" in the battery category: datapoints matching these patterns (text or /regex/) count as batteries even without a battery role, e.g. Shelly devices mirrored over MQTT; numbers or text are read as a level in %, booleans as a low-battery flag
+
+
 ### 1.3.0-next.0 (2026-11-20) — next/test release
 - 🐛 **Bug fix:** Status overview - aliases filed as alias.0.<room>.<device>.<state> now count as one device each instead of the whole room folder, so a percent battery alias no longer hides the voltage and LOWBAT aliases of the other devices in that room; device names and the battery level lookup follow ([#1002](https://github.com/hdering/ioBroker.aura/issues/1002))
 - 🌟 **New feature:** Status overview - new layout "Table": every part of a row is a column lined up across all rows, so values, battery types and rooms sit under each other, with a header row of column names; new "Row layout" setting to order, place (left / behind the name / right; two-line layout: line 1 / line 2 / right) and hide the parts of a row, e.g. the battery type before the value ([#1003](https://github.com/hdering/ioBroker.aura/issues/1003))
@@ -244,15 +250,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** MCP - a tab created in a PIN-protected section now goes into the PIN vault when the section is released for MCP editing, and is refused otherwise; the editor and "remove PIN" no longer drop tabs that exist only in the tab bar
 
 
-### 0.112.0 (2026-11-10)
-- 🌟 **New feature:** List - shutter rows get a button size option, like the Rollladen widget ([#943](https://github.com/hdering/ioBroker.aura/issues/943))
-- 🐛 **Bug fix:** Web component - Aura draws the title, the component no longer adds its own second title (e.g. the name of the cameras' RTSP picture)
-- 🌟 **New feature:** Web component - title and icon can come from the component instead of the widget (Title from / Icon from)
-- 🌟 **New feature:** Web component - new option "Click on the component" (Off / Component): off by default - a click belongs to the widget and runs its normal click action; interactive components (e.g. calendar) need "Component"
-- 🌟 **New feature:** Web component - dialogs of a component open as a popup of the widget and follow its popup options (size, fullscreen, look)
-- 🐛 **Bug fix:** Adapter status - available updates follow the active repository: after switching back from Beta to Stable the Beta updates disappear right away instead of staying until admin's next repository check ([#962](https://github.com/hdering/ioBroker.aura/issues/962))
-
-
 ## License
 
 MIT License
@@ -264,6 +261,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

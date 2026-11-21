@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.112.0 (2026-11-10)
+- 🌟 **New feature:** List - shutter rows get a button size option, like the Rollladen widget ([#943](https://github.com/hdering/ioBroker.aura/issues/943))
+- 🐛 **Bug fix:** Web component - Aura draws the title, the component no longer adds its own second title (e.g. the name of the cameras' RTSP picture)
+- 🌟 **New feature:** Web component - title and icon can come from the component instead of the widget (Title from / Icon from)
+- 🌟 **New feature:** Web component - new option "Click on the component" (Off / Component): off by default - a click belongs to the widget and runs its normal click action; interactive components (e.g. calendar) need "Component"
+- 🌟 **New feature:** Web component - dialogs of a component open as a popup of the widget and follow its popup options (size, fullscreen, look)
+- 🐛 **Bug fix:** Adapter status - available updates follow the active repository: after switching back from Beta to Stable the Beta updates disappear right away instead of staying until admin's next repository check ([#962](https://github.com/hdering/ioBroker.aura/issues/962))
+
 ## 0.111.1 (2026-11-10)
 - 🌟 **New feature:** Web components - dialogs of a component (a form or its own content) open in Aura's popup style instead of the browser dialog, full width on phones ([#957](https://github.com/hdering/ioBroker.aura/issues/957))
 - 🌟 **New feature:** AI access (MCP) - new tool aura_web_components lists the installed web components with their tag, adapter, name, size and settings, so an AI can build web component widgets without guessing ([#956](https://github.com/hdering/ioBroker.aura/issues/956))
