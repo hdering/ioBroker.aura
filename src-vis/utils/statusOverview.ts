@@ -172,7 +172,9 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     lightRoleScope?: 'light' | 'all'; // which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers
     lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum for the switches
     lightIncludeDimmers?: boolean; // also list dimmers (role level.dimmer/level.brightness) as lights — only those in a "Licht"/"Light" function, in every scope; on = value > 0, row label "An · 60 %"; a channel with both a switch and a dimmer counts once (default true)
-    alarmExtraPatterns?: string; // extra smoke/water alarm DPs the roles miss (MQTT, scripts): comma list, text or /regex/; truthy value = alarm
+    alarmExtraPatterns?: string; // extra smoke/water alarm DPs the roles miss (MQTT, scripts): comma list, text or /regex/; true/1 = alarm
+    windowExtraPatterns?: string; // extra window/door contacts the roles miss: comma list, text or /regex/; read like any contact (true/open/2 = open)
+    lightExtraPatterns?: string; // extra lamps the roles miss: comma list, text or /regex/; boolean = on/off, number = brightness
     batteryExtraPatterns?: string; // extra battery DPs the roles miss (MQTT, scripts): comma list, text or /regex/; number/text = level in %, boolean = LOWBAT (true = weak)
     // Reachability (global escape hatch — merged from config store)
     offlineExtraPatterns?: string; // extra DP id patterns to treat as offline indicators (text or /regex/)
@@ -386,6 +388,8 @@ export function categoryOf(
     // Explicit user patterns win over every role guess - the user named this datapoint.
     if (opts.catBattery !== false && matchesBatteryExtra(dp, opts)) return 'battery';
     if (opts.catAlarm !== false && matchesAlarmExtra(dp, opts)) return 'alarm';
+    if (opts.catWindow !== false && matchesWindowExtra(dp, opts)) return 'window';
+    if (opts.catLight !== false && matchesLightExtra(dp, opts)) return 'light';
     if (opts.catAlarm !== false && isAlarmRole(r)) return 'alarm';
     if (opts.catWindow !== false) {
         if (isWindowRole(r)) return 'window';
@@ -565,6 +569,26 @@ export function dimmerPercent(dp: DatapointEntry, val: unknown): number {
     return Math.max(0, Math.min(100, ((num - min) / (max - min)) * 100));
 }
 
+function matchesExtra(dp: DatapointEntry, list: string | undefined): boolean {
+    const patterns = splitList(list);
+    return patterns.length > 0 && patterns.some((p) => matchesIdPattern(dp.id, p));
+}
+
+/** User-defined extra window/door contacts (option windowExtraPatterns), read like any contact. */
+export function matchesWindowExtra(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    return matchesExtra(dp, opts.windowExtraPatterns);
+}
+
+/** User-defined extra lamps (option lightExtraPatterns); a number is their brightness. */
+export function matchesLightExtra(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    return matchesExtra(dp, opts.lightExtraPatterns);
+}
+
+/** A light row whose value is a brightness: a dimmer role, or a numeric pattern hit. */
+function isLevelLight(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
+    return isDimmerDp(dp) || (dp.type === 'number' && matchesLightExtra(dp, opts));
+}
+
 /**
  * User-defined extra alarm DPs (option alarmExtraPatterns) - a flood or smoke sensor
  * without an alarm role, e.g. a Shelly Flood mirrored over MQTT (`….sensor.flood`,
@@ -704,7 +728,7 @@ export function evaluateItem(
     }
 
     if (cat === 'light') {
-        if (isDimmerDp(dp)) {
+        if (isLevelLight(dp, opts)) {
             const pct = dimmerPercent(dp, val);
             if (pct <= 0) return ok('Aus');
             // A tiny level still reads "1 %", never "0 %" next to "An".
@@ -1510,6 +1534,8 @@ export const STATUS_DISCOVERY_KEYS = [
     'catUnreach',
     'catAlarm',
     'alarmExtraPatterns',
+    'windowExtraPatterns',
+    'lightExtraPatterns',
     'includeLowbatBoolean',
     'batteryKinds',
     'batteryExtraPatterns',

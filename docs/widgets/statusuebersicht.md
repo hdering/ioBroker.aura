@@ -96,7 +96,9 @@ Tab **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `tw
 
 | Fall | Abhilfe |
 | --- | --- |
-| Rauch-/Wassermelder ohne Alarm-Rolle, z. B. Shelly Flood über MQTT (`….sensor.flood`, Rolle `state`) | Kategorie Rauch- & Wasser-Alarme → „Zusätzliche Alarm-Datenpunkte“ (`alarmExtraPatterns`, Text oder `/regex/`, z. B. `/\.sensor\.flood$/`); ausgelöst bei `true` bzw. Wert ≠ 0 |
+| Rauch-/Wassermelder ohne Alarm-Rolle, z. B. Shelly Flood über MQTT (`….sensor.flood`, Rolle `state`) | Kategorie Rauch- & Wasser-Alarme → „Zusätzliche Alarm-Datenpunkte“ (`alarmExtraPatterns`, Text oder `/regex/`, z. B. `/\.sensor\.flood$/`); ausgelöst bei `true` bzw. `1` |
+| Fenster-/Türkontakt ohne Fenster-Rolle | Kategorie Offene Fenster & Türen → „Zusätzliche Fenster- und Tür-Datenpunkte“ (`windowExtraPatterns`); `true`/`1`/„open“ = offen, `2`/„tilted“ = gekippt |
+| Lampe ohne Licht-Rolle, z. B. Steckdose mit Stehlampe oder Licht über MQTT | Kategorie Eingeschaltete Lichter → „Zusätzliche Licht-Datenpunkte“ (`lightExtraPatterns`); boolesch = an/aus, Zahl = Helligkeit |
 | Gerät ohne Batterie-Rolle, z. B. Shelly über MQTT (`mqtt.0.shelly.…`, Rolle `variable`) | Kategorie Batterien → „Zusätzliche Batterie-Datenpunkte“ (`batteryExtraPatterns`, Text oder `/regex/`, z. B. `/^mqtt.0.shelly..*.battery$/`); eng fassen, sonst zählt ein Hausspeicher mit |
 | Tote Doubletten: dieselben HmIP-Seriennummern (`000…`) zusätzlich unter einer alten `hm-rpc`-Instanz, Werte eingefroren | `excludeIdPatterns` (Teilstring oder `/regex/`, z. B. `/^hm-rpc.2.000/`) – sonst werden sie mitüberwacht |
 

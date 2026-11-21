@@ -1073,6 +1073,8 @@ export const WIDGET_OPTION_NOTES = {
             'batteryKinds',
             'batteryExtraPatterns',
             'alarmExtraPatterns',
+            'windowExtraPatterns',
+            'lightExtraPatterns',
             'batteryVoltThreshold',
             'lightRoleScope',
             'lightsOnlyFunction',
@@ -1115,7 +1117,26 @@ export const WIDGET_OPTION_NOTES = {
                 description:
                     'Zusätzliche Rauch-/Wasseralarm-Datenpunkte ohne Alarm-Rolle, z. B. ein über MQTT gespiegelter ' +
                     'Shelly Flood (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Alarm, vor allen ' +
-                    'Rollen; ausgelöst bei true bzw. einem Wert ungleich 0. Wirkt nur mit catAlarm.',
+                    'Rollen; ausgelöst bei true bzw. 1. Wirkt nur mit catAlarm.',
+            },
+        ],
+        [
+            'windowExtraPatterns',
+            {
+                description:
+                    'Zusätzliche Fenster-/Tür-Kontakte ohne Fenster-Rolle, z. B. über MQTT gespiegelt (Text oder ' +
+                    '/regex/, kommagetrennt). Jeder Treffer zählt als Fenster/Tür, vor allen Rollen; gelesen wie ' +
+                    'jeder Kontakt: true/1/"open" = offen, 2/"tilted" = gekippt. Wirkt nur mit catWindow.',
+            },
+        ],
+        [
+            'lightExtraPatterns',
+            {
+                description:
+                    'Zusätzliche Lampen ohne Licht-Rolle, z. B. über MQTT gespiegelt oder eine Steckdose mit ' +
+                    'Stehlampe (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Licht, vor allen Rollen ' +
+                    'und unabhängig von lightRoleScope: boolesch = an/aus, Zahl = Helligkeit (an ab 1 %). Wirkt nur ' +
+                    'mit catLight.',
             },
         ],
         [

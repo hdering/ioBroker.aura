@@ -114,6 +114,18 @@ async function openEditor(viewport, options = {}, objects = { state: [], device:
     await dlg.locator('[data-status-cat="battery"] button').first().click();
     await dlg.locator('[data-battery-extra] input').fill('mqtt.0.shelly.');
     check('extra battery patterns write the option', (await opts())?.batteryExtraPatterns === 'mqtt.0.shelly.');
+    // Same field in alarm, window and light.
+    for (const [cat, key] of [
+        ['alarm', 'alarmExtraPatterns'],
+        ['window', 'windowExtraPatterns'],
+        ['light', 'lightExtraPatterns'],
+    ]) {
+        // Light was switched off above - its greyed fields take no input.
+        if (cat === 'light') await dlg.locator('[data-status-cat="light"] [role="switch"]').click();
+        await dlg.locator(`[data-status-cat="${cat}"] button`).first().click();
+        await dlg.locator(`[data-status-cat-detail="${cat}"] [data-extra-patterns="${key}"] input`).fill('mqtt.0.x.');
+        check(`extra ${cat} patterns write the option`, (await opts())?.[key] === 'mqtt.0.x.');
+    }
 
     // A hidden tab keeps its state: type into a filter, switch away and back.
     await dlg.locator('[data-config-tab="datapoints"]').click();

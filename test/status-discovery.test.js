@@ -450,6 +450,43 @@ test('alarmExtraPatterns: a flood sensor without an alarm role comes in', async 
     assert.strictEqual(shared.evaluateItem(dp, false, 'alarm', opts), null);
 });
 
+test('windowExtraPatterns / lightExtraPatterns: contacts and lamps without a role', async () => {
+    const shared = require('../lib/shared/auraShared');
+    const contact = 'mqtt.0.shelly.2.door.contact';
+    const plug = 'mqtt.0.plug.stehlampe.on';
+    const level = 'mqtt.0.lamp.brightness';
+    const views = {
+        state: [
+            obj(contact, 'state', { name: 'contact', role: 'state', type: 'boolean' }),
+            obj(plug, 'state', { name: 'on', role: 'state', type: 'boolean' }),
+            obj(level, 'state', { name: 'brightness', role: 'state', type: 'number', max: 254 }),
+            obj('mqtt.0.other.value', 'state', { name: 'value', role: 'state', type: 'boolean' }),
+        ],
+    };
+    const d = createStatusDiscovery({
+        getObjectView: async (type, startkey) =>
+            type === 'state' && startkey === 'alias.' ? { rows: [] } : { rows: views[type] ?? [] },
+    });
+    const none = byId(await d.discover({}, {}));
+    assert.ok(!none.has(contact) && !none.has(plug) && !none.has(level), 'no pattern, no rows');
+    const opts = { windowExtraPatterns: '/\\.contact$/', lightExtraPatterns: 'stehlampe, mqtt.0.lamp.' };
+    const m = byId(await d.discover(opts, {}));
+    assert.strictEqual(m.get(contact)?.cat, 'window');
+    assert.strictEqual(m.get(plug)?.cat, 'light');
+    assert.strictEqual(m.get(level)?.cat, 'light');
+    assert.ok(!m.has('mqtt.0.other.value'));
+    const off = byId(await d.discover({ ...opts, catWindow: false, catLight: false }, {}));
+    assert.ok(!off.has(contact) && !off.has(plug), 'category off wins');
+    d.stop();
+
+    const dp = (id, type, extra = {}) => ({ id, name: 'x', type, role: 'state', rooms: [], funcs: [], ...extra });
+    assert.strictEqual(shared.evaluateItem(dp(contact, 'boolean'), true, 'window', opts).label, 'Offen');
+    assert.strictEqual(shared.evaluateItem(dp(contact, 'boolean'), false, 'window', opts), null);
+    assert.strictEqual(shared.evaluateItem(dp(plug, 'boolean'), true, 'light', opts).label, 'An');
+    assert.strictEqual(shared.evaluateItem(dp(level, 'number', { max: 254 }), 127, 'light', opts).label, 'An · 50 %');
+    assert.strictEqual(shared.evaluateItem(dp(level, 'number', { max: 254 }), 0, 'light', opts), null);
+});
+
 (async () => {
     for (const t of tests) {
         try {

@@ -289,6 +289,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.batteryKinds,
         o.batteryExtraPatterns,
         o.alarmExtraPatterns,
+        o.windowExtraPatterns,
+        o.lightExtraPatterns,
         o.lightRoleScope,
         o.lightsOnlyFunction,
         o.lightIncludeDimmers,
@@ -574,10 +576,45 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         );
     };
 
+    /** "Zusätzliche … Datenpunkte": ids or /regex/ that join a category whatever their role. */
+    const extraField = (
+        key: 'alarmExtraPatterns' | 'windowExtraPatterns' | 'lightExtraPatterns',
+        label: string,
+        placeholder: string,
+        hint: string,
+    ) => (
+        <div data-extra-patterns={key}>
+            <label className={labelCls} style={labelStyle}>
+                {label} (Muster, Text oder /regex/)
+            </label>
+            <input
+                type="text"
+                value={o[key] ?? ''}
+                onChange={(e) => set({ [key]: e.target.value || undefined })}
+                placeholder={placeholder}
+                className={inputCls}
+                style={inputStyle}
+            />
+            <p className={`${hintCls} mt-1`} style={hintStyle}>
+                {hint}
+            </p>
+        </div>
+    );
+
     const catBody = (cat: CategoryKey, goTo: (key: string) => void) => {
         switch (cat) {
             case 'window':
-                return <CatColor cat="window" />;
+                return (
+                    <>
+                        <CatColor cat="window" />
+                        {extraField(
+                            'windowExtraPatterns',
+                            'Zusätzliche Fenster- und Tür-Datenpunkte',
+                            'mqtt.0.shelly., /.contact$/',
+                            'Für Kontakte ohne Fenster-Rolle, z. B. über MQTT gespiegelte Geräte. Kommagetrennt; jeder Treffer zählt als Fenster/Tür: true, 1 oder „open“ = offen, 2 bzw. „tilted“ = gekippt.',
+                        )}
+                    </>
+                );
             case 'battery':
                 return (
                     <>
@@ -729,30 +766,24 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             onChange={(v) => set({ lightIncludeDimmers: v })}
                             label={'Dimmer in Funktion „Licht“ mitzählen (an ab 1 %, mit Helligkeit)'}
                         />
+                        {extraField(
+                            'lightExtraPatterns',
+                            'Zusätzliche Licht-Datenpunkte',
+                            'mqtt.0.shelly., /.light.0.on$/',
+                            'Für Lampen ohne Licht-Rolle, z. B. über MQTT gespiegelte Geräte oder Steckdosen mit Stehlampe. Kommagetrennt; jeder Treffer zählt als Licht: boolesch = an/aus, Zahl = Helligkeit (an ab 1 %).',
+                        )}
                     </>
                 );
             case 'alarm':
                 return (
                     <>
                         <CatColor cat="alarm" />
-                        <div data-alarm-extra>
-                            <label className={labelCls} style={labelStyle}>
-                                Zusätzliche Alarm-Datenpunkte (Muster, Text oder /regex/)
-                            </label>
-                            <input
-                                type="text"
-                                value={o.alarmExtraPatterns ?? ''}
-                                onChange={(e) => set({ alarmExtraPatterns: e.target.value || undefined })}
-                                placeholder="/.sensor.flood$/"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                            <p className={`${hintCls} mt-1`} style={hintStyle}>
-                                Für Rauch- oder Wassermelder ohne Alarm-Rolle, z. B. über MQTT gespiegelte Geräte.
-                                Kommagetrennt; jeder Treffer zählt als Alarm, ausgelöst bei true bzw. einem Wert
-                                ungleich 0.
-                            </p>
-                        </div>
+                        {extraField(
+                            'alarmExtraPatterns',
+                            'Zusätzliche Alarm-Datenpunkte',
+                            '/.sensor.flood$/',
+                            'Für Rauch- oder Wassermelder ohne Alarm-Rolle, z. B. über MQTT gespiegelte Geräte. Kommagetrennt; jeder Treffer zählt als Alarm, ausgelöst bei true bzw. 1.',
+                        )}
                         {latchToggle('alarm')}
                     </>
                 );

@@ -22124,7 +22124,7 @@
       "options": {
         "alarmExtraPatterns": {
           "type": "string",
-          "description": "Zusätzliche Rauch-/Wasseralarm-Datenpunkte ohne Alarm-Rolle, z. B. ein über MQTT gespiegelter Shelly Flood (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Alarm, vor allen Rollen; ausgelöst bei true bzw. einem Wert ungleich 0. Wirkt nur mit catAlarm."
+          "description": "Zusätzliche Rauch-/Wasseralarm-Datenpunkte ohne Alarm-Rolle, z. B. ein über MQTT gespiegelter Shelly Flood (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Alarm, vor allen Rollen; ausgelöst bei true bzw. 1. Wirkt nur mit catAlarm."
         },
         "allClearText": {
           "type": "string",
@@ -22486,6 +22486,10 @@
             "count"
           ]
         },
+        "lightExtraPatterns": {
+          "type": "string",
+          "description": "Zusätzliche Lampen ohne Licht-Rolle, z. B. über MQTT gespiegelt oder eine Steckdose mit Stehlampe (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Licht, vor allen Rollen und unabhängig von lightRoleScope: boolesch = an/aus, Zahl = Helligkeit (an ab 1 %). Wirkt nur mit catLight."
+        },
         "lightIncludeDimmers": {
           "type": "boolean",
           "description": "also list dimmers (role level.dimmer/level.brightness) as lights — only those in a \"Licht\"/\"Light\" function, in every scope; on = value > 0, row label \"An · 60 %\"; a channel with both a switch and a dimmer counts once (default true)",
@@ -22803,6 +22807,10 @@
             "minimal",
             "count"
           ]
+        },
+        "windowExtraPatterns": {
+          "type": "string",
+          "description": "Zusätzliche Fenster-/Tür-Kontakte ohne Fenster-Rolle, z. B. über MQTT gespiegelt (Text oder /regex/, kommagetrennt). Jeder Treffer zählt als Fenster/Tür, vor allen Rollen; gelesen wie jeder Kontakt: true/1/\"open\" = offen, 2/\"tilted\" = gekippt. Wirkt nur mit catWindow."
         }
       }
     },
