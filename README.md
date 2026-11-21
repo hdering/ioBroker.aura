@@ -128,6 +128,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.4.0-next.1 (2026-11-21) — next/test release
+- 🐛 **Bug fix:** Status overview / lists - the row popup "Datapoints of the device" opens much faster: it reads only the clicked device's branch instead of the whole object database, which took up to 20 seconds on large installations
+- 🌟 **New feature:** Status overview - new setting "Additional alarm datapoints" in the smoke & water alarm category: datapoints matching these patterns (text or /regex/) count as alarms even without an alarm role, e.g. a Shelly Flood mirrored over MQTT; true (or 1) triggers the alarm. The same field also exists for open windows & doors ("Additional window and door datapoints") and lights on ("Additional light datapoints"; a number counts as brightness). A "+ Datapoint" button next to each of these fields (and next to "Additional offline datapoints") picks single datapoints from the datapoint picker and appends their ids
+
+
 ### 1.4.0-next.0 (2026-11-21) — next/test release
 - 🌟 **New feature:** Add widget dialog - the "Web components" section shows how many components are available
 - 🌟 **New feature:** Status overview - the many settings moved from the options panel into a tabbed dialog "Configure status overview" (categories with a list on the left and their settings on the right, datapoints, reminder list, rows, names, battery types); the panel keeps only the quick display options
@@ -246,10 +251,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Layouts - flow columns can be filled by height (masonry) or compactly with as few columns as needed, centred; columns are only re-dealt when a tab opens or the window width changes ([#939](https://github.com/hdering/ioBroker.aura/issues/939))
 
 
-### 0.112.1 (2026-11-10)
-- 🐛 **Bug fix:** MCP - a tab created in a PIN-protected section now goes into the PIN vault when the section is released for MCP editing, and is refused otherwise; the editor and "remove PIN" no longer drop tabs that exist only in the tab bar
-
-
 ## License
 
 MIT License
@@ -261,6 +262,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
