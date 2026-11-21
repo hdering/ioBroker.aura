@@ -223,6 +223,46 @@ async function openEditor(viewport, options = {}, objects = { state: [], device:
     await ctx.close();
 }
 
+// ── 4. "Zeilen-Aktionen": existing buttons start folded, "Klick auf Zeile" has its own heading ──
+{
+    const { ctx, page, opts } = await openEditor(
+        { width: 1300, height: 900 },
+        { rowActions: [{ label: 'Aus', targetDp: '{id}', value: 'false', categories: ['light'] }] },
+    );
+    await page.locator('[data-status-config-open]').click();
+    const dlg = page.locator('.aura-config-modal');
+    await dlg.locator('[data-config-tab="actions"]').click();
+    const row = dlg.locator('[data-row-action="0"]');
+    check('existing button starts folded', (await row.locator('input[aria-label="Beschriftung"]').count()) === 0);
+    const sum = await row.locator('[data-row-action-summary]').textContent();
+    check('folded row names label and target', sum.includes('Aus') && sum.includes('{id}'), sum);
+    check(
+        '"Klick auf Zeile" is a heading of its own',
+        (
+            await dlg
+                .locator('.aura-status-row-click [data-aura-subgroup], .aura-status-row-click')
+                .first()
+                .textContent()
+        ).startsWith('Klick auf Zeile'),
+    );
+    await row.locator('[data-row-action-toggle]').click();
+    check('toggle unfolds it', (await row.locator('input[aria-label="Beschriftung"]').count()) === 1);
+    // A new button opens right away - it needs filling in.
+    await dlg.locator('button:has-text("Knopf hinzufügen")').click();
+    check(
+        'new button opens unfolded',
+        (await dlg.locator('[data-row-action="1"] input[aria-label="Ziel-Datenpunkt"]').count()) === 1,
+    );
+    // Removing the first keeps the (now first) new one open.
+    await row.locator('button[title="Entfernen"]').click();
+    check(
+        'open state follows a removal',
+        (await dlg.locator('[data-row-action="0"] input[aria-label="Ziel-Datenpunkt"]').count()) === 1 &&
+            (await opts())?.rowActions?.length === 1,
+    );
+    await ctx.close();
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 await browser.close();
 const failed = results.filter((r) => !r.ok).length;

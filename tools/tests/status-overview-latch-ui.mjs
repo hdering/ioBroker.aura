@@ -354,9 +354,7 @@ const ACTION = {
     check('summary says "keine"', (await actSummary.textContent()).includes('keine'), await actSummary.textContent());
     const actOrder = await page.evaluate(() => {
         const sec = document.querySelector('.aura-status-row-actions')?.getBoundingClientRect().top ?? -1;
-        const click = [...document.querySelectorAll('.aura-config-modal label')].find(
-            (l) => l.textContent === 'Klick auf Zeile',
-        );
+        const click = document.querySelector('.aura-config-modal .aura-status-row-click');
         return { sec, click: click?.getBoundingClientRect().top ?? -1 };
     });
     check(

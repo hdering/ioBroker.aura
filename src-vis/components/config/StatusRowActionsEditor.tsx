@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowDown, ArrowUp, Database, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronRight, Database, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { CATEGORY_ORDER, ROW_ACTION_PRESETS, type CategoryKey, type StatusRowAction } from '../../utils/statusOverview';
 import { DatapointPicker } from './DatapointPicker';
 
@@ -36,9 +36,25 @@ export function StatusRowActionsEditor({
     onChange: (next: StatusRowAction[] | undefined) => void;
 }) {
     const [pickFor, setPickFor] = useState<number | null>(null);
+    // Existing buttons start folded (one line each), so what follows - "Klick auf Zeile" -
+    // stays in sight. A button added in this session opens, it needs filling in.
+    const [open, setOpen] = useState<Set<number>>(() => new Set());
+    const toggleOpen = (i: number) =>
+        setOpen((cur) => {
+            const next = new Set(cur);
+            if (next.has(i)) next.delete(i);
+            else next.add(i);
+            return next;
+        });
+    const add = (a: StatusRowAction) => {
+        setOpen((cur) => new Set(cur).add(actions.length));
+        onChange([...actions, a]);
+    };
     const update = (i: number, patch: Partial<StatusRowAction>) =>
         onChange(actions.map((a, j) => (j === i ? { ...a, ...patch } : a)));
     const remove = (i: number) => {
+        // Indices behind the removed one move up by one.
+        setOpen((cur) => new Set([...cur].filter((j) => j !== i).map((j) => (j > i ? j - 1 : j))));
         const next = actions.filter((_, j) => j !== i);
         onChange(next.length ? next : undefined);
     };
@@ -47,6 +63,7 @@ export function StatusRowActionsEditor({
         if (j < 0 || j >= actions.length) return;
         const next = [...actions];
         [next[i], next[j]] = [next[j], next[i]];
+        setOpen((cur) => new Set([...cur].map((k) => (k === i ? j : k === j ? i : k))));
         onChange(next);
     };
     const toggleCat = (i: number, cat: CategoryKey) => {
@@ -77,7 +94,7 @@ export function StatusRowActionsEditor({
                                 key={p.key}
                                 disabled={present}
                                 title={present ? 'Schon vorhanden' : p.hint}
-                                onClick={() => onChange([...actions, { ...p.action }])}
+                                onClick={() => add({ ...p.action })}
                                 className="inline-flex items-center gap-1 text-[11px] rounded-full px-2.5 py-1 hover:opacity-80 disabled:opacity-40"
                                 style={{
                                     color: 'var(--text-primary)',
@@ -90,143 +107,209 @@ export function StatusRowActionsEditor({
                     })}
                 </div>
             </div>
-            {actions.map((a, i) => (
-                <div
-                    key={i}
-                    className="rounded-lg p-2.5 space-y-2"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                    data-row-action={i}
-                >
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="text"
-                            value={a.label}
-                            onChange={(e) => update(i, { label: e.target.value })}
-                            placeholder="Beschriftung, z. B. Gewechselt"
-                            className={inputCls}
-                            style={inputStyle}
-                            aria-label="Beschriftung"
-                        />
-                        <button
-                            onClick={() => move(i, -1)}
-                            disabled={i === 0}
-                            className="p-1 rounded hover:opacity-80 disabled:opacity-30"
-                            title="Nach oben"
-                        >
-                            <ArrowUp size={13} style={{ color: 'var(--text-secondary)' }} />
-                        </button>
-                        <button
-                            onClick={() => move(i, 1)}
-                            disabled={i === actions.length - 1}
-                            className="p-1 rounded hover:opacity-80 disabled:opacity-30"
-                            title="Nach unten"
-                        >
-                            <ArrowDown size={13} style={{ color: 'var(--text-secondary)' }} />
-                        </button>
-                        <button onClick={() => remove(i)} className="p-1 rounded hover:opacity-80" title="Entfernen">
-                            <Trash2 size={13} style={{ color: 'var(--accent-red, #ef4444)' }} />
-                        </button>
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Ziel-Datenpunkt
-                        </label>
-                        <div className="flex gap-1.5">
-                            <input
-                                type="text"
-                                value={a.targetDp}
-                                onChange={(e) => update(i, { targetDp: e.target.value })}
-                                placeholder="0_userdata.0.Batterien.Befehl"
-                                className={`${inputCls} font-mono`}
-                                style={inputStyle}
-                                aria-label="Ziel-Datenpunkt"
-                            />
+            {actions.map((a, i) => {
+                const isOpen = open.has(i);
+                const unfinished = !a.label || !a.targetDp || EXAMPLE_TARGETS.has(a.targetDp);
+                return (
+                    <div
+                        key={i}
+                        className="rounded-lg p-2.5 space-y-2"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                        data-row-action={i}
+                        data-open={isOpen ? '' : undefined}
+                    >
+                        <div className="flex items-center gap-2">
                             <button
-                                onClick={() => setPickFor(i)}
-                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                style={inputStyle}
-                                title="Datenpunkt wählen"
+                                onClick={() => toggleOpen(i)}
+                                aria-expanded={isOpen}
+                                data-row-action-toggle
+                                className="p-1 -ml-1 rounded hover:opacity-80 shrink-0"
+                                title={isOpen ? 'Einklappen' : 'Aufklappen'}
                             >
-                                <Database size={13} style={{ color: 'var(--text-secondary)' }} />
+                                <ChevronRight
+                                    size={13}
+                                    className="transition-transform"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        transform: isOpen ? 'rotate(90deg)' : undefined,
+                                    }}
+                                />
+                            </button>
+                            {!isOpen ? (
+                                <button
+                                    onClick={() => toggleOpen(i)}
+                                    className="flex-1 min-w-0 flex items-center gap-1.5 text-left text-xs py-1"
+                                    data-row-action-summary
+                                >
+                                    <span
+                                        className="font-semibold truncate shrink-0 max-w-[40%]"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        {a.label || '(ohne Beschriftung)'}
+                                    </span>
+                                    <span className="truncate" style={{ color: 'var(--text-secondary)' }}>
+                                        → {a.targetDp || '–'}
+                                        {a.categories?.length
+                                            ? ` · nur ${a.categories.map((c) => CAT_LABEL[c]).join(', ')}`
+                                            : ''}
+                                    </span>
+                                    {unfinished && (
+                                        <TriangleAlert
+                                            size={12}
+                                            className="shrink-0"
+                                            style={{ color: 'var(--badge-warn, #f59e0b)' }}
+                                            aria-label="Noch nicht fertig eingestellt"
+                                        />
+                                    )}
+                                </button>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={a.label}
+                                    onChange={(e) => update(i, { label: e.target.value })}
+                                    placeholder="Beschriftung, z. B. Gewechselt"
+                                    className={inputCls}
+                                    style={inputStyle}
+                                    aria-label="Beschriftung"
+                                />
+                            )}
+                            <button
+                                onClick={() => move(i, -1)}
+                                disabled={i === 0}
+                                className="p-1 rounded hover:opacity-80 disabled:opacity-30"
+                                title="Nach oben"
+                            >
+                                <ArrowUp size={13} style={{ color: 'var(--text-secondary)' }} />
+                            </button>
+                            <button
+                                onClick={() => move(i, 1)}
+                                disabled={i === actions.length - 1}
+                                className="p-1 rounded hover:opacity-80 disabled:opacity-30"
+                                title="Nach unten"
+                            >
+                                <ArrowDown size={13} style={{ color: 'var(--text-secondary)' }} />
+                            </button>
+                            <button
+                                onClick={() => remove(i)}
+                                className="p-1 rounded hover:opacity-80"
+                                title="Entfernen"
+                            >
+                                <Trash2 size={13} style={{ color: 'var(--accent-red, #ef4444)' }} />
                             </button>
                         </div>
-                        {a.targetDp === '{id}' && (
-                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                                {'{id}'} = der Datenpunkt der Zeile selbst.
-                            </p>
-                        )}
-                        {EXAMPLE_TARGETS.has(a.targetDp) && (
-                            <p className="text-[10px] mt-1" style={{ color: 'var(--badge-warn, #f59e0b)' }}>
-                                Beispiel aus der Vorlage – auf einen Datenpunkt deiner Installation ändern.
-                            </p>
-                        )}
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Wert
-                        </label>
-                        <input
-                            type="text"
-                            value={a.value}
-                            onChange={(e) => update(i, { value: e.target.value })}
-                            placeholder="gewechselt:{serial}"
-                            className={`${inputCls} font-mono`}
-                            style={inputStyle}
-                            aria-label="Wert"
-                        />
-                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            {'„true“, „false“ und reine Zahlen werden typgerecht geschrieben, alles andere als Text.'}
-                        </p>
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Nur bei (keine Auswahl = alle Zeilen)
-                        </label>
-                        <div className="flex flex-wrap gap-1">
-                            {CATEGORY_ORDER.map((cat) => {
-                                const on = a.categories?.includes(cat) ?? false;
-                                return (
-                                    <button
-                                        key={cat}
-                                        onClick={() => toggleCat(i, cat)}
-                                        className="text-[11px] rounded-full px-2 py-0.5"
-                                        style={{
-                                            background: on ? 'var(--accent)' : 'transparent',
-                                            color: on ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
+                        {isOpen && (
+                            <>
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        Ziel-Datenpunkt
+                                    </label>
+                                    <div className="flex gap-1.5">
+                                        <input
+                                            type="text"
+                                            value={a.targetDp}
+                                            onChange={(e) => update(i, { targetDp: e.target.value })}
+                                            placeholder="0_userdata.0.Batterien.Befehl"
+                                            className={`${inputCls} font-mono`}
+                                            style={inputStyle}
+                                            aria-label="Ziel-Datenpunkt"
+                                        />
+                                        <button
+                                            onClick={() => setPickFor(i)}
+                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                            style={inputStyle}
+                                            title="Datenpunkt wählen"
+                                        >
+                                            <Database size={13} style={{ color: 'var(--text-secondary)' }} />
+                                        </button>
+                                    </div>
+                                    {a.targetDp === '{id}' && (
+                                        <p
+                                            className="text-[10px] mt-1"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                        >
+                                            {'{id}'} = der Datenpunkt der Zeile selbst.
+                                        </p>
+                                    )}
+                                    {EXAMPLE_TARGETS.has(a.targetDp) && (
+                                        <p className="text-[10px] mt-1" style={{ color: 'var(--badge-warn, #f59e0b)' }}>
+                                            Beispiel aus der Vorlage – auf einen Datenpunkt deiner Installation ändern.
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        Wert
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={a.value}
+                                        onChange={(e) => update(i, { value: e.target.value })}
+                                        placeholder="gewechselt:{serial}"
+                                        className={`${inputCls} font-mono`}
+                                        style={inputStyle}
+                                        aria-label="Wert"
+                                    />
+                                    <p
+                                        className="text-[10px] mt-1"
+                                        style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
                                     >
-                                        {CAT_LABEL[cat]}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                                        {
+                                            '„true“, „false“ und reine Zahlen werden typgerecht geschrieben, alles andere als Text.'
+                                        }
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        Nur bei (keine Auswahl = alle Zeilen)
+                                    </label>
+                                    <div className="flex flex-wrap gap-1">
+                                        {CATEGORY_ORDER.map((cat) => {
+                                            const on = a.categories?.includes(cat) ?? false;
+                                            return (
+                                                <button
+                                                    key={cat}
+                                                    onClick={() => toggleCat(i, cat)}
+                                                    className="text-[11px] rounded-full px-2 py-0.5"
+                                                    style={{
+                                                        background: on ? 'var(--accent)' : 'transparent',
+                                                        color: on ? '#fff' : 'var(--text-secondary)',
+                                                        border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    }}
+                                                >
+                                                    {CAT_LABEL[cat]}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!a.confirm}
+                                        onChange={(e) => update(i, { confirm: e.target.checked || undefined })}
+                                    />
+                                    <span style={{ color: 'var(--text-primary)' }}>
+                                        Rückfrage: erst nach zweitem Tippen ausführen
+                                    </span>
+                                </label>
+                                {a.confirm && (
+                                    <input
+                                        type="text"
+                                        value={a.confirmLabel ?? ''}
+                                        onChange={(e) => update(i, { confirmLabel: e.target.value || undefined })}
+                                        placeholder="Wirklich?"
+                                        className={inputCls}
+                                        style={inputStyle}
+                                        aria-label="Text der Rückfrage"
+                                    />
+                                )}
+                            </>
+                        )}
                     </div>
-                    <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={!!a.confirm}
-                            onChange={(e) => update(i, { confirm: e.target.checked || undefined })}
-                        />
-                        <span style={{ color: 'var(--text-primary)' }}>
-                            Rückfrage: erst nach zweitem Tippen ausführen
-                        </span>
-                    </label>
-                    {a.confirm && (
-                        <input
-                            type="text"
-                            value={a.confirmLabel ?? ''}
-                            onChange={(e) => update(i, { confirmLabel: e.target.value || undefined })}
-                            placeholder="Wirklich?"
-                            className={inputCls}
-                            style={inputStyle}
-                            aria-label="Text der Rückfrage"
-                        />
-                    )}
-                </div>
-            ))}
+                );
+            })}
             <button
-                onClick={() => onChange([...actions, { label: '', targetDp: '', value: '' }])}
+                onClick={() => add({ label: '', targetDp: '', value: '' })}
                 className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80"
                 style={{ background: 'var(--accent)', color: '#fff' }}
             >

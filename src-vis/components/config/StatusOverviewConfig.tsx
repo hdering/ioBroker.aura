@@ -579,6 +579,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             case 'battery':
                 return (
                     <>
+                        <CatColor cat="battery" />
                         <div>
                             <label className={labelCls} style={labelStyle}>
                                 Berücksichtigte Datenpunkte
@@ -605,6 +606,15 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 Hat ein Gerät mehrere, zählt Prozent vor Spannung und Spannung vor LOWBAT.
                             </p>
                         </div>
+                        <Unavailable
+                            reason={batteryKinds.includes('bool') ? undefined : 'Nur mit booleschen Datenpunkten'}
+                        >
+                            <Toggle
+                                checked={o.includeLowbatBoolean !== false}
+                                onChange={(v) => set({ includeLowbatBoolean: v })}
+                                label="Auch LOWBAT-Datenpunkte ohne Batterie-Rolle (nach Name)"
+                            />
+                        </Unavailable>
                         <div className="flex gap-3 items-start">
                             <div className="flex-1">
                                 <Unavailable
@@ -654,16 +664,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 </Unavailable>
                             </div>
                         </div>
-                        <CatColor cat="battery" />
-                        <Unavailable
-                            reason={batteryKinds.includes('bool') ? undefined : 'Nur mit booleschen Datenpunkten'}
-                        >
-                            <Toggle
-                                checked={o.includeLowbatBoolean !== false}
-                                onChange={(v) => set({ includeLowbatBoolean: v })}
-                                label="Auch LOWBAT-Datenpunkte ohne Batterie-Rolle (nach Name)"
-                            />
-                        </Unavailable>
                         <Toggle
                             checked={o.batteryTypeEnabled !== false}
                             onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
@@ -681,6 +681,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             case 'light':
                 return (
                     <>
+                        <CatColor cat="light" />
                         <div>
                             <label className={labelCls} style={labelStyle}>
                                 Welche Schalter zählen als Licht?
@@ -707,7 +708,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             onChange={(v) => set({ lightIncludeDimmers: v })}
                             label={'Dimmer in Funktion „Licht“ mitzählen (an ab 1 %, mit Helligkeit)'}
                         />
-                        <CatColor cat="light" />
                     </>
                 );
             case 'alarm':
@@ -720,6 +720,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             case 'unreach':
                 return (
                     <>
+                        <CatColor cat="unreach" />
                         <p className={hintCls} style={hintStyle}>
                             UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird
                             ignoriert). Nur für Sonderfälle: zusätzliche Offline-Datenpunkte.
@@ -742,7 +743,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             onChange={(v) => updateFrontend({ offlineInvert: v })}
                             label="Bei diesen Mustern bedeutet FALSE = offline (gilt für alle Widgets)"
                         />
-                        <CatColor cat="unreach" />
                         {latchToggle('unreach')}
                     </>
                 );
@@ -1031,7 +1031,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 </p>
                 <StatusRowActionsEditor actions={o.rowActions ?? []} onChange={(v) => set({ rowActions: v })} />
             </SubGroup>
-            <RowClickSection config={config} opts={o} onChange={set} />
+            <SubGroup title="Klick auf Zeile" className="aura-status-row-click">
+                <RowClickSection config={config} opts={o} onChange={set} bare />
+            </SubGroup>
         </>
     );
 

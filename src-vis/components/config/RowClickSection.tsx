@@ -270,6 +270,7 @@ export function RowClickSection({
     hint,
     defaultAction = DEFAULT_ROW_CLICK_ACTION,
     entries,
+    bare,
 }: {
     config: WidgetConfig;
     opts: RowPopupOptions;
@@ -282,6 +283,8 @@ export function RowClickSection({
     defaultAction?: ClickAction;
     /** The list's rows - under "Automatisch" each one shows what it was recognised as. */
     entries?: RowOverviewEntry[];
+    /** Without the divider and the "Klick auf Zeile" label - the owner puts its own heading above. */
+    bare?: boolean;
 }) {
     const stored = opts.rowClickAction;
     // undefined = not configured = off, so rows stay inert until an action is picked.
@@ -298,10 +301,14 @@ export function RowClickSection({
 
     return (
         <div>
-            <div style={{ height: 1, background: 'var(--app-border)', marginBottom: 10 }} />
-            <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                Klick auf Zeile
-            </label>
+            {!bare && (
+                <>
+                    <div style={{ height: 1, background: 'var(--app-border)', marginBottom: 10 }} />
+                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                        Klick auf Zeile
+                    </label>
+                </>
+            )}
             <div className="flex gap-1 mb-1.5">
                 {MODES.filter((m) => allowAuto || m.value !== 'auto').map((m) => (
                     <button
