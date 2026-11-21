@@ -9156,6 +9156,37 @@ function WidgetFrameInner({
                     pinLeft={(showCopyMenu || showMoveMenu) && targetCols > 1}
                 >
                     <div className="p-1 flex flex-col gap-0.5 min-w-[170px]">
+                        {/* Header-less group: nothing on the box says which level this menu
+                            belongs to when groups nest — name it in the level's colour. */}
+                        {isHeaderlessGroup &&
+                            (() => {
+                                const nestColor =
+                                    getComputedStyle(menuBtnRef.current!)
+                                        .getPropertyValue('--aura-nest-color')
+                                        .trim() || 'var(--accent)';
+                                const typeLabel = WIDGET_BY_TYPE[config.type]?.label ?? config.type;
+                                return (
+                                    <div
+                                        className="aura-menu-scope flex items-center gap-2 px-3 py-1.5 mb-0.5 rounded-md text-xs font-semibold max-w-[240px]"
+                                        style={{
+                                            color: nestColor,
+                                            background: `color-mix(in srgb, ${nestColor} 14%, transparent)`,
+                                            borderLeft: `3px solid ${nestColor}`,
+                                        }}
+                                    >
+                                        <span className="shrink-0">{typeLabel}</span>
+                                        {config.title && (
+                                            <span
+                                                className="truncate font-normal"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                title={config.title}
+                                            >
+                                                {config.title}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                         {/* Bearbeiten */}
                         <button
                             onClick={() => {
