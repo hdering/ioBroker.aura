@@ -194,6 +194,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     /** Per-category background colour for attention rows/tiles (default: tint of the highlight colour). */
     categoryBgColors?: Partial<Record<CategoryKey, string>>;
     cardMinWidth?: number; // card layout: min tile width in px (default 96)
+    cardTextWrap?: boolean; // card layout: long values wrap onto more lines (also inside long words) instead of ending in "…"
     /** Horizontal alignment of the rows/tiles/pills (default 'left'; mainly relevant for the Minimal layout). */
     contentAlign?: 'left' | 'center' | 'right';
     namePattern?: string; // device label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>

@@ -1641,6 +1641,10 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
 
     // ── card layout: grid of tiles (mirrors the static-list card layout) ─────────
     if (layout === 'card') {
+        // Long values (a text datapoint, an MQTT topic as name) either end in "…" or wrap,
+        // even inside one long word. Either way nothing runs past the tile.
+        const wrap = opts.cardTextWrap === true;
+        const valueCls = wrap ? 'leading-tight [overflow-wrap:anywhere]' : 'leading-none truncate max-w-full';
         return (
             <div ref={measureRef} className={rootCls} {...probeMark}>
                 {header}
@@ -1666,7 +1670,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                         return (
                             <div
                                 key={item.id}
-                                className="aura-status-tile rounded-xl p-2 flex flex-col gap-1"
+                                className="aura-status-tile rounded-xl p-2 flex flex-col gap-1 min-w-0"
+                                data-wrap={wrap ? '' : undefined}
                                 style={{
                                     alignItems: alignFlex,
                                     textAlign: contentAlign,
@@ -1682,7 +1687,11 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                             >
                                 {/* State first, device second: the tile answers "what happened"
                                     before "where", which is how the list is scanned. */}
-                                <span className="text-sm font-bold leading-none" style={{ color }}>
+                                <span
+                                    className={`aura-status-tile-value text-sm font-bold ${valueCls}`}
+                                    style={{ color }}
+                                    title={wrap ? undefined : item.label}
+                                >
                                     {item.label}
                                 </span>
                                 <span
@@ -1692,10 +1701,15 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                                     <Icon size={11} className="shrink-0 mt-px" style={{ color }} />
                                     {/* Names wrap instead of truncating — a tile is the only place
                                         the device name appears, so it must stay fully readable. */}
-                                    <span className="aura-status-tile-name min-w-0 break-words">{labelFor(item)}</span>
+                                    <span className="aura-status-tile-name min-w-0 [overflow-wrap:anywhere]">
+                                        {labelFor(item)}
+                                    </span>
                                 </span>
                                 {batteryLabel && (
-                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    <span
+                                        className={`text-[10px] ${wrap ? '[overflow-wrap:anywhere]' : 'truncate max-w-full'}`}
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
                                         {batteryLabel}
                                     </span>
                                 )}

@@ -1323,6 +1323,15 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             />
                         </div>
                     )}
+                    {config.layout === 'card' && (
+                        <div data-card-text-wrap>
+                            <Toggle
+                                checked={o.cardTextWrap === true}
+                                onChange={(v) => set({ cardTextWrap: v || undefined })}
+                                label="Lange Werte umbrechen (statt mit „…“ abzuschneiden)"
+                            />
+                        </div>
+                    )}
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             Welche Geräte anzeigen

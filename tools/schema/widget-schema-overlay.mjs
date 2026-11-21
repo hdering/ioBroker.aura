@@ -152,6 +152,8 @@ export const KEY_DESCRIPTIONS = {
     fontSize: 'Schriftgröße in px. 0 = automatisch.',
     dateFontSize: 'Schriftgröße des Datums in px. 0 = automatisch.',
     cardMinWidth: 'Kartenlayout: Mindestbreite einer Kachel in px.',
+    cardTextWrap:
+        'Kartenlayout: lange Werte umbrechen, auch mitten in langen Wörtern (true), statt sie einzeilig mit „…“ abzuschneiden (Standard). Die Kachel wird dadurch höher.',
     step: 'Schrittweite.',
     minValue: 'Kleinster Wert der Skala.',
     maxValue: 'Größter Wert der Skala.',

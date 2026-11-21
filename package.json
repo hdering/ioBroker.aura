@@ -421,6 +421,7 @@
     "test:status-row-parts": "node tools/tests/status-row-parts.mjs",
     "test:status-exclude-editor": "node tools/tests/status-overview-exclude-editor.mjs",
     "test:status-config-modal": "node tools/tests/status-config-modal.mjs",
+    "test:status-card-wrap": "node tools/tests/status-card-wrap.mjs",
     "test:connection-lost": "node tools/tests/connection-lost.mjs",
     "test:status-history-ui": "node tools/tests/status-overview-history-ui.mjs",
     "test:clause-logic": "node tools/tests/clause-logic.mjs",
