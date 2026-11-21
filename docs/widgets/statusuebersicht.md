@@ -36,7 +36,7 @@ Einstellungen → **Statusübersicht konfigurieren** öffnet einen Dialog mit Ta
 | Tab Merkliste | gemeinsame Merkliste-Optionen, Ignorieren, Knopf-Farben |
 | Tab Zeilenaufbau | Reihenfolge, Platz und Sichtbarkeit der Zeilenteile |
 | Tab Zeilen-Aktionen | eigene Knöpfe am Zeilenende, Klick auf Zeile |
-| Tab Namen | Gerätenamen, Namensmuster und -filter |
+| Tab Namen | Vorschau erkannt → angezeigt; ① Aufbau (Namensmuster), ② Bereinigen (Regeln), ③ Ausnahmen (eigene Gerätenamen) |
 | Tab Batterietypen | Batterietypen zuordnen (nur mit Kategorie Batterien) |
 
 ## Zeilenaufbau

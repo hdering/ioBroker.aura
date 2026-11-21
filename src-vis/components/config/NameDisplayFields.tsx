@@ -8,6 +8,48 @@ const NameFilterEditor = lazy(() => import('./NameFilterEditor').then((m) => ({ 
 
 const EMPTY_RULES: NameFilterRule[] = [];
 
+/** The name-pattern input with its placeholder help. Shared by NameDisplayFields and the status overview's "Namen" tab. */
+export function NamePatternField({
+    pattern,
+    onChange,
+}: {
+    pattern?: string;
+    onChange: (patch: { namePattern?: string }) => void;
+}) {
+    return (
+        <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                Namensmuster (leer = Standard)
+            </label>
+            <input
+                type="text"
+                value={pattern ?? ''}
+                onChange={(e) => onChange({ namePattern: e.target.value || undefined })}
+                placeholder="<Raum> <Gerät>"
+                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                style={{
+                    background: 'var(--app-bg)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--app-border)',
+                }}
+            />
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                Platzhalter: &lt;Raum&gt;, &lt;Gerät&gt;, &lt;DPName&gt;, &lt;Name&gt;, &lt;ID&gt;. Beispiel:{' '}
+                {'„<Raum> <Gerät>“'}.
+            </p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                Steht der Name in einem eigenen Datenpunkt: {'[[…]]'} liest dessen Wert live, {'{{parent}}'} /{' '}
+                {'{{parent2}}'} (eine Ebene höher) / {'{{dp}}'} / {'{{name}}'} setzen die ID der Zeile ein. Beispiel:{' '}
+                {'„[[{{parent}}.DeviceName]]“'}.
+            </p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                Objektnamen: {'{{dpname}}'} = Name des Datenpunkts, {'{{parentname}}'} / {'{{parent2name}}'} … = Name
+                des Kanals bzw. Geräts darüber. Beispiel: {'„{{parent2name}} – {{dpname}}“'}.
+            </p>
+        </div>
+    );
+}
+
 /**
  * The "name display" pair shared by every widget that labels datapoints: the name-pattern
  * template plus the name-filter sub-editor that reshapes the placeholder texts. Kept in one
@@ -40,34 +82,7 @@ export function NameDisplayFields({
 
     return (
         <div>
-            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                Namensmuster (leer = Standard)
-            </label>
-            <input
-                type="text"
-                value={pattern ?? ''}
-                onChange={(e) => onChange({ namePattern: e.target.value || undefined })}
-                placeholder="<Raum> <Gerät>"
-                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                style={{
-                    background: 'var(--app-bg)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--app-border)',
-                }}
-            />
-            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                Platzhalter: &lt;Raum&gt;, &lt;Gerät&gt;, &lt;DPName&gt;, &lt;Name&gt;, &lt;ID&gt;. Beispiel:{' '}
-                {'„<Raum> <Gerät>“'}.
-            </p>
-            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                Steht der Name in einem eigenen Datenpunkt: {'[[…]]'} liest dessen Wert live, {'{{parent}}'} /{' '}
-                {'{{parent2}}'} (eine Ebene höher) / {'{{dp}}'} / {'{{name}}'} setzen die ID der Zeile ein. Beispiel:{' '}
-                {'„[[{{parent}}.DeviceName]]“'}.
-            </p>
-            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                Objektnamen: {'{{dpname}}'} = Name des Datenpunkts, {'{{parentname}}'} / {'{{parent2name}}'} … = Name
-                des Kanals bzw. Geräts darüber. Beispiel: {'„{{parent2name}} – {{dpname}}“'}.
-            </p>
+            <NamePatternField pattern={pattern} onChange={onChange} />
             {inline ? (
                 <div className="mt-3">
                     <Suspense

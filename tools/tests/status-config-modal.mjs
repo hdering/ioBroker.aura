@@ -23,17 +23,17 @@ const check = (name, ok, detail = '') => {
 const browser = await chromium.launch();
 const pageErrors = [];
 
-async function openEditor(viewport, options = {}) {
+async function openEditor(viewport, options = {}, objects = { state: [], device: [], enum: [] }) {
     const ctx = await browser.newContext({ viewport });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => pageErrors.push(e.message));
     await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!window.__auraShot?.ready, null, { timeout: 90000 });
-    await page.evaluate(() => {
+    await page.evaluate((objects) => {
         const s = window.__auraShot;
         s.captureWrites(true);
-        s.mockObjectView({ state: [], device: [], enum: [] });
-    });
+        s.mockObjectView(objects);
+    }, objects);
     await page.evaluate(
         (options) =>
             window.__auraShot.showWidgets([
@@ -161,6 +161,65 @@ async function openEditor(viewport, options = {}) {
         return m ? m.scrollWidth - m.clientWidth : -1;
     });
     check('narrow: no horizontal overflow', overflow === 0, String(overflow));
+    await ctx.close();
+}
+
+// ── 3. "Namen": preview on top, then the three numbered steps general → specific ──
+{
+    const st = (id, name) => ({
+        id,
+        value: {
+            _id: id,
+            type: 'state',
+            common: { name, role: 'value.battery', type: 'number', unit: '%', read: true, write: false },
+            native: {},
+        },
+    });
+    const dev = (id, name) => ({ id, value: { _id: id, type: 'device', common: { name }, native: {} } });
+    const { ctx, page, opts } = await openEditor(
+        { width: 1300, height: 900 },
+        { catWindow: false, catLight: false, catUnreach: false, catAlarm: false, batteryTypeEnabled: false },
+        {
+            state: [st('zigbee.0.a1.battery', 'Batterie'), st('zigbee.0.a2.battery', 'Batterie')],
+            device: [dev('zigbee.0.a1', 'Fenster Bad'), dev('zigbee.0.a2', 'Bewegung Flur')],
+            enum: [],
+        },
+    );
+    await page.locator('[data-status-config-open]').click();
+    const dlg = page.locator('.aura-config-modal');
+    await dlg.locator('[data-config-tab="names"]').click();
+    const pane = dlg.locator('[data-config-pane="names"]');
+    const order = await pane.evaluate((p) => {
+        const top = (sel) => p.querySelector(sel)?.getBoundingClientRect().top ?? -1;
+        return [
+            top('[data-name-preview]'),
+            top('[data-name-step="1"]'),
+            top('[data-name-step="2"]'),
+            top('[data-name-step="3"]'),
+        ];
+    });
+    check(
+        'preview, then steps 1 → 2 → 3',
+        order.every((v, i) => v > 0 && (i === 0 || v > order[i - 1])),
+        JSON.stringify(order),
+    );
+    check(
+        'rules step folded without rules',
+        !(await pane.locator('details[data-name-step="2"]').evaluate((d) => d.open)),
+    );
+    await pane.locator('details[data-name-step="2"] > summary').click();
+    await pane.locator('details[data-name-step="2"] button:has-text("Regel hinzufügen")').waitFor({ timeout: 10000 });
+    check(
+        'rule editor keeps no preview of its own',
+        (await pane.locator('details[data-name-step="2"] >> text=Vorschau >> visible=true').count()) === 0,
+    );
+    // The shared preview follows the pattern.
+    await pane.locator('[data-name-step="1"] input[type=text]').fill('X <Name>');
+    await page.waitForTimeout(300);
+    const prev = await pane.locator('[data-name-preview]').textContent();
+    check('preview follows the pattern', prev.includes('→ X '), prev);
+    check('pattern writes namePattern', (await opts())?.namePattern === 'X <Name>');
+    if (process.env.AURA_SHOT_DIR) await dlg.screenshot({ path: `${process.env.AURA_SHOT_DIR}/names-tab.png` });
     await ctx.close();
 }
 

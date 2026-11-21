@@ -2,7 +2,7 @@ import { ConfigSection, SubGroup } from './ConfigSection';
 import { useT } from '../../i18n';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import {
     customDeviceName,
@@ -34,10 +34,14 @@ import { loadBatteryDeviceTest } from '../../utils/batteryLibrary';
 import { useConfigStore } from '../../store/configStore';
 import { ColorPicker } from '../common/ColorPicker';
 import { TabbedConfigModal, type TabbedConfigTab } from './ConfigModalTabs';
-import { NameDisplayFields } from './NameDisplayFields';
+import { NamePatternField } from './NameDisplayFields';
+import { NamePreview } from './NamePreview';
 import { RowClickSection } from './RowClickSection';
 import { StatusRowActionsEditor } from './StatusRowActionsEditor';
 import { PublishSection } from './list/PublishSection';
+
+// Lazy - the rule editor is only needed once step 2 of the Namen tab is opened.
+const NameFilterEditor = lazy(() => import('./NameFilterEditor').then((m) => ({ default: m.NameFilterEditor })));
 
 // Lazy so the ~battery admin page stays out of the config chunk until opened.
 const AdminBatteries = lazy(() =>
@@ -103,6 +107,73 @@ const jumpBtnStyle: React.CSSProperties = {
     color: 'var(--text-primary)',
     border: '1px solid var(--app-border)',
 };
+
+/** One numbered step of the "Namen" tab; `foldable` folds it behind its heading. */
+function NameStep({
+    n,
+    title,
+    count,
+    text,
+    foldable,
+    defaultOpen,
+    children,
+}: {
+    n: number;
+    title: string;
+    count?: string;
+    text: string;
+    foldable?: boolean;
+    defaultOpen?: boolean;
+    children: React.ReactNode;
+}) {
+    const head = (
+        <span className="flex items-center gap-2 min-w-0">
+            <span
+                className="w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[11px] font-semibold"
+                style={{ background: 'var(--accent)', color: '#fff' }}
+            >
+                {n}
+            </span>
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {title}
+            </span>
+            {count && (
+                <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    {count}
+                </span>
+            )}
+        </span>
+    );
+    const body = (
+        <div className="space-y-2 pl-7">
+            <p className={hintCls} style={hintStyle}>
+                {text}
+            </p>
+            {children}
+        </div>
+    );
+    const boxStyle: React.CSSProperties = { borderTop: '1px solid var(--app-border)' };
+    if (!foldable)
+        return (
+            <section className="space-y-1.5 pt-2.5" style={boxStyle} data-name-step={n}>
+                {head}
+                {body}
+            </section>
+        );
+    return (
+        <details className="pt-2.5 group" style={boxStyle} data-name-step={n} open={defaultOpen || undefined}>
+            <summary className="cursor-pointer list-none flex items-center gap-1.5 select-none">
+                {head}
+                <ChevronDown
+                    size={13}
+                    className="shrink-0 transition-transform group-open:rotate-180"
+                    style={{ color: 'var(--text-secondary)' }}
+                />
+            </summary>
+            <div className="pt-1.5">{body}</div>
+        </details>
+    );
+}
 
 /** A bare switch (no text) for the category list; `label` names it for screen readers. */
 function Switch({
@@ -964,25 +1035,63 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         </>
     );
 
+    // Three ways to change a name, laid out general → specific with one shared preview on top.
+    const ruleCount = o.nameFilters?.length ?? 0;
+    const detectedNames = Object.fromEntries(samples.map((s) => [s.id, s.name]));
     const namesTab = (
         <>
-            <SubGroup title="Eigene Gerätenamen" count={namedCount ? String(namedCount) : undefined}>
-                <p className={hintCls} style={hintStyle}>
-                    Ersetzt den erkannten Namen eines Geräts. Gilt für alle Zeilen des Geräts (Batterie, Fenster,
-                    offline); Namensmuster und Filter laufen danach.
-                </p>
-                <DeviceNamesEditor devices={devices} names={o.deviceNames} onChange={(v) => set({ deviceNames: v })} />
-            </SubGroup>
-            <SubGroup title="Namensdarstellung">
-                <NameDisplayFields
-                    pattern={o.namePattern}
-                    rules={o.nameFilters}
+            <div
+                className="rounded-lg p-2.5 space-y-1.5"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+            >
+                <div className="grid grid-cols-2 gap-3 text-[11px] font-semibold" style={labelStyle}>
+                    <span>Erkannt</span>
+                    <span>Angezeigt</span>
+                </div>
+                <NamePreview
                     samples={namedSamples}
                     sampleTotal={sampleTotal}
-                    onChange={set}
-                    inline
+                    pattern={o.namePattern}
+                    rules={o.nameFilters}
+                    detected={detectedNames}
                 />
-            </SubGroup>
+            </div>
+            <NameStep n={1} title="Aufbau" text="Setzt den Namen aus Platzhaltern zusammen. Gilt für alle Geräte.">
+                <NamePatternField pattern={o.namePattern} onChange={set} />
+            </NameStep>
+            <NameStep
+                n={2}
+                title="Bereinigen"
+                count={ruleCount ? `${ruleCount} ${ruleCount === 1 ? 'Regel' : 'Regeln'}` : 'keine Regeln'}
+                text="Schneidet die Texte der Platzhalter zurecht, z. B. „:1“ weg oder „ACTUAL_TEMPERATURE“ → „Temperatur“. Gilt für alle Geräte."
+                foldable
+                defaultOpen={ruleCount > 0}
+            >
+                <Suspense
+                    fallback={
+                        <div className="text-xs" style={labelStyle}>
+                            Lädt …
+                        </div>
+                    }
+                >
+                    <NameFilterEditor
+                        rules={o.nameFilters ?? []}
+                        pattern={o.namePattern}
+                        samples={namedSamples}
+                        sampleTotal={sampleTotal}
+                        onChange={(next) => set({ nameFilters: next.length ? next : undefined })}
+                        hidePreview
+                    />
+                </Suspense>
+            </NameStep>
+            <NameStep
+                n={3}
+                title="Ausnahmen"
+                count={namedCount ? `${namedCount} ${namedCount === 1 ? 'Gerät' : 'Geräte'}` : undefined}
+                text="Eigener Name für einzelne Geräte. Er tritt an die Stelle des erkannten Gerätenamens – Aufbau und Bereinigen gelten auch für ihn. Gilt für alle Zeilen des Geräts (Batterie, Fenster, offline)."
+            >
+                <DeviceNamesEditor devices={devices} names={o.deviceNames} onChange={(v) => set({ deviceNames: v })} />
+            </NameStep>
         </>
     );
 

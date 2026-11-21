@@ -215,9 +215,11 @@ interface Props {
     /** How many datapoints exist in total, for the "x von y" hint. */
     sampleTotal: number;
     onChange: (rules: NameFilterRule[]) => void;
+    /** Leave out the preview - the owner shows its own (status overview "Namen" tab). */
+    hidePreview?: boolean;
 }
 
-export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChange }: Props) {
+export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChange, hidePreview }: Props) {
     const rulesKey = JSON.stringify(rules);
     // Effective template — formatItemName assumes <Name> when no pattern is set.
     const effectivePattern = pattern || '<Name>';
@@ -499,7 +501,7 @@ export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChang
             </div>
 
             {/* ── Live preview ── */}
-            <div className="pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
+            <div className={hidePreview ? 'hidden' : 'pt-2'} style={{ borderTop: '1px solid var(--app-border)' }}>
                 <p className="text-[11px] font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>
                     Vorschau{' '}
                     <span className="font-normal opacity-70">
