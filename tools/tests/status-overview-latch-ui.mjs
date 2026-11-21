@@ -347,8 +347,8 @@ const ACTION = {
         JSON.stringify(blocked),
     );
 
-    // Zeilen tab: row actions edited in place, right above "Klick auf Zeile".
-    await dlg.locator('[data-config-tab="rows"]').click();
+    // Zeilen-Aktionen tab: row actions edited in place, right above "Klick auf Zeile".
+    await dlg.locator('[data-config-tab="actions"]').click();
     const actSec = dlg.locator('.aura-status-row-actions');
     const actSummary = actSec.locator(':scope > div').first();
     check('summary says "keine"', (await actSummary.textContent()).includes('keine'), await actSummary.textContent());

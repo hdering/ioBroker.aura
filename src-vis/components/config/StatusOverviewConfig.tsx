@@ -53,7 +53,7 @@ const LATCH_ACTION_COLOR_FIELDS: { key: LatchActionKey; label: string; fallback:
 ];
 
 /** Tabs of the "Statusübersicht konfigurieren" dialog. */
-type StatusTab = 'categories' | 'datapoints' | 'latch' | 'rows' | 'names' | 'batteries';
+type StatusTab = 'categories' | 'datapoints' | 'latch' | 'rows' | 'actions' | 'names' | 'batteries';
 
 /** Category names in the dialog's category list. */
 const CAT_LABEL: Record<CategoryKey, string> = {
@@ -165,6 +165,27 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     const [cfgTab, setCfgTab] = useState<StatusTab | null>(null);
     const [selCat, setSelCat] = useState<CategoryKey>('window');
     const cfgBtnRef = useRef<HTMLButtonElement>(null);
+    // A Merkliste chip jumps to its category; the latch switch there blinks so the eye finds it.
+    // `n` re-triggers the blink on a second click of the same chip.
+    const [latchFlash, setLatchFlash] = useState<{ cat: CategoryKey; n: number } | null>(null);
+    useEffect(() => {
+        if (!latchFlash) return;
+        // After the tab switch has painted - the detail is hidden until then.
+        const raf = requestAnimationFrame(() => {
+            const el = document.querySelector<HTMLElement>(
+                `[data-status-cat-detail="${latchFlash.cat}"] [data-latch-toggle="${latchFlash.cat}"]`,
+            );
+            if (!el) return;
+            el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            const on = {
+                background: 'color-mix(in srgb, var(--accent) 22%, transparent)',
+                boxShadow: '0 0 0 2px var(--accent)',
+            };
+            const off = { background: 'transparent', boxShadow: '0 0 0 2px transparent' };
+            el.animate([off, on, off, on, off], { duration: 1400, easing: 'ease-in-out' });
+        });
+        return () => cancelAnimationFrame(raf);
+    }, [latchFlash]);
 
     // Reachability escape hatch is global (device-level), not per-widget.
     const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
@@ -372,7 +393,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         {
             key: 'showRoom',
             label: 'Raum',
-            hint: 'hinter dem Gerätenamen (Layouts Standard, Kompakt, Tabelle, Zweizeilig) – Platz unter „Statusübersicht konfigurieren“ → Zeilen',
+            hint: 'hinter dem Gerätenamen (Layouts Standard, Kompakt, Tabelle, Zweizeilig) – Platz unter „Statusübersicht konfigurieren“ → Zeilenaufbau',
         },
         {
             key: 'showSince',
@@ -451,7 +472,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         const def = LATCH_TOGGLES.find((l) => l.cat === cat)!;
         return (
             <div
-                className="space-y-2 pt-2"
+                className="space-y-2 pt-2 pb-1.5 -mx-1.5 px-1.5 rounded-md"
                 data-latch-toggle={cat}
                 style={{ borderTop: '1px solid var(--app-border)' }}
             >
@@ -703,11 +724,10 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                 data-status-cat-detail={selCat}
             >
-                <Toggle
-                    checked={catEnabled(selCat)}
-                    onChange={(v) => set({ [CAT_OPTION[selCat]]: v })}
-                    label={CAT_LABEL[selCat]}
-                />
+                {/* Switched in the list on the left - here only the name, no second switch. */}
+                <h3 className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {CAT_LABEL[selCat]}
+                </h3>
                 <Unavailable reason={catEnabled(selCat) ? undefined : 'Kategorie ist ausgeschaltet'}>
                     <div className="space-y-2.5" style={catEnabled(selCat) ? undefined : { pointerEvents: 'none' }}>
                         {catBody(selCat, goTo)}
@@ -737,6 +757,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 onClick={() => {
                                     setSelCat(cat);
                                     goTo('categories');
+                                    setLatchFlash((f) => ({ cat, n: (f?.n ?? 0) + 1 }));
                                 }}
                                 className="text-[11px] rounded-full px-2 py-0.5"
                                 title={catOn(cat) ? 'In der Kategorie einstellen' : 'Kategorie ist ausgeschaltet'}
@@ -920,10 +941,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     );
 
     const rowsTab = (
+        <SubGroup title="Zeilenaufbau" className="aura-status-rowparts">
+            <StatusRowPartsEditor opts={o} layout={config.layout ?? 'default'} set={set} />
+        </SubGroup>
+    );
+
+    const actionsTab = (
         <>
-            <SubGroup title="Zeilenaufbau" className="aura-status-rowparts">
-                <StatusRowPartsEditor opts={o} layout={config.layout ?? 'default'} set={set} />
-            </SubGroup>
             <SubGroup
                 title="Zeilen-Aktionen"
                 count={rowActionCount ? `${rowActionCount} ${rowActionCount === 1 ? 'Knopf' : 'Knöpfe'}` : 'keine'}
@@ -966,7 +990,12 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         { key: 'categories', label: `Kategorien (${activeCatCount})`, node: categoriesTab },
         { key: 'datapoints', label: 'Datenpunkte', node: datapointsTab },
         { key: 'latch', label: 'Merkliste', node: merklisteTab },
-        { key: 'rows', label: 'Zeilen', node: rowsTab },
+        { key: 'rows', label: 'Zeilenaufbau', node: rowsTab },
+        {
+            key: 'actions',
+            label: rowActionCount ? `Zeilen-Aktionen (${rowActionCount})` : 'Zeilen-Aktionen',
+            node: actionsTab,
+        },
         { key: 'names', label: 'Namen', node: namesTab },
     ];
     if (o.catBattery !== false)
@@ -1135,7 +1164,14 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </p>
                     </div>
                     <button onClick={() => openConfig('rows')} className={jumpBtnCls} style={jumpBtnStyle}>
-                        Zeilenaufbau & Zeilen-Aktionen →
+                        Zeilenaufbau →
+                    </button>
+                    <button
+                        onClick={() => openConfig('actions')}
+                        className={`${jumpBtnCls} ml-1.5`}
+                        style={jumpBtnStyle}
+                    >
+                        Zeilen-Aktionen →
                     </button>
                     <button onClick={() => openConfig('names')} className={`${jumpBtnCls} ml-1.5`} style={jumpBtnStyle}>
                         Gerätenamen{namedCount ? ` (${namedCount})` : ''} →

@@ -79,7 +79,8 @@ async function openEditor(viewport, options = {}) {
     const tabKeys = await dlg.locator('[data-config-tab]').evaluateAll((b) => b.map((x) => x.dataset.configTab));
     check(
         'all tabs present',
-        JSON.stringify(tabKeys) === JSON.stringify(['categories', 'datapoints', 'latch', 'rows', 'names', 'batteries']),
+        JSON.stringify(tabKeys) ===
+            JSON.stringify(['categories', 'datapoints', 'latch', 'rows', 'actions', 'names', 'batteries']),
         JSON.stringify(tabKeys),
     );
     for (const key of tabKeys.filter((k) => k !== 'batteries')) {
@@ -117,6 +118,18 @@ async function openEditor(viewport, options = {}) {
     await dlg.locator('[data-config-tab="datapoints"]').click();
     check('filter value survives a tab change', (await rooms.inputValue()) === 'Küche');
     check('filter writes filterRooms', (await opts())?.filterRooms === 'Küche');
+
+    // Merkliste chip: jumps to the category and makes its latch switch blink.
+    await dlg.locator('[data-config-tab="latch"]').click();
+    await dlg.locator('[data-latch-jump="unreach"]').click();
+    const latchRow = dlg.locator('[data-status-cat-detail="unreach"] [data-latch-toggle="unreach"]');
+    await latchRow.waitFor({ timeout: 5000 });
+    check(
+        'chip jumps to "Kategorien"',
+        (await dlg.locator('[data-config-tab="categories"]').getAttribute('aria-selected')) === 'true',
+    );
+    await page.waitForTimeout(100);
+    check('latch switch blinks', (await latchRow.evaluate((el) => el.getAnimations().length)) > 0);
 
     await page.keyboard.press('Escape');
     check('Escape closes the dialog', (await page.locator('.aura-config-modal').count()) === 0);

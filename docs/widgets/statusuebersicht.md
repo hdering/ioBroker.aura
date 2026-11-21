@@ -34,13 +34,14 @@ Einstellungen → **Statusübersicht konfigurieren** öffnet einen Dialog mit Ta
 | Tab Kategorien | links Kategorien an/aus, rechts deren Optionen, Farben und Merkliste der Kategorie |
 | Tab Datenpunkte | Räume, Funktionen, Adapter, Ausschluss-Muster, Erkannte Datenpunkte |
 | Tab Merkliste | gemeinsame Merkliste-Optionen, Ignorieren, Knopf-Farben |
-| Tab Zeilen | Zeilenaufbau, Zeilen-Aktionen, Klick auf Zeile |
+| Tab Zeilenaufbau | Reihenfolge, Platz und Sichtbarkeit der Zeilenteile |
+| Tab Zeilen-Aktionen | eigene Knöpfe am Zeilenende, Klick auf Zeile |
 | Tab Namen | Gerätenamen, Namensmuster und -filter |
 | Tab Batterietypen | Batterietypen zuordnen (nur mit Kategorie Batterien) |
 
 ## Zeilenaufbau
 
-Tab Zeilen → **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `twoline`
+Tab **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `twoline`
 
 ![Zeilenaufbau](assets/statusuebersicht/zeilenaufbau.png)
 
