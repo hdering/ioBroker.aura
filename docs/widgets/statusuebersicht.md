@@ -29,7 +29,7 @@ Einstellungen → **Statusübersicht konfigurieren** öffnet einen Dialog mit Ta
 
 | Ort | Inhalt |
 | --- | --- |
-| Panel › Optik | Textausrichtung, Kartengröße, Lange Werte umbrechen (`cardTextWrap`, Karten), Welche Geräte, Höchstzahl Zeilen, Tage (), Sortierung |
+| Panel › Optik | Textausrichtung, Kartengröße, Lange Werte umbrechen (`cardTextWrap`, Karten), Welche Geräte, Höchstzahl Zeilen, Tage (), Zahl in der Kategorie-Überschrift (`categoryCount`), Sortierung |
 | Panel › Einstellungen | Knopf zum Dialog mit Kurzfassung, Veröffentlichen |
 | Tab Kategorien | links Kategorien an/aus, rechts deren Optionen, Farben und Merkliste der Kategorie |
 | Tab Datenpunkte | Räume, Funktionen, Adapter, Ausschluss-Muster, Erkannte Datenpunkte |
@@ -38,6 +38,26 @@ Einstellungen → **Statusübersicht konfigurieren** öffnet einen Dialog mit Ta
 | Tab Zeilen-Aktionen | eigene Knöpfe am Zeilenende, Klick auf Zeile |
 | Tab Namen | Vorschau erkannt → angezeigt; ① Aufbau (Namensmuster), ② Bereinigen (Regeln), ③ Ausnahmen (eigene Gerätenamen) |
 | Tab Batterietypen | Batterietypen zuordnen (nur mit Kategorie Batterien) |
+
+## Zahlen in der Kopfzeile
+
+Kopfzeile → Eintrag mit Quelle **Widget-Wert** oder **Text** (alle Layouts außer `history`).
+
+| Widget-Wert | Text-Platzhalter | |
+| --- | --- | --- |
+| Hinweise gesamt (`status:hints`) | `{hints}` | wie der Chip |
+| Geräte gesamt (`status:devices`) | `{devices}` | überwachte Geräte, ohne ausgeblendete und „Nie mehr melden“ |
+| Batterien: Hinweise / Geräte (`status:battery:hints` …) | `{battery_hints}` `{battery_devices}` | ebenso `window_`, `light_`, `unreach_`, `alarm_` |
+
+Beispiel: `{hints} Hinweise von {devices} Geräten`. Den Chip schaltet „Anzahl der Hinweise“ (`showCount`) ab.
+
+| Zahl in der Kategorie-Überschrift (`categoryCount`) | |
+| --- | --- |
+| Hinweise | „Batterien 3“ (Standard) |
+| Geräte gesamt | „Batterien 10“ |
+| Hinweise / Geräte | „Batterien 3 / 10“ |
+
+Eingeklappt zeigt die Kopfzeile die zuletzt gezählten Werte – erst nach dem ersten Aufklappen.
 
 ## Zeilenaufbau
 

@@ -12,6 +12,7 @@ import {
     DEFAULT_HEADER_SLOT,
     HEADER_SLOTS,
     groupBySlot,
+    hasStatusValues,
     headerSourceCtx,
     newHeaderItem,
     widgetValueOptions,
@@ -523,7 +524,10 @@ function ItemRow({
                             </option>
                         ))}
                     </select>
-                    {item.widgetValue !== 'list:count' && item.widgetValue !== 'list:active' && numberField}
+                    {item.widgetValue !== 'list:count' &&
+                        item.widgetValue !== 'list:active' &&
+                        !(item.widgetValue ?? '').startsWith('status:') &&
+                        numberField}
                     {unitField}
                 </div>
             )}
@@ -554,7 +558,11 @@ function ItemRow({
                         </button>
                     </div>
                     <p className="text-[9px] pl-[72px]" style={{ color: 'var(--text-secondary)' }}>
-                        {isList ? t('hdr.textHintList') : t('hdr.textHint')}
+                        {isList
+                            ? t('hdr.textHintList')
+                            : hasStatusValues(config)
+                              ? t('hdr.textHintStatus')
+                              : t('hdr.textHint')}
                     </p>
                 </div>
             )}

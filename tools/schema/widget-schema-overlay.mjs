@@ -1105,6 +1105,19 @@ export const WIDGET_OPTION_NOTES = {
             'allClearText',
         ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'table', 'twoline', 'card', 'minimal', 'count'] }]),
         [
+            'categoryCount',
+            {
+                onlyLayouts: ['default', 'table', 'twoline'],
+                description:
+                    'Zahl neben einer Kategorie-Überschrift („Batterien 3“): "hints" (Standard) = Hinweise der ' +
+                    'Kategorie, "devices" = überwachte Geräte der Kategorie, "both" = „3 / 10“. Überschriften gibt es ' +
+                    'im Layout default sowie table/twoline ab zwei Kategorien. Dieselben Zahlen stehen als headerItems ' +
+                    'bereit: source "widget" mit widgetValue "status:hints" | "status:devices" | ' +
+                    '"status:<battery|window|light|unreach|alarm>:hints|devices", oder als Text-Platzhalter ' +
+                    '{hints} {devices} {battery_hints} {battery_devices} …',
+            },
+        ],
+        [
             'batteryExtraPatterns',
             {
                 description:
@@ -2961,7 +2974,8 @@ export const UNIVERSAL_OPTIONS = {
         ts: 'WidgetHeaderItem[]',
         description:
             'Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source "dp" = freier Datenpunkt, ' +
-            '"widget" = Wert, den das Widget schon hat, z. B. "main" oder bei Listen "list:sum", "text" = ' +
+            '"widget" = Wert, den das Widget schon hat, z. B. "main", bei Listen "list:sum", bei der Statusübersicht ' +
+            '"status:hints" / "status:devices" (auch je Kategorie, "status:battery:devices"), "text" = ' +
             'Text mit Bindings wie bei Markern, "action" = das Klick-Aktions-Symbol auf diesem Platz statt in ' +
             'der Kartenecke) und ein Platz (slot): "r1-left" am linken Ende der Titelzeile, "r1-center"/"r1-right" neben dem Titel, ' +
             '"r2-left"/"r2-center"/"r2-right" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. ' +

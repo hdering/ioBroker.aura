@@ -324,6 +324,49 @@ eq('condition refs: list token reads the entries', m.headerConditionRefs([cond(a
 ]);
 eq('no condition, no refs', m.headerConditionRefs([item({})], vctx), []);
 
+// ── 9b. Status overview counts (#1011): published by the widget body ──
+const so = { id: 'so', type: 'statusoverview', layout: 'table', options: { catLight: false, catAlarm: false } };
+const soKeys = m.widgetValueOptions(so).map((o) => o.key);
+eq('status: totals first, then the enabled categories', soKeys, [
+    'status:hints',
+    'status:devices',
+    'status:battery:hints',
+    'status:battery:devices',
+    'status:window:hints',
+    'status:window:devices',
+    'status:unreach:hints',
+    'status:unreach:devices',
+]);
+eq('status: none for the history layout', m.widgetValueOptions({ ...so, layout: 'history' }), []);
+ok('status: widget value counts as status', m.itemUsesStatus(item({ source: 'widget', widgetValue: 'status:hints' })));
+ok('status: {devices} in a text', m.itemUsesStatus(item({ source: 'text', text: '{hints} von {devices}' })));
+ok(
+    'status: {battery_hints;round(0)} in a text',
+    m.itemUsesStatus(item({ source: 'text', text: '{battery_hints;round(0)}' })),
+);
+ok('status: a list var is not', !m.itemUsesStatus(item({ source: 'text', text: '{count}' })));
+const soVals = { 'status:hints': 3, 'status:battery:devices': 10 };
+eq('status: count text', m.statusItemText(item({ source: 'widget', widgetValue: 'status:hints' }), soVals, fmt), '3');
+eq(
+    'status: count with unit',
+    m.statusItemText(item({ source: 'widget', widgetValue: 'status:battery:devices', unit: 'Geräte' }), soVals, fmt),
+    '10 Geräte',
+);
+eq(
+    'status: nothing published yet',
+    m.statusItemText(item({ source: 'widget', widgetValue: 'status:hints' }), undefined, fmt),
+    '',
+);
+eq(
+    'status: text vars render',
+    m.renderTemplate('{hints} Hinweise von {battery_devices} Geräten', {
+        vars: { hints: '3', battery_devices: '10' },
+        rawVars: { hints: 3, battery_devices: 10 },
+        resolve: () => '',
+    }),
+    '3 Hinweise von 10 Geräten',
+);
+
 // ── 10. The schema tells a model about it ──
 const schema = JSON.parse(readFileSync('public/ai/aura-widget-schema.json', 'utf8'));
 ok('headerItems is described', !!schema.commonOptions?.headerItems?.description);

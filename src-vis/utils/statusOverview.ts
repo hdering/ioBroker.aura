@@ -315,6 +315,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     showLifetime?: boolean;
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
+    categoryCount?: 'hints' | 'devices' | 'both'; // number beside a category heading: hints (default), devices in the category, or "hints / devices"
     showAllClear?: boolean; // show the „Alles in Ordnung“ panel when nothing needs attention (default true)
     allClearText?: string;
     sortBy?: 'severity' | 'room'; // default 'severity'

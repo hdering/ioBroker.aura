@@ -446,7 +446,7 @@
         "type": "object",
         "ref": "WidgetHeaderItem"
       },
-      "description": "Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source \"dp\" = freier Datenpunkt, \"widget\" = Wert, den das Widget schon hat, z. B. \"main\" oder bei Listen \"list:sum\", \"text\" = Text mit Bindings wie bei Markern, \"action\" = das Klick-Aktions-Symbol auf diesem Platz statt in der Kartenecke) und ein Platz (slot): \"r1-left\" am linken Ende der Titelzeile, \"r1-center\"/\"r1-right\" neben dem Titel, \"r2-left\"/\"r2-center\"/\"r2-right\" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. Bei titleAlign \"center\" steht der Titel in der Kartenmitte und \"r1-center\" direkt daneben (titleSide \"after\" = rechts, Standard, \"before\" = links); unter dem Titel = slot \"r2-center\". Mehrere Elemente je Platz stehen nebeneinander. show: \"always\" (Standard), \"collapsed\" (nur eingeklappt, defaultCollapsed), \"expanded\". Aufgeklappt stehen die Elemente in der Titelzeile des Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag \"headerRow2\"). clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei Markern, leerer datapoint = eigener Wert, bei Listen auch \"{list:active}\" usw. icon setzt ein Symbol vor den Text, iconSize dessen Größe in px (Standard 13), iconColor dessen Farbe (Standard = color, die Textfarbe), textSize die Schriftgröße in px (Standard 12); größere Werte machen die Kopfzeile höher. Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen."
+      "description": "Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source \"dp\" = freier Datenpunkt, \"widget\" = Wert, den das Widget schon hat, z. B. \"main\", bei Listen \"list:sum\", bei der Statusübersicht \"status:hints\" / \"status:devices\" (auch je Kategorie, \"status:battery:devices\"), \"text\" = Text mit Bindings wie bei Markern, \"action\" = das Klick-Aktions-Symbol auf diesem Platz statt in der Kartenecke) und ein Platz (slot): \"r1-left\" am linken Ende der Titelzeile, \"r1-center\"/\"r1-right\" neben dem Titel, \"r2-left\"/\"r2-center\"/\"r2-right\" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. Bei titleAlign \"center\" steht der Titel in der Kartenmitte und \"r1-center\" direkt daneben (titleSide \"after\" = rechts, Standard, \"before\" = links); unter dem Titel = slot \"r2-center\". Mehrere Elemente je Platz stehen nebeneinander. show: \"always\" (Standard), \"collapsed\" (nur eingeklappt, defaultCollapsed), \"expanded\". Aufgeklappt stehen die Elemente in der Titelzeile des Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag \"headerRow2\"). clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei Markern, leerer datapoint = eigener Wert, bei Listen auch \"{list:active}\" usw. icon setzt ein Symbol vor den Text, iconSize dessen Größe in px (Standard 13), iconColor dessen Farbe (Standard = color, die Textfarbe), textSize die Schriftgröße in px (Standard 12); größere Werte machen die Kopfzeile höher. Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen."
     },
     "collapseInEditor": {
       "type": "boolean",
@@ -1433,11 +1433,11 @@
         },
         "widgetValue": {
           "type": "string",
-          "description": "source 'widget': 'main' (the widget's own datapoint, with its unit, decimals and value factor); static/dynamic list: 'list:sum' | 'list:avg' | 'list:min' | 'list:max' | 'list:count' | 'list:active' over all entries; thermostat: 'thermo:actual'; room climate: 'climate:target' | 'climate:humidity' | 'climate:pressure' | 'metric:<metrics[].id>' (readings with a datapoint); layout 'custom': 'cell:<index>' (row-major cell with dpId)."
+          "description": "source 'widget': 'main' (the widget's own datapoint, with its unit, decimals and value factor); static/dynamic list: 'list:sum' | 'list:avg' | 'list:min' | 'list:max' | 'list:count' | 'list:active' over all entries; thermostat: 'thermo:actual'; room climate: 'climate:target' | 'climate:humidity' | 'climate:pressure' | 'metric:<metrics[].id>' (readings with a datapoint); layout 'custom': 'cell:<index>' (row-major cell with dpId); status overview (live layouts): 'status:hints' | 'status:devices' overall and 'status:<battery|window|light|unreach|alarm>:hints|devices' per category — counted by the widget body, so a widget folded since loading shows them only after it was opened once."
         },
         "text": {
           "type": "string",
-          "description": "source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W', '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max} {count} {active}. HTML is supported (sanitised), e.g. '<img src=\"/moon/{0_userdata.0.moon}.png\">'."
+          "description": "source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W', '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max} {count} {active}; the status overview {hints} {devices} and {<category>_hints} {<category>_devices}. HTML is supported (sanitised), e.g. '<img src=\"/moon/{0_userdata.0.moon}.png\">'."
         },
         "icon": {
           "type": "string",
@@ -22122,6 +22122,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleAlign",
         "titleColor",
         "titleRow",
         "titleSize",
@@ -22320,6 +22321,20 @@
             "card",
             "minimal",
             "count"
+          ]
+        },
+        "categoryCount": {
+          "type": "string",
+          "enum": [
+            "hints",
+            "devices",
+            "both"
+          ],
+          "description": "Zahl neben einer Kategorie-Überschrift („Batterien 3“): \"hints\" (Standard) = Hinweise der Kategorie, \"devices\" = überwachte Geräte der Kategorie, \"both\" = „3 / 10“. Überschriften gibt es im Layout default sowie table/twoline ab zwei Kategorien. Dieselben Zahlen stehen als headerItems bereit: source \"widget\" mit widgetValue \"status:hints\" | \"status:devices\" | \"status:<battery|window|light|unreach|alarm>:hints|devices\", oder als Text-Platzhalter {hints} {devices} {battery_hints} {battery_devices} …",
+          "onlyLayouts": [
+            "default",
+            "table",
+            "twoline"
           ]
         },
         "contentAlign": {

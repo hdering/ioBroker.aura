@@ -1117,11 +1117,14 @@ export interface WidgetHeaderItem {
      *  value factor); static/dynamic list: 'list:sum' | 'list:avg' | 'list:min' | 'list:max' |
      *  'list:count' | 'list:active' over all entries; thermostat: 'thermo:actual'; room climate:
      *  'climate:target' | 'climate:humidity' | 'climate:pressure' | 'metric:<metrics[].id>'
-     *  (readings with a datapoint); layout 'custom': 'cell:<index>' (row-major cell with dpId). */
+     *  (readings with a datapoint); layout 'custom': 'cell:<index>' (row-major cell with dpId);
+     *  status overview (live layouts): 'status:hints' | 'status:devices' overall and
+     *  'status:<battery|window|light|unreach|alarm>:hints|devices' per category — counted by the
+     *  widget body, so a widget folded since loading shows them only after it was opened once. */
     widgetValue?: string;
     /** source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W',
      *  '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max}
-     *  {count} {active}. HTML is supported (sanitised), e.g. '<img src="/moon/{0_userdata.0.moon}.png">'. */
+     *  {count} {active}; the status overview {hints} {devices} and {<category>_hints} {<category>_devices}. HTML is supported (sanitised), e.g. '<img src="/moon/{0_userdata.0.moon}.png">'. */
     text?: string;
     icon?: string; // optional Iconify id / Lucide name before the text
     iconColor?: string; // icon colour (CSS, var(--token), light-dark pair); default = color

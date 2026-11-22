@@ -227,6 +227,75 @@ export function listEntries(config: WidgetConfig): EntryLike[] {
     return (entries as EntryLike[]).filter((e) => typeof e?.id === 'string' && e.id.trim() !== '');
 }
 
+// ── Status overview counts (#1011) ───────────────────────────────────────────
+// Computed by the widget body (discovery, battery gate, latch) and published to
+// store/widgetValuesStore — the only values here that do not come from config + states.
+
+export const STATUS_CATS = ['battery', 'window', 'light', 'unreach', 'alarm'] as const;
+export type StatusCat = (typeof STATUS_CATS)[number];
+const STATUS_CAT_OPTION: Record<StatusCat, string> = {
+    battery: 'catBattery',
+    window: 'catWindow',
+    light: 'catLight',
+    unreach: 'catUnreach',
+    alarm: 'catAlarm',
+};
+
+/** Whether the widget publishes status counts (the live layouts of the status overview). */
+export function hasStatusValues(config: WidgetConfig): boolean {
+    return config.type === 'statusoverview' && config.layout !== 'history';
+}
+
+/** The enabled categories, in display order. */
+export function statusCats(config: WidgetConfig): StatusCat[] {
+    const o = config.options ?? {};
+    return STATUS_CATS.filter((c) => o[STATUS_CAT_OPTION[c]] !== false);
+}
+
+/**
+ * Key of a published status count: 'status:hints' | 'status:devices' overall,
+ * 'status:<cat>:hints' | 'status:<cat>:devices' per category.
+ */
+export const statusKey = (what: 'hints' | 'devices', cat?: StatusCat) =>
+    cat ? `status:${cat}:${what}` : `status:${what}`;
+
+/** Text variable of a status count: {hints} {devices}, {battery_hints} {battery_devices} … */
+export const statusVar = (what: 'hints' | 'devices', cat?: StatusCat) => (cat ? `${cat}_${what}` : what);
+
+/** Every status count with its key and text variable. */
+export function statusValueDefs(): { key: string; name: string }[] {
+    const out = [
+        { key: statusKey('hints'), name: statusVar('hints') },
+        { key: statusKey('devices'), name: statusVar('devices') },
+    ];
+    for (const c of STATUS_CATS) {
+        out.push({ key: statusKey('hints', c), name: statusVar('hints', c) });
+        out.push({ key: statusKey('devices', c), name: statusVar('devices', c) });
+    }
+    return out;
+}
+
+const STATUS_TEXT_VAR_RE = new RegExp(`\\{(?:(?:${STATUS_CATS.join('|')})_)?(?:hints|devices)(?:[;}?#])`);
+
+/** True when an item shows a status count (as widget value or text variable). */
+export function itemUsesStatus(item: WidgetHeaderItem): boolean {
+    if (item.source === 'widget') return (item.widgetValue ?? '').startsWith('status:');
+    if (item.source === 'text') return STATUS_TEXT_VAR_RE.test(item.text ?? '');
+    return false;
+}
+
+/** Text of a 'widget' item showing a status count — '' while the widget has published nothing. */
+export function statusItemText(
+    item: WidgetHeaderItem,
+    values: Readonly<Record<string, number | null>> | undefined,
+    fmt: ValueFormat,
+): string {
+    const v = values?.[item.widgetValue ?? ''];
+    if (typeof v !== 'number') return '';
+    const text = fmtNumber(v, fmt, 0);
+    return item.unit ? `${text} ${item.unit}` : text;
+}
+
 /** What the 'widget' source can pick for this widget. Empty = the source is unavailable. */
 export function widgetValueOptions(config: WidgetConfig): WidgetValueOption[] {
     const out: WidgetValueOption[] = [];
@@ -234,6 +303,14 @@ export function widgetValueOptions(config: WidgetConfig): WidgetValueOption[] {
     if (isListType(config.type)) {
         for (const key of LIST_VALUE_KEYS) {
             out.push({ key, labelKey: `hdr.val.${LIST_VAR[key]}` as TranslationKey });
+        }
+    }
+    if (hasStatusValues(config)) {
+        out.push({ key: statusKey('hints'), labelKey: 'hdr.val.statusHints' });
+        out.push({ key: statusKey('devices'), labelKey: 'hdr.val.statusDevices' });
+        for (const c of statusCats(config)) {
+            out.push({ key: statusKey('hints', c), labelKey: `hdr.val.status.${c}.hints` as TranslationKey });
+            out.push({ key: statusKey('devices', c), labelKey: `hdr.val.status.${c}.devices` as TranslationKey });
         }
     }
     for (const x of extraWidgetValues(config)) out.push({ key: x.key, labelKey: x.labelKey, detail: x.detail });

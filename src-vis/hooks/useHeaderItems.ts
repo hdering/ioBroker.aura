@@ -26,13 +26,17 @@ import {
     headerItems,
     itemUsesList,
     itemUsesOwn,
+    itemUsesStatus,
     listValues,
     ownValue,
+    statusItemText,
+    statusValueDefs,
     widgetItemText,
     type ListValues,
     type OwnValue,
     type ValueFormat,
 } from '../utils/headerItems';
+import { useWidgetValues } from '../store/widgetValuesStore';
 import { useT } from '../i18n';
 import type { WidgetHeaderSlot, WidgetConfig } from '../types';
 import type { LucideIcon } from 'lucide-react';
@@ -92,6 +96,9 @@ export function useHeaderItems(
         [items, config.datapoint, config.type, entries, ctx],
     );
     const states = useTemplateStates(refs);
+    // Counts the widget body computed itself (status overview, #1011).
+    const usesStatus = useMemo(() => items.some(itemUsesStatus), [items]);
+    const status = useWidgetValues(config.id, usesStatus);
 
     return useMemo(() => {
         if (!items.length) return NONE;
@@ -115,6 +122,13 @@ export function useHeaderItems(
                 const counted = name === 'count' || name === 'active';
                 vars[name] = fmtNumber(list.raw[name], fmt, counted ? 0 : undefined);
                 rawVars[name] = list.raw[name];
+            }
+        }
+        if (usesStatus) {
+            for (const { key, name } of statusValueDefs()) {
+                const v = status?.[key] ?? null;
+                vars[name] = fmtNumber(v, fmt, 0);
+                rawVars[name] = v;
             }
         }
         const render = (template: string) =>
@@ -150,9 +164,11 @@ export function useHeaderItems(
             else if (item.source === 'text') text = item.text ? render(item.text) : '';
             else {
                 const extra = extraValueFor(item, config);
-                text = extra
-                    ? extraValueText(item, extra, states[extra.dp]?.val ?? null, fmt)
-                    : widgetItemText(item, own, list, fmt);
+                text = (item.widgetValue ?? '').startsWith('status:')
+                    ? statusItemText(item, status, fmt)
+                    : extra
+                      ? extraValueText(item, extra, states[extra.dp]?.val ?? null, fmt)
+                      : widgetItemText(item, own, list, fmt);
             }
             // An item with nothing to say takes no room — no empty gap in the row.
             if (!text.trim() && !item.icon) continue;
@@ -172,5 +188,17 @@ export function useHeaderItems(
         }
         return out;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items, states, defaultDecimals, numberFormat, t, config.datapoint, config.options, actionIcon, ctx]);
+    }, [
+        items,
+        states,
+        defaultDecimals,
+        numberFormat,
+        t,
+        config.datapoint,
+        config.options,
+        actionIcon,
+        ctx,
+        usesStatus,
+        status,
+    ]);
 }

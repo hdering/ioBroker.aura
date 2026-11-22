@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
     ShieldCheck,
     TriangleAlert,
@@ -108,10 +108,55 @@ import {
     type StatusCandidate,
 } from '../../utils/statusOverview';
 import { useProbeFill, PROBE_FILL_NAME } from '../../utils/probeContext';
+import { statusKey } from '../../utils/headerItems';
+import { publishWidgetValues } from '../../store/widgetValuesStore';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
 import { useDpTokenResolver } from './DynamicTitle';
 import { useRowPopup } from '../../hooks/useRowPopup';
 import { useDpNameVarsList } from '../../hooks/useDpNameVars';
+
+/**
+ * The title row of both status components: title left, then the header items
+ * (#676) and the widget's own count chip at the end. A spacer stands in for a
+ * hidden title, so the right items and the chip still end up on the right.
+ */
+function StatusTitleRow({
+    config,
+    showTitle,
+    children,
+}: {
+    config: WidgetProps['config'];
+    showTitle: boolean;
+    children?: ReactNode;
+}) {
+    const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
+    return (
+        <HeaderGroup>
+            <TitleRow align={titleAlign} className="flex items-center gap-2 mb-1.5 shrink-0 min-w-0">
+                {showTitle ? (
+                    <p
+                        className="aura-widget-title text-xs font-semibold truncate min-w-0"
+                        style={{
+                            '--aura-title-color': 'var(--text-secondary)',
+                            // Grows to push the chip right, but shrinks from its own width
+                            // like the header items — a narrow card keeps a bit of both.
+                            flex: '1 1 auto',
+                            textAlign: titleAlign as CSSProperties['textAlign'],
+                        }}
+                    >
+                        {config.title}
+                    </p>
+                ) : (
+                    <span className="flex-1" />
+                )}
+                <HeaderSlotsInline />
+                {children}
+            </TitleRow>
+            <HeaderSlotsRow2 />
+        </HeaderGroup>
+    );
+}
 
 /** Per-category icon + label used in section headers and rows. */
 const CATEGORY_META: Record<CategoryKey, { Icon: LucideIcon; label: string }> = {
@@ -856,6 +901,41 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const total = allItems.reduce((n, i) => (countsAsHint(i) ? n + 1 : n), 0);
     const anyHint = total > 0 || allItems.some((i) => i.severity !== 'ok');
     const hasCrit = allItems.some((i) => i.severity === 'crit');
+
+    // ── Counts per category (#1011): hints and watched devices ─────────────────
+    // Devices = what the widget watches: hidden battery devices and "nie mehr melden"
+    // entries are out, a device with two battery datapoints counts once.
+    const catCounts = useMemo(() => {
+        const out = {} as Record<CategoryKey, { hints: number; devices: number }>;
+        for (const c of CATEGORY_ORDER) out[c] = { hints: 0, devices: 0 };
+        const seen = new Set<string>();
+        for (const c of candidates) {
+            if (ignoredLists[c.cat]?.has(c.dp.id)) continue;
+            const did = c.cat === 'battery' ? batteryInfo[c.dp.id]?.deviceId : undefined;
+            if (did && hiddenSet.has(did)) continue;
+            const key = `${c.cat}\u0001${did || c.dp.id}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out[c.cat].devices++;
+        }
+        for (const i of allItems) if (countsAsHint(i)) out[i.category].hints++;
+        return out;
+    }, [candidates, ignoredLists, batteryInfo, hiddenSet, allItems]);
+
+    // Hand the counts to the header items (Kopfzeile → Widget-Wert / {hints} …).
+    useEffect(() => {
+        if (fillCount || !config.id || !discovered) return;
+        const values: Record<string, number> = {};
+        let devices = 0;
+        for (const c of CATEGORY_ORDER) {
+            values[statusKey('hints', c)] = catCounts[c].hints;
+            values[statusKey('devices', c)] = catCounts[c].devices;
+            devices += catCounts[c].devices;
+        }
+        values[statusKey('hints')] = total;
+        values[statusKey('devices')] = devices;
+        publishWidgetValues(config.id, values);
+    }, [catCounts, total, fillCount, config.id, discovered]);
     // Highlight colour for a device in an attention state (per-category, else per-severity).
     const alertColorFor = (item: StatusItem) =>
         item.severity !== 'ok' ? opts.categoryColors?.[item.category] || item.color : item.color;
@@ -873,6 +953,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
 
     const showTitle = opts.showTitle !== false && !!config.title;
     const showCount = opts.showCount !== false;
+    const categoryCount = opts.categoryCount ?? 'hints';
     // Horizontal alignment of the content (rows, tiles, pills). Default 'left' keeps
     // every layout exactly as before; 'center'/'right' mainly matter for the Minimal
     // layout, where the wrapped pills otherwise always stick to the left edge.
@@ -1560,20 +1641,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
               ? list.map(renderTableRow)
               : list.map((item) => renderRow(item));
 
+    // Through TitleRow, so the header items (#676) sit beside the chip instead of
+    // the frame's fallback strip lying on top of it (#1011).
     const header = (
-        <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
-            {showTitle ? (
-                <p
-                    className="aura-widget-title text-xs font-semibold truncate"
-                    style={{ '--aura-title-color': 'var(--text-secondary)' }}
-                >
-                    {config.title}
-                </p>
-            ) : (
-                <span />
-            )}
+        <StatusTitleRow config={config} showTitle={showTitle}>
             {showCount && chip}
-        </div>
+        </StatusTitleRow>
     );
 
     // ── all-clear (the intended normal state) — only when filtering to alerts ────
@@ -1843,12 +1916,16 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                                               >
                                                   {label}
                                               </span>
-                                              {catAlerts > 0 ? (
+                                              {catAlerts > 0 || categoryCount !== 'hints' ? (
                                                   <span
-                                                      className="text-[11px] font-semibold"
+                                                      className="aura-status-cat-count text-[11px] font-semibold tabular-nums whitespace-nowrap shrink-0"
                                                       style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                   >
-                                                      {catAlerts}
+                                                      {categoryCount === 'devices'
+                                                          ? catCounts[cat].devices
+                                                          : categoryCount === 'both'
+                                                            ? `${catAlerts} / ${catCounts[cat].devices}`
+                                                            : catAlerts}
                                                   </span>
                                               ) : (
                                                   <ShieldCheck size={11} style={{ color: SEVERITY_COLOR.ok }} />
@@ -1997,17 +2074,7 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
     const total = rows.length + hidden;
 
     const header = (
-        <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
-            {showTitle ? (
-                <p
-                    className="aura-widget-title text-xs font-semibold truncate"
-                    style={{ '--aura-title-color': 'var(--text-secondary)' }}
-                >
-                    {config.title}
-                </p>
-            ) : (
-                <span />
-            )}
+        <StatusTitleRow config={config} showTitle={showTitle}>
             {showCount && loaded && (
                 <span
                     className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
@@ -2021,7 +2088,7 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
                     {total} {onlyBattery ? 'Wechsel' : total === 1 ? 'Eintrag' : 'Einträge'}
                 </span>
             )}
-        </div>
+        </StatusTitleRow>
     );
 
     const maxAge = Number.isFinite(opts.maxAgeDays) && (opts.maxAgeDays as number) > 0 ? opts.maxAgeDays! : 0;

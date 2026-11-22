@@ -1421,6 +1421,42 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             </p>
                         </div>
                     )}
+                    {config.layout !== 'history' && (
+                        <Unavailable
+                            reason={
+                                ['count', 'compact', 'card', 'minimal'].includes(config.layout ?? 'default')
+                                    ? 'Nur in den Layouts mit Kategorie-Überschriften: Standard, Zweizeilig und Tabelle (ab zwei Kategorien).'
+                                    : undefined
+                            }
+                        >
+                            <label className={labelCls} style={labelStyle}>
+                                Zahl in der Kategorie-Überschrift
+                            </label>
+                            <select
+                                value={o.categoryCount ?? 'hints'}
+                                onChange={(e) =>
+                                    set({
+                                        categoryCount:
+                                            e.target.value === 'hints'
+                                                ? undefined
+                                                : (e.target.value as 'devices' | 'both'),
+                                    })
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                                data-status-category-count
+                            >
+                                <option value="hints">Hinweise</option>
+                                <option value="devices">Geräte gesamt</option>
+                                <option value="both">Hinweise / Geräte</option>
+                            </select>
+                            <p className={`${hintCls} mt-1`} style={hintStyle}>
+                                „Batterien 3 / 10“: 3 Hinweise von 10 Geräten. Alle Zahlen gibt es auch als Wert für die
+                                Kopfzeile (Kopfzeile → Quelle „Widget-Wert“ oder Text mit {'{hints}'}, {'{devices}'},{' '}
+                                {'{battery_hints}'} …).
+                            </p>
+                        </Unavailable>
+                    )}
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             Sortierung

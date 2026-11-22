@@ -128,6 +128,7 @@
     "test:group-mixed-ask": "node tools/tests/group-mixed-ask.mjs",
     "test:header-items": "node tools/tests/header-items.mjs",
     "test:header-items-sweep": "node tools/tests/header-items-sweep.mjs",
+    "test:status-header-values": "node tools/tests/status-header-values.mjs",
     "test:widget-collapse": "node tools/tests/widget-collapse.mjs",
     "test:widget-collapse-logic": "node tools/tests/widget-collapse-logic.mjs",
     "test:widget-collapse-title": "node tools/tests/widget-collapse-title.mjs",
