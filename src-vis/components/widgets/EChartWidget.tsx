@@ -661,6 +661,9 @@ function EChartBody({ config, editMode }: WidgetProps) {
         // JSON series never carry a history instance — auto-detection must not graft one on,
         // or the range selector would appear for data that has no time window.
         historyInstance: sourceOf(s) === 'json' ? undefined : (s.historyInstance ?? resolved[s.id]?.instance),
+        // A shifted comparison bar is the last reading at the shifted "now" (issue #730) — raw rows,
+        // not the average of the window's last bucket. An explicit aggregate stays.
+        aggregate: echartMode === 'comparison' && !s.aggregate && seriesTimeShift(s) ? ('none' as const) : s.aggregate,
         historyRange: activeRange,
         historyRangeCustomValue: activeCustomVal,
         historyRangeCustomUnit: activeCustomUnit,

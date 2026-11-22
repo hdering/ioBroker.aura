@@ -214,7 +214,10 @@ export interface EChartSeriesConfig {
      * Comparison series (issue #730): read the history this many `timeShiftUnit`s further back and
      * draw it over the current window — e.g. 1 year = last year's monthly consumption next to this
      * year's bars. Unset / 0 = no shift. The shifted series is a frozen view: no live updates, its
-     * "current" value is its newest point. Ignored for a `total` window and for JSON series.
+     * "current" value is its newest point. In `echartMode: 'comparison'` the bar is the last
+     * reading at now minus the shift; no reading there = empty bar. Needs history: without a
+     * `historyInstance` the logging instance is detected even with `autoHistoryInstance` off.
+     * Ignored for a `total` window and for JSON series.
      */
     timeShift?: number;
     /** Unit of `timeShift` (default `year`). Calendar steps, so a month back lands on the same day. */
@@ -1361,13 +1364,15 @@ export function useAutoHistoryInstances(
     // Series needing detection: enabled, no configured instance, and a resolvable (non-template) DP.
     const detectId = (s: EChartSeriesConfig) =>
         s.source === 'formula' ? (usableInputs(s.formulaInputs)[0]?.datapointId ?? '') : s.datapointId;
-    const targets = enabled
-        ? series.filter((s) => !s.historyInstance && detectId(s) && !detectId(s).includes('{{'))
-        : [];
+    // A shifted series (issue #730) is detected even with auto-detection off: without an instance it
+    // has no past to read, and the live value it would fall back to is exactly what it must not show.
+    const targets = series.filter(
+        (s) => (enabled || !!seriesTimeShift(s)) && !s.historyInstance && detectId(s) && !detectId(s).includes('{{'),
+    );
     const depKey = targets.map((s) => `${s.id}:${detectId(s)}`).join(',');
 
     useEffect(() => {
-        if (!enabled) {
+        if (targets.length === 0) {
             setAdaptersById({});
             return;
         }
@@ -1812,6 +1817,12 @@ export function useMultiSeriesData(
             }
 
             if (!s.historyInstance) {
+                // A shifted series shows the past (issue #730) — with no history to read it from,
+                // its bar stays empty rather than passing the live value off as last month's.
+                if (seriesTimeShift(s)) {
+                    setResultsMap((prev) => new Map(prev).set(s.id, { data: [], current: null, loading: false }));
+                    return;
+                }
                 // No history adapter configured — seed current value from live state so
                 // comparison-mode bars (and timeseries first point) render immediately.
                 const cached = getStateFromCache(s.datapointId);
@@ -2045,6 +2056,11 @@ export function useMultiSeriesData(
                         if (step && data.length > 1 && data[data.length - 1][0] > end) {
                             data = data.filter((p) => p[0] <= end);
                         }
+
+                        // The adapter's border row AFTER the queried end is a reading from after the
+                        // shifted "now" — moved forward it lands past the window and would pass as
+                        // the comparison bar's value (issue #730).
+                        if (shift) data = data.filter((p) => p[0] <= end);
 
                         if (hasAbsWindow) {
                             // History adapters append border values at the window edges (last value
