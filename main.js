@@ -36,6 +36,7 @@ const {
     usedResourceCheck,
 } = require('./lib/serverBind');
 const { syncOwnInstanceObject } = require('./lib/ownInstanceObject');
+const { ipcPath, defaultDataRoot, removeStaleSocket, isPipe } = require('./lib/ipcEndpoint');
 const { mergeRenderReport, pruneBackups, renderReportEntry } = require('./lib/mcp/auraConfig');
 const { generateServerSecret } = require('./lib/security/authCore');
 const {
@@ -2588,7 +2589,7 @@ class Aura extends utils.Adapter {
             server = http.createServer(handler);
         }
 
-        server.on('upgrade', (req, socket, _head) => {
+        const onUpgrade = (req, socket, _head) => {
             let parsedUrl;
             try {
                 parsedUrl = new URL(req.url, 'http://localhost');
@@ -2654,7 +2655,8 @@ class Aura extends utils.Adapter {
                 return;
             }
             proxyWebSocket(req, socket, targetWsUrl, this.log, true, true);
-        });
+        };
+        server.on('upgrade', onUpgrade);
 
         const bindAddr = listenAddress(this.config.bind);
         server.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
@@ -2703,6 +2705,53 @@ class Aura extends utils.Adapter {
             }
         });
         this._httpServer = server;
+        this._startIpcServer(handler, onUpgrade);
+    }
+
+    /**
+     * The local endpoint for the web adapter extension (lib/ipcEndpoint.js, #997):
+     * the same routes as the TCP server, on a Unix socket / named pipe instead of
+     * a port. Plain HTTP - the connection never leaves this machine, and SSL is
+     * the web instance's business. Failing here only costs the extension its
+     * preferred route; it then keeps using the TCP port.
+     *
+     * @param {import('node:http').RequestListener} handler the request handler of the TCP server
+     * @param {(req: import('node:http').IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void} onUpgrade its upgrade handler
+     */
+    _startIpcServer(handler, onUpgrade) {
+        let where = null;
+        try {
+            where = ipcPath(this.namespace, defaultDataRoot());
+            if (!where) {
+                this.log.debug('aura: no ioBroker data directory - no local socket for the web extension');
+                return;
+            }
+            if (!isPipe(where)) {
+                fs.mkdirSync(path.dirname(where), { recursive: true });
+            }
+            removeStaleSocket(where);
+            const ipc = http.createServer(handler);
+            ipc.on('upgrade', onUpgrade);
+            ipc.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
+                this.log.warn(
+                    `aura: local socket ${where} for the web extension failed (${e.code || e.message}) - it keeps using the TCP port`,
+                );
+            });
+            ipc.listen(where, () => {
+                if (!isPipe(where)) {
+                    try {
+                        // Only the ioBroker user (web runs as the same) may connect.
+                        fs.chmodSync(where, 0o600);
+                    } catch {
+                        /* filesystem without modes */
+                    }
+                }
+                this.log.info(`aura: local socket for the web extension: ${where}`);
+            });
+            this._ipcServer = ipc;
+        } catch (e) {
+            this.log.warn(`aura: local socket ${where || ''} for the web extension not started (${e.message})`);
+        }
     }
 
     // Build the common.states map for the navigate selector from the persisted
@@ -7281,6 +7330,8 @@ class Aura extends utils.Adapter {
         this._onUnloadStarted?.();
         const finish = () => {
             try {
+                // Node removes the socket file on close.
+                this._ipcServer?.close();
                 if (this._httpServer) {
                     this._httpServer.close(() => callback());
                 } else {
