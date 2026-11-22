@@ -47,7 +47,13 @@ await page.evaluate(
             catUnreach: false,
             valueFilter: 'all',
             headerItems: [
-                { id: 'hi-text', source: 'text', slot: 'r1-right', text: '{hints} Hinweise von {devices} Geräten' },
+                {
+                    id: 'hi-text',
+                    source: 'text',
+                    slot: 'r1-right',
+                    text: '{hints} Hinweise von {devices} Geräten',
+                    chip: true,
+                },
                 {
                     id: 'hi-val',
                     source: 'widget',
@@ -57,7 +63,11 @@ await page.evaluate(
                 },
             ],
         }),
-        widget('w-so-b', 'default', { categoryCount: 'both', showOkCategories: true }),
+        widget('w-so-b', 'default', {
+            categoryCount: 'both',
+            showOkCategories: true,
+            headerItems: [{ id: 'hi-dev', source: 'text', slot: 'r1-right', text: '{devices} Geräte' }],
+        }),
     ],
 );
 
@@ -90,28 +100,71 @@ check('widget value status:battery:devices', /^[1-9]\d* Batterien$/.test(val), v
 const m = text.match(/von (\d+)/);
 check('battery devices = all devices (only batteries on)', !!m && val.startsWith(`${m[1]} `), `${text} / ${val}`);
 
-// Row 1 sits in the widget's own title row — next to the chip, not on top of it.
-const geo = await page.evaluate(() => {
-    const item = document.querySelector('[data-header-item="hi-text"]');
-    const row = item?.closest('.aura-widget-title')
-        ? null
-        : [...document.querySelectorAll('.aura-widget-title')]
-              .map((t) => t.parentElement)
-              .find((p) => p?.contains(item));
-    if (!item || !row) return { inRow: false };
-    const chip = row.lastElementChild;
-    const title = row.querySelector('.aura-widget-title');
-    const r = (el) => el.getBoundingClientRect();
-    const overlap = (p, q) => p.left < q.right - 0.5 && q.left < p.right - 0.5 && p.top < q.bottom && q.top < p.bottom;
-    return {
-        inRow: true,
-        chipText: chip.textContent,
-        itemChip: overlap(r(item), r(chip)),
-        itemTitle: overlap(r(item), r(title)),
-        order: r(title).right <= r(item).left + 0.5 && r(item).right <= r(chip).left + 0.5,
-    };
+/** Title row holding a header item: its title, the item, and whatever follows it. */
+const rowGeo = (id) =>
+    page.evaluate((id) => {
+        const item = document.querySelector(`[data-header-item="${id}"]`);
+        const row = [...document.querySelectorAll('.aura-widget-title')]
+            .map((t) => t.parentElement)
+            .find((p) => p?.contains(item));
+        if (!item || !row) return { inRow: false };
+        const title = row.querySelector('.aura-widget-title');
+        const slot = item.closest('[data-header-slot]');
+        const chip = slot?.nextElementSibling ?? null;
+        const r = (el) => el.getBoundingClientRect();
+        const overlap = (p, q) =>
+            p.left < q.right - 0.5 && q.left < p.right - 0.5 && p.top < q.bottom && q.top < p.bottom;
+        return {
+            inRow: true,
+            chipText: chip?.textContent ?? null,
+            itemChip: !!chip && overlap(r(item), r(chip)),
+            itemTitle: overlap(r(item), r(title)),
+            order: r(title).right <= r(item).left + 0.5 && (!chip || r(item).right <= r(chip).left + 0.5),
+        };
+    }, id);
+
+// A: the header shows {hints} — the widget's own chip steps back.
+const geoA = await rowGeo('hi-text');
+check('{hints} in the header: item placed in the title row', geoA.inRow, JSON.stringify(geoA));
+check('{hints} in the header: no count chip after it', geoA.inRow && geoA.chipText === null, JSON.stringify(geoA));
+
+// A's hint count as chip: tinted background, colour by severity (no own colour set).
+const chip = await page.evaluate(() => {
+    const el = document.querySelector('[data-header-item="hi-text"]');
+    const cs = el && getComputedStyle(el);
+    return cs
+        ? {
+              cls: el.classList.contains('aura-header-item-chip'),
+              bg: cs.backgroundColor,
+              color: el.style.getPropertyValue('--aura-header-item-color'),
+          }
+        : null;
 });
+check(
+    'chip: pill with a background',
+    !!chip?.cls && chip.bg !== 'rgba(0, 0, 0, 0)' && chip.bg !== 'transparent',
+    JSON.stringify(chip),
+);
+check('chip: colour follows the severity', /--badge-(ok|warn|crit)/.test(chip?.color ?? ''), JSON.stringify(chip));
+
+// B: only {devices} — the chip stays, beside the item, not under it.
+await page.locator('[data-header-item="hi-dev"]').waitFor({ timeout: 30000 });
+await page
+    .waitForFunction(
+        () => /^[1-9]d* Geräte$/.test(document.querySelector('[data-header-item="hi-dev"]')?.textContent?.trim() ?? ''),
+        null,
+        {
+            timeout: 60000,
+        },
+    )
+    .catch(() => {});
+const geo = await rowGeo('hi-dev');
 check('row-1 item is placed in the widget title row', geo.inRow, JSON.stringify(geo));
+check(
+    'chip stays when the header shows no hint count',
+    geo.inRow && /Hinweis|OK|…/.test(geo.chipText ?? ''),
+    JSON.stringify(geo),
+);
 check('row-1 item does not overlap the count chip', geo.inRow && !geo.itemChip, JSON.stringify(geo));
 check('row-1 item does not overlap the title', geo.inRow && !geo.itemTitle, JSON.stringify(geo));
 check('order: title, item, chip', geo.inRow && geo.order, JSON.stringify(geo));

@@ -1130,7 +1130,8 @@ export interface WidgetHeaderItem {
     iconColor?: string; // icon colour (CSS, var(--token), light-dark pair); default = color
     iconSize?: number; // icon size in px (scaled by the global font scale); default 13
     textSize?: number; // text size in px (scaled by the global font scale); default 12 (text-xs)
-    color?: string; // text colour (CSS, var(--token), light-dark pair); default var(--text-primary)
+    color?: string; // text colour (CSS, var(--token), light-dark pair); default var(--text-primary) — status overview hint counts: by severity (green / orange / red)
+    chip?: boolean; // draw as a pill: background tinted with the text colour, like the status overview's count chip; default false
     logic?: 'AND' | 'OR'; // combine clauses; default 'AND'
     /** Only show the item while these hold (same shape as marker conditions). Empty/absent =
      *  no condition. An empty clause datapoint means the widget's own datapoint; list widgets

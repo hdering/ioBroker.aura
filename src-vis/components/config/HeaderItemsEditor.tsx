@@ -660,6 +660,20 @@ function ItemRow({
                             />
                         }
                     />
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={!!item.chip}
+                            onChange={(e) => update({ chip: e.target.checked || undefined })}
+                            data-header-item-chip=""
+                        />
+                        <span className="text-xs" style={{ color: 'var(--text-primary)' }}>
+                            {t('hdr.chip')}
+                        </span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                            {hasStatusValues(config) ? t('hdr.chipHintStatus') : t('hdr.chipHint')}
+                        </span>
+                    </label>
                 </>
             )}
 

@@ -108,7 +108,7 @@ import {
     type StatusCandidate,
 } from '../../utils/statusOverview';
 import { useProbeFill, PROBE_FILL_NAME } from '../../utils/probeContext';
-import { statusKey } from '../../utils/headerItems';
+import { headerShowsStatusHints, statusKey, statusSeverityKey } from '../../utils/headerItems';
 import { publishWidgetValues } from '../../store/widgetValuesStore';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
@@ -906,8 +906,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // Devices = what the widget watches: hidden battery devices and "nie mehr melden"
     // entries are out, a device with two battery datapoints counts once.
     const catCounts = useMemo(() => {
-        const out = {} as Record<CategoryKey, { hints: number; devices: number }>;
-        for (const c of CATEGORY_ORDER) out[c] = { hints: 0, devices: 0 };
+        const out = {} as Record<CategoryKey, { hints: number; devices: number; crit: boolean }>;
+        for (const c of CATEGORY_ORDER) out[c] = { hints: 0, devices: 0, crit: false };
         const seen = new Set<string>();
         for (const c of candidates) {
             if (ignoredLists[c.cat]?.has(c.dp.id)) continue;
@@ -918,7 +918,11 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             seen.add(key);
             out[c.cat].devices++;
         }
-        for (const i of allItems) if (countsAsHint(i)) out[i.category].hints++;
+        for (const i of allItems) {
+            if (!countsAsHint(i)) continue;
+            out[i.category].hints++;
+            if (i.severity === 'crit') out[i.category].crit = true;
+        }
         return out;
     }, [candidates, ignoredLists, batteryInfo, hiddenSet, allItems]);
 
@@ -930,12 +934,15 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         for (const c of CATEGORY_ORDER) {
             values[statusKey('hints', c)] = catCounts[c].hints;
             values[statusKey('devices', c)] = catCounts[c].devices;
+            // 0 ok, 1 warn, 2 crit — the colour of a hint count in the header, as on the chip.
+            values[statusSeverityKey(c)] = catCounts[c].hints ? (catCounts[c].crit ? 2 : 1) : 0;
             devices += catCounts[c].devices;
         }
         values[statusKey('hints')] = total;
         values[statusKey('devices')] = devices;
+        values[statusSeverityKey()] = total ? (hasCrit ? 2 : 1) : 0;
         publishWidgetValues(config.id, values);
-    }, [catCounts, total, fillCount, config.id, discovered]);
+    }, [catCounts, total, hasCrit, fillCount, config.id, discovered]);
     // Highlight colour for a device in an attention state (per-category, else per-severity).
     const alertColorFor = (item: StatusItem) =>
         item.severity !== 'ok' ? opts.categoryColors?.[item.category] || item.color : item.color;
@@ -952,7 +959,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     );
 
     const showTitle = opts.showTitle !== false && !!config.title;
-    const showCount = opts.showCount !== false;
+    // A header item already showing the hint count replaces the chip (#1011).
+    const showCount = opts.showCount !== false && !headerShowsStatusHints(config.options);
     const categoryCount = opts.categoryCount ?? 'hints';
     // Horizontal alignment of the content (rows, tiles, pills). Default 'left' keeps
     // every layout exactly as before; 'center'/'right' mainly matter for the Minimal

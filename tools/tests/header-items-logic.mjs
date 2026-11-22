@@ -367,6 +367,53 @@ eq(
     '3 Hinweise von 10 Geräten',
 );
 
+// The overall hint count in the header replaces the widget's chip.
+const hdr = (items) => ({ headerItems: items });
+ok(
+    'status: header shows hints (widget value)',
+    m.headerShowsStatusHints(hdr([item({ source: 'widget', widgetValue: 'status:hints' })])),
+);
+ok(
+    'status: header shows hints ({hints} text)',
+    m.headerShowsStatusHints(hdr([item({ source: 'text', text: '{hints} offen' })])),
+);
+ok(
+    'status: {devices} alone keeps the chip',
+    !m.headerShowsStatusHints(hdr([item({ source: 'text', text: '{devices}' })])),
+);
+ok(
+    'status: a category count keeps the chip',
+    !m.headerShowsStatusHints(hdr([item({ source: 'text', text: '{battery_hints}' })])),
+);
+ok(
+    'status: an item only shown folded keeps the chip',
+    !m.headerShowsStatusHints(hdr([item({ source: 'widget', widgetValue: 'status:hints', show: 'collapsed' })])),
+);
+
+// Severity colour of a hint count.
+eq(
+    'severity: hints total',
+    m.statusSeverityFor(item({ source: 'widget', widgetValue: 'status:hints' })),
+    'status:severity',
+);
+eq(
+    'severity: category hints',
+    m.statusSeverityFor(item({ source: 'widget', widgetValue: 'status:window:hints' })),
+    'status:window:severity',
+);
+eq('severity: devices have none', m.statusSeverityFor(item({ source: 'widget', widgetValue: 'status:devices' })), null);
+eq(
+    'severity: {hints} text',
+    m.statusSeverityFor(item({ source: 'text', text: '{hints} von {devices}' })),
+    'status:severity',
+);
+eq(
+    'severity: {battery_hints} text',
+    m.statusSeverityFor(item({ source: 'text', text: '{battery_hints} leer' })),
+    'status:battery:severity',
+);
+eq('severity: other text', m.statusSeverityFor(item({ source: 'text', text: '{devices}' })), null);
+
 // ── 10. The schema tells a model about it ──
 const schema = JSON.parse(readFileSync('public/ai/aura-widget-schema.json', 'utf8'));
 ok('headerItems is described', !!schema.commonOptions?.headerItems?.description);

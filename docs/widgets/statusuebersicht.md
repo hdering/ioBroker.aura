@@ -49,7 +49,7 @@ Kopfzeile → Eintrag mit Quelle **Widget-Wert** oder **Text** (alle Layouts au�
 | Geräte gesamt (`status:devices`) | `{devices}` | überwachte Geräte, ohne ausgeblendete und „Nie mehr melden“ |
 | Batterien: Hinweise / Geräte (`status:battery:hints` …) | `{battery_hints}` `{battery_devices}` | ebenso `window_`, `light_`, `unreach_`, `alarm_` |
 
-Beispiel: `{hints} Hinweise von {devices} Geräten`. Den Chip schaltet „Anzahl der Hinweise“ (`showCount`) ab.
+Beispiel: `{hints} Hinweise von {devices} Geräten`. Zeigt ein Eintrag „Hinweise gesamt“ bzw. `{hints}`, entfällt der eigene Chip von selbst (nicht im Layout `count`). Haken **Als Chip** am Eintrag = Hintergrund wie beim Chip; Hinweis-Zahlen ohne eigene Farbe färben sich nach Schwere (grün, orange, rot).
 
 | Zahl in der Kategorie-Überschrift (`categoryCount`) | |
 | --- | --- |

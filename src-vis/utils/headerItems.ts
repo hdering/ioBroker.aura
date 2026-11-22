@@ -284,6 +284,45 @@ export function itemUsesStatus(item: WidgetHeaderItem): boolean {
     return false;
 }
 
+const HINTS_TEXT_VAR_RE = /\{hints(?:[;}?#])/;
+const CAT_HINTS_TEXT_VAR_RE = new RegExp(`\\{(${STATUS_CATS.join('|')})_hints(?:[;}?#])`);
+
+/** Key of a published severity: 0 = ok, 1 = warn, 2 = crit — overall or per category. */
+export const statusSeverityKey = (cat?: StatusCat) => (cat ? `status:${cat}:severity` : 'status:severity');
+
+/**
+ * The severity a status hint count follows for its automatic colour (#1011): the
+ * overall one for "Hinweise gesamt" / {hints}, the category's for its own count.
+ * null = the item shows no hint count (devices, other widgets).
+ */
+export function statusSeverityFor(item: WidgetHeaderItem): string | null {
+    if (item.source === 'widget') {
+        const m = /^status:(?:([a-z]+):)?hints$/.exec(item.widgetValue ?? '');
+        if (!m) return null;
+        return m[1] ? statusSeverityKey(m[1] as StatusCat) : statusSeverityKey();
+    }
+    if (item.source === 'text') {
+        const text = item.text ?? '';
+        if (HINTS_TEXT_VAR_RE.test(text)) return statusSeverityKey();
+        const m = CAT_HINTS_TEXT_VAR_RE.exec(text);
+        return m ? statusSeverityKey(m[1] as StatusCat) : null;
+    }
+    return null;
+}
+
+/**
+ * Whether the expanded header already shows the overall hint count — then the
+ * widget's own count chip would only repeat it and steps back (#1011).
+ */
+export function headerShowsStatusHints(options: Record<string, unknown> | undefined): boolean {
+    return headerItems(options).some(
+        (i) =>
+            headerItemVisible(i, false) &&
+            ((i.source === 'widget' && i.widgetValue === statusKey('hints')) ||
+                (i.source === 'text' && HINTS_TEXT_VAR_RE.test(i.text ?? ''))),
+    );
+}
+
 /** Text of a 'widget' item showing a status count — '' while the widget has published nothing. */
 export function statusItemText(
     item: WidgetHeaderItem,

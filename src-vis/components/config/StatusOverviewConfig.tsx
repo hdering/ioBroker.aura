@@ -20,6 +20,7 @@ import {
 import { StatusDatapointsEditor } from './StatusDatapointsEditor';
 import { StatusRowPartsEditor } from './StatusRowPartsEditor';
 import { Unavailable } from './Unavailable';
+import { headerShowsStatusHints } from '../../utils/headerItems';
 
 /** Labels of the battery datapoint kinds (option batteryKinds, #1000). */
 const BATTERY_KIND_LABELS: Record<BatteryKind, string> = {
@@ -481,7 +482,15 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             hint: '„hielt 14 Monate“',
             hidden: config.layout !== 'history',
         },
-        { key: 'showCount', label: 'Anzahl der Hinweise', hint: 'oben rechts' },
+        {
+            key: 'showCount',
+            label: 'Anzahl der Hinweise',
+            hint: 'oben rechts',
+            disabledReason:
+                config.layout !== 'history' && config.layout !== 'count' && headerShowsStatusHints(config.options)
+                    ? 'Die Kopfzeile zeigt die Anzahl schon (Eintrag „Hinweise gesamt“ bzw. {hints}) – der Chip entfällt dann von selbst.'
+                    : undefined,
+        },
         {
             key: 'showRoom',
             label: 'Raum',

@@ -3631,6 +3631,10 @@ export const en: Record<TranslationKey, string> = {
         'Placeholders as for markers: {id}, {id;round(1)}, {dp} = own value, {{ a + b }}. HTML is supported.',
     'hdr.textHintList':
         "Placeholders as for markers: {id}, {id;round(1)}, {{ a + b }} — plus the list's {sum} {avg} {min} {max} {count} {active}, also as {sum;round(0)}. HTML is supported.",
+    'hdr.chip': 'As chip',
+    'hdr.chipHint': 'background tinted in the text colour',
+    'hdr.chipHintStatus':
+        'background tinted in the text colour; hint counts without their own colour follow the severity (green, orange, red)',
     'hdr.textHintStatus':
         "Placeholders as for markers: {id}, {id;round(1)}, {{ a + b }} — plus the status overview's {hints} {devices} and per category {battery_hints} {battery_devices} (likewise window_, light_, unreach_, alarm_). Example: {hints} hints of {devices} devices. HTML is supported.",
     'hdr.icon': 'Icon',

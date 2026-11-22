@@ -3665,6 +3665,10 @@ export const de = {
         'Platzhalter wie bei Markern: {id}, {id;round(1)}, {dp} = eigener Wert, {{ a + b }}. HTML wird unterstützt.',
     'hdr.textHintList':
         'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste, auch als {sum;round(0)}. HTML wird unterstützt.',
+    'hdr.chip': 'Als Chip',
+    'hdr.chipHint': 'Hintergrund in der Textfarbe getönt',
+    'hdr.chipHintStatus':
+        'Hintergrund in der Textfarbe getönt; Hinweis-Zahlen ohne eigene Farbe färben sich nach Schwere (grün, orange, rot)',
     'hdr.textHintStatus':
         'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {hints} {devices} der Statusübersicht und je Kategorie {battery_hints} {battery_devices} (ebenso window_, light_, unreach_, alarm_). Beispiel: {hints} Hinweise von {devices} Geräten. HTML wird unterstützt.',
     'hdr.icon': 'Icon',

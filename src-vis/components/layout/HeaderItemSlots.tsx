@@ -50,9 +50,17 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
     const ItemIcon = item.icon ? getWidgetIcon(item.icon, null) : null;
     return (
         <span
-            className={`aura-header-item ${item.placeClass ?? ''} inline-flex items-center gap-1 min-w-0 text-xs font-medium tabular-nums`}
+            className={`aura-header-item ${item.placeClass ?? ''} inline-flex items-center gap-1 min-w-0 text-xs font-medium tabular-nums${
+                // Pill like the status chip; the negative margin keeps the row's height.
+                item.chip ? ' aura-header-item-chip rounded-full px-2 py-0.5 -my-0.5 font-semibold' : ''
+            }`}
             style={{
                 '--aura-header-item-color': item.color || 'var(--text-primary)',
+                ...(item.chip
+                    ? {
+                          background: `color-mix(in srgb, ${item.color || 'var(--text-secondary)'} 15%, var(--widget-bg, var(--app-surface)))`,
+                      }
+                    : {}),
                 // Own size carries its own line-height — text-xs ships an absolute one
                 // that would clip the descenders of a larger font.
                 ...(item.textSize

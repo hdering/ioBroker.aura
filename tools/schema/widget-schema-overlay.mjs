@@ -1114,7 +1114,8 @@ export const WIDGET_OPTION_NOTES = {
                     'im Layout default sowie table/twoline ab zwei Kategorien. Dieselben Zahlen stehen als headerItems ' +
                     'bereit: source "widget" mit widgetValue "status:hints" | "status:devices" | ' +
                     '"status:<battery|window|light|unreach|alarm>:hints|devices", oder als Text-Platzhalter ' +
-                    '{hints} {devices} {battery_hints} {battery_devices} …',
+                    '{hints} {devices} {battery_hints} {battery_devices} … Zeigt ein headerItem "status:hints" bzw. {hints}, ' +
+                    'entfällt der eigene Zähler-Chip (showCount) von selbst – nicht doppelt anlegen.',
             },
         ],
         [
@@ -2981,6 +2982,8 @@ export const UNIVERSAL_OPTIONS = {
             '"r2-left"/"r2-center"/"r2-right" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. ' +
             'Bei titleAlign "center" steht der Titel in der Kartenmitte und "r1-center" direkt daneben ' +
             '(titleSide "after" = rechts, Standard, "before" = links); unter dem Titel = slot "r2-center". ' +
+            'chip true zeichnet ein Element als Pille mit getöntem Hintergrund (wie der Zähler-Chip der Statusübersicht); ' +
+            'Hinweis-Zahlen der Statusübersicht ohne color färben sich nach Schwere (grün/orange/rot). ' +
             'Mehrere Elemente je Platz stehen nebeneinander. show: "always" (Standard), "collapsed" (nur ' +
             'eingeklappt, defaultCollapsed), "expanded". Aufgeklappt stehen die Elemente in der Titelzeile des ' +
             'Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. ' +

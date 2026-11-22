@@ -446,7 +446,7 @@
         "type": "object",
         "ref": "WidgetHeaderItem"
       },
-      "description": "Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source \"dp\" = freier Datenpunkt, \"widget\" = Wert, den das Widget schon hat, z. B. \"main\", bei Listen \"list:sum\", bei der Statusübersicht \"status:hints\" / \"status:devices\" (auch je Kategorie, \"status:battery:devices\"), \"text\" = Text mit Bindings wie bei Markern, \"action\" = das Klick-Aktions-Symbol auf diesem Platz statt in der Kartenecke) und ein Platz (slot): \"r1-left\" am linken Ende der Titelzeile, \"r1-center\"/\"r1-right\" neben dem Titel, \"r2-left\"/\"r2-center\"/\"r2-right\" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. Bei titleAlign \"center\" steht der Titel in der Kartenmitte und \"r1-center\" direkt daneben (titleSide \"after\" = rechts, Standard, \"before\" = links); unter dem Titel = slot \"r2-center\". Mehrere Elemente je Platz stehen nebeneinander. show: \"always\" (Standard), \"collapsed\" (nur eingeklappt, defaultCollapsed), \"expanded\". Aufgeklappt stehen die Elemente in der Titelzeile des Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag \"headerRow2\"). clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei Markern, leerer datapoint = eigener Wert, bei Listen auch \"{list:active}\" usw. icon setzt ein Symbol vor den Text, iconSize dessen Größe in px (Standard 13), iconColor dessen Farbe (Standard = color, die Textfarbe), textSize die Schriftgröße in px (Standard 12); größere Werte machen die Kopfzeile höher. Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen."
+      "description": "Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source \"dp\" = freier Datenpunkt, \"widget\" = Wert, den das Widget schon hat, z. B. \"main\", bei Listen \"list:sum\", bei der Statusübersicht \"status:hints\" / \"status:devices\" (auch je Kategorie, \"status:battery:devices\"), \"text\" = Text mit Bindings wie bei Markern, \"action\" = das Klick-Aktions-Symbol auf diesem Platz statt in der Kartenecke) und ein Platz (slot): \"r1-left\" am linken Ende der Titelzeile, \"r1-center\"/\"r1-right\" neben dem Titel, \"r2-left\"/\"r2-center\"/\"r2-right\" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. Bei titleAlign \"center\" steht der Titel in der Kartenmitte und \"r1-center\" direkt daneben (titleSide \"after\" = rechts, Standard, \"before\" = links); unter dem Titel = slot \"r2-center\". chip true zeichnet ein Element als Pille mit getöntem Hintergrund (wie der Zähler-Chip der Statusübersicht); Hinweis-Zahlen der Statusübersicht ohne color färben sich nach Schwere (grün/orange/rot). Mehrere Elemente je Platz stehen nebeneinander. show: \"always\" (Standard), \"collapsed\" (nur eingeklappt, defaultCollapsed), \"expanded\". Aufgeklappt stehen die Elemente in der Titelzeile des Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag \"headerRow2\"). clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei Markern, leerer datapoint = eigener Wert, bei Listen auch \"{list:active}\" usw. icon setzt ein Symbol vor den Text, iconSize dessen Größe in px (Standard 13), iconColor dessen Farbe (Standard = color, die Textfarbe), textSize die Schriftgröße in px (Standard 12); größere Werte machen die Kopfzeile höher. Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen."
     },
     "collapseInEditor": {
       "type": "boolean",
@@ -1458,8 +1458,12 @@
         },
         "color": {
           "type": "string",
-          "description": "text colour (CSS, var(--token), light-dark pair); default var(--text-primary)",
+          "description": "text colour (CSS, var(--token), light-dark pair); default var(--text-primary) — status overview hint counts: by severity (green / orange / red)",
           "color": true
+        },
+        "chip": {
+          "type": "boolean",
+          "description": "draw as a pill: background tinted with the text colour, like the status overview's count chip; default false"
         },
         "logic": {
           "type": "string",
@@ -22330,7 +22334,7 @@
             "devices",
             "both"
           ],
-          "description": "Zahl neben einer Kategorie-Überschrift („Batterien 3“): \"hints\" (Standard) = Hinweise der Kategorie, \"devices\" = überwachte Geräte der Kategorie, \"both\" = „3 / 10“. Überschriften gibt es im Layout default sowie table/twoline ab zwei Kategorien. Dieselben Zahlen stehen als headerItems bereit: source \"widget\" mit widgetValue \"status:hints\" | \"status:devices\" | \"status:<battery|window|light|unreach|alarm>:hints|devices\", oder als Text-Platzhalter {hints} {devices} {battery_hints} {battery_devices} …",
+          "description": "Zahl neben einer Kategorie-Überschrift („Batterien 3“): \"hints\" (Standard) = Hinweise der Kategorie, \"devices\" = überwachte Geräte der Kategorie, \"both\" = „3 / 10“. Überschriften gibt es im Layout default sowie table/twoline ab zwei Kategorien. Dieselben Zahlen stehen als headerItems bereit: source \"widget\" mit widgetValue \"status:hints\" | \"status:devices\" | \"status:<battery|window|light|unreach|alarm>:hints|devices\", oder als Text-Platzhalter {hints} {devices} {battery_hints} {battery_devices} … Zeigt ein headerItem \"status:hints\" bzw. {hints}, entfällt der eigene Zähler-Chip (showCount) von selbst – nicht doppelt anlegen.",
           "onlyLayouts": [
             "default",
             "table",

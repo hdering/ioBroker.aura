@@ -30,6 +30,7 @@ import {
     listValues,
     ownValue,
     statusItemText,
+    statusSeverityFor,
     statusValueDefs,
     widgetItemText,
     type ListValues,
@@ -37,6 +38,7 @@ import {
     type ValueFormat,
 } from '../utils/headerItems';
 import { useWidgetValues } from '../store/widgetValuesStore';
+import { SEVERITY_COLOR } from '../utils/statusOverview';
 import { useT } from '../i18n';
 import type { WidgetHeaderSlot, WidgetConfig } from '../types';
 import type { LucideIcon } from 'lucide-react';
@@ -56,6 +58,8 @@ export interface ResolvedHeaderItem {
     iconColor?: string;
     textSize?: number;
     color?: string;
+    /** Drawn as a pill with a background tinted in its colour. */
+    chip?: boolean;
     /** Source 'action': the click-action icon, drawn as a button that runs the action. */
     action?: boolean;
     ActionIcon?: LucideIcon;
@@ -172,6 +176,15 @@ export function useHeaderItems(
             }
             // An item with nothing to say takes no room — no empty gap in the row.
             if (!text.trim() && !item.icon) continue;
+            // A status hint count without its own colour takes the severity colour,
+            // like the widget's own chip: green at none, orange, red when critical.
+            let color = item.color;
+            const sevKey = !color && usesStatus ? statusSeverityFor(item) : null;
+            if (sevKey) {
+                const sev = status?.[sevKey];
+                if (typeof sev === 'number')
+                    color = sev >= 2 ? SEVERITY_COLOR.crit : sev === 1 ? SEVERITY_COLOR.warn : SEVERITY_COLOR.ok;
+            }
             out.push({
                 id: item.id,
                 slot: item.slot,
@@ -183,7 +196,8 @@ export function useHeaderItems(
                 iconSize: item.iconSize,
                 iconColor: item.iconColor,
                 textSize: item.textSize,
-                color: item.color,
+                color,
+                chip: item.chip,
             });
         }
         return out;
