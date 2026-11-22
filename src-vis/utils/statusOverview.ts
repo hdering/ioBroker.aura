@@ -319,7 +319,11 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     showAllClear?: boolean; // show the „Alles in Ordnung“ panel when nothing needs attention (default true)
     allClearText?: string;
     sortBy?: 'severity' | 'room'; // default 'severity'
+    sortThen?: StatusSortThen; // second rule when sortBy ties (default 'name'); the name always breaks the last tie
 }
+
+/** Second sort rule of the Statusübersicht (#1012). */
+export type StatusSortThen = 'name' | 'room' | 'severity';
 
 /** One datapoint currently in an attention state. */
 export interface StatusItem {
@@ -816,15 +820,26 @@ export function isStatusLoading(p: {
 
 const SEVERITY_RANK: Record<Severity, number> = { crit: 0, warn: 1, ok: 2 };
 
-/** Sort comparator for status items: by severity (crit first) then name, or by room then name. */
-export function compareItems(a: StatusItem, b: StatusItem, sortBy: 'severity' | 'room'): number {
-    if (sortBy === 'room') {
+/**
+ * Sort comparator for status items: by severity (crit first) or by room, then by the second
+ * rule `sortThen` (default name); the name breaks any tie left (#1012).
+ */
+export function compareItems(
+    a: StatusItem,
+    b: StatusItem,
+    sortBy: 'severity' | 'room',
+    sortThen: StatusSortThen = 'name',
+): number {
+    const byRoom = (): number => {
         const ra = a.room ?? '￿';
         const rb = b.room ?? '￿';
-        if (ra !== rb) return ra.localeCompare(rb, 'de');
-        return a.name.localeCompare(b.name, 'de');
-    }
-    if (a.severity !== b.severity) return SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
+        return ra === rb ? 0 : ra.localeCompare(rb, 'de');
+    };
+    const bySeverity = (): number => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
+    const first = sortBy === 'room' ? byRoom() : bySeverity();
+    if (first) return first;
+    const second = sortThen === 'room' ? byRoom() : sortThen === 'severity' ? bySeverity() : 0;
+    if (second) return second;
     return a.name.localeCompare(b.name, 'de');
 }
 

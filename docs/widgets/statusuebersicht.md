@@ -29,7 +29,7 @@ Einstellungen → **Statusübersicht konfigurieren** öffnet einen Dialog mit Ta
 
 | Ort | Inhalt |
 | --- | --- |
-| Panel › Optik | Textausrichtung, Kartengröße, Lange Werte umbrechen (`cardTextWrap`, Karten), Welche Geräte, Höchstzahl Zeilen, Tage (), Zahl in der Kategorie-Überschrift (`categoryCount`), Sortierung |
+| Panel › Optik | Textausrichtung, Kartengröße, Lange Werte umbrechen (`cardTextWrap`, Karten), Welche Geräte, Höchstzahl Zeilen, Tage (), Zahl in der Kategorie-Überschrift (`categoryCount`), Sortierung (`sortBy`) und „Danach sortieren“ (`sortThen`: Name, Raum, Dringlichkeit) |
 | Panel › Einstellungen | Knopf zum Dialog mit Kurzfassung, Veröffentlichen |
 | Tab Kategorien | links Kategorien an/aus, rechts deren Optionen, Farben und Merkliste der Kategorie |
 | Tab Datenpunkte | Räume, Funktionen, Adapter, Ausschluss-Muster, Erkannte Datenpunkte |

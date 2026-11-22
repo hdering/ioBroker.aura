@@ -810,7 +810,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             if (!item) continue;
             out.push(item);
         }
-        out.sort((a, b) => compareItems(a, b, sortBy));
+        out.sort((a, b) => compareItems(a, b, sortBy, opts.sortThen));
         return out;
     }, [candidates, states, opts, sortBy, showAll, batteryInfo, cellDp, hiddenSet, latchLists, ignoredLists]);
 

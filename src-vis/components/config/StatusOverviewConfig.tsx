@@ -16,6 +16,7 @@ import {
     type StatusOverviewOptions,
     type StatusCandidate,
     type CategoryKey,
+    type StatusSortThen,
 } from '../../utils/statusOverview';
 import { StatusDatapointsEditor } from './StatusDatapointsEditor';
 import { StatusRowPartsEditor } from './StatusRowPartsEditor';
@@ -1481,7 +1482,27 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </select>
                         <p className={`${hintCls} mt-1`} style={hintStyle}>
                             Dringlichkeit: kritisch zuerst (offene Fenster, Rauch/Wasser), dann Warnungen (schwache
-                            Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
+                            Batterien, Lichter, offline), dann OK.
+                        </p>
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Danach sortieren
+                        </label>
+                        <select
+                            value={o.sortThen && o.sortThen !== (o.sortBy ?? 'severity') ? o.sortThen : 'name'}
+                            onChange={(e) => set({ sortThen: e.target.value as StatusSortThen })}
+                            className={inputCls}
+                            style={inputStyle}
+                            data-status-sort-then
+                        >
+                            <option value="name">Nach Name</option>
+                            {(o.sortBy ?? 'severity') !== 'room' && <option value="room">Nach Raum</option>}
+                            {o.sortBy === 'room' && <option value="severity">Nach Dringlichkeit</option>}
+                        </select>
+                        <p className={`${hintCls} mt-1`} style={hintStyle}>
+                            Reihenfolge bei Gleichstand der ersten Regel, z. B. Dringlichkeit, dann Raum. Zuletzt
+                            entscheidet immer der Name.
                         </p>
                     </div>
                     <button onClick={() => openConfig('rows')} className={jumpBtnCls} style={jumpBtnStyle}>

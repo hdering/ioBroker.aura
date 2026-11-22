@@ -1167,6 +1167,16 @@ export const WIDGET_OPTION_NOTES = {
         ],
         // Tiles and pills keep their own fixed arrangement (#1003).
         ['rowParts', { onlyLayouts: ['default', 'compact', 'table', 'twoline'] }],
+        [
+            'sortThen',
+            {
+                onlyLayouts: ['default', 'compact', 'table', 'twoline', 'card', 'minimal', 'count'],
+                description:
+                    'Zweite Sortierregel bei Gleichstand von sortBy: "name" (Standard), "room" oder "severity". ' +
+                    'Typisch sortBy "severity" + sortThen "room": Dringendes oben, darunter nach Raum. Gleich sortBy ' +
+                    '= wirkungslos; zuletzt entscheidet immer der Name.',
+            },
+        ],
         ['tableHeader', { onlyLayouts: ['table'], default: true }],
         // Read as `!== false`: the generator cannot see that default.
         [

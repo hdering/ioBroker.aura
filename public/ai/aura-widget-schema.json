@@ -6745,6 +6745,14 @@
       },
       "description": "Ein Knopf am Zeilenende der Statusübersicht (Layouts default und compact). Schreibt `value` nach `targetDp`; beide dürfen {id} (Datenpunkt der Zeile), {device} (Geräte-Id ohne Kanal/Datenpunkt), {serial} (letztes Segment der Geräte-Id), {name} und {room} enthalten. Beispiel: targetDp \"0_userdata.0.Batterien.Befehl\", value \"gewechselt:{serial}\", categories [\"battery\"], confirm true. targetDp \"{id}\" schreibt in den Datenpunkt der Zeile selbst: { label: \"Aus\", targetDp: \"{id}\", value: \"false\", categories: [\"light\"] } schaltet ein eingeschaltetes Licht direkt aus. Ein Knopf erscheint nur an Zeilen, die das Widget gerade zeigt (valueFilter \"alerts\": nur Auffällige), und nur in den Layouts default und compact."
     },
+    "StatusSortThen": {
+      "type": "string",
+      "enum": [
+        "name",
+        "room",
+        "severity"
+      ]
+    },
     "EnergyBar": {
       "type": "object",
       "fields": {
@@ -22816,6 +22824,20 @@
             "room"
           ],
           "description": "Sortierschlüssel: none, label, value oder \"sub:<Feld>\" für eine Zweitzeile.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "table",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
+        "sortThen": {
+          "type": "string",
+          "ref": "StatusSortThen",
+          "description": "Zweite Sortierregel bei Gleichstand von sortBy: \"name\" (Standard), \"room\" oder \"severity\". Typisch sortBy \"severity\" + sortThen \"room\": Dringendes oben, darunter nach Raum. Gleich sortBy = wirkungslos; zuletzt entscheidet immer der Name.",
           "onlyLayouts": [
             "default",
             "compact",
