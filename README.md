@@ -128,6 +128,17 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.4.0-next.4 (2026-11-22) — next/test release
+- 🌟 **New feature:** Status overview - second sort rule ("Then sort by": name, room or urgency), e.g. urgent hints first and below them grouped by room ([#1012](https://github.com/hdering/ioBroker.aura/issues/1012))
+- 🐛 **Bug fix:** Chart - in comparison mode a series with "Show earlier values" (time shift) now shows the last recorded value at that earlier time instead of the current value; its history instance is detected automatically, and without recorded history the bar stays empty ([#730](https://github.com/hdering/ioBroker.aura/issues/730))
+- 🐛 **Bug fix:** Status overview - row actions writing to a placeholder target such as {id} or {device} are no longer listed as references to missing datapoints ([#1008](https://github.com/hdering/ioBroker.aura/issues/1008))
+- 🌟 **New feature:** Status overview - devices running on a single 1.5 V cell (1x AA/AAA by battery type or manual assignment, e.g. HmIP-SWDO) get their own voltage warning threshold (default 1.2 V) instead of being reported as weak against the 2.4 V limit ([#1009](https://github.com/hdering/ioBroker.aura/issues/1009))
+- 🐛 **Bug fix:** Battery types - devices that report only a battery voltage (V/mV) are now listed on the battery types page too, so their type can be assigned for the status overview ([#1010](https://github.com/hdering/ioBroker.aura/issues/1010))
+- 🌟 **New feature:** Status overview - the counts are available as header values: hints and watched devices in total and per category (widget value, or {hints} {devices} {battery_devices} … in a text item, e.g. "3 hints of 10 devices"); the number beside a category heading can show hints, devices or "3 / 10"; when the header shows the hint count, the built-in count chip steps back by itself; hint counts take the severity colour (green, orange, red) ([#1011](https://github.com/hdering/ioBroker.aura/issues/1011))
+- 🌟 **New feature:** Header items - new option "As chip": the item gets a background tinted in its colour, like a status chip
+- 🐛 **Bug fix:** Status overview - a header item in row 1 no longer overlaps the widget's own count chip; header items now sit in the widget's title row ([#1011](https://github.com/hdering/ioBroker.aura/issues/1011))
+
+
 ### 1.4.0-next.3 (2026-11-21) — next/test release
 - 🐛 **Bug fix:** Status overview - in the card layout long values (e.g. a text datapoint) no longer run past the tile: they end in "…" on one line; the new option "Wrap long values" (Optik, card layout) wraps them onto several lines instead
 
@@ -242,13 +253,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Admin settings - the "Reachable on" option and its web-instance hint are now translated into all admin languages
 
 
-### 0.113.2 (2026-11-12)
-- 🐛 **Bug fix:** Web components - after an adapter update the browser loads the new files of its components instead of cached ones ([#954](https://github.com/hdering/ioBroker.aura/issues/954))
-- 🐛 **Bug fix:** Thermostat - with a Homematic MANU_MODE datapoint the widget now shows the setpoint from SET_TEMPERATURE, so changes made on the device itself appear ([#973](https://github.com/hdering/ioBroker.aura/issues/973))
-- 🌟 **New feature:** Timer and group actions - optional delay between target datapoints, so e.g. several shutters start one after another instead of all at once; the adapter runs the sequence and stop always acts on all at once ([#974](https://github.com/hdering/ioBroker.aura/issues/974))
-- 🌟 **New feature:** Web components - settings of type selectSendTo and autocompleteSendTo (@iobroker/web-components 0.8) show the choices the adapter returns instead of a plain text field, e.g. the location of openmeteo-notify ([#975](https://github.com/hdering/ioBroker.aura/issues/975))
-
-
 ## License
 
 MIT License
@@ -260,6 +264,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
