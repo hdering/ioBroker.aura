@@ -22205,6 +22205,19 @@
             "count"
           ]
         },
+        "batteryVoltThreshold1Cell": {
+          "type": "number",
+          "description": "V (default 1.2): limit for devices on one 1.5 V cell (1x AA/AAA by battery library or manual assignment) instead of batteryVoltThreshold",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "table",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
         "cardMinWidth": {
           "type": "number",
           "description": "Kartenlayout: Mindestbreite einer Kachel in px."
