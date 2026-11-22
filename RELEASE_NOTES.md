@@ -37,3 +37,4 @@
 - fix: Chart - in comparison mode a series with "Show earlier values" (time shift) now shows the last recorded value at that earlier time instead of the current value; its history instance is detected automatically, and without recorded history the bar stays empty (#730)
 - fix: Status overview - row actions writing to a placeholder target such as {id} or {device} are no longer listed as references to missing datapoints (#1008)
 - feat: Status overview - devices running on a single 1.5 V cell (1x AA/AAA by battery type or manual assignment, e.g. HmIP-SWDO) get their own voltage warning threshold (default 1.2 V) instead of being reported as weak against the 2.4 V limit (#1009)
+- fix: Battery types - devices that report only a battery voltage (V/mV) are now listed on the battery types page too, so their type can be assigned for the status overview (#1010)

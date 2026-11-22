@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BatteryFull, HelpCircle, Search, Wand2, Hand, Eye, EyeOff, Bug } from 'lucide-react';
 import { useConfigStore } from '../../store/configStore';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
-import { categoryOf, collectHmBatterySerials } from '../../utils/statusOverview';
+import { BATTERY_KINDS, categoryOf, collectHmBatterySerials } from '../../utils/statusOverview';
 import {
     loadDeviceModelIndex,
     loadBatteryLibrary,
@@ -133,7 +133,15 @@ export function AdminBatteries() {
                 loadBatteryLibrary(),
             ]);
             if (cancelled) return;
-            const battOpts = { catWindow: false, catLight: false, catUnreach: false, catAlarm: false } as const;
+            // Every battery kind a widget can count (batteryKinds, #1000): a device that only
+            // reports its voltage would otherwise show up in the widget but not here (#1010).
+            const battOpts = {
+                catWindow: false,
+                catLight: false,
+                catUnreach: false,
+                catAlarm: false,
+                batteryKinds: BATTERY_KINDS,
+            };
             const hmBatterySerials = collectHmBatterySerials(cache, batteryDeviceTest(index, library));
             const byDevice = new Map<string, DeviceRow>();
             for (const dp of cache) {
