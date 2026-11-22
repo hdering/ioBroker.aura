@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.4.0-next.2",
+    "auraVersion": "1.4.0-next.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2853,7 +2853,7 @@
         },
         "timeShift": {
           "type": "number",
-          "description": "Comparison series (issue #730): read the history this many `timeShiftUnit`s further back and draw it over the current window — e.g. 1 year = last year's monthly consumption next to this year's bars. Unset / 0 = no shift. The shifted series is a frozen view: no live updates, its \"current\" value is its newest point. Ignored for a `total` window and for JSON series."
+          "description": "Comparison series (issue #730): read the history this many `timeShiftUnit`s further back and draw it over the current window — e.g. 1 year = last year's monthly consumption next to this year's bars. Unset / 0 = no shift. The shifted series is a frozen view: no live updates, its \"current\" value is its newest point. In `echartMode: 'comparison'` the bar is the last reading at now minus the shift; no reading there = empty bar. Needs history: without a `historyInstance` the logging instance is detected even with `autoHistoryInstance` off. Ignored for a `total` window and for JSON series."
         },
         "timeShiftUnit": {
           "type": "string",
