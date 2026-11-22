@@ -1078,6 +1078,7 @@ export const WIDGET_OPTION_NOTES = {
             'windowExtraPatterns',
             'lightExtraPatterns',
             'batteryVoltThreshold',
+            'batteryVoltThreshold1Cell',
             'lightRoleScope',
             'lightsOnlyFunction',
             'batteryTypeEnabled',

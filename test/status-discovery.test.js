@@ -362,6 +362,26 @@ test('battery kinds: voltage rows are judged against the volt threshold', () => 
     assert.strictEqual(shared.evaluateItem(mv, 0, 'battery', {}, 0, true), null, '0 mV: no row either');
 });
 
+test('battery kinds: a device on one 1.5 V cell uses its own volt threshold (#1009)', () => {
+    const shared = require('../lib/shared/auraShared');
+    const one = {
+        id: 'hm-rpc.1.SWDO.0.OPERATING_VOLTAGE',
+        name: 'x',
+        type: 'number',
+        unit: 'V',
+        role: 'value.voltage',
+        rooms: [],
+        funcs: [],
+        singleCell: true,
+    };
+    assert.strictEqual(shared.evaluateItem(one, 1.4, 'battery', {}), null, '1.4 V is fine for one AAA');
+    assert.strictEqual(shared.evaluateItem(one, 1.15, 'battery', {}).severity, 'warn');
+    assert.strictEqual(shared.evaluateItem(one, 1.15, 'battery', { batteryVoltThreshold1Cell: 1.1 }), null);
+    assert.strictEqual(shared.evaluateItem({ ...one, singleCell: undefined }, 1.4, 'battery', {}).severity, 'warn');
+    assert.strictEqual(shared.evaluateItem({ ...one, unit: 'mV' }, 1250, 'battery', {}), null, 'mV compares x1000');
+    assert.strictEqual(shared.evaluateItem({ ...one, unit: 'mV' }, 1150, 'battery', {}).severity, 'warn');
+});
+
 test('batteryExtraPatterns: MQTT datapoints without a battery role come in', async () => {
     const views = {
         state: [

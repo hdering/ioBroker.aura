@@ -11,6 +11,7 @@ import {
     BATTERY_KINDS,
     DEFAULT_BATTERY_KINDS,
     DEFAULT_BATTERY_VOLT_THRESHOLD,
+    DEFAULT_BATTERY_VOLT_THRESHOLD_1CELL,
     type BatteryKind,
     type StatusOverviewOptions,
     type StatusCandidate,
@@ -759,7 +760,40 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                     />
                                 </Unavailable>
                             </div>
+                            <div className="flex-1">
+                                <Unavailable reason={hasVoltKind ? undefined : 'Nur mit Spannungs-Datenpunkten'}>
+                                    <label
+                                        className={labelCls}
+                                        style={labelStyle}
+                                        title="Für Geräte mit nur einer 1,5-V-Zelle (1× AA/AAA), erkannt über den Batterietyp bzw. die manuelle Zuordnung"
+                                    >
+                                        Schwelle 1× 1,5 V
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0.1}
+                                        max={1.6}
+                                        step={0.05}
+                                        value={o.batteryVoltThreshold1Cell ?? DEFAULT_BATTERY_VOLT_THRESHOLD_1CELL}
+                                        onChange={(e) =>
+                                            set({
+                                                batteryVoltThreshold1Cell: e.target.value
+                                                    ? Number(e.target.value)
+                                                    : undefined,
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    />
+                                </Unavailable>
+                            </div>
                         </div>
+                        {hasVoltKind && (
+                            <p className={hintCls} style={hintStyle}>
+                                Geräte mit nur einer 1,5-V-Zelle (1× AA/AAA laut Batterietyp oder manueller Zuordnung)
+                                nutzen die Schwelle „1× 1,5 V“.
+                            </p>
+                        )}
                         <Toggle
                             checked={o.batteryTypeEnabled !== false}
                             onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}

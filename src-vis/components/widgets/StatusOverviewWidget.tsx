@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ShieldCheck,
     TriangleAlert,
@@ -64,6 +64,8 @@ import {
     latchKind,
     batteryLimit,
     batteryLevelUnit,
+    batteryKindsOf,
+    isSingleCell,
     parseLatchList,
     applyLatch,
     countsAsHint,
@@ -471,7 +473,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // Device-id resolution is also needed (without the library) when devices are hidden,
     // and for the remembered batteries: the adapter's list and its events name the
     // device ("Garage Oeffner Golf"), not the LOW_BAT datapoint.
-    const needBatteryMeta = wantBatteryTypes || hiddenDevices.length > 0 || latchEnabled(opts, 'battery');
+    // Voltages need the battery type as well: a device on one 1.5 V cell (1× AAA) has
+    // its own limit (#1009).
+    const kindsCounted = batteryKindsOf(opts);
+    const wantVoltCells = kindsCounted.has('volt') || kindsCounted.has('millivolt');
+    const wantBatteryLib = wantBatteryTypes || wantVoltCells;
+    const needBatteryMeta = wantBatteryLib || hiddenDevices.length > 0 || latchEnabled(opts, 'battery');
     const batteryCandKey = batteryCandidates.map((c) => c.dp.id).join(',');
     useEffect(() => {
         if (!needBatteryMeta || batteryCandidates.length === 0) {
@@ -481,7 +488,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         let cancelled = false;
         Promise.all([
             serverDevices ?? loadDeviceModelIndex(),
-            wantBatteryTypes ? loadBatteryLibrary() : Promise.resolve(null),
+            wantBatteryLib ? loadBatteryLibrary() : Promise.resolve(null),
         ]).then(([index, lib]) => {
             if (cancelled) return;
             const info: Record<
@@ -521,7 +528,16 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [batteryCandKey, needBatteryMeta, wantBatteryTypes, overridesKey, serverDevices]);
+    }, [batteryCandKey, needBatteryMeta, wantBatteryLib, overridesKey, serverDevices]);
+
+    /** The datapoint as the battery limits read it: marked when the device runs on one 1.5 V cell (#1009). */
+    const cellDp = useCallback(
+        (dp: DatapointEntry): DatapointEntry => {
+            const bi = batteryInfo[dp.id];
+            return bi && isSingleCell(bi.type, bi.quantity) ? { ...dp, singleCell: true } : dp;
+        },
+        [batteryInfo],
+    );
 
     // ── Remembered hints (latch) ───────────────────────────────────────────────
     // The adapter keeps the entries (lib/statusLatch.js), so every browser shows the
@@ -606,7 +622,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     id: c.dp.id,
                     kind,
                     // Voltages watch in their own unit (V / mV) against the volt threshold (#1000).
-                    ...(kind === 'pct' ? { threshold: batteryLimit(c.dp, opts) } : {}),
+                    ...(kind === 'pct' ? { threshold: batteryLimit(cellDp(c.dp), opts) } : {}),
                     ...(kind === 'pct' && batteryLevelUnit(c.dp) !== '%' ? { levelUnit: batteryLevelUnit(c.dp) } : {}),
                     name: customDeviceName(c.dp.id, opts.deviceNames) ?? (bi?.deviceName || c.dp.name),
                     ...(c.dp.rooms[0] ? { room: c.dp.rooms[0] } : {}),
@@ -631,6 +647,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         hiddenKey,
         opts.batteryThreshold,
         opts.batteryVoltThreshold,
+        opts.batteryVoltThreshold1Cell,
         opts.latchRecheckDays,
         opts.latchAutoClose,
         deviceNamesKey,
@@ -662,6 +679,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 ...(Number.isFinite(c.dp.min) ? { min: c.dp.min } : {}),
                 ...(Number.isFinite(c.dp.max) ? { max: c.dp.max } : {}),
                 ...(c.dp.states && Object.keys(c.dp.states).length ? { states: c.dp.states } : {}),
+                ...(cellDp(c.dp).singleCell ? { singleCell: true } : {}),
             }));
         const hash = hashString(JSON.stringify(items));
         const key = `${source}:publish`;
@@ -724,7 +742,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             const lc = s?.lc && s.lc > 0 ? s.lc : s?.ts;
             if (ignoredLists[c.cat]?.has(c.dp.id)) {
                 if (!opts.showIgnored) continue;
-                const live = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, lc, true);
+                const live = evaluateItem(cellDp(c.dp), s?.val ?? null, c.cat, opts, lc, true);
                 if (live) out.push(ignoredItem(live));
                 continue;
             }
@@ -732,7 +750,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             if (latchList) {
                 // The healthy row is needed too: a remembered entry whose datapoint
                 // went quiet still shows.
-                const live = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, lc, true);
+                const live = evaluateItem(cellDp(c.dp), s?.val ?? null, c.cat, opts, lc, true);
                 const item = applyLatch(
                     live,
                     latchList.get(c.dp.id),
@@ -743,13 +761,13 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 if (item) out.push(item);
                 continue;
             }
-            const item = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, lc, showAll);
+            const item = evaluateItem(cellDp(c.dp), s?.val ?? null, c.cat, opts, lc, showAll);
             if (!item) continue;
             out.push(item);
         }
         out.sort((a, b) => compareItems(a, b, sortBy));
         return out;
-    }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet, latchLists, ignoredLists]);
+    }, [candidates, states, opts, sortBy, showAll, batteryInfo, cellDp, hiddenSet, latchLists, ignoredLists]);
 
     // ── Row cap ────────────────────────────────────────────────────────────────
     // The rows of this widget appear at runtime out of the discovered datapoints,

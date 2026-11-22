@@ -35,6 +35,9 @@ export interface DatapointEntry {
     // alias.* only: the datapoint the alias reads from (common.alias.id or its read side),
     // so the Statusübersicht editor can pair an alias with its original (#1002).
     aliasOf?: string;
+    // Statusübersicht only: the battery device runs on one 1.5 V cell (1× AA/AAA, from the
+    // battery library or a manual assignment), so its voltage uses the 1-cell limit (#1009).
+    singleCell?: boolean;
 }
 
 /**

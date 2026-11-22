@@ -91,6 +91,7 @@ Tab **Zeilenaufbau** (`rowParts`) – Layouts `default`, `compact`, `table`, `tw
 | `millivolt` – Spannung (mV) | aus | dasselbe mit Einheit `mV` | ≤ `batteryVoltThreshold` × 1000 |
 
 - Ein Gerät, eine Zeile: Prozent vor Spannung, Spannung vor LOWBAT.
+- Geräte mit nur einer 1,5-V-Zelle (1× AA/AAA laut Batterietyp oder manueller Zuordnung, z. B. HmIP-SWDO) nutzen „Schwelle 1× 1,5 V“ (`batteryVoltThreshold1Cell`, 1,2 V).
 - Netzspannung (`Voltage` einer Steckdose) zählt nicht. 0 V (netzbetriebene HmIP-Geräte mit `OPERATING_VOLTAGE`) ergibt keine Zeile und keinen gemerkten Hinweis.
 - Mit Optik → „Welche Geräte anzeigen: Alle gefundenen Geräte“ (`valueFilter: all`) stehen die Spannungen auch ohne Warnung in der Liste („2,95 V“).
 

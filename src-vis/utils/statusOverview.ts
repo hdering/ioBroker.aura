@@ -23,6 +23,37 @@ export type BatteryKind = 'bool' | 'percent' | 'volt' | 'millivolt';
 export const BATTERY_KINDS: BatteryKind[] = ['bool', 'percent', 'volt', 'millivolt'];
 export const DEFAULT_BATTERY_KINDS: BatteryKind[] = ['bool', 'percent'];
 export const DEFAULT_BATTERY_VOLT_THRESHOLD = 2.4;
+/** Weak-battery limit of a device that runs on a single 1.5 V cell (1× AA/AAA, #1009). */
+export const DEFAULT_BATTERY_VOLT_THRESHOLD_1CELL = 1.2;
+
+/** Battery types of one 1.5 V cell: AA, AAA, … and their IEC / common names. */
+const CELL_1V5_TYPES = new Set([
+    'aa',
+    'aaa',
+    'aaaa',
+    'c',
+    'd',
+    'n',
+    'lr6',
+    'lr03',
+    'lr61',
+    'lr14',
+    'lr20',
+    'lr1',
+    'fr6',
+    'fr03',
+    'mignon',
+    'micro',
+]);
+
+/**
+ * True when a device runs on one 1.5 V cell (battery library or manual assignment:
+ * quantity 1 of AA, AAA, …). Its voltage then compares against batteryVoltThreshold1Cell (#1009).
+ */
+export function isSingleCell(type: string | null | undefined, quantity: number | undefined): boolean {
+    if (!type || (quantity ?? 1) !== 1) return false;
+    return CELL_1V5_TYPES.has(type.trim().toLowerCase());
+}
 
 // Ordered by urgency: safety alarms and open contacts first, maintenance last.
 export const CATEGORY_ORDER: CategoryKey[] = ['alarm', 'window', 'unreach', 'battery', 'light'];
@@ -168,6 +199,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
      */
     batteryKinds?: BatteryKind[];
     batteryVoltThreshold?: number; // V (default 2.4): voltage at or below counts as weak; mV datapoints compare x1000
+    batteryVoltThreshold1Cell?: number; // V (default 1.2): limit for devices on one 1.5 V cell (1x AA/AAA by battery library or manual assignment) instead of batteryVoltThreshold
     // Lights
     lightRoleScope?: 'light' | 'all'; // which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers
     lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum for the switches
@@ -472,7 +504,9 @@ export function batteryKindOf(dp: DatapointEntry): BatteryKind | null {
 /** Weak-battery limit in the datapoint's own unit: % for percent, V or mV for voltages. */
 export function batteryLimit(dp: DatapointEntry, opts: StatusOverviewOptions): number {
     const kind = batteryKindOf(dp);
-    const volt = opts.batteryVoltThreshold ?? DEFAULT_BATTERY_VOLT_THRESHOLD;
+    const volt = dp.singleCell
+        ? (opts.batteryVoltThreshold1Cell ?? DEFAULT_BATTERY_VOLT_THRESHOLD_1CELL)
+        : (opts.batteryVoltThreshold ?? DEFAULT_BATTERY_VOLT_THRESHOLD);
     if (kind === 'volt') return volt;
     if (kind === 'millivolt') return volt * 1000;
     return opts.batteryThreshold ?? 20;
