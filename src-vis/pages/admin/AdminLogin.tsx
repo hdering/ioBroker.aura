@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { loginWithPin, setupAdmin, loadAdminStatus, useAuthStore } from '../../store/authStore';
 import { useT } from '../../i18n';
+import { AURA_BASE } from '../../utils/basePath';
 
 /** Why a login or first-run setup failed → what the user is told. */
 const LOGIN_FAIL_KEY = {
@@ -208,7 +209,12 @@ export function AdminLogin() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <a href="/" className="text-xs hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+                        {/* The dashboard of this Aura - behind the web extension `/aura/`, not web's start page (#997) */}
+                        <a
+                            href={AURA_BASE}
+                            className="text-xs hover:opacity-80"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
                             ← {t('login.back')}
                         </a>
                     </div>

@@ -43,3 +43,4 @@
 - feat: Header items - new option "As chip": the item gets a background tinted in its colour, like a status chip
 - fix: Status overview - a header item in row 1 no longer overlaps the widget's own count chip; header items now sit in the widget's title row (#1011)
 - feat: Web extension - on the same host the web adapter extension (<web>/aura/) now talks to Aura over a local socket (named pipe on Windows) instead of its TCP port, and falls back to the port when the socket is not available (older Aura, Aura on another host); nothing changes for the own port 8095 (#997)
+- fix: Admin login - behind the web extension (<web>/aura/) the "Back" link now returns to the Aura dashboard instead of the web adapter's start page (#997)

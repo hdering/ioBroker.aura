@@ -45,6 +45,22 @@ const check = (name, ok, detail = '') => {
 const listen = (server) =>
     new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
 
+// Every admin page (src-vis/main.tsx), '' = the admin's start page.
+const ADMIN_ROUTES = [
+    '',
+    '/editor',
+    '/widgets',
+    '/layouts',
+    '/design',
+    '/css-js',
+    '/popups',
+    '/messages',
+    '/announcements',
+    '/batteries',
+    '/loadtimes',
+    '/settings',
+];
+
 // Aura's own routes the app may call while booting; answered empty here.
 const AURA_ROUTES = /^\/(icons|adapter-icons|api|fs|proxy|webfs|socket\.io)(\/|\?|$)/;
 
@@ -52,6 +68,18 @@ const auraSeen = [];
 const aura = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
     auraSeen.push({ path: url.pathname, base: requestBase(req) });
+    if (url.pathname === '/api/aura/admin/status') {
+        // An admin password is set: the login page shows its form (and its way back).
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('{"configured":true}');
+        return;
+    }
+    if (url.pathname === '/api/aura/admin/session') {
+        // The seeded session (see visit()) is honoured: the admin pages render, not the login.
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('{"ok":true,"exp":null}');
+        return;
+    }
     if (AURA_ROUTES.test(url.pathname)) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end('{}');
@@ -83,6 +111,14 @@ const browser = await chromium.launch();
 
 async function visit(label, url, expectBase) {
     const ctx = await browser.newContext();
+    // A logged-in admin (src-vis/store/authStore.ts), so the admin pages render
+    // themselves instead of sending every route to the login.
+    await ctx.addInitScript(() => {
+        localStorage.setItem(
+            'aura-auth',
+            JSON.stringify({ state: { token: 'e2e', tokenExp: null, sessionActive: true }, version: 0 }),
+        );
+    });
     const page = await ctx.newPage();
     const responses = [];
     page.on('response', (r) => responses.push({ url: new URL(r.url()), status: r.status() }));
@@ -96,11 +132,35 @@ async function visit(label, url, expectBase) {
         })
         .catch(() => {});
     await page.waitForTimeout(2500);
-    // The admin is a separate lazy chunk set — open it to load more of them.
+    // The admin is a separate lazy chunk set: open every page of it, each pulls
+    // its own chunks and calls its own Aura routes (#997 - all of it below /aura/).
+    const toLogin = [];
+    for (const route of ADMIN_ROUTES) {
+        await page.evaluate((r) => {
+            location.hash = `#/admin${r}`;
+        }, route);
+        await page.waitForTimeout(route ? 900 : 2500);
+        if (await page.evaluate(() => location.hash.startsWith('#/admin/login'))) {
+            toLogin.push(route || '/');
+        }
+    }
+    check(`${label}: every admin page opened (not the login)`, toLogin.length === 0, toLogin.join(', '));
+    // The login page's way back leads to the dashboard, not to the web adapter's start page.
     await page.evaluate(() => {
-        location.hash = '#/admin';
+        location.hash = '#/admin/login';
     });
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(1200);
+    const back = await page.evaluate(() => {
+        const a = [...document.querySelectorAll('a[href]')].find((el) => el.textContent?.includes('←'));
+        return a
+            ? new URL(a.getAttribute('href') ?? '', location.href).pathname
+            : `no link: ${location.hash} ${document.body.innerText.slice(0, 200).replace(/\s+/g, ' ')}`;
+    });
+    check(
+        `${label}: the login's way back stays below ${expectBase ?? '/'}`,
+        back === (expectBase ?? '/'),
+        String(back),
+    );
 
     const base = await page.evaluate(() => window.__AURA_BASE__ ?? null);
     check(`${label}: __AURA_BASE__`, base === expectBase, String(base));
