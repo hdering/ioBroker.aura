@@ -30,6 +30,9 @@ const MISSING = [
     // What the old check asked for — must no longer decide anything.
     `${ROOT_A}.${REL}`,
     `${ROOT_B}.${REL}`,
+    // Row-action templates of the status overview (#1008) — never real ids.
+    '{id}',
+    '0_userdata.0.{device}.reminder',
 ];
 
 const widget = (id, root, deviceType) => ({
@@ -62,6 +65,20 @@ const LAYOUT = {
                         widget('dev-b', ROOT_B, 'daikin-cloud'),
                         // No profile named: falls back to the slugs of every profile.
                         widget('dev-b-custom', ROOT_B, 'custom'),
+                        // Status overview row actions write to `{id}` & co., filled per row (#1008).
+                        {
+                            id: 'status',
+                            type: 'statusoverview',
+                            title: 'status',
+                            layout: 'default',
+                            gridPos: { x: 0, y: 8, w: 10, h: 8 },
+                            options: {
+                                rowActions: [
+                                    { label: 'Aus', targetDp: '{id}', value: 'false' },
+                                    { label: 'Mark', targetDp: '0_userdata.0.{device}.reminder', value: '1' },
+                                ],
+                            },
+                        },
                     ],
                 },
             ],
@@ -117,6 +134,7 @@ try {
         rows.every((r) => r.includes('{mode}')),
         JSON.stringify(rows),
     );
+    check('status overview row-action placeholders are not reported', !has('status'), JSON.stringify(rows));
     check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 } finally {
     await browser.close();

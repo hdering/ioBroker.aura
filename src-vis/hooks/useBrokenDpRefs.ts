@@ -41,6 +41,9 @@ function modeProbeIds(widget: WidgetConfig, dp: string): string[] | null {
     return slugs.map((slug) => applyModeSlug(dp, slug));
 }
 
+/** A `{word}` token — a placeholder resolved at render time, never part of a real id. */
+const SINGLE_PLACEHOLDER = /\{[A-Za-z_]+\}/;
+
 /** Collect all DP-bearing string fields in a widget config. Picks up the
  *  top-level `datapoint` plus any nested key ending in `Dp` or `Datapoint`
  *  inside options (handles TimerWidget events[].targetDp, light_*Dp, etc.). */
@@ -59,6 +62,11 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
             const ids = modeProbeIds(widget, trimmed);
             if (!ids) return;
             probe = ids;
+        } else if (SINGLE_PLACEHOLDER.test(trimmed)) {
+            // Row-level placeholders filled per row at runtime (status overview
+            // rowActions `{id}` `{device}` `{serial}` `{name}` `{room}`, #1008) —
+            // the written id is a template, not an ioBroker object.
+            return;
         }
         refs.push({
             widgetId: widget.id,
