@@ -75,7 +75,7 @@ check('invalid jar id stores nothing', (jar.store('bad', u('http://cam.local/'),
 // ── browser cookies on Aura's own port ──────────────────────────────────────
 check(
     'foreignCookies drops web session and Aura cookies',
-    foreignCookies('connect.sid=a; aura_admin_0=b; aura_pj=c; io=d; own=1; other=2') === 'own=1; other=2',
+    foreignCookies('connect.sid=a; aura_admin_0=b; aura_pj=c; aura-device=e; io=d; own=1; other=2') === 'own=1; other=2',
 );
 check('foreignCookies: empty stays empty', foreignCookies(undefined) === '');
 check('readCookie finds a cookie', readCookie({ headers: { cookie: 'a=1; aura_pj=xyz' } }, 'aura_pj') === 'xyz');
