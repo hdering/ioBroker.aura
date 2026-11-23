@@ -6829,6 +6829,22 @@ class Aura extends utils.Adapter {
                 this.log.info(`[lists] removed ${this.namespace}.lists.${id} (no widget publishes there)`);
             }
         }
+        // At start: a registration left in an object without type (only the native, none
+        // of the four states) is not in the channel scan. Read it by id; the loop below
+        // writes the channel and its states again.
+        if (orphans) {
+            for (const [id, w] of widgets) {
+                if (w.type !== 'statusoverview' || this._publish.statusItems(id)) {
+                    continue;
+                }
+                const obj = await this.getForeignObjectAsync(`${this.namespace}.lists.${id}`).catch(() => null);
+                const reg = obj && obj.native && obj.native.statusItems;
+                if (Array.isArray(reg)) {
+                    this._publishHashes.set(id, String(obj.native.statusHash || ''));
+                    this._publish.registerStatus(id, reg);
+                }
+            }
+        }
         // A registration that came in before the dashboard was saved is stored now.
         for (const [id, w] of widgets) {
             if (w.type === 'statusoverview') {
@@ -7419,6 +7435,12 @@ class Aura extends utils.Adapter {
                     return;
                 }
                 const base = `lists.${widgetId}`;
+                // Not an orphan: the adapter remembers having created these objects and
+                // would go on writing the values without them.
+                if (this._publish && this._publish.widgets.has(widgetId)) {
+                    reply({ ok: false, error: `${this.namespace}.${base} belongs to a widget that still publishes` });
+                    return;
+                }
                 const results = {};
                 for (const sub of Object.keys(PUBLISH_STATE_DEFS)) {
                     try {

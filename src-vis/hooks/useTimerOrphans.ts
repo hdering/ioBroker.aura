@@ -81,7 +81,8 @@ export function useTimerOrphans(): OrphansState {
             visitAllWidgets((w) => {
                 const tKey = timerBackendKey(w);
                 if (tKey) knownTimer.add(tKey);
-                if (w.type === 'list' || w.type === 'autolist') knownList.add(w.id);
+                // A status overview publishes to lists.<id> as well (#798).
+                if (w.type === 'list' || w.type === 'autolist' || w.type === 'statusoverview') knownList.add(w.id);
                 if (w.type === 'panels') knownPanel.add(w.id);
             });
             // Per-device schedules of a shared popup / device card timer (#778) belong to their base.
