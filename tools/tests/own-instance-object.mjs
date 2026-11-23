@@ -155,6 +155,91 @@ await test('switching the extension off drops the web links', async () => {
     assert.equal(obj.common.localLinks.webBackend, undefined);
 });
 
+// ── #997: the own port is decided once ───────────────────────────────────────
+const settled = () => {
+    const obj = freshObject();
+    obj.native.mcpToken = encrypt(TOKEN);
+    obj.native.mcpClientConfig = obj.native.mcpDesktopConfig = '';
+    obj.native.resetAdminPin = false;
+    obj.common.localLinks = linksFor('web.0');
+    return obj;
+};
+
+await test('first start with ownPort null: decided, written in the same object', async () => {
+    const obj = settled();
+    obj.native.ownPort = null;
+    obj.native.webInstance = '';
+    let asked = 0;
+    const r = await syncOwnInstanceObject(
+        obj,
+        deps({
+            clearResetAdminPin: false,
+            decideOwnPort: async () => {
+                asked++;
+                return { ownPort: false, webInstance: 'web.0', reason: 'decided' };
+            },
+        }),
+    );
+    assert.equal(asked, 1);
+    assert.equal(r.changed, true);
+    assert.equal(obj.native.ownPort, false);
+    assert.equal(obj.native.webInstance, 'web.0');
+    assert.ok(r.info.includes('decided'));
+});
+
+await test('a decided ownPort is never asked again (no restart loop)', async () => {
+    for (const v of [true, false]) {
+        const obj = settled();
+        obj.native.ownPort = v;
+        let asked = 0;
+        const r = await syncOwnInstanceObject(
+            obj,
+            deps({
+                clearResetAdminPin: false,
+                decideOwnPort: async () => {
+                    asked++;
+                    return { ownPort: !v, reason: 'x' };
+                },
+            }),
+        );
+        assert.equal(asked, 0, `ownPort ${v}`);
+        assert.equal(r.changed, false, `ownPort ${v}`);
+        assert.equal(obj.native.ownPort, v);
+    }
+});
+
+await test('the decision does not overwrite a chosen web instance', async () => {
+    const obj = settled();
+    obj.native.ownPort = null;
+    obj.native.webInstance = 'web.1';
+    await syncOwnInstanceObject(
+        obj,
+        deps({
+            clearResetAdminPin: false,
+            decideOwnPort: async () => ({ ownPort: false, webInstance: 'web.0', reason: 'x' }),
+        }),
+    );
+    assert.equal(obj.native.webInstance, 'web.1');
+});
+
+await test('the links follow the decision (ownPort passed to localLinks)', async () => {
+    const obj = settled();
+    obj.native.ownPort = null;
+    let seen = null;
+    await syncOwnInstanceObject(
+        obj,
+        deps({
+            clearResetAdminPin: false,
+            decideOwnPort: async () => ({ ownPort: false, reason: 'x' }),
+            localLinks: async (webInstance, ownPort) => {
+                seen = ownPort;
+                return linksFor(webInstance);
+            },
+        }),
+    );
+    assert.equal(seen, false);
+});
+
 await test('main.js writes its instance object in one place only', async () => {
     const fs = await import('node:fs');
     const src = fs.readFileSync(join(process.cwd(), 'main.js'), 'utf8');

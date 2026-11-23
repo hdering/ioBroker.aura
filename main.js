@@ -1674,6 +1674,8 @@ class Aura extends utils.Adapter {
 
     async _initPinVault() {
         const dir = this._instanceDataDir();
+        // A vault made in this very start = a new installation (_decideOwnPort, #997).
+        this._vaultCreatedNow = !fs.existsSync(path.join(dir, 'security.json'));
         // info.vaultRevision = time of the last vault write. Says nothing about the
         // content; an unlocked frontend re-reads its view (/pin/content) when it
         // moves — otherwise an MCP write into a protected tab only showed after F5.
@@ -1901,6 +1903,25 @@ class Aura extends utils.Adapter {
         }
     }
 
+    /**
+     * Where a client reaches the frontend, as options for lib/mcp/clientConfig's
+     * resolveBaseUrl: the web instance's `/aura` without an own port (#997),
+     * else the own port.
+     *
+     * @returns {Promise<{ customUrl?: string, port?: number, https?: boolean, pathPrefix?: string }>} the options
+     */
+    async _frontendBaseOptions() {
+        const web = this._noOwnPort || isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
+        return mcpBaseOptions({
+            customUrl: this.config.customUrl,
+            port: this.config.port || 8095,
+            https: !!this.config.secure,
+            bind: this.config.bind,
+            web,
+            noOwnPort: !!this._noOwnPort,
+        });
+    }
+
     /** Dispatch a /api/aura/ request to the security API (see lib/security/apiHandler). */
     async handleSecurityApi(req, res, parsedUrl) {
         if (!this._securityApi) {
@@ -2049,6 +2070,8 @@ class Aura extends utils.Adapter {
                 https: !!this._httpsActive,
                 httpsWanted: !!this.config.secure,
                 listening: !!this._httpServer?.listening,
+                off: !!this._noOwnPort,
+                web: this.config.webInstance || '',
             },
             probe: (at) => this.probeBackend(at),
             ownReact: !!reactEsmFile('/lib/esm/react-19.js'),
@@ -2918,6 +2941,26 @@ class Aura extends utils.Adapter {
         // The MCP client block needs the protocol that is actually in use — HTTPS
         // can fail at startup and fall back to HTTP, so config.secure would lie.
         this._httpsActive = httpsActive;
+        this._httpServer = null;
+        const ipcOk = await this._startIpcServer(handler, onUpgrade);
+        // No own port (#997): the local socket is the only way in, the web
+        // extension serves everything under <web>/aura/.
+        this._noOwnPort = false;
+        if (this.config.ownPort === false) {
+            const why = await this._ownPortStillNeeded(ipcOk);
+            if (!why) {
+                this._noOwnPort = true;
+                this.log.info(`aura: no port of its own — reachable through ${this.config.webInstance} as <web>/aura/`);
+                this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
+                this._logMcpState(`<${this.config.webInstance}>/aura/mcp`);
+                return;
+            }
+            this.log.warn(`aura: the own port is switched off, but ${why} — opening port ${port} anyway`);
+        } else {
+            this.log.info(
+                `aura: the own port ${port} is deprecated — Aura is also reachable through a web instance (<web>/aura/); switch the port off in the instance settings once nothing points at it any more`,
+            );
+        }
         await this._checkBind(port, bindAddr);
         server.listen(port, bindAddr, () => {
             const where = bindAddr ? `${bindAddr}:${port}` : `port ${port}`;
@@ -2928,24 +2971,33 @@ class Aura extends utils.Adapter {
             // A wrong socket port is the most common cause of "aura does not work":
             // check it once, here, where the answer is still cheap to act on.
             this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
-            if (this.config.mcpEnabled) {
-                if (this.config.mcpToken) {
-                    this.log.info(
-                        `aura: MCP endpoint available at /mcp on port ${port} — an AI assistant can ` +
-                            `change your dashboard through it; every write is backed up to ${this.namespace}.backups`,
-                    );
-                } else {
-                    // Enabled but unusable is worse than disabled, because nothing
-                    // else in this server would refuse the request.
-                    this.log.warn(
-                        'aura: MCP is enabled but no token is set — every request is rejected. ' +
-                            'Set the token in the adapter configuration.',
-                    );
-                }
-            }
+            this._logMcpState(`/mcp on port ${port}`);
         });
         this._httpServer = server;
-        this._startIpcServer(handler, onUpgrade);
+    }
+
+    /**
+     * Say once at start whether the MCP endpoint is usable.
+     *
+     * @param {string} where where it answers, for the log
+     */
+    _logMcpState(where) {
+        if (!this.config.mcpEnabled) {
+            return;
+        }
+        if (this.config.mcpToken) {
+            this.log.info(
+                `aura: MCP endpoint available at ${where} — an AI assistant can ` +
+                    `change your dashboard through it; every write is backed up to ${this.namespace}.backups`,
+            );
+        } else {
+            // Enabled but unusable is worse than disabled, because nothing
+            // else in this server would refuse the request.
+            this.log.warn(
+                'aura: MCP is enabled but no token is set — every request is rejected. ' +
+                    'Set the token in the adapter configuration.',
+            );
+        }
     }
 
     /**
@@ -2953,18 +3005,27 @@ class Aura extends utils.Adapter {
      * the same routes as the TCP server, on a Unix socket / named pipe instead of
      * a port. Plain HTTP - the connection never leaves this machine, and SSL is
      * the web instance's business. Failing here only costs the extension its
-     * preferred route; it then keeps using the TCP port.
+     * preferred route; it then keeps using the TCP port — and without an own
+     * port (#997) the caller opens it after all.
      *
      * @param {import('node:http').RequestListener} handler the request handler of the TCP server
      * @param {(req: import('node:http').IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void} onUpgrade its upgrade handler
+     * @returns {Promise<boolean>} whether the socket is listening
      */
     _startIpcServer(handler, onUpgrade) {
         let where = null;
+        let settle = (/** @type {boolean} */ _ok) => {};
+        const done = new Promise((resolve) => {
+            settle = (ok) => {
+                settle = () => {};
+                resolve(ok);
+            };
+        });
         try {
             where = ipcPath(this.namespace, defaultDataRoot());
             if (!where) {
                 this.log.debug('aura: no ioBroker data directory - no local socket for the web extension');
-                return;
+                return Promise.resolve(false);
             }
             if (!isPipe(where)) {
                 fs.mkdirSync(path.dirname(where), { recursive: true });
@@ -2976,6 +3037,7 @@ class Aura extends utils.Adapter {
                 this.log.warn(
                     `aura: local socket ${where} for the web extension failed (${e.code || e.message}) - it keeps using the TCP port`,
                 );
+                settle(false);
             });
             ipc.listen(where, () => {
                 if (!isPipe(where)) {
@@ -2987,11 +3049,14 @@ class Aura extends utils.Adapter {
                     }
                 }
                 this.log.info(`aura: local socket for the web extension: ${where}`);
+                settle(true);
             });
             this._ipcServer = ipc;
         } catch (e) {
             this.log.warn(`aura: local socket ${where || ''} for the web extension not started (${e.message})`);
+            settle(false);
         }
+        return done;
     }
 
     // Build the common.states map for the navigate selector from the persisted
@@ -4372,12 +4437,101 @@ class Aura extends utils.Adapter {
     }
 
     /**
+     * First start with a version that knows `native.ownPort` (#997): keep the own
+     * port or go without it. An installation that has been running (its PIN vault
+     * exists) keeps the port — kiosk URLs, bookmarks, reverse proxies and MCP
+     * clients point at it; the admin can switch it off. A new installation goes
+     * without when a web instance on this host can carry the extension (the
+     * chosen one, else the first one found), and keeps the port when none can.
+     *
+     * @param {Record<string, any>} native the instance's native, before the change
+     * @returns {Promise<{ ownPort: boolean, webInstance?: string, reason: string }>} the decision and its log line
+     */
+    async _decideOwnPort(native) {
+        let established = false;
+        try {
+            established = fs.existsSync(path.join(this._instanceDataDir(), 'security.json')) && !this._vaultCreatedNow;
+        } catch {
+            established = true;
+        }
+        if (established) {
+            return {
+                ownPort: true,
+                reason: `aura: existing installation keeps its own port ${native.port || 8095} — it is deprecated; Aura is also reachable through a web instance (<web>/aura/), and the port can be switched off in the instance settings`,
+            };
+        }
+        const web = String(native.webInstance || '') || (await this._pickWebInstance());
+        if (!web) {
+            return {
+                ownPort: true,
+                reason: 'aura: new installation, but no web instance on this host — Aura keeps its own port; add a web instance and switch the port off in the instance settings',
+            };
+        }
+        return {
+            ownPort: false,
+            webInstance: web,
+            reason: `aura: new installation — no port of its own, Aura is reached through ${web} (<web>/aura/)`,
+        };
+    }
+
+    /**
+     * A web instance on this host for the extension: enabled before disabled,
+     * then the lowest number. '' when there is none.
+     *
+     * @returns {Promise<string>} e.g. `web.0`
+     */
+    async _pickWebInstance() {
+        let objects = {};
+        try {
+            objects = (await this.getForeignObjectsAsync('system.adapter.web.*', 'instance')) || {};
+        } catch {
+            return '';
+        }
+        const list = Object.values(objects)
+            .filter((o) => o && o.type === 'instance' && /^system\.adapter\.web\.\d+$/.test(o._id))
+            .filter((o) => !this.host || !o.common?.host || o.common.host === this.host)
+            .map((o) => ({ id: o._id.slice('system.adapter.'.length), enabled: !!o.common?.enabled }))
+            .sort(
+                (a, b) =>
+                    Number(b.enabled) - Number(a.enabled) || a.id.localeCompare(b.id, undefined, { numeric: true }),
+            );
+        return list.length ? list[0].id : '';
+    }
+
+    /**
+     * Why the own port has to stay open although it is switched off, or null when
+     * it may stay closed: the web extension needs a chosen web instance on this
+     * host and the local socket (lib/ipcEndpoint.js) — without them nothing else
+     * would reach Aura at all.
+     *
+     * @param {boolean} ipcOk whether the local socket is listening
+     * @returns {Promise<string|null>} the reason for the log, or null
+     */
+    async _ownPortStillNeeded(ipcOk) {
+        if (!this.config.webInstance) {
+            return 'no web instance is chosen for the web adapter extension';
+        }
+        const web = await this._webInstanceNative();
+        if (!web) {
+            return `the web instance "${this.config.webInstance}" does not exist`;
+        }
+        if (web.host && this.host && web.host !== this.host) {
+            return `${this.config.webInstance} runs on host "${web.host}", Aura on "${this.host}" — the extension reaches Aura only over its port`;
+        }
+        if (!ipcOk) {
+            return 'the local socket for the web extension could not be opened';
+        }
+        return null;
+    }
+
+    /**
      * Links the instance offers in admin: the own server and, with the web
      * adapter extension on, the same pages under `<web-port>/aura/` (#936).
      *
      * @param {string} webInstance the chosen web instance - empty = extension off
+     * @param {boolean} [ownPort] whether Aura keeps a port of its own (#997)
      */
-    async _wantLocalLinks(webInstance) {
+    async _wantLocalLinks(webInstance, ownPort = true) {
         const base = this.config.customUrl ? this.config.customUrl.replace(/\/+$/, '') : null;
         const port = this.config.port || 8095;
         const langs = ['en', 'de', 'ru', 'pt', 'nl', 'fr', 'it', 'es', 'pl', 'uk', 'zh-cn'];
@@ -4391,8 +4545,8 @@ class Aura extends utils.Adapter {
             backend: { link: backendLink, name: makeName('Aura Backend') },
         };
         const webLink = await this._webExtensionLink(webInstance);
-        if (webLink && !base && isLoopbackOnly(this.config.bind)) {
-            // The own port only answers on this machine: the web instance is the way in.
+        if (webLink && !base && (!ownPort || isLoopbackOnly(this.config.bind))) {
+            // No own port, or it only answers on this machine: the web instance is the way in.
             wantLinks.frontend.link = webLink;
             wantLinks.backend.link = `${webLink}#/admin`;
         } else if (webLink) {
@@ -4419,7 +4573,8 @@ class Aura extends utils.Adapter {
             const { changed, plainMcpToken, info, debug } = await syncOwnInstanceObject(obj, {
                 encrypt: (value) => this.encrypt(value),
                 clearResetAdminPin: this.config.resetAdminPin === true,
-                localLinks: (webInstance) => this._wantLocalLinks(webInstance),
+                localLinks: (webInstance, ownPort) => this._wantLocalLinks(webInstance, ownPort),
+                decideOwnPort: (native) => this._decideOwnPort(native),
             });
             // This run holds what js-controller decrypted and the values from before
             // the migrations; put the real ones in place before anything reads them.
@@ -4429,6 +4584,7 @@ class Aura extends utils.Adapter {
             this.config.resetAdminPin = false;
             this.config.webInstance = obj.native.webInstance || '';
             this.config.socketInstance = obj.native.socketInstance || '';
+            this.config.ownPort = obj.native.ownPort !== false;
             info.forEach((line) => this.log.info(line));
             debug.forEach((line) => this.log.debug(line));
             if (changed) {
@@ -6892,7 +7048,8 @@ class Aura extends utils.Adapter {
                 // left in — better an obvious gap than a confidently wrong host.
                 // Only listening on 127.0.0.1: the client comes in through the web
                 // instance's /aura/mcp, which the extension lets past the web login.
-                const web = isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
+                const web =
+                    this._noOwnPort || isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
                 const blocks = await resolveBothConfigs(
                     {
                         ...mcpBaseOptions({
@@ -6901,6 +7058,7 @@ class Aura extends utils.Adapter {
                             https: this._httpsActive,
                             bind: this.config.bind,
                             web,
+                            noOwnPort: !!this._noOwnPort,
                         }),
                         timers: adapterTimers(this),
                     },

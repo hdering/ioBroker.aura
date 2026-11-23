@@ -24,6 +24,40 @@
       "lg": 12,
       "xl": 12
     },
+    "ownPort": {
+      "type": "checkbox",
+      "label": {
+        "en": "Own port (deprecated)",
+        "de": "Eigener Port (veraltet)",
+        "ru": "Собственный порт (устарело)",
+        "pt": "Porta própria (obsoleto)",
+        "nl": "Eigen poort (verouderd)",
+        "fr": "Port propre (obsolète)",
+        "it": "Porta propria (deprecato)",
+        "es": "Puerto propio (obsoleto)",
+        "pl": "Własny port (przestarzałe)",
+        "uk": "Власний порт (застаріло)",
+        "zh-cn": "自己的端口（已弃用）"
+      },
+      "help": {
+        "en": "Aura is reached through a web instance as <web-port>/aura/ (choose it below). Its own port (default 8095) is kept for kiosk URLs, bookmarks, reverse proxies and MCP clients that still point at it, and will be removed in a later major version. Switch it off once nothing uses it any more. Without a usable web instance on this host Aura opens the port anyway.",
+        "de": "Aura ist über eine Web-Instanz als <Web-Port>/aura/ erreichbar (unten auswählen). Der eigene Port (Standard 8095) bleibt für Kiosk-URLs, Lesezeichen, Reverse-Proxys und MCP-Clients, die noch darauf zeigen, und entfällt in einer späteren Hauptversion. Abschalten, sobald nichts mehr darauf zugreift. Ohne nutzbare Web-Instanz auf diesem Host öffnet Aura den Port trotzdem.",
+        "ru": "Aura доступна через веб-экземпляр как <веб-порт>/aura/ (выберите ниже). Собственный порт (по умолчанию 8095) сохраняется для киоск-URL, закладок, обратных прокси и MCP-клиентов, которые ещё на него указывают, и будет удалён в одной из следующих основных версий. Отключите его, когда он больше не используется. Без подходящего веб-экземпляра на этом хосте Aura всё равно откроет порт.",
+        "pt": "O Aura é acessado através de uma instância web como <porta-web>/aura/ (escolha abaixo). A porta própria (padrão 8095) é mantida para URLs de quiosque, favoritos, proxies reversos e clientes MCP que ainda apontam para ela, e será removida numa versão principal futura. Desative-a quando nada mais a usar. Sem uma instância web utilizável neste host, o Aura abre a porta mesmo assim.",
+        "nl": "Aura is bereikbaar via een webinstantie als <webpoort>/aura/ (hieronder kiezen). De eigen poort (standaard 8095) blijft voor kiosk-URL's, bladwijzers, reverse proxy's en MCP-clients die er nog naar verwijzen, en verdwijnt in een latere hoofdversie. Zet hem uit zodra niets hem meer gebruikt. Zonder bruikbare webinstantie op deze host opent Aura de poort toch.",
+        "fr": "Aura est accessible via une instance web sous <port-web>/aura/ (à choisir ci-dessous). Son propre port (8095 par défaut) est conservé pour les URL de kiosque, les favoris, les proxys inverses et les clients MCP qui y pointent encore, et sera supprimé dans une future version majeure. Désactivez-le dès que plus rien ne l'utilise. Sans instance web utilisable sur cet hôte, Aura ouvre quand même le port.",
+        "it": "Aura è raggiungibile tramite un'istanza web come <porta-web>/aura/ (sceglierla qui sotto). La porta propria (predefinita 8095) resta per URL kiosk, segnalibri, reverse proxy e client MCP che vi puntano ancora, e sarà rimossa in una futura versione principale. Disattivarla quando nulla la usa più. Senza un'istanza web utilizzabile su questo host Aura apre comunque la porta.",
+        "es": "Aura es accesible a través de una instancia web como <puerto-web>/aura/ (elíjala abajo). Su propio puerto (predeterminado 8095) se mantiene para URL de quiosco, marcadores, proxies inversos y clientes MCP que aún apuntan a él, y se eliminará en una versión principal futura. Desactívelo cuando nada lo use. Sin una instancia web utilizable en este host, Aura abre el puerto de todos modos.",
+        "pl": "Aura jest dostępna przez instancję web jako <port-web>/aura/ (wybierz poniżej). Własny port (domyślnie 8095) pozostaje dla adresów kiosków, zakładek, reverse proxy i klientów MCP, które nadal na niego wskazują, i zostanie usunięty w przyszłej wersji głównej. Wyłącz go, gdy nic już z niego nie korzysta. Bez użytecznej instancji web na tym hoście Aura i tak otworzy port.",
+        "uk": "Aura доступна через веб-екземпляр як <веб-порт>/aura/ (виберіть нижче). Власний порт (типово 8095) залишається для кіоск-URL, закладок, зворотних проксі та MCP-клієнтів, які ще на нього вказують, і буде видалений у наступній основній версії. Вимкніть його, коли він більше не використовується. Без придатного веб-екземпляра на цьому хості Aura все одно відкриє порт.",
+        "zh-cn": "Aura 通过 Web 实例以 <Web端口>/aura/ 访问（在下方选择）。自己的端口（默认 8095）保留给仍指向它的信息亭 URL、书签、反向代理和 MCP 客户端，并将在以后的主版本中移除。不再使用时请关闭。如果此主机上没有可用的 Web 实例，Aura 仍会打开该端口。"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "port": {
       "type": "number",
       "label": {
@@ -59,7 +93,8 @@
       "sm": 12,
       "md": 6,
       "lg": 4,
-      "xl": 4
+      "xl": 4,
+      "hidden": "data.ownPort === false"
     },
     "bind": {
       "type": "select",
@@ -131,7 +166,8 @@
       "sm": 12,
       "md": 6,
       "lg": 4,
-      "xl": 4
+      "xl": 4,
+      "hidden": "data.ownPort === false"
     },
     "customUrl": {
       "type": "text",
@@ -164,7 +200,8 @@
       "sm": 12,
       "md": 12,
       "lg": 12,
-      "xl": 12
+      "xl": 12,
+      "hidden": "data.ownPort === false"
     },
     "secure": {
       "type": "checkbox",
@@ -199,7 +236,8 @@
       "sm": 12,
       "md": 6,
       "lg": 4,
-      "xl": 4
+      "xl": 4,
+      "hidden": "data.ownPort === false"
     },
     "certPublic": {
       "type": "certificate",
@@ -217,7 +255,7 @@
         "uk": "Публічний сертифікат",
         "zh-cn": "公共证书"
       },
-      "hidden": "!data.secure",
+      "hidden": "(!data.secure) || data.ownPort === false",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -240,7 +278,7 @@
         "uk": "Приватний ключ",
         "zh-cn": "私钥"
       },
-      "hidden": "!data.secure",
+      "hidden": "(!data.secure) || data.ownPort === false",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -263,7 +301,7 @@
         "uk": "Прикутий сертифікат",
         "zh-cn": "链式证书"
       },
-      "hidden": "!data.secure",
+      "hidden": "(!data.secure) || data.ownPort === false",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -290,7 +328,8 @@
       "sm": 12,
       "md": 12,
       "lg": 12,
-      "xl": 12
+      "xl": 12,
+      "hidden": "data.ownPort === false"
     },
     "socketInstance": {
       "type": "selectSendTo",
@@ -327,7 +366,8 @@
       "sm": 12,
       "md": 4,
       "lg": 4,
-      "xl": 4
+      "xl": 4,
+      "hidden": "data.ownPort === false"
     },
     "socketPort": {
       "type": "number",
@@ -360,7 +400,7 @@
       "min": 1024,
       "max": 65535,
       "default": 8082,
-      "hidden": "!!data.socketInstance",
+      "hidden": "(!!data.socketInstance) || data.ownPort === false",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -395,7 +435,7 @@
         "uk": "Увімкніть, якщо екземпляр iobroker.web на порту сокета має активований HTTPS. Після цього Aura підключиться до мережі через wss/https (приймаються самопідписані сертифікати).",
         "zh-cn": "如果套接字端口上的 iobroker.web 实例已激活 HTTPS，则启用。然后，Aura 将通过 wss/https 进行内部连接（接受自签名证书）。"
       },
-      "hidden": "!!data.socketInstance",
+      "hidden": "(!!data.socketInstance) || data.ownPort === false",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -436,7 +476,8 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "newLine": true
+      "newLine": true,
+      "hidden": "data.ownPort === false"
     },
     "backendCheckHint": {
       "type": "staticText",
@@ -529,17 +570,17 @@
     "_webExtHeader": {
       "type": "header",
       "text": {
-        "en": "Also reachable via the web adapter (/aura/)",
-        "de": "Zusätzlich erreichbar über den Web-Adapter (/aura/)",
-        "ru": "Также доступен через веб-адаптер (/aura/)",
-        "pt": "Também acessível através do adaptador web (/aura/)",
-        "nl": "Ook bereikbaar via de webadapter (/aura/)",
-        "fr": "Également accessible via l'adaptateur Web (/aura/)",
-        "it": "Raggiungibile anche tramite l'adattatore web (/aura/)",
-        "es": "También accesible a través del adaptador web (/aura/)",
-        "pl": "Dostępny także poprzez adapter sieciowy (/aura/)",
-        "uk": "Також доступний через веб-адаптер (/aura/)",
-        "zh-cn": "也可通过网络适配器 (/aura/) 访问"
+        "en": "Web adapter (<web-port>/aura/)",
+        "de": "Web-Adapter (<Web-Port>/aura/)",
+        "ru": "Веб-адаптер (<веб-порт>/aura/)",
+        "pt": "Adaptador web (<porta-web>/aura/)",
+        "nl": "Webadapter (<webpoort>/aura/)",
+        "fr": "Adaptateur web (<port-web>/aura/)",
+        "it": "Adattatore web (<porta-web>/aura/)",
+        "es": "Adaptador web (<puerto-web>/aura/)",
+        "pl": "Adapter web (<port-web>/aura/)",
+        "uk": "Веб-адаптер (<веб-порт>/aura/)",
+        "zh-cn": "Web 适配器（<Web端口>/aura/）"
       },
       "size": 2,
       "xs": 12,
@@ -551,17 +592,17 @@
     "webExtHint": {
       "type": "staticText",
       "text": {
-        "en": "Optional. Makes Aura additionally reachable as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), which is what the ioBroker Visu App and the cloud adapter can open. Aura keeps running on its own port above as well; dashboards, PINs and settings are the same on both ways. Visu App / remote access via ioBroker.pro: choose the same web instance that the cloud adapter uses (usually web.0). The cloud adapter forwards only one web instance, so Aura, vis and the other apps must all be served by it. A separate web instance for Aura (e.g. web.1) then only works locally — switching cloud.0 over to it breaks vis remotely. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved (technically unavoidable). It needs its integrated socket (the default) — the dashboard uses it for live values.",
-        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Visu App / Fernzugriff über ioBroker.pro: dieselbe Web-Instanz wählen, die der Cloud-Adapter nutzt (meist web.0). Der Cloud-Adapter leitet nur eine Web-Instanz weiter – Aura, vis und die anderen Apps müssen also alle über sie laufen. Eine eigene Web-Instanz für Aura (z. B. web.1) funktioniert dann nur lokal; stellt man cloud.0 auf sie um, geht vis von unterwegs nicht mehr. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird (technisch bedingt). Sie braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards.",
-        "ru": "Необязательный. Делает Aura дополнительно доступной как <web-port>/aura/ (например, http://192.168.1.10:8082/aura/), которую могут открыть приложение ioBroker Visu и облачный адаптер. Аура также продолжает работать через свой порт выше; информационные панели, PIN-коды и настройки одинаковы в обоих случаях. Приложение Visu / удаленный доступ через ioBroker.pro: выберите тот же веб-экземпляр, который использует облачный адаптер (обычно web.0). Облачный адаптер перенаправляет только один веб-экземпляр, поэтому все Aura, vis и другие приложения должны обслуживаться им. Отдельный веб-экземпляр для Aura (например, web.1) тогда работает только локально — переключение на него cloud.0 приводит к удаленному отключению vis. Выбранный веб-экземпляр перезапускается каждый раз, когда этот экземпляр Aura запускается, останавливается или сохраняются его настройки (технически это неизбежно). Ему нужен встроенный сокет (по умолчанию) — панель мониторинга использует его для текущих значений.",
-        "pt": "Opcional. Torna o Aura acessível adicionalmente como <web-port>/aura/ (por exemplo, http://192.168.1.10:8082/aura/), que é o que o aplicativo ioBroker Visu e o adaptador de nuvem podem abrir. Aura também continua funcionando em sua própria porta acima; painéis, PINs e configurações são iguais em ambos os sentidos. Visu App / acesso remoto via ioBroker.pro: escolha a mesma instância web que o adaptador de nuvem usa (geralmente web.0). O adaptador de nuvem encaminha apenas uma instância da web, portanto, Aura, vis e os outros aplicativos devem ser atendidos por ele. Uma instância da web separada para Aura (por exemplo, web.1) funciona apenas localmente - a mudança de cloud.0 para ele interrompe o vis remotamente. A instância da web escolhida é reiniciada sempre que esta instância do Aura é iniciada, interrompida ou suas configurações são salvas (tecnicamente inevitável). Ele precisa de seu soquete integrado (o padrão) — o painel o utiliza para valores ativos.",
-        "nl": "Optioneel. Maakt Aura bovendien bereikbaar als <web-port>/aura/ (bijvoorbeeld http://192.168.1.10:8082/aura/), wat de ioBroker Visu-app en de cloudadapter kunnen openen. Aura blijft ook op zijn eigen poort draaien; dashboards, pincodes en instellingen zijn op beide manieren hetzelfde. Visu App / externe toegang via ioBroker.pro: kies dezelfde webinstantie die de cloudadapter gebruikt (meestal web.0). De cloudadapter stuurt slechts één webinstantie door, dus Aura, vis en de andere apps moeten er allemaal door worden bediend. Een aparte webinstantie voor Aura (bijvoorbeeld web.1) werkt dan alleen lokaal; het overschakelen van cloud.0 ernaar werkt niet op afstand. De gekozen webinstantie wordt opnieuw opgestart telkens wanneer deze Aura-instantie wordt gestart, gestopt of de instellingen ervan worden opgeslagen (technisch onvermijdelijk). Het heeft een geïntegreerde socket nodig (de standaard) – het dashboard gebruikt het voor live-waarden.",
-        "fr": "Facultatif. Rend Aura également accessible en tant que <web-port>/aura/ (par exemple http://192.168.1.10:8082/aura/), ce que l'application ioBroker Visu et l'adaptateur cloud peuvent ouvrir. Aura continue également de fonctionner sur son propre port ci-dessus ; les tableaux de bord, les codes PIN et les paramètres sont les mêmes dans les deux sens. Visu App / accès à distance via ioBroker.pro : choisissez la même instance Web que celle utilisée par l'adaptateur cloud (généralement web.0). L'adaptateur cloud ne transfère qu'une seule instance Web, donc Aura, vis et les autres applications doivent toutes être servies par celui-ci. Une instance Web distincte pour Aura (par exemple web.1) ne fonctionne alors que localement — le basculement de cloud.0 vers elle interrompt la visibilité à distance. L'instance web choisie redémarre à chaque fois que cette instance Aura est démarrée, arrêtée ou que ses paramètres sont enregistrés (techniquement inévitable). Il a besoin de son socket intégré (la valeur par défaut) — le tableau de bord l'utilise pour les valeurs en direct.",
-        "it": "Opzionale. Rende Aura inoltre raggiungibile come <web-port>/aura/ (ad esempio http://192.168.1.10:8082/aura/), che è ciò che l'app ioBroker Visu e l'adattatore cloud possono aprire. Anche Aura continua a funzionare sul proprio porto sopra; dashboard, PIN e impostazioni sono gli stessi in entrambe le direzioni. App Visu / accesso remoto tramite ioBroker.pro: scegli la stessa istanza web utilizzata dall'adattatore cloud (solitamente web.0). L'adattatore cloud inoltra solo un'istanza Web, quindi Aura, vis e le altre app devono essere tutte servite da esso. Un'istanza web separata per Aura (ad esempio web.1) funziona quindi solo localmente: il passaggio a cloud.0 interrompe la visibilità in remoto. L'istanza web scelta si riavvia ogni volta che questa istanza Aura viene avviata, arrestata o le sue impostazioni vengono salvate (tecnicamente inevitabile). Ha bisogno del suo socket integrato (predefinito): il dashboard lo utilizza per i valori in tempo reale.",
-        "es": "Opcional. Hace que Aura también sea accesible como <web-port>/aura/ (por ejemplo, http://192.168.1.10:8082/aura/), que es lo que pueden abrir la aplicación ioBroker Visu y el adaptador de nube. Aura también sigue ejecutándose en su propio puerto arriba; Los paneles, PIN y configuraciones son los mismos en ambos sentidos. Visu App/acceso remoto a través de ioBroker.pro: elija la misma instancia web que utiliza el adaptador de nube (normalmente web.0). El adaptador de nube reenvía solo una instancia web, por lo que Aura, vis y las demás aplicaciones deben ser atendidas por él. Una instancia web separada para Aura (por ejemplo, web.1) solo funciona localmente; cambiar cloud.0 a ella se rompe de forma remota. La instancia web elegida se reinicia cada vez que se inicia, se detiene o se guarda su configuración (técnicamente inevitable). Necesita su socket integrado (el predeterminado): el tablero lo usa para los valores en vivo.",
-        "pl": "Fakultatywny. Sprawia, że ​​Aura jest dodatkowo osiągalna jako <web-port>/aura/ (np. http://192.168.1.10:8082/aura/), co jest tym, co może otworzyć aplikacja ioBroker Visu i adapter chmury. Aura również działa na swoim własnym porcie powyżej; pulpity nawigacyjne, kody PIN i ustawienia są takie same w obu przypadkach. Aplikacja Visu / zdalny dostęp przez ioBroker.pro: wybierz tę samą instancję internetową, z której korzysta adapter chmury (zwykle web.0). Adapter chmury przekazuje tylko jedną instancję internetową, więc Aura, vis i inne aplikacje muszą być przez nią obsługiwane. Oddzielna instancja sieciowa dla Aury (np. web.1) działa wtedy tylko lokalnie — przełączenie na nią cloud.0 przerywa działanie zdalne. Wybrana instancja internetowa uruchamia się ponownie za każdym razem, gdy instancja Aura jest uruchamiana, zatrzymywana lub zapisywane są jej ustawienia (technicznie nieuniknione). Potrzebuje zintegrowanego gniazda (domyślnego) — deska rozdzielcza używa go do przesyłania wartości na żywo.",
-        "uk": "Додатково. Робить Aura додатково доступним як <web-port>/aura/ (наприклад, http://192.168.1.10:8082/aura/), який може відкрити програма ioBroker Visu та хмарний адаптер. Aura продовжує працювати на власному порту вище; інформаційні панелі, PIN-коди та налаштування однакові в обох напрямках. Додаток Visu / віддалений доступ через ioBroker.pro: виберіть той самий веб-екземпляр, який використовує хмарний адаптер (зазвичай web.0). Хмарний адаптер пересилає лише один веб-екземпляр, тому Aura, vis та інші програми повинні обслуговуватися ним. Тоді окремий веб-екземпляр для Aura (наприклад, web.1) працює лише локально — перемикання cloud.0 на нього порушує роботу віддалено. Вибраний веб-примірник перезапускається кожного разу, коли цей екземпляр Aura запускається, зупиняється або зберігаються його налаштування (технічно неминуче). Йому потрібен інтегрований роз’єм (за замовчуванням) — приладова панель використовує його для поточних значень.",
-        "zh-cn": "选修的。还可以通过 <web-port>/aura/（例如 http://192.168.1.10:8082/aura/）访问 Aura，这是 ioBroker Visu 应用程序和云适配器可以打开的内容。 Aura 也继续在上面自己的端口上运行；两种方式的仪表板、PIN 码和设置都是相同的。 Visu 应用程序/通过 ioBroker.pro 进行远程访问：选择云适配器使用的同一 Web 实例（通常为 web.0）。云适配器仅转发一个 Web 实例，因此 Aura、vis 和其他应用程序都必须由它提供服务。 Aura 的单独 Web 实例（例如 web.1）只能在本地运行 - 将 cloud.0 切换到它会破坏远程访问。每次启动、停止此 Aura 实例或保存其设置时，所选的 Web 实例都会重新启动（技术上不可避免）。它需要其集成插座（默认）——仪表板将其用于实时值。"
+        "en": "Aura is reached as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/) — also from the ioBroker Visu App and through the cloud adapter. With the own port above switched on, Aura answers there as well; dashboards, PINs and settings are the same on both ways. Visu App / remote access via ioBroker.pro: choose the same web instance that the cloud adapter uses (usually web.0). The cloud adapter forwards only one web instance, so Aura, vis and the other apps must all be served by it. A separate web instance for Aura (e.g. web.1) then only works locally — switching cloud.0 over to it breaks vis remotely. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved (technically unavoidable). It needs its integrated socket (the default) — the dashboard uses it for live values.",
+        "de": "Aura ist als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – auch aus der ioBroker Visu App und über den Cloud-Adapter. Ist der eigene Port oben an, antwortet Aura zusätzlich dort; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Visu App / Fernzugriff über ioBroker.pro: dieselbe Web-Instanz wählen, die der Cloud-Adapter nutzt (meist web.0). Der Cloud-Adapter leitet nur eine Web-Instanz weiter – Aura, vis und die anderen Apps müssen also alle über sie laufen. Eine eigene Web-Instanz für Aura (z. B. web.1) funktioniert dann nur lokal; stellt man cloud.0 auf sie um, geht vis von unterwegs nicht mehr. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird (technisch bedingt). Sie braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards.",
+        "ru": "Aura доступна как <веб-порт>/aura/ (например, http://192.168.1.10:8082/aura/) — в том числе из ioBroker Visu App и через облачный адаптер. Если собственный порт выше включён, Aura отвечает и там; дашборды, PIN-коды и настройки одинаковы на обоих путях. Приложение Visu / удаленный доступ через ioBroker.pro: выберите тот же веб-экземпляр, который использует облачный адаптер (обычно web.0). Облачный адаптер перенаправляет только один веб-экземпляр, поэтому все Aura, vis и другие приложения должны обслуживаться им. Отдельный веб-экземпляр для Aura (например, web.1) тогда работает только локально — переключение на него cloud.0 приводит к удаленному отключению vis. Выбранный веб-экземпляр перезапускается каждый раз, когда этот экземпляр Aura запускается, останавливается или сохраняются его настройки (технически это неизбежно). Ему нужен встроенный сокет (по умолчанию) — панель мониторинга использует его для текущих значений.",
+        "pt": "O Aura é acessível como <porta-web>/aura/ (ex. http://192.168.1.10:8082/aura/) — também a partir da ioBroker Visu App e através do adaptador cloud. Com a porta própria acima ativada, o Aura responde também aí; dashboards, PINs e configurações são os mesmos nos dois caminhos. Visu App / acesso remoto via ioBroker.pro: escolha a mesma instância web que o adaptador de nuvem usa (geralmente web.0). O adaptador de nuvem encaminha apenas uma instância da web, portanto, Aura, vis e os outros aplicativos devem ser atendidos por ele. Uma instância da web separada para Aura (por exemplo, web.1) funciona apenas localmente - a mudança de cloud.0 para ele interrompe o vis remotamente. A instância da web escolhida é reiniciada sempre que esta instância do Aura é iniciada, interrompida ou suas configurações são salvas (tecnicamente inevitável). Ele precisa de seu soquete integrado (o padrão) — o painel o utiliza para valores ativos.",
+        "nl": "Aura is bereikbaar als <webpoort>/aura/ (bijv. http://192.168.1.10:8082/aura/) — ook vanuit de ioBroker Visu App en via de cloudadapter. Staat de eigen poort hierboven aan, dan antwoordt Aura daar ook; dashboards, pincodes en instellingen zijn op beide wegen dezelfde. Visu App / externe toegang via ioBroker.pro: kies dezelfde webinstantie die de cloudadapter gebruikt (meestal web.0). De cloudadapter stuurt slechts één webinstantie door, dus Aura, vis en de andere apps moeten er allemaal door worden bediend. Een aparte webinstantie voor Aura (bijvoorbeeld web.1) werkt dan alleen lokaal; het overschakelen van cloud.0 ernaar werkt niet op afstand. De gekozen webinstantie wordt opnieuw opgestart telkens wanneer deze Aura-instantie wordt gestart, gestopt of de instellingen ervan worden opgeslagen (technisch onvermijdelijk). Het heeft een geïntegreerde socket nodig (de standaard) – het dashboard gebruikt het voor live-waarden.",
+        "fr": "Aura est accessible sous <port-web>/aura/ (p. ex. http://192.168.1.10:8082/aura/) — aussi depuis l'ioBroker Visu App et via l'adaptateur cloud. Si le port propre ci-dessus est activé, Aura y répond également ; tableaux de bord, codes PIN et réglages sont les mêmes par les deux chemins. Visu App / accès à distance via ioBroker.pro : choisissez la même instance Web que celle utilisée par l'adaptateur cloud (généralement web.0). L'adaptateur cloud ne transfère qu'une seule instance Web, donc Aura, vis et les autres applications doivent toutes être servies par celui-ci. Une instance Web distincte pour Aura (par exemple web.1) ne fonctionne alors que localement — le basculement de cloud.0 vers elle interrompt la visibilité à distance. L'instance web choisie redémarre à chaque fois que cette instance Aura est démarrée, arrêtée ou que ses paramètres sont enregistrés (techniquement inévitable). Il a besoin de son socket intégré (la valeur par défaut) — le tableau de bord l'utilise pour les valeurs en direct.",
+        "it": "Aura è raggiungibile come <porta-web>/aura/ (es. http://192.168.1.10:8082/aura/) — anche dall'ioBroker Visu App e tramite l'adattatore cloud. Con la porta propria qui sopra attiva, Aura risponde anche lì; dashboard, PIN e impostazioni sono gli stessi su entrambe le vie. App Visu / accesso remoto tramite ioBroker.pro: scegli la stessa istanza web utilizzata dall'adattatore cloud (solitamente web.0). L'adattatore cloud inoltra solo un'istanza Web, quindi Aura, vis e le altre app devono essere tutte servite da esso. Un'istanza web separata per Aura (ad esempio web.1) funziona quindi solo localmente: il passaggio a cloud.0 interrompe la visibilità in remoto. L'istanza web scelta si riavvia ogni volta che questa istanza Aura viene avviata, arrestata o le sue impostazioni vengono salvate (tecnicamente inevitabile). Ha bisogno del suo socket integrato (predefinito): il dashboard lo utilizza per i valori in tempo reale.",
+        "es": "Aura es accesible como <puerto-web>/aura/ (p. ej. http://192.168.1.10:8082/aura/) — también desde la ioBroker Visu App y a través del adaptador cloud. Con el puerto propio de arriba activado, Aura responde también allí; paneles, PIN y ajustes son los mismos por ambas vías. Visu App/acceso remoto a través de ioBroker.pro: elija la misma instancia web que utiliza el adaptador de nube (normalmente web.0). El adaptador de nube reenvía solo una instancia web, por lo que Aura, vis y las demás aplicaciones deben ser atendidas por él. Una instancia web separada para Aura (por ejemplo, web.1) solo funciona localmente; cambiar cloud.0 a ella se rompe de forma remota. La instancia web elegida se reinicia cada vez que se inicia, se detiene o se guarda su configuración (técnicamente inevitable). Necesita su socket integrado (el predeterminado): el tablero lo usa para los valores en vivo.",
+        "pl": "Aura jest dostępna jako <port-web>/aura/ (np. http://192.168.1.10:8082/aura/) — także z ioBroker Visu App i przez adapter cloud. Gdy własny port powyżej jest włączony, Aura odpowiada również tam; pulpity, PIN-y i ustawienia są takie same na obu drogach. Aplikacja Visu / zdalny dostęp przez ioBroker.pro: wybierz tę samą instancję internetową, z której korzysta adapter chmury (zwykle web.0). Adapter chmury przekazuje tylko jedną instancję internetową, więc Aura, vis i inne aplikacje muszą być przez nią obsługiwane. Oddzielna instancja sieciowa dla Aury (np. web.1) działa wtedy tylko lokalnie — przełączenie na nią cloud.0 przerywa działanie zdalne. Wybrana instancja internetowa uruchamia się ponownie za każdym razem, gdy instancja Aura jest uruchamiana, zatrzymywana lub zapisywane są jej ustawienia (technicznie nieuniknione). Potrzebuje zintegrowanego gniazda (domyślnego) — deska rozdzielcza używa go do przesyłania wartości na żywo.",
+        "uk": "Aura доступна як <веб-порт>/aura/ (наприклад, http://192.168.1.10:8082/aura/) — також із ioBroker Visu App і через хмарний адаптер. Якщо власний порт вище увімкнено, Aura відповідає і там; дашборди, PIN-коди та налаштування однакові на обох шляхах. Додаток Visu / віддалений доступ через ioBroker.pro: виберіть той самий веб-екземпляр, який використовує хмарний адаптер (зазвичай web.0). Хмарний адаптер пересилає лише один веб-екземпляр, тому Aura, vis та інші програми повинні обслуговуватися ним. Тоді окремий веб-екземпляр для Aura (наприклад, web.1) працює лише локально — перемикання cloud.0 на нього порушує роботу віддалено. Вибраний веб-примірник перезапускається кожного разу, коли цей екземпляр Aura запускається, зупиняється або зберігаються його налаштування (технічно неминуче). Йому потрібен інтегрований роз’єм (за замовчуванням) — приладова панель використовує його для поточних значень.",
+        "zh-cn": "Aura 可通过 <Web端口>/aura/ 访问（例如 http://192.168.1.10:8082/aura/）——也可从 ioBroker Visu App 和云适配器访问。如果上面的自己的端口已打开，Aura 也会在那里响应；两种方式下的仪表板、PIN 和设置都相同。Visu 应用程序/通过 ioBroker.pro 进行远程访问：选择云适配器使用的同一 Web 实例（通常为 web.0）。云适配器仅转发一个 Web 实例，因此 Aura、vis 和其他应用程序都必须由它提供服务。 Aura 的单独 Web 实例（例如 web.1）只能在本地运行 - 将 cloud.0 切换到它会破坏远程访问。每次启动、停止此 Aura 实例或保存其设置时，所选的 Web 实例都会重新启动（技术上不可避免）。它需要其集成插座（默认）——仪表板将其用于实时值。"
       },
       "xs": 12,
       "sm": 12,
@@ -575,17 +616,17 @@
       "manual": true,
       "noTranslation": true,
       "label": {
-        "en": "Also reachable via web instance (/aura/)",
-        "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)",
-        "ru": "Также доступен через веб-экземпляр (/aura/)",
-        "pt": "Também acessível via instância web (/aura/)",
-        "nl": "Ook bereikbaar via webinstantie (/aura/)",
-        "fr": "Également accessible via une instance Web (/aura/)",
-        "it": "Raggiungibile anche tramite istanza web (/aura/)",
-        "es": "También accesible a través de una instancia web (/aura/)",
-        "pl": "Dostępny również za pośrednictwem instancji internetowej (/aura/)",
-        "uk": "Також доступний через веб-екземпляр (/aura/)",
-        "zh-cn": "也可通过 Web 实例 (/aura/) 访问"
+        "en": "Web instance (/aura/)",
+        "de": "Web-Instanz (/aura/)",
+        "ru": "Веб-экземпляр (/aura/)",
+        "pt": "Instância web (/aura/)",
+        "nl": "Webinstantie (/aura/)",
+        "fr": "Instance web (/aura/)",
+        "it": "Istanza web (/aura/)",
+        "es": "Instancia web (/aura/)",
+        "pl": "Instancja web (/aura/)",
+        "uk": "Веб-екземпляр (/aura/)",
+        "zh-cn": "Web 实例（/aura/）"
       },
       "help": {
         "en": "Only for the Visu App / cloud. For remote access pick the web instance set in cloud.0 (usually web.0). Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",

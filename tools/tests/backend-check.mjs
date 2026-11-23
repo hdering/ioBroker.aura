@@ -214,6 +214,13 @@ const REPORTED = {
     check('a blocked port is an error', byId(down, 'own-server-down')?.level === 'error');
     const fellBack = serverFindings({ port: 8095, https: false, httpsWanted: true, listening: true });
     check('a silent HTTPS fallback is an error', byId(fellBack, 'https-fallback')?.level === 'error');
+    const off = serverFindings({ port: 8095, listening: false, off: true, web: 'web.0', httpsWanted: true });
+    check(
+        'no own port by choice (#997) is fine, not a blocked port',
+        byId(off, 'own-server-off')?.level === 'ok' && !byId(off, 'own-server-down'),
+    );
+    check('…names the web instance', byId(off, 'own-server-off').title.includes('web.0'));
+    check('…and no HTTPS fallback error', !byId(off, 'https-fallback'));
 }
 
 // ── 6. The report that gets pasted into a forum post ────────────────────────

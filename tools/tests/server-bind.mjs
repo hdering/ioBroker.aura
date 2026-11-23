@@ -78,6 +78,11 @@ eq(
     { port: 8095, https: true },
 );
 eq(
+    'no own port (#997): web port below /aura, whatever bind says',
+    mcpBaseOptions({ port: 8095, https: false, bind: '', web: { port: 8082 }, noOwnPort: true }),
+    { port: 8082, https: false, pathPrefix: '/aura' },
+);
+eq(
     'a base URL wins',
     mcpBaseOptions({ customUrl: 'https://aura.example.org', port: 8095, bind: '127.0.0.1', web: { port: 8082 } }),
     { customUrl: 'https://aura.example.org', port: 8095 },

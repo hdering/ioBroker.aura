@@ -1,0 +1,223 @@
+// Aura without a port of its own (#997, steps 8/9).
+//
+//   node tools/tests/own-port-off.mjs
+//
+// main.js's real startHttpServer with the adapter stubbed: with `ownPort: false`
+// and a web instance on this host the TCP port stays closed and the local socket
+// for the web extension is the only way in; without a usable web instance (none
+// chosen, another host) or with `ownPort: true` the port opens. And the one-time
+// decision for the first start: a running installation keeps its port, a new
+// one goes without when a web instance can take over.
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
+import fs from 'node:fs';
+import http from 'node:http';
+import net from 'node:net';
+import os from 'node:os';
+
+const require = createRequire(import.meta.url);
+const dataRoot = fs.mkdtempSync(join(os.tmpdir(), 'aura-noport-'));
+
+let objects = {};
+const logs = [];
+const corePath = require.resolve('@iobroker/adapter-core');
+require.cache[corePath] = {
+    id: corePath,
+    filename: corePath,
+    loaded: true,
+    exports: {
+        getAbsoluteDefaultDataDir: () => dataRoot,
+        getAbsoluteInstanceDataDir: (a) => join(dataRoot, a.namespace),
+        Adapter: class {
+            constructor(options) {
+                this.name = options?.name;
+                this.namespace = 'aura.0';
+                this.instance = 0;
+                this.host = 'host-a';
+                const push = (lvl) => (m) => logs.push(`${lvl}: ${m}`);
+                this.log = { info: push('info'), warn: push('warn'), error: push('error'), debug() {} };
+            }
+            on() {}
+            async setObjectNotExistsAsync() {}
+            async extendObjectAsync() {}
+            async setStateAsync() {}
+            setState() {}
+            async getStateAsync() {
+                return null;
+            }
+            async getForeignObjectAsync(id) {
+                return objects[id] || null;
+            }
+            async getForeignObjectsAsync(pattern) {
+                const re = new RegExp(`^${pattern.replace(/[.]/g, '\\.').replace(/\*/g, '.*')}$`);
+                return Object.fromEntries(
+                    Object.entries(objects)
+                        .filter(([id]) => re.test(id))
+                        .map(([id, o]) => [id, { ...o, _id: id }]),
+                );
+            }
+            setTimeout(fn, ms) {
+                return setTimeout(fn, ms);
+            }
+            clearTimeout(t) {
+                clearTimeout(t);
+            }
+            setInterval(fn, ms) {
+                return setInterval(fn, ms);
+            }
+            clearInterval(t) {
+                clearInterval(t);
+            }
+        },
+    },
+};
+const main = require(join(process.cwd(), 'main.js'));
+const { ipcPath } = require(join(process.cwd(), 'lib/ipcEndpoint.js'));
+
+const results = [];
+const check = (name, ok, detail = '') => {
+    results.push(ok);
+    console.log(`${ok ? '  ok  ' : '  FAIL'} ${name}${!ok && detail ? ` - ${detail}` : ''}`);
+};
+const freePort = () =>
+    new Promise((resolve) => {
+        const s = net.createServer().listen(0, '127.0.0.1', () => {
+            const p = s.address().port;
+            s.close(() => resolve(p));
+        });
+    });
+const portOpen = (port) =>
+    new Promise((resolve) => {
+        const c = net.connect(port, '127.0.0.1');
+        c.on('connect', () => {
+            c.destroy();
+            resolve(true);
+        });
+        c.on('error', () => resolve(false));
+    });
+const viaSocket = (socketPath, path) =>
+    new Promise((resolve) => {
+        http.get({ socketPath, path }, (res) => {
+            res.resume();
+            resolve(res.statusCode);
+        }).on('error', (e) => resolve(e.code));
+    });
+const webObj = (host, enabled = true, port = 8082) => ({
+    _id: 'x',
+    type: 'instance',
+    common: { host, enabled },
+    native: { port },
+});
+
+async function boot(config) {
+    const aura = main({});
+    aura.config = { bind: '127.0.0.1', ...config };
+    aura.resolveSocketBackend = async () => ({ found: false, host: '127.0.0.1', port: 9, mode: 'port', conflicts: [] });
+    aura._noteBackendResponse = () => {};
+    aura.runBackendCheck = async () => {};
+    await aura.startHttpServer();
+    await new Promise((r) => setTimeout(r, 150));
+    return aura;
+}
+const stop = async (aura) => {
+    await new Promise((r) => (aura._httpServer ? aura._httpServer.close(() => r()) : r()));
+    await new Promise((r) => (aura._ipcServer ? aura._ipcServer.close(() => r()) : r()));
+};
+const sock = ipcPath('aura.0', dataRoot);
+
+try {
+    // ── 1. no own port ───────────────────────────────────────────────────────
+    {
+        objects = { 'system.adapter.web.0': webObj('host-a') };
+        logs.length = 0;
+        const port = await freePort();
+        const aura = await boot({ port, ownPort: false, webInstance: 'web.0' });
+        check('ownPort false + web instance on this host: port stays closed', !(await portOpen(port)));
+        check('…the local socket answers', (await viaSocket(sock, '/fs/roots')) === 200);
+        check(
+            '…says so in the log',
+            logs.some((l) => l.includes('no port of its own') && l.includes('web.0')),
+        );
+        check('…marked for the backend check and the MCP block', aura._noOwnPort === true);
+        const base = await aura._frontendBaseOptions();
+        check(
+            '…links and MCP go through the web instance',
+            base.port === 8082 && base.pathPrefix === '/aura',
+            JSON.stringify(base),
+        );
+        await stop(aura);
+    }
+    // ── 2. switched off, but nothing else could reach Aura ───────────────────
+    for (const [label, objs, web] of [
+        ['no web instance chosen', {}, ''],
+        ['web instance missing', {}, 'web.3'],
+        ['web instance on another host', { 'system.adapter.web.0': webObj('host-b') }, 'web.0'],
+    ]) {
+        objects = objs;
+        logs.length = 0;
+        const port = await freePort();
+        const aura = await boot({ port, ownPort: false, webInstance: web });
+        check(`ownPort false, ${label}: port opens anyway`, await portOpen(port));
+        check(
+            `…with a warning`,
+            logs.some((l) => l.startsWith('warn:') && l.includes('opening port')),
+        );
+        check('…not marked as portless', aura._noOwnPort === false);
+        await stop(aura);
+    }
+    // ── 3. own port on: as before, plus the deprecation note ─────────────────
+    {
+        objects = { 'system.adapter.web.0': webObj('host-a') };
+        logs.length = 0;
+        const port = await freePort();
+        const aura = await boot({ port, ownPort: true, webInstance: 'web.0' });
+        check('ownPort true: port opens', await portOpen(port));
+        check('…the local socket too', (await viaSocket(sock, '/fs/roots')) === 200);
+        check(
+            '…the log calls the port deprecated',
+            logs.some((l) => l.includes('deprecated')),
+        );
+        const base = await aura._frontendBaseOptions();
+        check('…links keep the own port (bind 127.0.0.1 still goes through web)', base.pathPrefix === '/aura');
+        await stop(aura);
+    }
+    // ── 4. the decision on the first start ──────────────────────────────────
+    {
+        const aura = main({});
+        aura.config = {};
+        fs.mkdirSync(join(dataRoot, 'aura.0'), { recursive: true });
+        fs.writeFileSync(join(dataRoot, 'aura.0', 'security.json'), '{}');
+        aura._vaultCreatedNow = false;
+        objects = { 'system.adapter.web.0': webObj('host-a') };
+        let d = await aura._decideOwnPort({ port: 8095 });
+        check('a running installation keeps its port', d.ownPort === true && !d.webInstance, JSON.stringify(d));
+        aura._vaultCreatedNow = true;
+        objects = {
+            'system.adapter.web.0': webObj('host-b'),
+            'system.adapter.web.1': webObj('host-a', false),
+            'system.adapter.web.2': webObj('host-a', true),
+            'system.adapter.web.10': webObj('host-a', true),
+        };
+        d = await aura._decideOwnPort({ port: 8095 });
+        check(
+            'a new one goes without, through an enabled web instance on this host',
+            d.ownPort === false && d.webInstance === 'web.2',
+            JSON.stringify(d),
+        );
+        d = await aura._decideOwnPort({ port: 8095, webInstance: 'web.1' });
+        check(
+            '…a chosen web instance stays the one',
+            d.ownPort === false && d.webInstance === 'web.1',
+            JSON.stringify(d),
+        );
+        objects = { 'system.adapter.web.0': webObj('host-b') };
+        d = await aura._decideOwnPort({ port: 8095 });
+        check('a new one without a web instance on this host keeps the port', d.ownPort === true, JSON.stringify(d));
+    }
+} finally {
+    fs.rmSync(dataRoot, { recursive: true, force: true });
+}
+
+const failed = results.filter((r) => !r).length;
+console.log(`\nown-port-off: ${results.length - failed}/${results.length} passed`);
+process.exit(failed ? 1 : 0);

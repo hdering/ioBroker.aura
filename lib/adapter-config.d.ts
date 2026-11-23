@@ -8,6 +8,8 @@ declare global {
         interface AdapterConfig {
             customUrl: string;
             port: number;
+            /** Open the own (deprecated) port; false = only through the web extension `<web>/aura/` (#997). Not yet true/false before the first start with this version. */
+            ownPort: boolean | null;
             /** Listen address of the own server; empty = all interfaces, `127.0.0.1` = only via the web instance (lib/serverBind.js). */
             bind: string;
             socketPort: number;
