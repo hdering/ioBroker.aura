@@ -53,22 +53,42 @@ function readUrlFile(): string {
 let proxyTarget = readUrlFile();
 
 /**
- * Where `/adapter-icons/*` goes: null = serve the fixture folder, else the Aura
- * server of the proxied instance — same host, port 8095 unless AURA_SERVER_URL
- * names it. Read per request, the proxy target can change at runtime.
+ * Aura's own server behind the proxied instance, in the order to try (#997):
+ * the web adapter extension `<target>/aura/` first — the way Aura is reached
+ * once it has no port of its own — then the old port 8095 on the same host for
+ * an instance whose extension is not switched on. AURA_SERVER_URL names one base
+ * explicitly (may carry a path, e.g. `https://host:8082/aura/`). Empty when the
+ * target is loopback (offline, the harness). Read per request, the proxy target
+ * can change at runtime.
  */
-function adapterIconsTarget(): URL | null {
-  if (process.env.AURA_ADAPTER_ICONS_DIR) return null;
+function auraServerBases(): URL[] {
   const explicit = process.env.AURA_SERVER_URL?.trim();
-  if (explicit) return new URL(explicit);
+  if (explicit) return [new URL(explicit.endsWith('/') ? explicit : `${explicit}/`)];
   try {
     const t = new URL(proxyTarget);
-    if (/^(127\.|localhost$|\[?::1\]?$)/.test(t.hostname)) return null;
-    return new URL(`http://${t.hostname}:8095`);
+    if (/^(127\.|localhost$|\[?::1\]?$)/.test(t.hostname)) return [];
+    if (t.port === '8095') return [new URL('/', t.origin)];
+    return [new URL('/aura/', t.origin), new URL(`http://${t.hostname}:8095/`)];
   } catch {
-    return null;
+    return [];
   }
 }
+
+/** Where `/adapter-icons/*` goes: null = serve the fixture folder, else Aura's server (auraServerBases). */
+function adapterIconsTarget(): URL[] | null {
+  if (process.env.AURA_ADAPTER_ICONS_DIR) return null;
+  const bases = auraServerBases();
+  return bases.length ? bases : null;
+}
+
+/**
+ * Opt-in (AURA_DEV_VAULT=1): the dev server's `/api/aura` goes to the real
+ * security API through the web extension (`<target>/aura/api/aura`), so a
+ * login checks the instance's admin PIN and protected views unlock for real.
+ * Off by default: the dev editor's local login (and every harness seeding a fake
+ * session) relies on the API not being there.
+ */
+const devVault = process.env.AURA_DEV_VAULT === '1';
 
 function ioBrokerDevPlugin(): Plugin {
   return {
@@ -124,33 +144,46 @@ function ioBrokerDevPlugin(): Plugin {
       server.middlewares.use((req, res, next) => {
         const url = new URL(req.url ?? '', 'http://localhost');
         if (!url.pathname.startsWith('/adapter-icons/')) return next();
-        const target = adapterIconsTarget();
-        if (!target) {
+        const targets = adapterIconsTarget();
+        if (!targets) {
           if (!adapterIcons.handle(req, res, url)) next();
           return;
         }
-        const lib = target.protocol === 'https:' ? https : http;
-        const up = lib.request(
-          {
-            hostname: target.hostname,
-            port: target.port || (target.protocol === 'https:' ? 443 : 80),
-            path: req.url,
-            method: req.method,
-            rejectUnauthorized: false,
-            timeout: 15000,
-          } as http.RequestOptions,
-          (upRes) => {
-            res.writeHead(upRes.statusCode ?? 502, upRes.headers);
-            upRes.pipe(res);
-          },
-        );
-        up.on('timeout', () => up.destroy(new Error('timeout')));
-        up.on('error', (e) => {
-          if (res.headersSent) return res.end();
-          res.writeHead(502, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: `Aura server ${target.origin} unreachable: ${e.message}`, sets: [] }));
-        });
-        up.end();
+        // The extension first, the old port when it is not there (404 = web
+        // without the extension, error = nothing listening).
+        const attempt = (i: number) => {
+          const target = targets[i];
+          const last = i === targets.length - 1;
+          const lib = target.protocol === 'https:' ? https : http;
+          const up = lib.request(
+            {
+              hostname: target.hostname,
+              port: target.port || (target.protocol === 'https:' ? 443 : 80),
+              path: `${target.pathname.replace(/\/$/, '')}${req.url}`,
+              method: req.method,
+              rejectUnauthorized: false,
+              timeout: 15000,
+            } as http.RequestOptions,
+            (upRes) => {
+              if (upRes.statusCode === 404 && !last) {
+                upRes.resume();
+                attempt(i + 1);
+                return;
+              }
+              res.writeHead(upRes.statusCode ?? 502, upRes.headers);
+              upRes.pipe(res);
+            },
+          );
+          up.on('timeout', () => up.destroy(new Error('timeout')));
+          up.on('error', (e) => {
+            if (!last) return attempt(i + 1);
+            if (res.headersSent) return res.end();
+            res.writeHead(502, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Aura server ${target.href} unreachable: ${e.message}`, sets: [] }));
+          });
+          up.end();
+        };
+        attempt(0);
       });
 
       // Server-side iframe proxy – strips X-Frame-Options so pages can be embedded
@@ -367,17 +400,18 @@ export default defineConfig({
       // The server-side security API. Without this, /api/aura fell into vite's
       // SPA fallback — index.html with status 200, which the login page read as
       // „API reachable, no admin PIN set“ and offered a setup that then 404'd
-      // (#632). Point .iobroker-url / AURA_IOBROKER_URL at Aura's OWN server
-      // (default port 8095, not the web adapter) to log in against a real vault;
-      // anything else answers no JSON and the dev editor degrades to its local
-      // login. Short timeouts so a dead target fails fast instead of hanging the
-      // login page.
+      // (#632). Against the web adapter the path answers no JSON and the dev
+      // editor degrades to its local login. To log in against the real vault set
+      // AURA_DEV_VAULT=1 (through the web extension, `<web>/aura/api/aura`), or
+      // point .iobroker-url at Aura's own port 8095 while it still has one.
+      // Short timeouts so a dead target fails fast instead of hanging the login page.
       '/api/aura': {
         target: proxyTarget,
         changeOrigin: true,
         secure: false,
         timeout: 4000,
         proxyTimeout: 4000,
+        ...(devVault ? { rewrite: (p: string) => `/aura${p}` } : {}),
       },
       // Files of adapters: the manifests and modules of ioBroker web components
       // (common.webComponents) and adapter graphics. The web adapter and Aura's
