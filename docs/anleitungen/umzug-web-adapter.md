@@ -27,7 +27,7 @@ Port und `https://` richten sich nach der gewählten Web-Instanz.
 | 1. Web-Instanz wählen | ioBroker-Admin → Instanzen → Aura → ganz oben **Web-Instanz (/aura/)**. Für Visu App und Fernzugriff die Instanz aus `cloud.0` (meist `web.0`) |
 | 2. Neue Adresse testen | `http://<ip>:<web-port>/aura/` öffnen, Adminbereich unter `…/aura/#/admin` |
 | 3. Geräte umstellen | Siehe [Checkliste](#checkliste) |
-| 4. Eigenen Port abschalten | Abschnitt **Aura-Server** → **Eigener Port (veraltet)** aus → Rückfrage bestätigen → Speichern. Die Option verschwindet danach |
+| 4. Eigenen Port abschalten | Reverse Proxy vorher umstellen (siehe Checkliste). Abschnitt **Aura-Server** → **Eigener Port (veraltet)** aus → Rückfrage bestätigen → Speichern. Die Option verschwindet danach |
 | 5. Weiterleitung beobachten | Solange **Alten Port weiterleiten (Übergang)** an ist, nennt das Log jedes Gerät, das noch über `:8095` kommt |
 | 6. Weiterleitung abschalten | Sobald das Log kein Gerät mehr nennt |
 
@@ -38,7 +38,7 @@ Port und `https://` richten sich nach der gewählten Web-Instanz.
 | Lesezeichen | Neue Adresse speichern |
 | Kiosk / Fully Kiosk | Start-URL auf `…/aura/` (inkl. `?client=…`, falls gesetzt) |
 | Homescreen-App (PWA) | Alte App entfernen, unter der neuen Adresse neu hinzufügen ([Als App installieren](./als-app)) |
-| Reverse Proxy (nginx, NPM, Caddy) | Ziel auf den Port der Web-Instanz, Pfad `/aura/`, WebSockets an |
+| Reverse Proxy (nginx, NPM, Caddy) | **Vor** dem Abschalten des eigenen Ports: Ziel auf den Port der Web-Instanz, ganze Domain (nicht nur `/aura/`), WebSockets an, Umleitung `/` → `/aura/` nur per `$request_uri` – [Reverse Proxy](./reverse-proxy). Die Weiterleitung des alten Ports greift hinter einem Proxy nicht, die Seite sagt dann, was umzustellen ist |
 | KI-Clients (MCP) | Konfigurationsblock in der Instanz-Konfiguration neu kopieren ([MCP](../einstellungen/mcp#web-instanz)) |
 | Skripte mit Links | `navigate.url`, Benachrichtigungen, Links in anderen Visus |
 | Anmeldung der Web-Instanz | Ist sie aktiv, gilt sie jetzt auch für Aura. Für Kiosk-Geräte ohne Login eine eigene Web-Instanz ohne Anmeldung anlegen (nicht über die Cloud erreichbar) |
@@ -77,4 +77,6 @@ Mit eigenem Port aus und **Alten Port weiterleiten (Übergang)** an:
 | `/aura/` zeigt die Startseite des Web-Adapters | Web-Instanz in der Aura-Instanz nicht gewählt oder nicht gespeichert |
 | `/aura/` zeigt „Aura läuft nicht“ | Aura-Instanz starten; die Seite lädt von selbst neu |
 | Port `8095` ist nach dem Abschalten trotzdem offen | Keine nutzbare Web-Instanz auf dem Host – Grund steht im Log (`opening port 8095 anyway`) |
+| „Aura has moved into the web adapter“ statt Weiterleitung | Aufruf kommt über einen Reverse Proxy, der noch auf Port 8095 zeigt – [Proxy umstellen](./reverse-proxy) |
+| Seite unter /aura/ ohne Live-Werte (hinter Proxy) | Proxy leitet nur `/aura/` weiter oder lenkt `/?sid=…` um – [Reverse Proxy](./reverse-proxy#probleme) |
 | Leeres Dashboard, Widgets mit Ladefehler | Instanz-Konfiguration → **Backend prüfen** |

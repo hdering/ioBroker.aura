@@ -3019,15 +3019,24 @@ class Aura extends utils.Adapter {
                 const web = await this._webInstanceNative();
                 return web ? { port: Number(web.port) || 8082, secure: !!web.secure } : null;
             },
-            onVisit: (ip) => {
+            port,
+            onVisit: (ip, proxied) => {
                 const now = Date.now();
-                if ((seen.get(ip) || 0) > now - 3600_000) {
+                const key = proxied ? `proxy:${proxied}` : ip;
+                if ((seen.get(key) || 0) > now - 3600_000) {
                     return;
                 }
                 if (seen.size > 500) {
                     seen.clear();
                 }
-                seen.set(ip, now);
+                seen.set(key, now);
+                if (proxied) {
+                    // the forward would point at <that host>:<web port>, which a proxy does not pass
+                    this.log.warn(
+                        `aura: ${proxied} reaches the old port ${port} through a reverse proxy — not forwarded, the page tells the visitor what to change. Point the proxy at ${this.config.webInstance} (its port, whole host, WebSockets on) instead of port ${port}`,
+                    );
+                    return;
+                }
                 this.log.info(
                     `aura: ${ip || 'a device'} still opened the old port ${port} — forwarded to ${this.config.webInstance} (<web>/aura/). Switch "forward the old port" off once no device comes this way any more`,
                 );

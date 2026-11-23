@@ -70,7 +70,11 @@ then served as `https://<iobroker-ip>:8082/aura/`.
 ### Reverse proxy
 
 Point a reverse proxy (e.g. **nginx**, **Nginx Proxy Manager**, **Caddy**) with a valid TLS
-certificate at the web instance and forward the path `/aura/` with WebSockets.
+certificate at the **web instance** and forward the **whole host**, not only `/aura/`, with
+WebSockets. The frontend under `/aura/` also uses the top level of the domain: the web instance's
+socket on `/` (`wss://<host>/?sid=…`), `/socket.io/socket.io.js`, and `/adapter/…` and `/lib/…`
+for web components. A plain `location /aura/` on a shared domain gives a page without live values -
+use a (sub)domain of its own for the web instance instead.
 
 #### Nginx Proxy Manager – example configuration
 
@@ -80,8 +84,26 @@ certificate at the web instance and forward the path `/aura/` with WebSockets.
 | Forward Hostname / IP | `<iobroker-ip>` |
 | Forward Port | `8082` (port of the web instance) |
 | Websockets Support | enabled |
+| Cache Assets | off (recommended) |
 
-Then open `https://your-domain.com/aura/`.
+Optional redirect from `/` to `/aura/` (tab **Advanced**):
+
+```nginx
+if ($request_uri = "/") {
+    return 302 /aura/;
+}
+```
+
+> **Not** `location = / { return 302 /aura/; }` - `location` only looks at the path, so it also
+> catches the WebSocket `/?sid=…` (302 instead of 101) and the dashboard gets no values.
+> `$request_uri` includes the query string, so `/?sid=…` passes.
+
+Then open `https://your-domain.com/aura/`. Examples for plain nginx and Caddy, checks with `curl`
+and a troubleshooting table: [Reverse proxy](https://hdering.github.io/ioBroker.aura/anleitungen/reverse-proxy) (German).
+
+> **Moving from port 8095:** point the proxy at the web instance **before** switching the own port
+> off. Behind a proxy the old port cannot forward (it would send devices to `<host>:8082`); it shows
+> what to change instead.
 
 ---
 

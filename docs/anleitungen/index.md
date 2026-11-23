@@ -11,3 +11,4 @@ Schritt für Schritt zu typischen Aufgaben.
 | [Sprachausgabe](./sprachausgabe) | Texte und Töne am Tablet abspielen, SayIt-Ansagen, Meldungen vorlesen |
 | [Als App installieren](./als-app) | Ohne Browserleisten auf Handy, Tablet und PC; HTTPS-Voraussetzung, Android und iOS |
 | [Umzug auf den Web-Adapter](./umzug-web-adapter) | Von Port 8095 auf `<web-port>/aura/`: Checkliste für Kiosk, Lesezeichen, App, Reverse Proxy und MCP |
+| [Reverse Proxy](./reverse-proxy) | Aura über nginx, Nginx Proxy Manager oder Caddy: ganze Domain, WebSockets, Umleitung auf /aura/ |

@@ -78,6 +78,7 @@ export default defineConfig({
             { text: 'Sprachausgabe', link: '/anleitungen/sprachausgabe' },
             { text: 'Als App installieren', link: '/anleitungen/als-app' },
             { text: 'Umzug auf den Web-Adapter', link: '/anleitungen/umzug-web-adapter' },
+            { text: 'Reverse Proxy', link: '/anleitungen/reverse-proxy' },
           ],
         },
       ],

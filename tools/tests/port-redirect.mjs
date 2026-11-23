@@ -204,6 +204,38 @@ try {
         '…the log names the device once (not every load)',
         visits === 1 && logs.filter((l) => l.includes('still opened the old port')).length === 1,
     );
+    // through a reverse proxy the forward's target (<host>:<web port>) is not reachable
+    for (const [label, headers] of [
+        ['Host without the old port (nginx, NPM)', { Host: 'aura.example.com' }],
+        ['X-Forwarded-For with the direct Host', { Host: `127.0.0.1:${oldPort}`, 'X-Forwarded-For': '203.0.113.5' }],
+    ]) {
+        const r = await get(oldPort, '/', { Accept: 'text/html', ...headers });
+        check(
+            `proxied (${label}): no forward, the page says what to change`,
+            r.status === 200 &&
+                !r.body.includes('aura-handoff=') &&
+                !r.body.includes('location.replace') &&
+                r.body.includes('reverse proxy') &&
+                r.body.includes(`:${webPort}`) &&
+                r.body.includes('$request_uri'),
+            r.body.slice(0, 200),
+        );
+    }
+    const proxyWarns = logs.filter((l) => l.startsWith('warn:') && l.includes('through a reverse proxy'));
+    await get(oldPort, '/', { Accept: 'text/html', Host: 'aura.example.com' });
+    check(
+        '…a warning in the log naming the host, once per host',
+        proxyWarns.length === 2 &&
+            proxyWarns[0].includes('aura.example.com') &&
+            logs.filter((l) => l.includes('through a reverse proxy')).length === 2,
+        JSON.stringify(proxyWarns),
+    );
+    check(
+        'a router port forward (other external port) counts as proxied too',
+        portRedirect.proxiedHost({ headers: { host: 'home.example.net:18095' } }, oldPort) ===
+            'home.example.net:18095' &&
+            portRedirect.proxiedHost({ headers: { host: `192.168.1.10:${oldPort}` } }, oldPort) === '',
+    );
     for (const path of [
         '/api/aura/admin/status',
         '/fs/roots',
