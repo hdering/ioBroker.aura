@@ -83,9 +83,31 @@ eq(
     { port: 8082, https: false, pathPrefix: '/aura' },
 );
 eq(
-    'a base URL wins',
-    mcpBaseOptions({ customUrl: 'https://aura.example.org', port: 8095, bind: '127.0.0.1', web: { port: 8082 } }),
-    { customUrl: 'https://aura.example.org', port: 8095 },
+    'a base URL wins (own port, all interfaces: as it is)',
+    mcpBaseOptions({ customUrl: 'https://aura.example.org/', port: 8095, bind: '', web: { port: 8082 } }).customUrl,
+    'https://aura.example.org',
+);
+eq(
+    'a bare host as base URL behind the web instance means <host>/aura (no own port)',
+    mcpBaseOptions({
+        customUrl: 'https://aura.example.org',
+        port: 8095,
+        bind: '',
+        web: { port: 8082 },
+        noOwnPort: true,
+    }).customUrl,
+    'https://aura.example.org/aura',
+);
+eq(
+    '…also with the own port only on 127.0.0.1',
+    mcpBaseOptions({ customUrl: 'https://aura.example.org/', port: 8095, bind: '127.0.0.1', web: { port: 8082 } })
+        .customUrl,
+    'https://aura.example.org/aura',
+);
+eq(
+    '…a base URL that names a path is taken as it is',
+    mcpBaseOptions({ customUrl: 'https://example.org/aura/', port: 8095, bind: '', noOwnPort: true }).customUrl,
+    'https://example.org/aura',
 );
 
 // ── 5. Who holds the port (js-controller 8 checkUsedResource) ───────────────

@@ -32,6 +32,7 @@ const {
     isLoopbackOnly,
     loopbackProblems,
     mcpBaseOptions,
+    publicBase,
     portHolders,
     usedResourceCheck,
 } = require('./lib/serverBind');
@@ -4657,7 +4658,10 @@ class Aura extends utils.Adapter {
      * @param {boolean} [ownPort] whether Aura keeps a port of its own (#997)
      */
     async _wantLocalLinks(webInstance, ownPort = true) {
-        const base = this.config.customUrl ? this.config.customUrl.replace(/\/+$/, '') : null;
+        // a bare host as base URL means <host>/aura once the web instance is the way in
+        const base = this.config.customUrl
+            ? publicBase(this.config.customUrl, !ownPort || isLoopbackOnly(this.config.bind))
+            : null;
         const port = this.config.port || 8095;
         const langs = ['en', 'de', 'ru', 'pt', 'nl', 'fr', 'it', 'es', 'pl', 'uk', 'zh-cn'];
         const makeName = (v) => Object.fromEntries(langs.map((l) => [l, v]));

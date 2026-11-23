@@ -458,8 +458,20 @@
     "customUrl": {
       "type": "text",
       "label": "Base URL",
-      "placeholder": "https://your-domain.com",
-      "help": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:<port>).",
+      "placeholder": "https://aura.example.com",
+      "help": {
+        "en": "Public address of Aura, e.g. behind a reverse proxy - used for the instance links and the MCP client configuration. Running through the web instance, a bare host (https://aura.example.com) means https://aura.example.com/aura/. Empty = the address of the web instance (or of the own port).",
+        "de": "Öffentliche Adresse von Aura, z. B. hinter einem Reverse Proxy – für die Instanz-Links und die MCP-Client-Konfiguration. Läuft Aura über die Web-Instanz, bedeutet ein reiner Host (https://aura.example.com) https://aura.example.com/aura/. Leer = Adresse der Web-Instanz (bzw. des eigenen Ports).",
+        "ru": "Публичный адрес Aura, например за обратным прокси, — для ссылок экземпляра и конфигурации MCP-клиента. Если Aura работает через веб-экземпляр, просто хост (https://aura.example.com) означает https://aura.example.com/aura/. Пусто = адрес веб-экземпляра (или собственного порта).",
+        "pt": "Endereço público do Aura, ex. atrás de um proxy reverso - para as ligações da instância e a configuração do cliente MCP. A funcionar através da instância web, um host simples (https://aura.example.com) significa https://aura.example.com/aura/. Vazio = endereço da instância web (ou da porta própria).",
+        "nl": "Openbaar adres van Aura, bijv. achter een reverse proxy - voor de instantielinks en de MCP-clientconfiguratie. Draait Aura via de webinstantie, dan betekent een kale host (https://aura.example.com) https://aura.example.com/aura/. Leeg = adres van de webinstantie (of van de eigen poort).",
+        "fr": "Adresse publique d'Aura, p. ex. derrière un proxy inverse - pour les liens de l'instance et la configuration du client MCP. Si Aura passe par l'instance web, un hôte seul (https://aura.example.com) signifie https://aura.example.com/aura/. Vide = adresse de l'instance web (ou du port propre).",
+        "it": "Indirizzo pubblico di Aura, ad es. dietro un reverse proxy - per i link dell'istanza e la configurazione del client MCP. Se Aura passa dall'istanza web, un host semplice (https://aura.example.com) significa https://aura.example.com/aura/. Vuoto = indirizzo dell'istanza web (o della porta propria).",
+        "es": "Dirección pública de Aura, p. ej. detrás de un proxy inverso: para los enlaces de la instancia y la configuración del cliente MCP. Si Aura funciona a través de la instancia web, un host solo (https://aura.example.com) significa https://aura.example.com/aura/. Vacío = dirección de la instancia web (o del puerto propio).",
+        "pl": "Publiczny adres Aury, np. za reverse proxy – dla linków instancji i konfiguracji klienta MCP. Gdy Aura działa przez instancję web, sam host (https://aura.example.com) oznacza https://aura.example.com/aura/. Puste = adres instancji web (lub własnego portu).",
+        "uk": "Публічна адреса Aura, наприклад за зворотним проксі, — для посилань екземпляра та конфігурації MCP-клієнта. Якщо Aura працює через веб-екземпляр, просто хост (https://aura.example.com) означає https://aura.example.com/aura/. Порожньо = адреса веб-екземпляра (або власного порту).",
+        "zh-cn": "Aura 的公共地址，例如位于反向代理之后——用于实例链接和 MCP 客户端配置。如果 Aura 通过 Web 实例运行，仅填写主机（https://aura.example.com）即表示 https://aura.example.com/aura/。留空 = Web 实例（或自己端口）的地址。"
+      },
       "xs": 12,
       "sm": 12,
       "md": 6,
