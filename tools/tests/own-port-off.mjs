@@ -302,8 +302,8 @@ try {
     {
         const items = JSON.parse(fs.readFileSync(join(process.cwd(), 'admin/jsonConfig.json'), 'utf8')).items;
         const run = (expr, data) => new Function('data', `return (${expr});`)(data);
-        const shown = (key, ownPort, webInstance = 'web.0') =>
-            !items[key].hidden || !run(items[key].hidden, { ownPort, webInstance });
+        const shown = (key, ownPort, webInstance = 'web.0', portRedirect = false) =>
+            !items[key].hidden || !run(items[key].hidden, { ownPort, webInstance, portRedirect });
         check(
             'settings: option and warning only while the port is on',
             ['ownPort', '_ownPortWarning'].every(
@@ -340,6 +340,12 @@ try {
         check(
             '…forwarding the old port only offered with the port off and a web instance',
             shown('portRedirect', false) && !shown('portRedirect', true) && !shown('portRedirect', false, ''),
+        );
+        check(
+            '…and the forward keeps its port settable (port and bind, not TLS or socket)',
+            shown('port', false, 'web.0', true) &&
+                shown('bind', false, 'web.0', true) &&
+                !shown('socketInstance', false, 'web.0', true),
         );
         check(
             '…a not yet started instance explains the first start instead',

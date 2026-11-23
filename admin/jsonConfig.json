@@ -260,7 +260,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "(data.ownPort !== true && !!data.webInstance)"
+      "hidden": "(data.ownPort !== true && !!data.webInstance && data.portRedirect !== true)"
     },
     "bind": {
       "type": "select",
@@ -333,7 +333,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "(data.ownPort !== true && !!data.webInstance)"
+      "hidden": "(data.ownPort !== true && !!data.webInstance && data.portRedirect !== true)"
     },
     "customUrl": {
       "type": "text",
