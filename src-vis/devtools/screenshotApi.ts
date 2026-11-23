@@ -185,8 +185,31 @@ let uninstallShortcuts: (() => void) | null = null;
 let touchArrangeDetach: (() => void) | null = null;
 const sendToLog: { target: string; command: string; payload: unknown }[] = [];
 
+/**
+ * Harness answers for the commands a widget asks the Aura adapter before it reads the
+ * object DB itself. Without an adapter they would never answer, and a silent adapter is
+ * retried, not replaced by the own search (utils/askAdapter) — null says "the adapter
+ * does not do it here", so the widgets search the mocked object views as before. Only
+ * once a test has mocked them: before that the real adapter answers (connected dev
+ * server), and a search started earlier would go to the real socket, not the mock.
+ */
+const HARNESS_SENDTO_DEFAULTS = new Set(['statusDiscover', 'autolistSync']);
+let objectViewMocked = false;
+
+function harnessSendTo(byCommand: Record<string, unknown>) {
+    return (target: string, command: string, payload: unknown) => {
+        if (command in byCommand) {
+            sendToLog.push({ target, command, payload });
+            return byCommand[command];
+        }
+        if (!HARNESS_SENDTO_DEFAULTS.has(command)) return undefined;
+        return objectViewMocked ? null : undefined;
+    };
+}
+
 function installScreenshotApi(): void {
     setScreenshotMode(true);
+    __devSetSendTo(harnessSendTo({}));
     // Force the light frontend theme so all documentation screenshots share a
     // consistent look (the default frontend theme is dark).
     withSuppressedDirty(() => useThemeStore.getState().setTheme('light'));
@@ -472,18 +495,16 @@ function installScreenshotApi(): void {
         /** Stub getObjectView per object type: { instance: [{id,value}], script: [...] }.
          *  Unlisted types resolve empty so nothing real leaks into the demo. */
         mockObjectView(byType: Record<string, { id: string; value: unknown }[]>): void {
+            objectViewMocked = true;
             __devSetObjectView((type) => ({ rows: byType[type] ?? [] }) as unknown as ObjectViewResult);
         },
 
         /** Stub sendTo responses keyed by command, e.g. { getRecentLogs: {...} }.
-         *  Unlisted commands fall through to the real socket. Answered calls are
-         *  logged for sendToCalls(). */
+         *  Unlisted commands fall through to the real socket (statusDiscover and
+         *  autolistSync: see HARNESS_SENDTO_DEFAULTS). Answered calls
+         *  are logged for sendToCalls(). */
         mockSendTo(byCommand: Record<string, unknown>): void {
-            __devSetSendTo((target, command, payload) => {
-                if (!(command in byCommand)) return undefined;
-                sendToLog.push({ target, command, payload });
-                return byCommand[command];
-            });
+            __devSetSendTo(harnessSendTo(byCommand));
         },
 
         /** The sendTo calls mockSendTo answered, oldest first. */

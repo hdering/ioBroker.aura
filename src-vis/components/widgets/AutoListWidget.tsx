@@ -13,6 +13,7 @@ import {
 import { condDisabledProps, COND_DISABLED_CONTENTS } from '../../utils/condDisabled';
 import { getObjectViewDirect, sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { NS } from '../../utils/namespace';
+import { askUntilAnswered, isSilence } from '../../utils/askAdapter';
 import { fetchDatapointEntries } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { autoListSyncRound } from '../../utils/autoListSync';
@@ -397,23 +398,31 @@ function discoveryKey(opts: AutoListDiscoveryOptions): string {
 
 /**
  * Asks the adapter whether it syncs this list (lib/autoListSync.js, #893) — with `now`,
- * to sync it at once. null = no usable answer; an adapter that never answered (older
- * version) is not asked again in this page, so the next list does not wait as well.
+ * to sync it at once. null = it answered but does not hold the list (or failed): sync
+ * here. undefined = no answer (restarting, busy) or cancelled. With `isCancelled` the
+ * silence is retried with growing pauses (utils/askAdapter), without it asked once.
+ * Silence never means "sync here": that downloads every object view, and every open
+ * dashboard doing so while the adapter restarts stalled a large installation.
  */
-let adapterSyncFailed = false;
-async function askAdapterSync(widgetId: string, now: boolean): Promise<{ managed: boolean; changed?: boolean } | null> {
-    if (adapterSyncFailed || !widgetId) return null;
-    const res = await sendToDirect<{ ok?: boolean; managed?: boolean; changed?: boolean }>(
-        NS,
-        'autolistSync',
-        { widgetId, now },
-        15000,
-    );
-    if (!res || typeof res !== 'object' || '__timeout' in res) {
-        if (res && typeof res === 'object') adapterSyncFailed = true;
-        return null;
-    }
-    if (!res.ok) return null;
+async function askAdapterSync(
+    widgetId: string,
+    now: boolean,
+    isCancelled?: () => boolean,
+): Promise<{ managed: boolean; changed?: boolean } | null | undefined> {
+    if (!widgetId) return null;
+    const ask = async () => {
+        const r = await sendToDirect<{ ok?: boolean; error?: string; managed?: boolean; changed?: boolean }>(
+            NS,
+            'autolistSync',
+            { widgetId, now },
+            15000,
+        );
+        // Started, but the sync is not set up yet — the same as no answer.
+        return r && typeof r === 'object' && 'error' in r && r.error === 'not ready' ? { __timeout: true as const } : r;
+    };
+    const res = isCancelled ? await askUntilAnswered(ask, isCancelled) : await ask();
+    if (res === undefined || isSilence(res)) return undefined;
+    if (!res || typeof res !== 'object' || !res.ok) return null;
     return { managed: res.managed === true, changed: res.changed };
 }
 
@@ -1289,8 +1298,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     useEffect(() => {
         if (!filterKey) return;
         let live = true;
-        askAdapterSync(config.id, false).then((r) => {
-            if (live) setAdapterSyncs(r?.managed === true);
+        askAdapterSync(config.id, false, () => !live).then((r) => {
+            if (live && r !== undefined) setAdapterSyncs(r?.managed === true);
         });
         return () => {
             live = false;
@@ -1323,6 +1332,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         try {
             if (!editMode && adapterSyncs !== false) {
                 const r = await askAdapterSync(config.id, true);
+                // No answer: the adapter syncs the stored list itself once it is back.
+                if (r === undefined) return;
                 setAdapterSyncs(r?.managed === true);
                 if (r?.managed) return;
             }

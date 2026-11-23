@@ -28,6 +28,7 @@ import {
 } from '../../hooks/useIoBroker';
 import { useConnectionLost } from '../../hooks/useConnectionLost';
 import { NS } from '../../utils/namespace';
+import { askUntilAnswered } from '../../utils/askAdapter';
 import { useT } from '../../i18n';
 import {
     ensureDatapointCache,
@@ -190,24 +191,29 @@ type Candidate = StatusCandidate;
 
 /**
  * The adapter discovers the candidates in its own object DB (#882), so a phone loads a
- * few kB instead of every object. null = no usable answer (older adapter, timeout) —
- * the widget then discovers on its own. An adapter that never answered is not asked
- * again in this page, so the next overview does not wait for the timeout as well.
+ * few kB instead of every object. While it does not answer (restarting after an update,
+ * busy) it is asked again with growing pauses — never replaced by downloading the whole
+ * object DB, which on a large installation stalled the js-controller for minutes
+ * (utils/askAdapter). null = it answered, but without candidates (an error, no
+ * permission) — only then does the widget discover on its own. undefined = cancelled.
  */
-let adapterDiscoveryFailed = false;
 async function discoverOnAdapter(
     opts: StatusOverviewOptions,
     overrides: Record<string, BatteryTypeOverride> | undefined,
-): Promise<{ candidates: Candidate[]; devices: Map<string, DeviceModel> } | null> {
-    if (adapterDiscoveryFailed) return null;
-    const res = await sendToDirect<{ ok?: boolean; candidates?: Candidate[]; devices?: DeviceModel[] }>(
-        NS,
-        'statusDiscover',
-        { opts: discoveryOptions(opts), overrides: overrides ?? {} },
-        15000,
+    isCancelled: () => boolean,
+): Promise<{ candidates: Candidate[]; devices: Map<string, DeviceModel> } | null | undefined> {
+    const res = await askUntilAnswered(
+        () =>
+            sendToDirect<{ ok?: boolean; candidates?: Candidate[]; devices?: DeviceModel[] }>(
+                NS,
+                'statusDiscover',
+                { opts: discoveryOptions(opts), overrides: overrides ?? {} },
+                15000,
+            ),
+        isCancelled,
     );
+    if (res === undefined) return undefined;
     if (!res || typeof res !== 'object' || !('ok' in res) || !res.ok || !Array.isArray(res.candidates)) {
-        if (res && typeof res === 'object' && '__timeout' in res) adapterDiscoveryFailed = true;
         return null;
     }
     return { candidates: res.candidates, devices: new Map((res.devices ?? []).map((d) => [d.id, d])) };
@@ -449,8 +455,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         let cancelled = false;
         setDiscovered(false);
         setBatteryGateDone(false);
-        discoverOnAdapter(opts, overrides).then((remote) => {
-            if (cancelled) return;
+        discoverOnAdapter(opts, overrides, () => cancelled).then((remote) => {
+            if (cancelled || remote === undefined) return;
             if (remote) {
                 rememberDatapointEntries(remote.candidates.map((c) => c.dp));
                 setServerDevices(remote.devices);

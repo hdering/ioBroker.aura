@@ -113,7 +113,19 @@ async function open(options, list = LIST, layout = 'compact', width = 900, cols 
             ]),
         [options, layout, cols],
     );
-    await page.waitForTimeout(1500);
+    // Until the discovery is through (the harness answers statusDiscover with "not here",
+    // the widget then searches the mocked views), not a fixed pause.
+    await page
+        .waitForFunction(
+            () => {
+                const t = document.querySelector('.react-grid-item')?.textContent ?? '';
+                return t.length > 0 && !t.includes('Datenpunkte werden gesucht') && !t.includes('Daten werden geladen');
+            },
+            null,
+            { timeout: 30000 },
+        )
+        .catch(() => {});
+    await page.waitForTimeout(500);
     return { ctx, page };
 }
 

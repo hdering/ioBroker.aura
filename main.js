@@ -1574,7 +1574,7 @@ class Aura extends utils.Adapter {
             this.log.warn(`aura: web adapter extension — "${id}" is disabled, /aura/ is not served`);
         } else {
             this.log.info(
-                `aura: web adapter extension on — also reachable as <${id}>/aura/ (that instance restarts whenever this instance is started, stopped or reconfigured)`,
+                `aura: web adapter extension on — also reachable as <${id}>/aura/ (${id} reloads the extension when these settings change - web before 9.3 restarts instead)`,
             );
         }
         const n = obj.native || {};
@@ -4736,6 +4736,9 @@ class Aura extends utils.Adapter {
      * @returns {Promise<boolean>} true when the instance is being unloaded
      */
     _awaitRestartAfterOwnWrite() {
+        // The stop often arrives before the write has even returned: then there is
+        // nothing to wait for (and an adapter timer would be refused while unloading).
+        if (this._unloading) return Promise.resolve(true);
         return new Promise((resolve) => {
             const done = (unloading) => {
                 this.clearTimeout(timer);
@@ -7872,6 +7875,7 @@ class Aura extends utils.Adapter {
     }
 
     onUnload(callback) {
+        this._unloading = true;
         this._onUnloadStarted?.();
         const finish = () => {
             try {
