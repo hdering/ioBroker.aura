@@ -2097,7 +2097,8 @@ class Aura extends utils.Adapter {
                 if (f.level === 'error') this.log.error(line);
                 else this.log.warn(line);
             }
-            if (result.level === 'ok') this.log.debug('aura: backend check passed');
+            // a note (pure WebSockets, the old port forwarding) is nothing to look into
+            if (result.level === 'ok' || result.level === 'info') this.log.debug('aura: backend check passed');
             else {
                 this.log.info(
                     'aura: open the aura instance settings and press "Check backend" for the full report ' +
