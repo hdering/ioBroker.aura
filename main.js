@@ -4699,7 +4699,7 @@ class Aura extends utils.Adapter {
             if (!obj) {
                 return;
             }
-            const { changed, plainMcpToken, info, debug } = await syncOwnInstanceObject(obj, {
+            const { changed, reasons, plainMcpToken, info, debug } = await syncOwnInstanceObject(obj, {
                 encrypt: (value) => this.encrypt(value),
                 clearResetAdminPin: this.config.resetAdminPin === true,
                 localLinks: (webInstance, ownPort) => this._wantLocalLinks(webInstance, ownPort),
@@ -4717,6 +4717,8 @@ class Aura extends utils.Adapter {
             info.forEach((line) => this.log.info(line));
             debug.forEach((line) => this.log.debug(line));
             if (changed) {
+                // Every write restarts this instance (and reloads the web extension), so say why.
+                this.log.info(`aura: writing the instance object: ${reasons.join('; ')}`);
                 await this.setForeignObjectAsync(obj._id, obj);
                 return true;
             }
