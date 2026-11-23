@@ -2072,6 +2072,7 @@ class Aura extends utils.Adapter {
                 listening: !!this._httpServer?.listening,
                 off: !!this._noOwnPort,
                 web: this.config.webInstance || '',
+                sharedWith: this._webSharedWith || '',
             },
             probe: (at) => this.probeBackend(at),
             ownReact: !!reactEsmFile('/lib/esm/react-19.js'),
@@ -2946,6 +2947,17 @@ class Aura extends utils.Adapter {
         // No own port (#997): the local socket is the only way in, the web
         // extension serves everything under <web>/aura/.
         this._noOwnPort = false;
+        // A web instance serves ONE Aura instance under /aura/ (the one it loaded
+        // first, lib/webExtension.js) - the other one is not reached there.
+        this._webSharedWith = '';
+        if (this.config.webInstance) {
+            this._webSharedWith = (await this._webInstancesOfOtherAura(true)).get(this.config.webInstance) || '';
+        }
+        if (this._webSharedWith) {
+            this.log.warn(
+                `aura: ${this.config.webInstance} is also chosen by ${this._webSharedWith} — a web instance serves one Aura instance as <web>/aura/, the other one is not reached there. Choose another web instance for one of them (the web log names the one that stays off)`,
+            );
+        }
         if (this.config.ownPort === false) {
             const why = await this._ownPortStillNeeded(ipcOk);
             if (!why) {
@@ -4505,9 +4517,11 @@ class Aura extends utils.Adapter {
      * Web instances other Aura instances already run in: a web instance mounts the
      * extension of one Aura instance under /aura/, a second one there is not reached.
      *
+     * @param {boolean} [enabledOnly] only running-capable (enabled) Aura instances - web
+     *   loads no extension for a disabled one, so only those clash right now
      * @returns {Promise<Map<string, string>>} web instance id → Aura instance id
      */
-    async _webInstancesOfOtherAura() {
+    async _webInstancesOfOtherAura(enabledOnly = false) {
         const taken = new Map();
         let objects = {};
         try {
@@ -4518,6 +4532,9 @@ class Aura extends utils.Adapter {
         for (const o of Object.values(objects)) {
             const id = String(o?._id || '').slice('system.adapter.'.length);
             const web = String(o?.native?.webInstance || '');
+            if (enabledOnly && o?.common?.enabled === false) {
+                continue;
+            }
             if (id && id !== this.namespace && /^web\.\d+$/.test(web) && !taken.has(web)) {
                 taken.set(web, id);
             }

@@ -320,6 +320,62 @@ const viaOf = (buf) => (/(ipc|tcp):ping/.exec(buf) || [])[1] || null;
     eq('route() then is TCP', await old.route(), null);
 }
 
+// ── 7. Two Aura instances on one web instance (#997) ────────────────────────
+// Both would mount /aura/: HTTP went to the first, upgrades to the last. The
+// second one stays off and says so in the web log.
+{
+    const app3 = express();
+    const web3 = http.createServer(app3);
+    const emitBefore = web3.emit;
+    const first = new WebExtension(
+        web3,
+        { secure: false },
+        fakeAdapter('host-a'),
+        { _id: 'system.adapter.aura.7', common: { host: 'host-a' }, native: { port: tcpPort } },
+        app3,
+    );
+    const emitFirst = web3.emit;
+    const layers = app3._router?.stack?.length ?? app3.router?.stack?.length;
+    extLogs.length = 0;
+    const second = new WebExtension(
+        web3,
+        { secure: false },
+        fakeAdapter('host-a'),
+        { _id: 'system.adapter.aura.8', common: { host: 'host-a' }, native: { port: tcpPort, mcpEnabled: true } },
+        app3,
+    );
+    eq('first one takes /aura/', emitFirst !== emitBefore && first.active, true);
+    eq('second one stays off', second.shadowedBy, 'aura.7');
+    eq('…takes no upgrades', web3.emit === emitFirst && !second.active, true);
+    eq('…mounts no route', app3._router?.stack?.length ?? app3.router?.stack?.length, layers);
+    eq('…offers no MCP route', second.publicRoutes().length, 0);
+    eq(
+        '…and says so in the web log',
+        extLogs.some((m) => m.includes('aura.8 stays off') && m.includes('aura.7')),
+        true,
+    );
+    second.unload();
+    first.unload();
+    const again = new WebExtension(
+        web3,
+        { secure: false },
+        fakeAdapter('host-a'),
+        { _id: 'system.adapter.aura.8', common: { host: 'host-a' }, native: { port: tcpPort } },
+        app3,
+    );
+    eq('after the first one unloaded the other one takes it', again.shadowedBy === '' && again.active, true);
+    const reload = new WebExtension(
+        web3,
+        { secure: false },
+        fakeAdapter('host-a'),
+        { _id: 'system.adapter.aura.8', common: { host: 'host-a' }, native: { port: tcpPort } },
+        app3,
+    );
+    eq('a hot reload of the same instance takes over', reload.shadowedBy === '' && reload.active, true);
+    reload.unload();
+    again.unload();
+}
+
 ext.unload();
 await stopDaemon();
 web.close();

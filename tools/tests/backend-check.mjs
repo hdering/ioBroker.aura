@@ -221,6 +221,13 @@ const REPORTED = {
     );
     check('…names the web instance', byId(off, 'own-server-off').title.includes('web.0'));
     check('…and no HTTPS fallback error', !byId(off, 'https-fallback'));
+    const shared = serverFindings({ listening: false, off: true, web: 'web.0', sharedWith: 'aura.1' });
+    check(
+        'a web instance shared with another Aura instance is an error naming both',
+        byId(shared, 'web-instance-shared')?.level === 'error' &&
+            /web\.0.*aura\.1/.test(byId(shared, 'web-instance-shared').title),
+    );
+    check('…not without one', !byId(off, 'web-instance-shared'));
 }
 
 // ── 6. The report that gets pasted into a forum post ────────────────────────

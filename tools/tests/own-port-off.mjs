@@ -165,6 +165,27 @@ try {
         check('…not marked as portless', aura._noOwnPort === false);
         await stop(aura);
     }
+    // ── 2b. another Aura instance on the same web instance ───────────────────
+    for (const [label, enabled] of [
+        ['enabled', true],
+        ['disabled', false],
+    ]) {
+        objects = {
+            'system.adapter.web.0': webObj('host-a'),
+            'system.adapter.aura.1': { common: { enabled }, native: { webInstance: 'web.0' } },
+        };
+        logs.length = 0;
+        const port = await freePort();
+        const aura = await boot({ port, ownPort: false, webInstance: 'web.0' });
+        const warned = logs.some((l) => l.startsWith('warn:') && l.includes('also chosen by aura.1'));
+        if (enabled) {
+            check('web instance shared with a running Aura instance: warning in the log', warned);
+            check('…handed to the backend check', aura._webSharedWith === 'aura.1');
+        } else {
+            check(`…not for a ${label} one (web loads no extension for it)`, !warned && aura._webSharedWith === '');
+        }
+        await stop(aura);
+    }
     // ── 3. own port on: as before, plus the deprecation note ─────────────────
     {
         objects = { 'system.adapter.web.0': webObj('host-a') };
