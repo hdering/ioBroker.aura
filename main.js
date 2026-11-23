@@ -68,6 +68,7 @@ const { createFeedProxy } = require('./lib/feedProxy');
 const { isBlockedHost, guardedLookup, isCrossSite } = require('./lib/proxyGuard');
 const { createProxyJar, readCookie, foreignCookies, targetOrigin } = require('./lib/proxyJar');
 const { createMovedHandler, isSocketUpgrade } = require('./lib/portRedirect');
+const { webInstanceNote } = require('./lib/webInstanceNote');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
 const { adapterTimers } = require('./lib/timers');
@@ -7194,6 +7195,19 @@ class Aura extends utils.Adapter {
             // port, because that is the number people get wrong.
             // Web instances the extension can be loaded into (Aura settings →
             // "Web adapter extension"). Empty value = extension off.
+            // The note under that dropdown: web instances other Aura instances use.
+            if (msg.command === 'webInstanceNote') {
+                const chosen = String(msg.message?.webInstance || '');
+                reply(
+                    webInstanceNote({
+                        taken: await this._webInstancesOfOtherAura(),
+                        chosen: /^web\.\d+$/.test(chosen) ? chosen : '',
+                        lang: await this._systemLanguage(),
+                    }),
+                );
+                return;
+            }
+
             if (msg.command === 'listWebInstances') {
                 let objects = {};
                 try {

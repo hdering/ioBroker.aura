@@ -813,6 +813,22 @@
       "lg": 4,
       "xl": 4
     },
+    "_webInstanceNote": {
+      "type": "textSendTo",
+      "command": "webInstanceNote",
+      "jsonData": "{\"webInstance\":\"${data.webInstance}\"}",
+      "alsoDependsOn": [
+        "webInstance"
+      ],
+      "container": "div",
+      "noTranslation": true,
+      "hidden": "!_alive",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "_fsHeader": {
       "type": "header",
       "text": {

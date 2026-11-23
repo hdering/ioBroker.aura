@@ -254,6 +254,42 @@ try {
         let list = null;
         aura.sendTo = (_from, _cmd, data) => (list = data);
         await aura.onMessage({ command: 'listWebInstances', from: 'system.adapter.admin.0', callback: { id: 1 } });
+        const note = async (webInstance) => {
+            let got = null;
+            aura.sendTo = (_from, _cmd, data) => (got = data);
+            await aura.onMessage({
+                command: 'webInstanceNote',
+                from: 'system.adapter.admin.0',
+                callback: { id: 2 },
+                message: { webInstance },
+            });
+            return got;
+        };
+        aura._sysLanguage = 'en';
+        let n = await note('');
+        check(
+            'the note under the list names the taken web instance and why (yellow)',
+            /Cannot be chosen here: web\.0 \(used by aura\.1\)/.test(n?.text || '') &&
+                /one Aura instance/.test(n.text) &&
+                /ed6c02/.test(n.style?.borderLeft || ''),
+            JSON.stringify(n),
+        );
+        n = await note('web.0');
+        check(
+            '…turns red when the taken one is chosen in the form',
+            /web\.0 is already used by aura\.1/.test(n?.text || '') && /d32f2f/.test(n.style?.borderLeft || ''),
+            JSON.stringify(n),
+        );
+        aura._sysLanguage = 'de';
+        n = await note('');
+        check('…in the system language', /Hier nicht wählbar: web\.0 \(nutzt aura\.1\)/.test(n?.text || ''), n?.text);
+        const saved = objects['system.adapter.aura.1'];
+        delete objects['system.adapter.aura.1'];
+        delete objects['system.adapter.aura.0'];
+        n = await note('');
+        check('…and stays invisible when nothing is taken', n?.text === '' && n.style?.display === 'none');
+        objects['system.adapter.aura.1'] = saved;
+        aura.sendTo = (_from, _cmd, data) => (list = data);
         const web0 = (list || []).find((o) => o.value === 'web.0');
         check(
             '…the settings list marks a web instance another Aura instance uses',
@@ -301,6 +337,16 @@ try {
         );
         const alive = (a) => !new Function('_alive', `return (${items._webInstanceNotRunning.hidden});`)(a);
         check('…the web instance list explains itself while the instance is stopped', alive(false) && !alive(true));
+        const keys = Object.keys(items);
+        const noteItem = items._webInstanceNote;
+        check(
+            '…and while it runs a note right under the list asks the instance (and follows the choice)',
+            keys.indexOf('_webInstanceNote') === keys.indexOf('webInstance') + 1 &&
+                noteItem.type === 'textSendTo' &&
+                noteItem.command === 'webInstanceNote' &&
+                noteItem.alsoDependsOn.includes('webInstance') &&
+                noteItem.jsonData.includes('${data.webInstance}'),
+        );
     }
 } finally {
     fs.rmSync(dataRoot, { recursive: true, force: true });
