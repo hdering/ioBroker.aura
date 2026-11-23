@@ -24,6 +24,30 @@
       "lg": 12,
       "xl": 12
     },
+    "_ownPortPending": {
+      "type": "infoBox",
+      "boxType": "info",
+      "closeable": false,
+      "hidden": "data.ownPort === true || data.ownPort === false",
+      "text": {
+        "en": "Not started yet. On its first start Aura picks a free web instance on this host and runs without a port of its own, as <web-port>/aura/. Only when no web instance is free does it open its own port; its settings appear here then.",
+        "de": "Noch nicht gestartet. Beim ersten Start wählt Aura eine freie Web-Instanz auf diesem Host und läuft ohne eigenen Port als <Web-Port>/aura/. Nur wenn keine Web-Instanz frei ist, öffnet es einen eigenen Port; dessen Einstellungen erscheinen dann hier.",
+        "ru": "Ещё не запущен. При первом запуске Aura выбирает свободный веб-экземпляр на этом хосте и работает без собственного порта как <веб-порт>/aura/. Только если свободного веб-экземпляра нет, открывается собственный порт; его настройки тогда появятся здесь.",
+        "pt": "Ainda não iniciado. No primeiro arranque o Aura escolhe uma instância web livre neste host e funciona sem porta própria, como <porta-web>/aura/. Só se nenhuma instância web estiver livre abre uma porta própria; as suas definições aparecem então aqui.",
+        "nl": "Nog niet gestart. Bij de eerste start kiest Aura een vrije webinstantie op deze host en draait zonder eigen poort als <webpoort>/aura/. Alleen als er geen webinstantie vrij is, opent het een eigen poort; de instellingen daarvan verschijnen dan hier.",
+        "fr": "Pas encore démarré. Au premier démarrage, Aura choisit une instance web libre sur cet hôte et fonctionne sans port propre, sous <port-web>/aura/. Ce n'est que si aucune instance web n'est libre qu'il ouvre son propre port ; ses réglages apparaissent alors ici.",
+        "it": "Non ancora avviata. Al primo avvio Aura sceglie un'istanza web libera su questo host e funziona senza porta propria, come <porta-web>/aura/. Solo se nessuna istanza web è libera apre una porta propria; le sue impostazioni compaiono allora qui.",
+        "es": "Aún no iniciado. En el primer arranque Aura elige una instancia web libre en este host y funciona sin puerto propio, como <puerto-web>/aura/. Solo si no hay ninguna instancia web libre abre un puerto propio; sus ajustes aparecen entonces aquí.",
+        "pl": "Jeszcze nie uruchomiono. Przy pierwszym starcie Aura wybiera wolną instancję web na tym hoście i działa bez własnego portu jako <port-web>/aura/. Tylko gdy żadna instancja web nie jest wolna, otwiera własny port; jego ustawienia pojawią się wtedy tutaj.",
+        "uk": "Ще не запущено. Під час першого запуску Aura вибирає вільний веб-екземпляр на цьому хості й працює без власного порту як <веб-порт>/aura/. Лише якщо вільного веб-екземпляра немає, відкривається власний порт; його налаштування тоді з’являться тут.",
+        "zh-cn": "尚未启动。首次启动时，Aura 会在此主机上选择一个空闲的 Web 实例，并以 <Web端口>/aura/ 运行，不使用自己的端口。只有在没有空闲 Web 实例时才会打开自己的端口，届时其设置会显示在这里。"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "_ownPortWarning": {
       "type": "infoBox",
       "boxType": "warning",
@@ -176,7 +200,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "bind": {
       "type": "select",
@@ -249,7 +273,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "customUrl": {
       "type": "text",
@@ -283,7 +307,7 @@
       "md": 12,
       "lg": 12,
       "xl": 12,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "secure": {
       "type": "checkbox",
@@ -319,7 +343,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "certPublic": {
       "type": "certificate",
@@ -337,7 +361,7 @@
         "uk": "Публічний сертифікат",
         "zh-cn": "公共证书"
       },
-      "hidden": "(!data.secure) || data.ownPort === false",
+      "hidden": "(!data.secure) || data.ownPort !== true",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -360,7 +384,7 @@
         "uk": "Приватний ключ",
         "zh-cn": "私钥"
       },
-      "hidden": "(!data.secure) || data.ownPort === false",
+      "hidden": "(!data.secure) || data.ownPort !== true",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -383,7 +407,7 @@
         "uk": "Прикутий сертифікат",
         "zh-cn": "链式证书"
       },
-      "hidden": "(!data.secure) || data.ownPort === false",
+      "hidden": "(!data.secure) || data.ownPort !== true",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -411,7 +435,7 @@
       "md": 12,
       "lg": 12,
       "xl": 12,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "socketInstance": {
       "type": "selectSendTo",
@@ -449,7 +473,7 @@
       "md": 4,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "socketPort": {
       "type": "number",
@@ -482,7 +506,7 @@
       "min": 1024,
       "max": 65535,
       "default": 8082,
-      "hidden": "(!!data.socketInstance) || data.ownPort === false",
+      "hidden": "(!!data.socketInstance) || data.ownPort !== true",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -517,7 +541,7 @@
         "uk": "Увімкніть, якщо екземпляр iobroker.web на порту сокета має активований HTTPS. Після цього Aura підключиться до мережі через wss/https (приймаються самопідписані сертифікати).",
         "zh-cn": "如果套接字端口上的 iobroker.web 实例已激活 HTTPS，则启用。然后，Aura 将通过 wss/https 进行内部连接（接受自签名证书）。"
       },
-      "hidden": "(!!data.socketInstance) || data.ownPort === false",
+      "hidden": "(!!data.socketInstance) || data.ownPort !== true",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -559,7 +583,7 @@
       "lg": 4,
       "xl": 4,
       "newLine": true,
-      "hidden": "data.ownPort === false"
+      "hidden": "data.ownPort !== true"
     },
     "backendCheckHint": {
       "type": "staticText",
@@ -692,6 +716,30 @@
       "lg": 12,
       "xl": 12
     },
+    "_webInstanceNotRunning": {
+      "type": "infoBox",
+      "boxType": "info",
+      "closeable": false,
+      "hidden": "_alive",
+      "text": {
+        "en": "The list of web instances is filled only while this Aura instance runs: start it, then choose. Each web instance serves one Aura instance under /aura/ - a web instance another Aura instance already uses is marked in the list; for a second Aura instance add a second web instance (e.g. web.1 on its own port).",
+        "de": "Die Liste der Web-Instanzen füllt sich erst, wenn diese Aura-Instanz läuft: erst starten, dann auswählen. Jede Web-Instanz liefert genau eine Aura-Instanz unter /aura/ aus – eine Web-Instanz, die schon eine andere Aura-Instanz nutzt, ist in der Liste markiert; für eine zweite Aura-Instanz eine zweite Web-Instanz anlegen (z. B. web.1 auf eigenem Port).",
+        "ru": "Список веб-экземпляров заполняется только во время работы этого экземпляра Aura: сначала запустите его, затем выберите. Каждый веб-экземпляр обслуживает один экземпляр Aura под /aura/ — уже используемый другим экземпляром Aura помечен в списке; для второго экземпляра Aura добавьте второй веб-экземпляр (например, web.1 на своём порту).",
+        "pt": "A lista de instâncias web só é preenchida enquanto esta instância do Aura está a correr: inicie-a e depois escolha. Cada instância web serve uma instância do Aura em /aura/ — uma já usada por outra instância do Aura está marcada na lista; para uma segunda instância do Aura adicione uma segunda instância web (ex. web.1 na sua própria porta).",
+        "nl": "De lijst met webinstanties wordt pas gevuld als deze Aura-instantie draait: eerst starten, dan kiezen. Elke webinstantie bedient één Aura-instantie onder /aura/ – een webinstantie die al door een andere Aura-instantie wordt gebruikt, is in de lijst gemarkeerd; voeg voor een tweede Aura-instantie een tweede webinstantie toe (bijv. web.1 op een eigen poort).",
+        "fr": "La liste des instances web n'est remplie que pendant que cette instance Aura tourne : démarrez-la, puis choisissez. Chaque instance web sert une seule instance Aura sous /aura/ — une instance web déjà utilisée par une autre instance Aura est signalée dans la liste ; pour une deuxième instance Aura, ajoutez une deuxième instance web (p. ex. web.1 sur son propre port).",
+        "it": "L'elenco delle istanze web si riempie solo mentre questa istanza Aura è in esecuzione: avviarla, poi scegliere. Ogni istanza web serve una sola istanza Aura sotto /aura/ — un'istanza web già usata da un'altra istanza Aura è segnata nell'elenco; per una seconda istanza Aura aggiungere una seconda istanza web (es. web.1 su una porta propria).",
+        "es": "La lista de instancias web solo se llena mientras esta instancia de Aura está en marcha: iníciela y luego elija. Cada instancia web sirve una sola instancia de Aura bajo /aura/; una ya usada por otra instancia de Aura aparece marcada en la lista. Para una segunda instancia de Aura añada una segunda instancia web (p. ej. web.1 en su propio puerto).",
+        "pl": "Lista instancji web wypełnia się dopiero, gdy ta instancja Aura działa: najpierw ją uruchom, potem wybierz. Każda instancja web obsługuje jedną instancję Aura pod /aura/ — instancja web używana już przez inną instancję Aura jest oznaczona na liście; dla drugiej instancji Aura dodaj drugą instancję web (np. web.1 na własnym porcie).",
+        "uk": "Список веб-екземплярів заповнюється лише під час роботи цього екземпляра Aura: спершу запустіть його, потім виберіть. Кожен веб-екземпляр обслуговує один екземпляр Aura під /aura/ — уже використовуваний іншим екземпляром Aura позначено у списку; для другого екземпляра Aura додайте другий веб-екземпляр (наприклад, web.1 на власному порту).",
+        "zh-cn": "Web 实例列表仅在此 Aura 实例运行时才会填充：请先启动，再选择。每个 Web 实例只在 /aura/ 下提供一个 Aura 实例——已被其他 Aura 实例使用的 Web 实例会在列表中标出；如需第二个 Aura 实例，请添加第二个 Web 实例（例如在独立端口上的 web.1）。"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "webInstance": {
       "type": "selectSendTo",
       "command": "listWebInstances",
@@ -711,17 +759,17 @@
         "zh-cn": "Web 实例（/aura/）"
       },
       "help": {
-        "en": "Only for the Visu App / cloud. For remote access pick the web instance set in cloud.0 (usually web.0). Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
-        "de": "Nur für Visu App / Cloud. Für den Fernzugriff die Web-Instanz wählen, die in cloud.0 eingetragen ist (meist web.0). Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft.",
-        "ru": "Только для приложения/облака Visu. Для удаленного доступа выберите веб-экземпляр, заданный в cloud.0 (обычно web.0). Не связано с указанным выше подключением для передачи данных. Пусто = выключено. Список заполняется только во время работы этого экземпляра.",
-        "pt": "Somente para o Visu App/nuvem. Para acesso remoto, escolha a instância da web definida em cloud.0 (geralmente web.0). Não relacionado à conexão de dados acima. Vazio = desligado. A lista só é preenchida enquanto esta instância é executada.",
-        "nl": "Alleen voor de Visu App/cloud. Voor externe toegang kiest u de webinstantie die is ingesteld in cloud.0 (meestal web.0). Niet gerelateerd aan de bovenstaande dataverbinding. Leeg = uit. De lijst wordt alleen gevuld terwijl deze instantie wordt uitgevoerd.",
-        "fr": "Uniquement pour l'application Visu/cloud. Pour l'accès à distance, choisissez l'instance Web définie dans cloud.0 (généralement web.0). Sans rapport avec la connexion de données ci-dessus. Vide = éteint. La liste n'est remplie que pendant l'exécution de cette instance.",
-        "it": "Solo per l'app Visu/cloud. Per l'accesso remoto scegli l'istanza web impostata in cloud.0 (solitamente web.0). Non correlato alla connessione dati di cui sopra. Vuoto = spento. L'elenco viene compilato solo durante l'esecuzione di questa istanza.",
-        "es": "Sólo para la Visu App/nube. Para acceso remoto, seleccione la instancia web configurada en cloud.0 (normalmente web.0). No relacionado con la conexión de datos anterior. Vacío = apagado. La lista solo se completa mientras se ejecuta esta instancia.",
-        "pl": "Tylko dla aplikacji/chmury Visu. Aby uzyskać dostęp zdalny, wybierz instancję internetową ustawioną w cloud.0 (zwykle web.0). Niezwiązane z powyższym połączeniem danych. Pusty = wyłączony. Lista jest wypełniana tylko podczas działania tej instancji.",
-        "uk": "Лише для програми Visu / хмари. Для віддаленого доступу виберіть веб-екземпляр, налаштований у cloud.0 (зазвичай web.0). Не пов’язано з наведеним вище з’єднанням даних. Порожній = вимкнено. Список заповнюється лише під час роботи цього екземпляра.",
-        "zh-cn": "仅适用于 Visu 应用程序/云。对于远程访问，请选择 cloud.0（通常是 web.0）中设置的 Web 实例。与上面的数据连接无关。空=关闭。仅当该实例运行时才会填充该列表。"
+        "en": "Aura is reached here as <web-port>/aura/ - also from the Visu App and through the cloud adapter (pick the web instance set in cloud.0, usually web.0). One web instance per Aura instance. Empty = Aura opens its own port.",
+        "de": "Hier ist Aura als <Web-Port>/aura/ erreichbar – auch aus der Visu App und über den Cloud-Adapter (die in cloud.0 eingetragene Web-Instanz wählen, meist web.0). Eine Web-Instanz je Aura-Instanz. Leer = Aura öffnet einen eigenen Port.",
+        "ru": "Здесь Aura доступна как <веб-порт>/aura/ — также из Visu App и через облачный адаптер (выберите веб-экземпляр, заданный в cloud.0, обычно web.0). Один веб-экземпляр на экземпляр Aura. Пусто = Aura открывает собственный порт.",
+        "pt": "Aqui o Aura é acessível como <porta-web>/aura/ — também a partir da Visu App e através do adaptador cloud (escolha a instância web definida em cloud.0, geralmente web.0). Uma instância web por instância do Aura. Vazio = o Aura abre uma porta própria.",
+        "nl": "Hier is Aura bereikbaar als <webpoort>/aura/ – ook vanuit de Visu App en via de cloudadapter (kies de webinstantie uit cloud.0, meestal web.0). Eén webinstantie per Aura-instantie. Leeg = Aura opent een eigen poort.",
+        "fr": "Aura est accessible ici sous <port-web>/aura/ — aussi depuis la Visu App et via l'adaptateur cloud (choisir l'instance web définie dans cloud.0, généralement web.0). Une instance web par instance Aura. Vide = Aura ouvre son propre port.",
+        "it": "Qui Aura è raggiungibile come <porta-web>/aura/ — anche dalla Visu App e tramite l'adattatore cloud (scegliere l'istanza web impostata in cloud.0, di solito web.0). Un'istanza web per istanza Aura. Vuoto = Aura apre una porta propria.",
+        "es": "Aquí Aura es accesible como <puerto-web>/aura/, también desde la Visu App y a través del adaptador cloud (elija la instancia web configurada en cloud.0, normalmente web.0). Una instancia web por instancia de Aura. Vacío = Aura abre un puerto propio.",
+        "pl": "Tutaj Aura jest dostępna jako <port-web>/aura/ — także z Visu App i przez adapter cloud (wybierz instancję web ustawioną w cloud.0, zwykle web.0). Jedna instancja web na instancję Aura. Puste = Aura otwiera własny port.",
+        "uk": "Тут Aura доступна як <веб-порт>/aura/ — також із Visu App і через хмарний адаптер (виберіть веб-екземпляр, заданий у cloud.0, зазвичай web.0). Один веб-екземпляр на екземпляр Aura. Порожньо = Aura відкриває власний порт.",
+        "zh-cn": "此处 Aura 以 <Web端口>/aura/ 访问——也可从 Visu App 和云适配器访问（选择 cloud.0 中设置的 Web 实例，通常为 web.0）。每个 Aura 实例对应一个 Web 实例。留空 = Aura 打开自己的端口。"
       },
       "xs": 12,
       "sm": 12,

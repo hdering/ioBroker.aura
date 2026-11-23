@@ -213,6 +213,33 @@ try {
         objects = { 'system.adapter.web.0': webObj('host-b') };
         d = await aura._decideOwnPort({ port: 8095 });
         check('a new one without a web instance on this host keeps the port', d.ownPort === true, JSON.stringify(d));
+        // a web instance serves one Aura instance under /aura/
+        objects = {
+            'system.adapter.web.0': webObj('host-a'),
+            'system.adapter.web.1': webObj('host-a'),
+            'system.adapter.aura.0': { native: { webInstance: 'web.1' } },
+            'system.adapter.aura.1': { native: { webInstance: 'web.0' } },
+        };
+        d = await aura._decideOwnPort({ port: 8095 });
+        check(
+            'a second Aura instance skips the web instance the first one uses',
+            d.ownPort === false && d.webInstance === 'web.1',
+            JSON.stringify(d),
+        );
+        delete objects['system.adapter.web.1'];
+        d = await aura._decideOwnPort({ port: 8095 });
+        check('…and keeps its port when no web instance is free', d.ownPort === true, JSON.stringify(d));
+        objects['system.adapter.web.1'] = webObj('host-a', true, 8083);
+        let list = null;
+        aura.sendTo = (_from, _cmd, data) => (list = data);
+        await aura.onMessage({ command: 'listWebInstances', from: 'system.adapter.admin.0', callback: { id: 1 } });
+        const web0 = (list || []).find((o) => o.value === 'web.0');
+        check(
+            '…the settings list marks a web instance another Aura instance uses',
+            /already used by aura\.1/.test(web0?.label || '') &&
+                !/already used/.test((list || []).find((o) => o.value === 'web.1')?.label || ''),
+            JSON.stringify(list),
+        );
     }
     // ── 5. the instance settings: offered only while on, off is final ──────
     {
@@ -238,8 +265,21 @@ try {
         );
         check(
             '…port settings go with it',
-            !shown('port', false) && shown('port', true) && !shown('socketInstance', false),
+            !shown('port', false) &&
+                !shown('port', null) &&
+                shown('port', true) &&
+                !shown('socketInstance', false) &&
+                !shown('socketInstance', null),
         );
+        check(
+            '…a not yet started instance explains the first start instead',
+            shown('_ownPortPending', null) &&
+                shown('_ownPortPending', undefined) &&
+                !shown('_ownPortPending', true) &&
+                !shown('_ownPortPending', false),
+        );
+        const alive = (a) => !new Function('_alive', `return (${items._webInstanceNotRunning.hidden});`)(a);
+        check('…the web instance list explains itself while the instance is stopped', alive(false) && !alive(true));
     }
 } finally {
     fs.rmSync(dataRoot, { recursive: true, force: true });

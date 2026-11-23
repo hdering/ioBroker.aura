@@ -4487,15 +4487,42 @@ class Aura extends utils.Adapter {
         } catch {
             return '';
         }
+        // a web instance serves one Aura instance under /aura/
+        const taken = await this._webInstancesOfOtherAura();
         const list = Object.values(objects)
             .filter((o) => o && o.type === 'instance' && /^system\.adapter\.web\.\d+$/.test(o._id))
             .filter((o) => !this.host || !o.common?.host || o.common.host === this.host)
+            .filter((o) => !taken.has(o._id.slice('system.adapter.'.length)))
             .map((o) => ({ id: o._id.slice('system.adapter.'.length), enabled: !!o.common?.enabled }))
             .sort(
                 (a, b) =>
                     Number(b.enabled) - Number(a.enabled) || a.id.localeCompare(b.id, undefined, { numeric: true }),
             );
         return list.length ? list[0].id : '';
+    }
+
+    /**
+     * Web instances other Aura instances already run in: a web instance mounts the
+     * extension of one Aura instance under /aura/, a second one there is not reached.
+     *
+     * @returns {Promise<Map<string, string>>} web instance id → Aura instance id
+     */
+    async _webInstancesOfOtherAura() {
+        const taken = new Map();
+        let objects = {};
+        try {
+            objects = (await this.getForeignObjectsAsync('system.adapter.aura.*', 'instance')) || {};
+        } catch {
+            return taken;
+        }
+        for (const o of Object.values(objects)) {
+            const id = String(o?._id || '').slice('system.adapter.'.length);
+            const web = String(o?.native?.webInstance || '');
+            if (id && id !== this.namespace && /^web\.\d+$/.test(web) && !taken.has(web)) {
+                taken.set(web, id);
+            }
+        }
+        return taken;
     }
 
     /**
@@ -7087,12 +7114,17 @@ class Aura extends utils.Adapter {
                 } catch {
                     /* an empty list still leaves "off" */
                 }
+                const taken = await this._webInstancesOfOtherAura();
                 const options = Object.values(objects || {})
                     .filter((o) => o && o.type === 'instance' && /^system\.adapter\.web\.\d+$/.test(o._id))
                     .map((o) => {
                         const id = o._id.slice('system.adapter.'.length);
                         const n = o.native || {};
-                        const flags = [n.secure ? 'HTTPS' : '', o.common?.enabled ? '' : 'disabled']
+                        const flags = [
+                            n.secure ? 'HTTPS' : '',
+                            o.common?.enabled ? '' : 'disabled',
+                            taken.has(id) ? `already used by ${taken.get(id)} - pick another one` : '',
+                        ]
                             .filter(Boolean)
                             .join(', ');
                         return {
@@ -7101,7 +7133,7 @@ class Aura extends utils.Adapter {
                         };
                     })
                     .sort((a, b) => a.value.localeCompare(b.value, undefined, { numeric: true }));
-                reply([{ value: '', label: 'off (only port of this instance)' }, ...options]);
+                reply([{ value: '', label: 'none (Aura opens its own port)' }, ...options]);
                 return;
             }
 
