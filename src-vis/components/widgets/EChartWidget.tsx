@@ -695,6 +695,22 @@ function EChartBody({ config, editMode }: WidgetProps) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartRef = useRef<any>(null);
+    // The JSON branch redraws with `notMerge`, which drops series hidden via the legend. The
+    // selection is kept here and written back as `legend.selected` on every redraw (issue #1014).
+    const jsonLegendSelRef = useRef<Record<string, boolean>>({});
+    const jsonLegendEvents = useMemo(() => {
+        const keep = (e: { selected?: Record<string, boolean> }) => {
+            if (e?.selected) jsonLegendSelRef.current = { ...e.selected };
+        };
+        // A click toggles (`legendselectchanged`); the select/unselect actions report on their own.
+        return {
+            legendselectchanged: keep,
+            legendselected: keep,
+            legendunselected: keep,
+            legendselectall: keep,
+            legendinverseselect: keep,
+        };
+    }, []);
     const [hasSize, setHasSize] = useState(false);
     // The legend wraps at the chart's width, so the grid can only clear it once we know that width.
     const [chartWidth, setChartWidth] = useState(0);
@@ -1640,6 +1656,15 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 /* ignore invalid JSON */
             }
         }
+        // Applied after the extra JSON: a `legend.selected` there is the start state, the clicks win.
+        const keptSel = Object.fromEntries(
+            Object.entries(jsonLegendSelRef.current).filter(([name]) => jsonLegendNames.includes(name)),
+        );
+        if (echartShowLegend && Object.keys(keptSel).length > 0) {
+            const lg = (mergedJson.legend ?? {}) as Record<string, unknown>;
+            const own = (lg.selected ?? {}) as Record<string, boolean>;
+            mergedJson = { ...mergedJson, legend: { ...lg, selected: { ...own, ...keptSel } } };
+        }
 
         return (
             <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
@@ -1690,6 +1715,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                             option={mergedJson}
                             style={{ width: '100%', height: '100%' }}
                             opts={{ renderer: 'canvas' }}
+                            onEvents={jsonLegendEvents}
                             notMerge
                         />
                     )}

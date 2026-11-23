@@ -815,6 +815,16 @@ function installScreenshotApi(): void {
             });
         },
 
+        /** Dispatches an echarts action on the n-th chart, the way a click would — e.g.
+         *  `{ type: 'legendUnSelect', name }` hides a series via its legend (issue #1014). */
+        chartAction(action: Record<string, unknown>, index = 0): boolean {
+            const el = document.querySelectorAll('[_echarts_instance_]')[index];
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return false;
+            inst.dispatchAction(action as Parameters<typeof inst.dispatchAction>[0]);
+            return true;
+        },
+
         /** grid + axes of the chart currently on screen, as echarts resolved them. The axis
          *  reserve and the right-axis switch only exist in the rendered option — on the canvas
          *  they are pixels, and pixels are not what a test should assert on (issue #541).
