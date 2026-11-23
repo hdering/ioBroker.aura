@@ -121,6 +121,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.5.0-next.0 (2026-11-23) — next/test release
+- ⚠️ **Breaking change:** Aura moves into the web adapter - Aura is now reached through a web instance as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), its own port (8095) is deprecated and will be removed in a coming major version. Existing installations keep the port for now: choose the web instance at the top of the instance settings, move kiosk URLs, bookmarks, home screen icons, reverse proxies and MCP clients (copy the client configuration again) to /aura/, then switch "Own port (deprecated)" off. After that the old port only forwards to /aura/ and takes each device's settings along ("Forward the old port"), and the log names every device that still comes that way. The web adapter (8.0.0 or newer) is now required and installed along with Aura. New installations start without an own port when a web instance runs on the same host; without one Aura opens its port anyway. One web instance serves one Aura instance - the settings, the logs and the backend check name a clash. Also: the web extension talks to Aura over a local socket, pages shown through Aura's proxy run sandboxed and no longer get the cookies of the ioBroker host, and the admin login is kept in an HttpOnly cookie ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
+
+
 ### 1.4.0-next.4 (2026-11-22) — next/test release
 - 🌟 **New feature:** Status overview - second sort rule ("Then sort by": name, room or urgency), e.g. urgent hints first and below them grouped by room ([#1012](https://github.com/hdering/ioBroker.aura/issues/1012))
 - 🐛 **Bug fix:** Chart - in comparison mode a series with "Show earlier values" (time shift) now shows the last recorded value at that earlier time instead of the current value; its history instance is detected automatically, and without recorded history the bar stays empty ([#730](https://github.com/hdering/ioBroker.aura/issues/730))
@@ -240,12 +244,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Web components - the "add widget" dialog also lists the components of adapters that are not installed yet, with name and picture from the repository (adapters with @iobroker/web-components 0.8 or newer)
 
 
-### 0.113.3 (2026-11-12)
-- 🐛 **Bug fix:** PIN protection - the "Editable via MCP" switch no longer turns itself off when the dashboard is saved, and a protected view no longer answers "wrong PIN" after a save that held it only as a locked placeholder
-- 🐛 **Bug fix:** PIN protection - a tab the MCP added to a protected area no longer disappears when the admin editor saves before it has loaded that tab
-- 🐛 **Bug fix:** Admin settings - the "Reachable on" option and its web-instance hint are now translated into all admin languages
-
-
 ## License
 
 MIT License
@@ -257,6 +255,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
