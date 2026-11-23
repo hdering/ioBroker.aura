@@ -214,6 +214,33 @@ try {
         d = await aura._decideOwnPort({ port: 8095 });
         check('a new one without a web instance on this host keeps the port', d.ownPort === true, JSON.stringify(d));
     }
+    // ── 5. the instance settings: offered only while on, off is final ──────
+    {
+        const items = JSON.parse(fs.readFileSync(join(process.cwd(), 'admin/jsonConfig.json'), 'utf8')).items;
+        const run = (expr, data) => new Function('data', `return (${expr});`)(data);
+        const shown = (key, ownPort) => !items[key].hidden || !run(items[key].hidden, { ownPort });
+        check(
+            'settings: option and warning only while the port is on',
+            ['ownPort', '_ownPortWarning'].every(
+                (k) => shown(k, true) && !shown(k, false) && !shown(k, null) && !shown(k, undefined),
+            ),
+        );
+        check(
+            '…the warning is a non-closeable warning box',
+            items._ownPortWarning.type === 'infoBox' &&
+                items._ownPortWarning.boxType === 'warning' &&
+                items._ownPortWarning.closeable === false,
+        );
+        check(
+            '…switching off asks first (on the new value), switching on never does',
+            run(items.ownPort.confirm.condition, { ownPort: false }) &&
+                !run(items.ownPort.confirm.condition, { ownPort: true }),
+        );
+        check(
+            '…port settings go with it',
+            !shown('port', false) && shown('port', true) && !shown('socketInstance', false),
+        );
+    }
 } finally {
     fs.rmSync(dataRoot, { recursive: true, force: true });
 }
