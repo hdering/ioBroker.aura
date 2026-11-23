@@ -119,8 +119,8 @@
         "condition": {
           "operand": "and",
           "rules": [
-            "oldVersion<1.4.0-next.5",
-            "newVersion>=1.4.0-next.5"
+            "oldVersion<1.5.0-next.0",
+            "newVersion>=1.5.0-next.0"
           ]
         },
         "title": {
