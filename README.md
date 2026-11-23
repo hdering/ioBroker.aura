@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.5.0-next.1 (2026-11-23) — next/test release
+- ⚠️ **Breaking change:** Aura moves into the web adapter - Aura is now reached through a web instance as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), its own port (8095) is deprecated and will be removed in a coming major version. Existing installations keep the port for now: choose the web instance at the top of the instance settings, move kiosk URLs, bookmarks, home screen icons, reverse proxies and MCP clients (copy the client configuration again) to /aura/, then switch "Own port (deprecated)" off. After that the old port only forwards to /aura/ and takes each device's settings along ("Forward the old port"), and the log names every device that still comes that way. Reverse proxies must point at the web instance and forward the whole host (the socket runs on /), before the own port is switched off - behind a proxy the old port explains this instead of forwarding. A base URL set in the instance (e.g. https://aura.example.com) means <that host>/aura/ for the instance links and the MCP client configuration once Aura runs through the web instance. The web adapter (8.0.0 or newer) is now required and installed along with Aura. New installations start without an own port when a web instance runs on the same host; without one Aura opens its port anyway. One web instance serves one Aura instance - the settings, the logs and the backend check name a clash. Also: the web extension talks to Aura over a local socket, pages shown through Aura's proxy run sandboxed and no longer get the cookies of the ioBroker host, and the admin login is kept in an HttpOnly cookie ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
+
+
 ### 1.5.0-next.0 (2026-11-23) — next/test release
 - ⚠️ **Breaking change:** Aura moves into the web adapter - Aura is now reached through a web instance as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), its own port (8095) is deprecated and will be removed in a coming major version. Existing installations keep the port for now: choose the web instance at the top of the instance settings, move kiosk URLs, bookmarks, home screen icons, reverse proxies and MCP clients (copy the client configuration again) to /aura/, then switch "Own port (deprecated)" off. After that the old port only forwards to /aura/ and takes each device's settings along ("Forward the old port"), and the log names every device that still comes that way. The web adapter (8.0.0 or newer) is now required and installed along with Aura. New installations start without an own port when a web instance runs on the same host; without one Aura opens its port anyway. One web instance serves one Aura instance - the settings, the logs and the backend check name a clash. Also: the web extension talks to Aura over a local socket, pages shown through Aura's proxy run sandboxed and no longer get the cookies of the ioBroker host, and the admin login is kept in an HttpOnly cookie ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
 
@@ -253,19 +257,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Editor - dragging a widget no longer stutters: the grid library is back on the smooth version (react-grid-layout 2.2.4), its text is not selected any more, picking a widget up no longer restyles the whole page, widgets making room jump to their place instead of gliding, dropping no longer re-renders every widget on the page, the admin editor no longer re-renders four times a second while idle, and returning to the browser window no longer re-reads every datapoint while the first drag runs ([#982](https://github.com/hdering/ioBroker.aura/issues/982))
 
 
-### 0.114.0 (2026-11-13)
-- 🐛 **Bug fix:** Datapoints - object names of timers, status overview and published lists are now English, and popup.close is a write-only button
-- 🐛 **Bug fix:** Security - the built-in proxy (iframes, HTTP requests, feeds) no longer reaches services on the ioBroker host itself (localhost) or link-local addresses, and proxy and file routes refuse requests from foreign web pages; LAN devices stay reachable - use the LAN IP instead of localhost
-- 🐛 **Bug fix:** Countdowns, announcements, status overview and published lists - a command to a device datapoint (not yet confirmed by its adapter) no longer counts as a value; script datapoints under 0_userdata and javascript still count right away
-- 🐛 **Bug fix:** Client datapoints - reported values (lastSeen, screen resolution, idle.active, idle.enabled, speech.playing) are now read-only, and the auto-return and idle delays use the role level.timer
-- 🌟 **New feature:** Instance settings - all texts of the adapter configuration are now available in all eleven admin languages
-- 🐛 **Bug fix:** Speech output - SayIt's default browser instance FFFFFFFF now plays on every dashboard instead of on none
-- 🐛 **Bug fix:** Widget editor - a right-click in a field of the edit dialog (e.g. the datapoint field) no longer closes the dialog; the browser's copy/paste menu opens instead
-- 🌟 **New feature:** Tab bar / section bar - when the active tab or section changes (swipe, address, auto-return, click), a scrolling bar now centres it; on page load without animation, a bar moved by hand stays put until the active entry changes; the active entry carries aria-current ([#979](https://github.com/hdering/ioBroker.aura/issues/979))
-- 🌟 **New feature:** Shutter and thermostat - optional security prompt (Behavior › Sicherheitsabfrage): every drive, slat change or setpoint change asks first and shows the target (e.g. "Close", "40% open", "21.5 °C"); Stop never asks, and the sliders then always send on release ([#977](https://github.com/hdering/ioBroker.aura/issues/977))
-- 🌟 **New feature:** Web components - the "add widget" dialog also lists the components of adapters that are not installed yet, with name and picture from the repository (adapters with @iobroker/web-components 0.8 or newer)
-
-
 ## License
 
 MIT License
@@ -277,6 +268,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
