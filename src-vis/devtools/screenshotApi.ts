@@ -34,6 +34,7 @@ import {
     isStateFresh,
     type HistoryAggregate,
     type HistoryEntry,
+    type DevHistoryQuery,
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
 import { useConfigStore, type FrontendSettings } from '../store/configStore';
@@ -410,16 +411,26 @@ function installScreenshotApi(): void {
          *  `borderValues` turns on the edge rows every real adapter adds unless it is asked
          *  for `removeBorderValues`: the last reading BEFORE the window, stamped on the
          *  window's start, and folded into the first aggregation bucket on top of that. Off
-         *  by default so the existing mocks keep serving exactly what they list (#685). */
+         *  by default so the existing mocks keep serving exactly what they list (#685).
+         *
+         *  `slowSpanMs` + `slowDelayMs` answer every query whose window is longer than
+         *  `slowSpanMs` only after `slowDelayMs` — a database that takes longer for three months
+         *  than for a day, so an answer for the previous range arrives after the current one (#1013). */
         mockHistory(
             byId: Record<string, [number, HistoryEntry['val']][]> | false,
-            opts: { borderValues?: boolean; ignoreNewest?: boolean; failAggregated?: string } = {},
+            opts: {
+                borderValues?: boolean;
+                ignoreNewest?: boolean;
+                failAggregated?: string;
+                slowSpanMs?: number;
+                slowDelayMs?: number;
+            } = {},
         ): void {
             if (byId === false) {
                 __devSetHistoryGen(null);
                 return;
             }
-            __devSetHistoryGen((id, o) => {
+            const answer = (id: string, o: DevHistoryQuery): HistoryEntry[] => {
                 // `failAggregated` plays an adapter that serves raw rows but refuses every bucketed
                 // query of a listed id with this error — InfluxDB averaging a field that also holds
                 // strings.
@@ -441,6 +452,11 @@ function installScreenshotApi(): void {
                 if (!before) return aggregateRaw(raw, o.start, o.step, o.aggregate);
                 const border: HistoryEntry = { ts: o.start, val: before[1] };
                 return [border, ...aggregateRaw([border, ...raw], o.start, o.step, o.aggregate)];
+            };
+            __devSetHistoryGen((id, o) => {
+                const rows = answer(id, o);
+                if (!opts.slowSpanMs || o.end - o.start <= opts.slowSpanMs) return rows;
+                return new Promise((resolve) => setTimeout(() => resolve(rows), opts.slowDelayMs ?? 1500));
             });
         },
 

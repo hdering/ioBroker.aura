@@ -249,20 +249,18 @@ export function __devSimulateReconnect(states: Record<string, ioBrokerState>): v
 // through to the real socket". Not wired up in production builds.
 // `step`/`aggregate` are handed over as requested, so a stub can emulate what the
 // adapter would do with them — average smearing a spike, `minmax` keeping it.
-let devHistoryGen:
-    | ((
-          id: string,
-          opts: {
-              start: number;
-              end: number;
-              count?: number;
-              step?: number;
-              aggregate?: HistoryAggregate;
-              returnNewestEntries?: boolean;
-              removeBorderValues?: boolean;
-          },
-      ) => HistoryEntry[])
-    | null = null;
+/** The query a history stub is asked to answer. */
+export interface DevHistoryQuery {
+    start: number;
+    end: number;
+    count?: number;
+    step?: number;
+    aggregate?: HistoryAggregate;
+    returnNewestEntries?: boolean;
+    removeBorderValues?: boolean;
+}
+// A promise plays an adapter that answers late (#1013).
+let devHistoryGen: ((id: string, opts: DevHistoryQuery) => HistoryEntry[] | Promise<HistoryEntry[]>) | null = null;
 let devObjectView: ((type: string, startkey: string, endkey: string) => ObjectViewResult | undefined) | null = null;
 let devSendTo: ((target: string, command: string, payload: unknown) => unknown) | null = null;
 // Stands in for what the server would answer to `getState`. Lets a test model a
@@ -1131,7 +1129,7 @@ export function getHistoryDirect(
                     returnNewestEntries: opts.returnNewestEntries,
                     removeBorderValues: opts.removeBorderValues,
                 }),
-            );
+            ).catch(failed);
         } catch (err) {
             return failed(err);
         }

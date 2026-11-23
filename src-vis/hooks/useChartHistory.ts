@@ -151,6 +151,8 @@ export function useChartHistory(
         const end = windowed ? Math.min(winEnd, Date.now()) : Date.now();
         const start = windowed ? winStart : end - rangeMs;
         const step = getStep(rangeMs);
+        // A slower answer for the PREVIOUS range must not overwrite the current one (#1013).
+        let stale = false;
         getHistoryDirect(datapointId, {
             instance: effectiveInstance,
             start,
@@ -161,7 +163,7 @@ export function useChartHistory(
             throwOnError: true,
         })
             .then((data: HistoryEntry[]) => {
-                if (!mountedRef.current) return;
+                if (stale || !mountedRef.current) return;
                 let points: ChartDataPoint[] = data
                     .filter(
                         (d): d is { ts: number; val: number; ack?: boolean; q?: number } => typeof d.val === 'number',
@@ -179,10 +181,13 @@ export function useChartHistory(
                 setLoading(false);
             })
             .catch((err: unknown) => {
-                if (!mountedRef.current) return;
+                if (stale || !mountedRef.current) return;
                 setError(`${effectiveInstance}: ${err instanceof Error ? err.message : String(err)}`);
                 setLoading(false);
             });
+        return () => {
+            stale = true;
+        };
     }, [datapointId, effectiveInstance, timeRange, customRangeMs, connected, refreshTick, winStart, winEnd]);
 
     // ── 4. Live-Updates abonnieren ────────────────────────────────────────────

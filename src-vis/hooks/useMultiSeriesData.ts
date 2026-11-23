@@ -1694,6 +1694,8 @@ export function useMultiSeriesData(
     // (hooks/useChartHistory.ts), but silent — a tick must not flash the spinner.
     const [refreshTick, setRefreshTick] = useState(0);
     const silentRef = useRef(false);
+    // Generation of the history fetch effect — see `stale()` there.
+    const fetchGenRef = useRef(0);
     useEffect(() => {
         if (!connected || series.length === 0) return;
         // A window pinned to a past day is a frozen view — there is nothing new to read.
@@ -1714,6 +1716,11 @@ export function useMultiSeriesData(
     // Fetch history for all series
     useEffect(() => {
         if (!connected || series.length === 0) return;
+
+        // Every run supersedes the previous one: a slower answer for the OLD range (3 months still
+        // in flight after the switch to 24 h) must not overwrite the new one (#1013).
+        const gen = ++fetchGenRef.current;
+        const stale = () => !mountedRef.current || gen !== fetchGenRef.current;
 
         // Mark all as loading (skipped for a periodic refresh: the curve is already on screen)
         const silent = silentRef.current;
@@ -1751,7 +1758,7 @@ export function useMultiSeriesData(
                     return getState ? getState(id).catch(() => null) : Promise.resolve(null);
                 };
                 loadFormulaSeries(s, series, readState).then((r) => {
-                    if (!mountedRef.current) return;
+                    if (stale()) return;
                     if (r.bucketOnly) bucketOnlyRef.current.add(s.id);
                     else bucketOnlyRef.current.delete(s.id);
                     formulaVarsRef.current.set(s.id, r.vars);
@@ -1787,7 +1794,7 @@ export function useMultiSeriesData(
             if (s.source === 'json') {
                 // JSON series: the datapoint value IS the whole dataset — no history query.
                 const applyJson = (state: ioBrokerState | null) => {
-                    if (!mountedRef.current) return;
+                    if (stale()) return;
                     const points = parseJsonSeries(state?.val, s);
                     const bounds = parseJsonAxisBounds(state?.val, s);
                     lastRawRef.current.set(
@@ -1827,7 +1834,7 @@ export function useMultiSeriesData(
                 // comparison-mode bars (and timeseries first point) render immediately.
                 const cached = getStateFromCache(s.datapointId);
                 const seedFromState = (state: ioBrokerState | null) => {
-                    if (!mountedRef.current) return;
+                    if (stale()) return;
                     const num = chartNumber(state?.val);
                     const val = num !== null ? seriesValue(s, num) : null;
                     setResultsMap((prev) => {
@@ -1880,7 +1887,7 @@ export function useMultiSeriesData(
                 const magnitude = kind === 'consumption';
                 getHistoryDirect(s.datapointId, { instance, start: qStart, end: qEnd, step, aggregate, count })
                     .then((entries: HistoryEntry[]) => {
-                        if (!mountedRef.current) return;
+                        if (stale()) return;
                         const data = entries
                             .map((e) => ({ ts: e.ts, num: chartNumber(e.val) }))
                             .filter((e): e is { ts: number; num: number } => e.num !== null)
@@ -1962,7 +1969,7 @@ export function useMultiSeriesData(
                     throwOnError: true,
                 })
                     .then((entries: HistoryEntry[]) => {
-                        if (!mountedRef.current) return;
+                        if (stale()) return;
                         // A short window fetched raw that filled the row cap is missing part of
                         // itself — fetched again in fine steps. An explicit `none` stays raw.
                         if (!step && !wantRaw && entries.length >= RAW_FETCH_COUNT) {
@@ -2092,7 +2099,7 @@ export function useMultiSeriesData(
                         // live state; when it differs from the held tail, extend the line to it so the
                         // curve drops to reality instead of running flat.
                         const finish = (state: ioBrokerState | null) => {
-                            if (!mountedRef.current) return;
+                            if (stale()) return;
                             const liveNum = chartNumber(state?.val);
                             const liveVal = liveNum !== null ? seriesValue(s, liveNum) : null;
                             let outData = data;
@@ -2125,7 +2132,7 @@ export function useMultiSeriesData(
                         else finish(null);
                     })
                     .catch((err: unknown) => {
-                        if (!mountedRef.current) return;
+                        if (stale()) return;
                         setResultsMap((prev) => {
                             const next = new Map(prev);
                             const existing = next.get(s.id);
@@ -2148,7 +2155,7 @@ export function useMultiSeriesData(
                 // back to the floor, which simply yields an empty chart — same as any other window
                 // without records.
                 Promise.all([probeHistoryStart(s.datapointId, instance, now), isBoolP]).then(([first, isBool]) => {
-                    if (!mountedRef.current) return;
+                    if (stale()) return;
                     const start = first ?? now - TOTAL_FLOOR_MS;
                     fetchWindow(start, now, now - start, isBool);
                 });
@@ -2166,7 +2173,7 @@ export function useMultiSeriesData(
             // series start at the same instant (issue #598).
             const windowStart = hasAbsWindow ? (s.historyStart as number) : rollingWindowStart(series, rangeMs, end);
             isBoolP.then((isBool) => {
-                if (!mountedRef.current) return;
+                if (stale()) return;
                 fetchWindow(windowStart, end, rangeMs, isBool);
             });
         });
