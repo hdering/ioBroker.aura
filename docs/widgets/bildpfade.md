@@ -18,7 +18,7 @@ Gilt überall, wo ein Bild als URL, Pfad oder Datenpunktwert angegeben wird: [Bi
 
 |                                |                                                                                                                                                       |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Adapter- und Dateisystem-Pfade | werden intern über `/webfs` an den ioBroker-Web-Adapter weitergereicht — Aura läuft auf einem eigenen Port und liefert diese Dateien nicht selbst aus |
+| Adapter- und Dateisystem-Pfade | werden intern über `/webfs` aus dem ioBroker-Dateispeicher gelesen oder beim Web-Adapter geholt |
 | Base64-Erkennung               | greift nur bei langen Werten ohne Punkt; JPEG-Base64 (`/9j/…`) wird trotz führendem `/` korrekt erkannt                                               |
 | Mime-Typ                       | wird aus den Base64-Daten ermittelt (PNG, GIF, WebP, SVG, JPEG)                                                                                       |
 | SVG-Markup                     | wird als `data:image/svg+xml` eingebettet und über `<img>` angezeigt — Skripte im SVG laufen dabei nicht                                              |

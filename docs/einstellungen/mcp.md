@@ -10,7 +10,7 @@ Der Assistent verändert dein Dashboard. Widgets können an der falschen Stelle 
 
 |                               |                                                                             |
 | ----------------------------- | --------------------------------------------------------------------------- |
-| Aura-Instanz                  | läuft, Port bekannt (Standard `8095`; über den Web-Adapter nur als [`/aura/mcp`](#web-instanz)) |
+| Aura-Instanz                  | läuft; Endpunkt unter der Web-Instanz als [`<web-port>/aura/mcp`](#web-instanz) |
 | [ioBroker-MCP](#iobroker-mcp) | **Pflicht.** Nur er kennt die Datenpunkte                                   |
 | KI-Client                     | mit MCP über HTTP (Claude Desktop, Claude Code, …)                          |
 
@@ -56,7 +56,7 @@ Haken bei **MCP-Endpunkt aktivieren** setzen, danach erscheinen die übrigen Fel
     "mcpServers": {
         "aura": {
             "type": "http",
-            "url": "http://192.168.1.20:8095/mcp",
+            "url": "http://192.168.1.20:8082/aura/mcp",
             "headers": { "Authorization": "Bearer 8f3c…" }
         }
     }
@@ -79,7 +79,7 @@ Den vollständigen Block wie ein Passwort behandeln — er gibt Lese- und Schrei
 | Weg            |                                                                                                                                             |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Einfach sagen  | Den kopierten Block in den Prompt eines laufenden KI-Assistenten geben: „Füg diesen MCP-Server hinzu: …“ — Claude Code trägt ihn selbst ein |
-| Claude Code    | `claude mcp add --transport http aura http://<ip>:8095/mcp --header "Authorization: Bearer <Token>"`                                        |
+| Claude Code    | `claude mcp add --transport http aura http://<ip>:8082/aura/mcp --header "Authorization: Bearer <Token>"`                                        |
 | Claude Desktop | Kein HTTP-Server mit eigenem Header, deshalb über eine Brücke — siehe [unten](#claude-desktop)                                              |
 | Andere         | Server-Typ „HTTP“ / „Streamable HTTP“, URL `…/mcp`, Header `Authorization: Bearer <Token>`                                                  |
 
@@ -118,7 +118,7 @@ Nachher — `"aura"` ist dazugekommen, der Rest unverändert:
             "args": [
                 "-y",
                 "mcp-remote",
-                "http://<ioBroker-IP>:8095/mcp",
+                "http://<ioBroker-IP>:8082/aura/mcp",
                 "--transport",
                 "http-only",
                 "--allow-http",
@@ -147,13 +147,13 @@ Verbindung prüfen: „Welche Tabs hat mein Aura-Dashboard?“ — die Antwort k
 
 ### Über eine Web-Instanz {#web-instanz}
 
-Ist die [Web-Adapter-Erweiterung](settings#web-adapter-erweiterung-visu-app) eingeschaltet, ist der Endpunkt zusätzlich unter dem Port dieser Web-Instanz erreichbar.
+Der Endpunkt liegt unter der [Web-Instanz](settings#web-adapter-erweiterung-visu-app) als `<web-port>/aura/mcp`. Der Block aus der Instanz-Konfiguration nennt die richtige Adresse.
 
 |                    |                                                                                                                                                    |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| URL                | `http://<ioBroker-IP>:<web-port>/aura/mcp`, mit HTTPS in der Web-Instanz `https://` — im Block aus der Instanz-Konfiguration `:8095/mcp` ersetzen |
-| Token              | Derselbe wie auf Port 8095                                                                                                                         |
-| Nur über web       | Steht Aura auf [Nur über die Web-Instanz](settings#nur-uber-die-web-instanz), nennt der Block aus der Instanz-Konfiguration schon `<web-port>/aura/mcp` |
+| URL                | `http://<ioBroker-IP>:<web-port>/aura/mcp`, mit HTTPS in der Web-Instanz `https://` |
+| Umzug von Port 8095 | Block neu kopieren. Bei abgeschaltetem eigenem Port antwortet `:8095/mcp` mit einem Fehler, der die neue Adresse nennt |
+| Eigener Port (veraltet) | Ist er noch an, nennt der Block `:8095/mcp`, bis er [abgeschaltet](settings#nur-uber-die-web-instanz) ist |
 | Anmeldung von web  | Gilt für `/aura/mcp` nicht, der Endpunkt prüft nur den Aura-Token. Alle anderen Seiten unter `/aura/` bleiben hinter der Anmeldung                 |
 | Web-Adapter        | **neuer als 9.2.0**, wenn in der Web-Instanz die Anmeldung aktiv ist. Ältere Versionen weisen den Aura-Token ab                                   |
 
@@ -247,8 +247,8 @@ Vor jedem Schreibvorgang prüft Aura das Widget gegen Schema, Datenpunkte und Ze
 | `401`                                                        | Der Client schickt gar keinen Token — Header `Authorization` fehlt                                                                                                                                  |
 | `403`                                                        | Token im Client stimmt nicht mit dem in der Instanz überein                                                                                                                                         |
 | `405`                                                        | Client spricht nicht MCP über HTTP (`/mcp` nimmt nur POST)                                                                                                                                          |
-| Keine Verbindung                                             | Falscher Port — Aura läuft auf `8095`; über den Port des Web-Adapters nur als [`/aura/mcp`](#web-instanz) mit eingeschalteter Web-Adapter-Erweiterung                                              |
-| `/aura/mcp` liefert `401 Unauthorized` oder die Anmeldeseite | Anmeldung in der Web-Instanz aktiv und Web-Adapter 9.2.0 oder älter — Web-Adapter aktualisieren oder Port `8095` nehmen                                                                             |
+| Keine Verbindung                                             | Falsche Adresse — Endpunkt ist [`<web-port>/aura/mcp`](#web-instanz); Block aus der Instanz-Konfiguration neu kopieren                                              |
+| `/aura/mcp` liefert `401 Unauthorized` oder die Anmeldeseite | Anmeldung in der Web-Instanz aktiv und Web-Adapter 9.2.0 oder älter — Web-Adapter aktualisieren                                                                             |
 | `Unexpected token '<'` in Claude Desktop                     | Aura älter als 0.54.0 — die OAuth-Suche von `mcp-remote` bekam die Oberfläche statt einer Absage                                                                                                    |
 | Claude Desktop zeigt den Server nicht                        | App nicht vollständig beendet, oder `node`/`npx` fehlt auf dem Rechner mit Claude Desktop                                                                                                           |
 | Claude Desktop verhält sich nach dem Eintrag seltsam         | `claude_desktop_config.json` wurde durch den Block **ersetzt** statt ergänzt — die App-Einstellungen sind dann weg; nur der `"aura"`-Eintrag gehört in `mcpServers`                                 |

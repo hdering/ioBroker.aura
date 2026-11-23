@@ -176,5 +176,5 @@ Element-Dialog schließt mit dem Ereignis `iob-dialog-close`. Mit dem Ereignis `
 Eigenschaft `header` meldet eine Komponente Namen und Bild für die Titelzeile — Vorschlag, noch
 nicht Teil des Pakets. Aura lädt das Manifest
 und das Modul über `/adapter/<adapter>/…`; Komponenten mit React importieren
-`/lib/esm/react-19.js` bzw. `react-18.js` — beides liefert Auras eigener Server (Port 8095)
-aus, hinter der web-Erweiterung (`/aura/`) der web-Adapter.
+`/lib/esm/react-19.js` bzw. `react-18.js` — beides liefert unter `/aura/` der web-Adapter (ab 9.2.0; bei älteren
+liefert Aura es selbst), am veralteten eigenen Port Aura.

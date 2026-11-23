@@ -17,13 +17,13 @@ Aura in der richtigen Reihenfolge einrichten – vom Zielgerät bis zum ersten W
 
 ## Aufrufen und Admin-PIN
 
-Installation der Instanz: siehe [README](https://github.com/hdering/ioBroker.aura#installation). Aura hat einen eigenen Webserver, Vorgabe-Port `8095`.
+Installation der Instanz: siehe [README](https://github.com/hdering/ioBroker.aura#installation). Aura läuft über eine Web-Instanz (Web-Adapter, Vorgabe `web.0` auf Port `8082`) unter `/aura/`. Von Port 8095 kommend: [Umzug auf den Web-Adapter](../anleitungen/umzug-web-adapter).
 
 | | |
 | --- | --- |
-| Dashboard | `http://<iobroker-ip>:8095/` |
-| Adminbereich | `http://<iobroker-ip>:8095/#/admin` |
-| Über eine Web-Instanz (Visu App, Cloud) | `http://<iobroker-ip>:8082/aura/` – nur mit eingeschalteter [Web-Adapter-Erweiterung](../einstellungen/settings.md#web-adapter-erweiterung-visu-app) |
+| Dashboard | `http://<iobroker-ip>:8082/aura/` |
+| Adminbereich | `http://<iobroker-ip>:8082/aura/#/admin` |
+| Port, HTTPS | Die der gewählten [Web-Instanz](../einstellungen/settings.md#web-adapter-erweiterung-visu-app) – auch für Visu App und Cloud |
 | Erster Aufruf | Legt den Admin-PIN fest (min. 4 Zeichen); die Anmeldung gilt 8 Stunden |
 | Ausgangszustand | Ein Layout „Standard“ mit einem Bereich und einem leeren Tab |
 
@@ -152,8 +152,8 @@ Jedes Gerät öffnet die URL seines Layouts. Einstellungen → **Verbundene Ger�
 
 | | |
 | --- | --- |
-| Layout-URL | `http://<ip>:8095/#/wohnzimmer` (Slug aus Layouts → Allgemein); das erste Layout auch unter `/` |
-| Feste Client-ID | `http://<ip>:8095/?client=wohnzimmer-tablet` oder Verbundene Geräte → ✎ – damit Skripte das Gerät gezielt steuern (`aura.0.clients.<ID>.navigate.url`) |
+| Layout-URL | `http://<ip>:8082/aura/#/wohnzimmer` (Slug aus Layouts → Allgemein); das erste Layout auch unter `/aura/` |
+| Feste Client-ID | `http://<ip>:8082/aura/?client=wohnzimmer-tablet` oder Verbundene Geräte → ✎ – damit Skripte das Gerät gezielt steuern (`aura.0.clients.<ID>.navigate.url`) |
 | Als App | Ohne Browserleisten installieren – Chrome/Android braucht HTTPS, siehe [Als App installieren](../anleitungen/als-app) |
 | Kiosk | Vollbild-Browser auf die Layout-URL; Frontend-Design → Header → **Admin-Link im Header anzeigen** aus |
 | Rückkehr zum Standard-Tab | Frontend-Design → Navigation: nach Inaktivität zurückspringen (Wandtablet) |

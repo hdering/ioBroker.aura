@@ -77,6 +77,7 @@ export default defineConfig({
             { text: 'Ohne Rand anzeigen', link: '/anleitungen/ohne-rand' },
             { text: 'Sprachausgabe', link: '/anleitungen/sprachausgabe' },
             { text: 'Als App installieren', link: '/anleitungen/als-app' },
+            { text: 'Umzug auf den Web-Adapter', link: '/anleitungen/umzug-web-adapter' },
           ],
         },
       ],
