@@ -67,6 +67,7 @@ const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
 const { isBlockedHost, guardedLookup, isCrossSite } = require('./lib/proxyGuard');
 const { createProxyJar, readCookie, foreignCookies, targetOrigin } = require('./lib/proxyJar');
+const { createMovedHandler, isSocketUpgrade } = require('./lib/portRedirect');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
 const { adapterTimers } = require('./lib/timers');
@@ -2071,6 +2072,7 @@ class Aura extends utils.Adapter {
                 httpsWanted: !!this.config.secure,
                 listening: !!this._httpServer?.listening,
                 off: !!this._noOwnPort,
+                redirect: !!this._portRedirect && !!this._httpServer?.listening,
                 web: this.config.webInstance || '',
                 sharedWith: this._webSharedWith || '',
             },
@@ -2947,6 +2949,7 @@ class Aura extends utils.Adapter {
         // No own port (#997): the local socket is the only way in, the web
         // extension serves everything under <web>/aura/.
         this._noOwnPort = false;
+        this._portRedirect = false;
         // A web instance serves ONE Aura instance under /aura/ (the one it loaded
         // first, lib/webExtension.js) - the other one is not reached there.
         this._webSharedWith = '';
@@ -2963,8 +2966,13 @@ class Aura extends utils.Adapter {
             if (!why) {
                 this._noOwnPort = true;
                 this.log.info(`aura: no port of its own — reachable through ${this.config.webInstance} as <web>/aura/`);
-                this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
                 this._logMcpState(`<${this.config.webInstance}>/aura/mcp`);
+                if (this.config.portRedirect === true) {
+                    // Transition (step 10): the old port only moves devices over.
+                    this._listenMovedPort(server, handler, onUpgrade, port, bindAddr);
+                    return;
+                }
+                this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
                 return;
             }
             this.log.warn(`aura: the own port is switched off, but ${why} — opening port ${port} anyway`);
@@ -2985,6 +2993,68 @@ class Aura extends utils.Adapter {
             this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
             this._logMcpState(`/mcp on port ${port}`);
         });
+        this._httpServer = server;
+    }
+
+    /**
+     * The old own port as a forward only (#997, step 10, lib/portRedirect.js): a
+     * page load gets the hand-over page to `<web>/aura/`, the ioBroker socket is
+     * still passed through for dashboards left open, everything else is gone.
+     *
+     * @param {import('node:http').Server} server the server of the old port
+     * @param {(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) => void} handler Aura's full handler
+     * @param {(req: import('node:http').IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void} onUpgrade Aura's full upgrade handler
+     * @param {number} port the old port
+     * @param {string|undefined} bindAddr where to listen
+     */
+    _listenMovedPort(server, handler, onUpgrade, port, bindAddr) {
+        this._portRedirect = true;
+        /** @type {Map<string, number>} address → last time it was logged */
+        const seen = new Map();
+        const moved = createMovedHandler({
+            full: handler,
+            target: async () => {
+                const web = await this._webInstanceNative();
+                return web ? { port: Number(web.port) || 8082, secure: !!web.secure } : null;
+            },
+            onVisit: (ip) => {
+                const now = Date.now();
+                if ((seen.get(ip) || 0) > now - 3600_000) {
+                    return;
+                }
+                if (seen.size > 500) {
+                    seen.clear();
+                }
+                seen.set(ip, now);
+                this.log.info(
+                    `aura: ${ip || 'a device'} still opened the old port ${port} — forwarded to ${this.config.webInstance} (<web>/aura/). Switch "forward the old port" off once no device comes this way any more`,
+                );
+            },
+        });
+        server.removeAllListeners('request');
+        server.on('request', moved);
+        server.removeListener('upgrade', onUpgrade);
+        server.on('upgrade', (req, socket, head) => {
+            let pathname = '';
+            try {
+                pathname = new URL(req.url || '/', 'http://localhost').pathname;
+            } catch {
+                /* destroyed below */
+            }
+            if (isSocketUpgrade(pathname)) {
+                onUpgrade(req, socket, head);
+                return;
+            }
+            socket.destroy();
+        });
+        this._checkBind(port, bindAddr).then(() =>
+            server.listen(port, bindAddr, () => {
+                this.log.info(
+                    `aura: the old port ${port} only forwards to ${this.config.webInstance} (<web>/aura/) and takes each device's settings along — a transition, removed with the own port in a coming major version`,
+                );
+                this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
+            }),
+        );
         this._httpServer = server;
     }
 

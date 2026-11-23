@@ -57,6 +57,7 @@
     "test:proxy-guard": "node tools/tests/proxy-guard.mjs",
     "test:proxy-jar": "node tools/tests/proxy-jar.mjs",
     "test:own-port-off": "node tools/tests/own-port-off.mjs",
+    "test:port-redirect": "node tools/tests/port-redirect.mjs",
     "test:proxy-sandbox": "node tools/tests/proxy-sandbox.mjs",
     "i18n:jsonconfig": "node tools/translate/translate-jsonconfig.mjs",
     "test:feed-parse": "node tools/tests/feed-parse.mjs",

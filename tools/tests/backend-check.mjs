@@ -228,6 +228,11 @@ const REPORTED = {
             /web\.0.*aura\.1/.test(byId(shared, 'web-instance-shared').title),
     );
     check('…not without one', !byId(off, 'web-instance-shared'));
+    const fwd = serverFindings({ port: 8095, listening: true, off: true, redirect: true, web: 'web.0' });
+    check(
+        'the old port as a forward only: a note, not a server finding',
+        byId(fwd, 'old-port-forward')?.level === 'info' && !!byId(fwd, 'own-server-off') && !byId(fwd, 'own-server'),
+    );
     check('…and then no ok line claiming it is reached there', !byId(shared, 'own-server-off'));
 }
 

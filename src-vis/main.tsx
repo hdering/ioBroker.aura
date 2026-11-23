@@ -1,6 +1,8 @@
 // First, before anything with side effects: refuses to start when the page did not
 // come from Aura's own server (see bootGuard.ts).
 import './bootGuard';
+// Settings handed over from Aura's old own port - before any store reads localStorage.
+import './utils/handoff';
 import { StrictMode, Suspense, type ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';

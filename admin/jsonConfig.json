@@ -137,17 +137,17 @@
           "zh-cn": "永久关闭自己的端口？"
         },
         "text": {
-          "en": "After saving, Aura is only reached through the web instance as <web-port>/aura/. Addresses with the own port (e.g. :8095) stop working, and the option cannot be switched on again here.",
-          "de": "Nach dem Speichern ist Aura nur noch über die Web-Instanz als <Web-Port>/aura/ erreichbar. Adressen mit dem eigenen Port (z. B. :8095) funktionieren nicht mehr, und die Option lässt sich hier nicht wieder einschalten.",
-          "ru": "После сохранения Aura доступна только через веб-экземпляр как <веб-порт>/aura/. Адреса с собственным портом (например, :8095) перестанут работать, и включить опцию здесь снова будет нельзя.",
-          "pt": "Depois de guardar, o Aura só é acessível através da instância web como <porta-web>/aura/. Endereços com a porta própria (ex. :8095) deixam de funcionar e a opção não pode ser reativada aqui.",
-          "nl": "Na het opslaan is Aura alleen nog via de webinstantie bereikbaar als <webpoort>/aura/. Adressen met de eigen poort (bijv. :8095) werken niet meer en de optie kan hier niet opnieuw worden ingeschakeld.",
-          "fr": "Après l'enregistrement, Aura n'est plus accessible que via l'instance web sous <port-web>/aura/. Les adresses avec le port propre (p. ex. :8095) ne fonctionnent plus et l'option ne peut plus être réactivée ici.",
-          "it": "Dopo il salvataggio Aura è raggiungibile solo tramite l'istanza web come <porta-web>/aura/. Gli indirizzi con la porta propria (es. :8095) smettono di funzionare e l'opzione non può più essere riattivata qui.",
-          "es": "Tras guardar, Aura solo es accesible a través de la instancia web como <puerto-web>/aura/. Las direcciones con el puerto propio (p. ej. :8095) dejan de funcionar y la opción no se puede volver a activar aquí.",
-          "pl": "Po zapisaniu Aura jest dostępna tylko przez instancję web jako <port-web>/aura/. Adresy z własnym portem (np. :8095) przestaną działać, a opcji nie da się tu ponownie włączyć.",
-          "uk": "Після збереження Aura доступна лише через веб-екземпляр як <веб-порт>/aura/. Адреси з власним портом (наприклад, :8095) перестануть працювати, і знову ввімкнути опцію тут буде неможливо.",
-          "zh-cn": "保存后，Aura 只能通过 Web 实例以 <Web端口>/aura/ 访问。使用自己端口的地址（例如 :8095）将失效，并且此处无法再次开启该选项。"
+          "en": "After saving, Aura is only reached through the web instance as <web-port>/aura/, and the option cannot be switched on again here. Addresses with the old port (e.g. :8095) then only forward there while \"Forward the old port\" is on.",
+          "de": "Nach dem Speichern ist Aura nur noch über die Web-Instanz als <Web-Port>/aura/ erreichbar, und die Option lässt sich hier nicht wieder einschalten. Adressen mit dem alten Port (z. B. :8095) leiten dann nur noch dorthin weiter, solange „Alten Port weiterleiten“ an ist.",
+          "ru": "После сохранения Aura доступна только через веб-экземпляр как <веб-порт>/aura/, и включить опцию здесь снова будет нельзя. Адреса со старым портом (например, :8095) тогда лишь перенаправляют туда, пока включено «Перенаправлять старый порт».",
+          "pt": "Depois de guardar, o Aura só é acessível através da instância web como <porta-web>/aura/ e a opção não pode ser reativada aqui. Endereços com a porta antiga (ex. :8095) passam a apenas reencaminhar para lá enquanto «Reencaminhar a porta antiga» estiver ativo.",
+          "nl": "Na het opslaan is Aura alleen nog via de webinstantie bereikbaar als <webpoort>/aura/ en kan de optie hier niet opnieuw worden ingeschakeld. Adressen met de oude poort (bijv. :8095) sturen dan alleen nog door zolang \"Oude poort doorsturen\" aan staat.",
+          "fr": "Après l'enregistrement, Aura n'est plus accessible que via l'instance web sous <port-web>/aura/, et l'option ne peut plus être réactivée ici. Les adresses avec l'ancien port (p. ex. :8095) n'y redirigent alors que tant que « Rediriger l'ancien port » est activé.",
+          "it": "Dopo il salvataggio Aura è raggiungibile solo tramite l'istanza web come <porta-web>/aura/ e l'opzione non può più essere riattivata qui. Gli indirizzi con la vecchia porta (es. :8095) inoltrano allora lì solo finché «Inoltrare la vecchia porta» è attivo.",
+          "es": "Tras guardar, Aura solo es accesible a través de la instancia web como <puerto-web>/aura/ y la opción no se puede volver a activar aquí. Las direcciones con el puerto antiguo (p. ej. :8095) solo redirigen allí mientras «Redirigir el puerto antiguo» esté activo.",
+          "pl": "Po zapisaniu Aura jest dostępna tylko przez instancję web jako <port-web>/aura/, a opcji nie da się tu ponownie włączyć. Adresy ze starym portem (np. :8095) przekierowują tam tylko, dopóki włączone jest „Przekierowuj stary port”.",
+          "uk": "Після збереження Aura доступна лише через веб-екземпляр як <веб-порт>/aura/, і знову ввімкнути опцію тут буде неможливо. Адреси зі старим портом (наприклад, :8095) тоді лише переспрямовують туди, поки ввімкнено «Переспрямовувати старий порт».",
+          "zh-cn": "保存后，Aura 只能通过 Web 实例以 <Web端口>/aura/ 访问，并且此处无法再次开启该选项。只要“转发旧端口”处于开启状态，使用旧端口（例如 :8095）的地址就只会转发到那里。"
         },
         "ok": {
           "en": "Switch off",
@@ -163,6 +163,42 @@
           "zh-cn": "关闭"
         }
       }
+    },
+    "portRedirect": {
+      "type": "checkbox",
+      "hidden": "data.ownPort !== false",
+      "newLine": true,
+      "label": {
+        "en": "Forward the old port (transition)",
+        "de": "Alten Port weiterleiten (Übergang)",
+        "ru": "Перенаправлять старый порт (переход)",
+        "pt": "Reencaminhar a porta antiga (transição)",
+        "nl": "Oude poort doorsturen (overgang)",
+        "fr": "Rediriger l'ancien port (transition)",
+        "it": "Inoltrare la vecchia porta (transizione)",
+        "es": "Redirigir el puerto antiguo (transición)",
+        "pl": "Przekierowuj stary port (przejście)",
+        "uk": "Переспрямовувати старий порт (перехід)",
+        "zh-cn": "转发旧端口（过渡）"
+      },
+      "help": {
+        "en": "The old port (e.g. :8095) then only forwards to <web-port>/aura/ and takes each device's settings along. Dashboards, vault, MCP and proxy are no longer served there. The log names every device that still comes this way; switch it off once none does.",
+        "de": "Der alte Port (z. B. :8095) leitet dann nur noch auf <Web-Port>/aura/ weiter und nimmt die Einstellungen jedes Geräts mit. Dashboards, Tresor, MCP und Proxy gibt es dort nicht mehr. Das Log nennt jedes Gerät, das noch so kommt; abschalten, sobald keins mehr kommt.",
+        "ru": "Старый порт (например, :8095) тогда только перенаправляет на <веб-порт>/aura/ и переносит настройки каждого устройства. Дашборды, хранилище, MCP и прокси там больше не обслуживаются. Журнал называет каждое устройство, которое ещё приходит так; отключите, когда таких не останется.",
+        "pt": "A porta antiga (ex. :8095) passa a apenas reencaminhar para <porta-web>/aura/ e leva as definições de cada dispositivo. Dashboards, cofre, MCP e proxy deixam de ser servidos aí. O registo indica cada dispositivo que ainda chega por aí; desative quando nenhum chegar.",
+        "nl": "De oude poort (bijv. :8095) stuurt dan alleen nog door naar <webpoort>/aura/ en neemt de instellingen van elk apparaat mee. Dashboards, kluis, MCP en proxy worden daar niet meer geleverd. Het log noemt elk apparaat dat nog zo komt; uitschakelen zodra er geen meer komt.",
+        "fr": "L'ancien port (p. ex. :8095) ne fait alors que rediriger vers <port-web>/aura/ et emporte les réglages de chaque appareil. Tableaux de bord, coffre, MCP et proxy n'y sont plus servis. Le journal nomme chaque appareil qui passe encore par là ; désactivez dès qu'il n'y en a plus.",
+        "it": "La vecchia porta (es. :8095) inoltra allora solo a <porta-web>/aura/ e porta con sé le impostazioni di ogni dispositivo. Dashboard, cassaforte, MCP e proxy non vi sono più serviti. Il log nomina ogni dispositivo che arriva ancora così; disattivare quando non ne arriva più nessuno.",
+        "es": "El puerto antiguo (p. ej. :8095) solo redirige entonces a <puerto-web>/aura/ y se lleva los ajustes de cada dispositivo. Paneles, caja fuerte, MCP y proxy ya no se sirven allí. El registro nombra cada dispositivo que aún llega por ahí; desactívelo cuando no llegue ninguno.",
+        "pl": "Stary port (np. :8095) tylko przekierowuje wtedy na <port-web>/aura/ i zabiera ustawienia każdego urządzenia. Pulpity, sejf, MCP i proxy nie są tam już obsługiwane. Log wymienia każde urządzenie, które nadal tak przychodzi; wyłącz, gdy żadne już nie przychodzi.",
+        "uk": "Старий порт (наприклад, :8095) тоді лише переспрямовує на <веб-порт>/aura/ і переносить налаштування кожного пристрою. Дашборди, сховище, MCP і проксі там більше не обслуговуються. Журнал називає кожен пристрій, що ще приходить так; вимкніть, коли таких не залишиться.",
+        "zh-cn": "旧端口（例如 :8095）随后只会转发到 <Web端口>/aura/，并带上每台设备的设置。仪表板、保险库、MCP 和代理不再在那里提供。日志会列出仍通过此方式访问的每台设备；当不再有设备访问时请关闭。"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "port": {
       "type": "number",

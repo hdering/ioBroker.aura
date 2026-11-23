@@ -191,6 +191,7 @@ await test('a decided ownPort is never asked again (no restart loop)', async () 
     for (const v of [true, false]) {
         const obj = settled();
         obj.native.ownPort = v;
+        obj.native.portRedirect = v;
         let asked = 0;
         const r = await syncOwnInstanceObject(
             obj,
@@ -238,6 +239,37 @@ await test('the links follow the decision (ownPort passed to localLinks)', async
         }),
     );
     assert.equal(seen, false);
+});
+
+await test('forwarding the old port: on for a port in use, off for a new one, decided once', async () => {
+    for (const [ownPort, want] of [
+        [true, true],
+        [false, false],
+    ]) {
+        const obj = settled();
+        obj.native.ownPort = ownPort;
+        obj.native.portRedirect = null;
+        const r = await syncOwnInstanceObject(obj, deps({ clearResetAdminPin: false }));
+        assert.equal(r.changed, true);
+        assert.equal(obj.native.portRedirect, want, `ownPort ${ownPort}`);
+        const again = await syncOwnInstanceObject(obj, deps({ clearResetAdminPin: false }));
+        assert.equal(again.changed, false, 'second start writes nothing');
+    }
+    // decided together with ownPort on the first start, in the same write
+    const obj = settled();
+    obj.native.ownPort = null;
+    obj.native.portRedirect = null;
+    await syncOwnInstanceObject(
+        obj,
+        deps({ clearResetAdminPin: false, decideOwnPort: async () => ({ ownPort: false, reason: 'x' }) }),
+    );
+    assert.equal(obj.native.portRedirect, false);
+    // switching the port off later keeps it on (it was decided while the port ran)
+    const later = settled();
+    later.native.ownPort = false;
+    later.native.portRedirect = true;
+    assert.equal((await syncOwnInstanceObject(later, deps({ clearResetAdminPin: false }))).changed, false);
+    assert.equal(later.native.portRedirect, true);
 });
 
 await test('main.js writes its instance object in one place only', async () => {

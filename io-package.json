@@ -209,6 +209,7 @@
     "customUrl": "",
     "port": 8095,
     "ownPort": null,
+    "portRedirect": null,
     "bind": "",
     "socketPort": 8082,
     "socketSecure": false,
