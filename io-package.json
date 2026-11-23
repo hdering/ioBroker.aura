@@ -109,6 +109,9 @@
     "globalDependencies": [
       {
         "admin": ">=7.8.23"
+      },
+      {
+        "web": ">=8.0.0"
       }
     ],
     "messages": [
