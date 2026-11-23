@@ -274,6 +274,12 @@ const REPORTED = {
         'own port without React: error',
         has(webComponentFindings({ adapters: ['flow'], ownReact: false }), 'wc-react-own-missing'),
     );
+    check(
+        'no own port: nothing about the own port, even without its React files',
+        !webComponentFindings({ adapters: ['flow'], ownReact: false, noOwnPort: true }).some((f) =>
+            f.id.startsWith('wc-react-own'),
+        ),
+    );
     const old = webComponentFindings({
         adapters: ['flow'],
         ownReact: true,
