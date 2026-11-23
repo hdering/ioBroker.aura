@@ -302,7 +302,8 @@ try {
     {
         const items = JSON.parse(fs.readFileSync(join(process.cwd(), 'admin/jsonConfig.json'), 'utf8')).items;
         const run = (expr, data) => new Function('data', `return (${expr});`)(data);
-        const shown = (key, ownPort) => !items[key].hidden || !run(items[key].hidden, { ownPort });
+        const shown = (key, ownPort, webInstance = 'web.0') =>
+            !items[key].hidden || !run(items[key].hidden, { ownPort, webInstance });
         check(
             'settings: option and warning only while the port is on',
             ['ownPort', '_ownPortWarning'].every(
@@ -327,6 +328,18 @@ try {
                 shown('port', true) &&
                 !shown('socketInstance', false) &&
                 !shown('socketInstance', null),
+        );
+        check(
+            '…but stay settable when the fallback opens the port (no web instance), with a note why',
+            shown('port', false, '') &&
+                shown('socketInstance', false, '') &&
+                shown('_ownPortFallback', false, '') &&
+                !shown('_ownPortFallback', false) &&
+                !shown('_ownPortFallback', true, ''),
+        );
+        check(
+            '…forwarding the old port only offered with the port off and a web instance',
+            shown('portRedirect', false) && !shown('portRedirect', true) && !shown('portRedirect', false, ''),
         );
         check(
             '…a not yet started instance explains the first start instead',

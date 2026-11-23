@@ -24,6 +24,30 @@
       "lg": 12,
       "xl": 12
     },
+    "_ownPortFallback": {
+      "type": "infoBox",
+      "boxType": "warning",
+      "closeable": false,
+      "hidden": "data.ownPort !== false || !!data.webInstance",
+      "text": {
+        "en": "No web instance is chosen below, so Aura opens its own port anyway (settings below). Choose a web instance under \"Web adapter\" to run without it.",
+        "de": "Unten ist keine Web-Instanz gewählt, darum öffnet Aura trotzdem seinen eigenen Port (Einstellungen darunter). Unter „Web-Adapter“ eine Web-Instanz wählen, um ohne ihn zu laufen.",
+        "ru": "Ниже не выбран веб-экземпляр, поэтому Aura всё равно открывает собственный порт (настройки ниже). Выберите веб-экземпляр в разделе «Веб-адаптер», чтобы работать без него.",
+        "pt": "Nenhuma instância web está escolhida abaixo, por isso o Aura abre a sua porta própria mesmo assim (definições abaixo). Escolha uma instância web em \"Adaptador web\" para funcionar sem ela.",
+        "nl": "Hieronder is geen webinstantie gekozen, daarom opent Aura toch zijn eigen poort (instellingen hieronder). Kies onder \"Webadapter\" een webinstantie om zonder te draaien.",
+        "fr": "Aucune instance web n'est choisie ci-dessous, Aura ouvre donc quand même son propre port (réglages ci-dessous). Choisissez une instance web sous « Adaptateur web » pour fonctionner sans.",
+        "it": "Qui sotto non è scelta alcuna istanza web, quindi Aura apre comunque la propria porta (impostazioni sotto). Scegliere un'istanza web in \"Adattatore web\" per funzionare senza.",
+        "es": "Abajo no hay ninguna instancia web elegida, así que Aura abre su propio puerto de todos modos (ajustes debajo). Elija una instancia web en «Adaptador web» para funcionar sin él.",
+        "pl": "Poniżej nie wybrano instancji web, więc Aura i tak otwiera własny port (ustawienia poniżej). Wybierz instancję web w sekcji „Adapter web”, aby działać bez niego.",
+        "uk": "Нижче не вибрано веб-екземпляр, тому Aura все одно відкриває власний порт (налаштування нижче). Виберіть веб-екземпляр у розділі «Веб-адаптер», щоб працювати без нього.",
+        "zh-cn": "下方未选择 Web 实例，因此 Aura 仍会打开自己的端口（设置见下方）。请在“Web 适配器”下选择一个 Web 实例，以便在不使用该端口的情况下运行。"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "_ownPortPending": {
       "type": "infoBox",
       "boxType": "info",
@@ -166,7 +190,7 @@
     },
     "portRedirect": {
       "type": "checkbox",
-      "hidden": "data.ownPort !== false",
+      "hidden": "data.ownPort !== false || !data.webInstance",
       "newLine": true,
       "label": {
         "en": "Forward the old port (transition)",
@@ -236,7 +260,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "bind": {
       "type": "select",
@@ -309,7 +333,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "customUrl": {
       "type": "text",
@@ -343,7 +367,7 @@
       "md": 12,
       "lg": 12,
       "xl": 12,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "secure": {
       "type": "checkbox",
@@ -379,7 +403,7 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "certPublic": {
       "type": "certificate",
@@ -397,7 +421,7 @@
         "uk": "Публічний сертифікат",
         "zh-cn": "公共证书"
       },
-      "hidden": "(!data.secure) || data.ownPort !== true",
+      "hidden": "(!data.secure) || (data.ownPort !== true && !!data.webInstance)",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -420,7 +444,7 @@
         "uk": "Приватний ключ",
         "zh-cn": "私钥"
       },
-      "hidden": "(!data.secure) || data.ownPort !== true",
+      "hidden": "(!data.secure) || (data.ownPort !== true && !!data.webInstance)",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -443,7 +467,7 @@
         "uk": "Прикутий сертифікат",
         "zh-cn": "链式证书"
       },
-      "hidden": "(!data.secure) || data.ownPort !== true",
+      "hidden": "(!data.secure) || (data.ownPort !== true && !!data.webInstance)",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -471,7 +495,7 @@
       "md": 12,
       "lg": 12,
       "xl": 12,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "socketInstance": {
       "type": "selectSendTo",
@@ -509,7 +533,7 @@
       "md": 4,
       "lg": 4,
       "xl": 4,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "socketPort": {
       "type": "number",
@@ -542,7 +566,7 @@
       "min": 1024,
       "max": 65535,
       "default": 8082,
-      "hidden": "(!!data.socketInstance) || data.ownPort !== true",
+      "hidden": "(!!data.socketInstance) || (data.ownPort !== true && !!data.webInstance)",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -577,7 +601,7 @@
         "uk": "Увімкніть, якщо екземпляр iobroker.web на порту сокета має активований HTTPS. Після цього Aura підключиться до мережі через wss/https (приймаються самопідписані сертифікати).",
         "zh-cn": "如果套接字端口上的 iobroker.web 实例已激活 HTTPS，则启用。然后，Aura 将通过 wss/https 进行内部连接（接受自签名证书）。"
       },
-      "hidden": "(!!data.socketInstance) || data.ownPort !== true",
+      "hidden": "(!!data.socketInstance) || (data.ownPort !== true && !!data.webInstance)",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -619,7 +643,7 @@
       "lg": 4,
       "xl": 4,
       "newLine": true,
-      "hidden": "data.ownPort !== true"
+      "hidden": "(data.ownPort !== true && !!data.webInstance)"
     },
     "backendCheckHint": {
       "type": "staticText",
