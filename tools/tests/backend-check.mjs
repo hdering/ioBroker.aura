@@ -228,6 +228,7 @@ const REPORTED = {
             /web\.0.*aura\.1/.test(byId(shared, 'web-instance-shared').title),
     );
     check('…not without one', !byId(off, 'web-instance-shared'));
+    check('…and then no ok line claiming it is reached there', !byId(shared, 'own-server-off'));
 }
 
 // ── 6. The report that gets pasted into a forum post ────────────────────────
