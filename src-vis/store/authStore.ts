@@ -6,6 +6,8 @@ import {
     adminLogin,
     adminChange,
     adminSession,
+    adminLogout,
+    COOKIE_SESSION,
     type AdminAuthResult,
     type AdminChangeResult,
     type AdminSession,
@@ -19,6 +21,11 @@ import {
  * password is now scrypt-checked on the adapter host; on success the server hands
  * back a signed session token, which is all this store keeps. Admin API calls
  * (vault read, config save) carry it as a Bearer token.
+ *
+ * The token lives in memory only (#997): behind the web extension Aura shares
+ * its origin with every page of the web adapter, and localStorage would hand it
+ * to all of them. What persists is the expiry and the flag; across a reload the
+ * server's HttpOnly session cookie authenticates (`COOKIE_SESSION`).
  */
 
 // The vite dev server has no adapter behind it, so the security API 404s there.
@@ -32,7 +39,7 @@ interface AuthState {
     statusLoaded: boolean;
     /** false once we learn the security API is unreachable (dev server, adapter down). */
     apiAvailable: boolean;
-    /** Signed admin session token from the server, or null when logged out. */
+    /** Signed admin session token from the server — this page's memory only; null after a reload (the cookie carries the session then) or when logged out. */
     token: string | null;
     /** Epoch ms the server stops honouring the token (null = unknown, e.g. dev). */
     tokenExp: number | null;
@@ -67,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'aura-auth',
-            partialize: (s) => ({ token: s.token, tokenExp: s.tokenExp, sessionActive: s.sessionActive }),
+            partialize: (s) => ({ tokenExp: s.tokenExp, sessionActive: s.sessionActive }),
             // A token whose expiry has passed is no session — drop it while the app
             // boots, so the editor never renders as logged in behind a dead token.
             // In `merge`, not onRehydrateStorage: localStorage hydrates synchronously
@@ -79,12 +86,15 @@ export const useAuthStore = create<AuthState>()(
                 const tokenExp = typeof p.tokenExp === 'number' ? p.tokenExp : null;
                 const sessionActive = p.sessionActive === true;
                 const expired = tokenExp !== null && tokenExp <= Date.now();
-                // A flag without a token is the pre-vault login, which persisted
-                // { pinHash, sessionActive } under this same key. It opened the editor
-                // after an update, but every admin call had nothing to send: a
-                // protected tab stayed empty and „PIN entfernen“ failed (#704). Dev
-                // keeps it — the test harness seeds exactly that as its fake login.
-                const tokenless = !DEV && sessionActive && !token;
+                // A flag without a token AND without an expiry is the pre-vault login,
+                // which persisted { pinHash, sessionActive } under this same key. It
+                // opened the editor after an update, but every admin call had nothing
+                // to send: a protected tab stayed empty and „PIN entfernen“ failed
+                // (#704). With an expiry it is a cookie session (#997). A token from
+                // before #997 still sits in storage — kept in memory until it expires,
+                // gone from storage with the next write. Dev keeps a bare flag — the
+                // test harness seeds exactly that as its fake login.
+                const tokenless = !DEV && sessionActive && !token && tokenExp === null;
                 if (sessionActive && (expired || tokenless))
                     return { ...current, token: null, tokenExp: null, sessionActive: false, sessionExpired: true };
                 return { ...current, token, tokenExp, sessionActive };
@@ -141,7 +151,7 @@ export async function loginWithPin(password: string): Promise<AdminAuthResult> {
 /** Change the admin password (requires an active session). */
 export async function changeAdmin(newPassword: string): Promise<AdminChangeResult> {
     if (DEV && !useAuthStore.getState().apiAvailable) return { ok: true, session: null }; // no server in dev
-    const token = useAuthStore.getState().token;
+    const token = adminToken();
     if (!token) {
         expireSession();
         return { ok: false, reason: 'expired' };
@@ -170,10 +180,11 @@ export async function verifyAdminSession(): Promise<boolean> {
     const { token, tokenExp, sessionActive, apiAvailable } = useAuthStore.getState();
     if (!sessionActive) return false;
     if (DEV && !apiAvailable) return true; // no security API behind the dev server
-    // No token behind the flag: a dev/test fake — leave it alone. In production it
-    // can only be a login from before the vault, which no admin call accepts (#704).
-    if (!token) {
-        if (DEV) return true;
+    // No token behind the flag: in dev a test fake — leave it alone. In production
+    // a cookie session when it knows its expiry (#997), else a login from before
+    // the vault, which no admin call accepts (#704).
+    if (!token && DEV) return true;
+    if (!token && typeof tokenExp !== 'number') {
         expireSession();
         return false;
     }
@@ -181,7 +192,7 @@ export async function verifyAdminSession(): Promise<boolean> {
         expireSession();
         return false;
     }
-    const res = await adminSession(token);
+    const res = await adminSession(token ?? COOKIE_SESSION);
     if (res === 'expired') {
         expireSession();
         return false;
@@ -189,11 +200,16 @@ export async function verifyAdminSession(): Promise<boolean> {
     return true; // 'unavailable' — an adapter restart is not a logout
 }
 
-/** The current admin Bearer token, or null. Used by admin-only API calls. */
+/**
+ * What admin-only API calls authenticate with: this page's token, else the
+ * session cookie (`COOKIE_SESSION`) while a session is active, else null.
+ */
 export function adminToken(): string | null {
-    return useAuthStore.getState().token;
+    const { token, sessionActive } = useAuthStore.getState();
+    return token ?? (sessionActive ? COOKIE_SESSION : null);
 }
 
 export function logout(): void {
     useAuthStore.getState().setSession(null);
+    void adminLogout();
 }

@@ -13,6 +13,15 @@ import { auraUrl } from './basePath';
 
 const API_BASE = auraUrl('/api/aura');
 
+/**
+ * Stand-in for "the session the HttpOnly cookie carries" (#997): after a reload
+ * the frontend has no token any more — it is deliberately not kept in
+ * localStorage, which behind the web extension every page of the web adapter can
+ * read — and the server's session cookie authenticates instead. Callers pass it
+ * like a token; `request` then sends no Authorization header.
+ */
+export const COOKIE_SESSION = '@cookie';
+
 export interface UnlockResult {
     content: unknown;
     pinRelock: 'leave' | 'session';
@@ -47,9 +56,11 @@ async function request(
     route: string,
     opts: { body?: unknown; token?: string } = {},
 ): Promise<{ status: number; json: ApiJson | null }> {
-    const headers: Record<string, string> = {};
+    // X-Aura-Request: the server accepts its session cookie only with this
+    // header — a foreign page cannot add it without a CORS preflight.
+    const headers: Record<string, string> = { 'X-Aura-Request': '1' };
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
-    if (opts.token) headers['Authorization'] = `Bearer ${opts.token}`;
+    if (opts.token && opts.token !== COOKIE_SESSION) headers['Authorization'] = `Bearer ${opts.token}`;
     try {
         const res = await fetch(`${API_BASE}/${route}`, {
             method,
@@ -129,6 +140,11 @@ export async function adminSession(token: string): Promise<'ok' | 'expired' | 'u
     if (status === 200) return 'ok';
     if (status === 401) return 'expired';
     return 'unavailable';
+}
+
+/** End the session server-side too: the HttpOnly cookie is out of the frontend's reach. */
+export async function adminLogout(): Promise<void> {
+    await request('POST', 'admin/logout');
 }
 
 export type AdminChangeResult =

@@ -339,6 +339,51 @@ try {
     r = await call('POST', 'vault/codes/delete', { token: adminToken, body: { id: codeId } });
     ok(r.status === 200 && r.json.removed === true && !vault.load().codes[codeId], 'an unused PIN is deleted');
 
+    // ── admin session cookie (#997, step 5) ──────────────────────────────────
+    {
+        api.attempts.clear(); // the lockout tests above left the login blocked
+        const raw = async (method, route, headers = {}, body) =>
+            fetch(`${base}/${route}`, {
+                method,
+                headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers },
+                body: body ? JSON.stringify(body) : undefined,
+            });
+        let res = await raw('POST', 'admin/login', {}, { password: 'wrong' });
+        ok(!res.headers.get('set-cookie'), 'a failed login sets no cookie');
+        res = await raw('POST', 'admin/login', {}, { password: 'newpass' });
+        const setCookie = res.headers.get('set-cookie') || '';
+        ok(/^aura_admin=[^;]+;/.test(setCookie), 'login sets the session cookie');
+        ok(/HttpOnly/i.test(setCookie) && /SameSite=Strict/i.test(setCookie), 'cookie is HttpOnly + SameSite=Strict');
+        ok(
+            /Path=\/(;|$)/.test(setCookie) && /Max-Age=28800/.test(setCookie),
+            'cookie Path=/, lives as long as the token',
+        );
+        ok(!/Secure/i.test(setCookie), 'plain http: no Secure flag');
+        const cookie = setCookie.split(';')[0];
+        res = await raw('GET', 'vault', { Cookie: cookie, 'X-Aura-Request': '1' });
+        ok(res.status === 200, 'cookie + X-Aura-Request authenticates an admin call');
+        res = await raw('GET', 'vault', { Cookie: cookie });
+        ok(res.status === 401, 'cookie without X-Aura-Request is refused (CSRF guard)');
+        res = await raw('GET', 'admin/session', { Cookie: cookie, 'X-Aura-Request': '1' });
+        ok(res.status === 200, 'session probe works on the cookie alone');
+        res = await raw('GET', 'vault', { Cookie: 'aura_admin=forged.token', 'X-Aura-Request': '1' });
+        ok(res.status === 401, 'a forged cookie is refused');
+        res = await raw('GET', 'vault', { Cookie: 'aura_admin_1=' + cookie.split('=')[1], 'X-Aura-Request': '1' });
+        ok(res.status === 401, "another instance's cookie name does not count");
+        res = await raw('POST', 'admin/login', { 'X-Forwarded-Proto': 'https' }, { password: 'newpass' });
+        ok(/;\s*Secure/i.test(res.headers.get('set-cookie') || ''), 'https (forwarded): Secure flag');
+        res = await raw('POST', 'admin/logout', { Cookie: cookie, 'X-Aura-Request': '1' });
+        ok(
+            res.status === 200 && /^aura_admin=;.*Max-Age=0/.test(res.headers.get('set-cookie') || ''),
+            'logout clears the cookie',
+        );
+        res = await raw('POST', 'admin/change', { Cookie: cookie, 'X-Aura-Request': '1' }, { newPassword: 'newpass' });
+        ok(
+            res.status === 200 && /^aura_admin=[^;]+;/.test(res.headers.get('set-cookie') || ''),
+            'password change renews the cookie',
+        );
+    }
+
     // ── unknown route → JSON 404 (never the SPA) ─────────────────────────────
     r = await call('GET', 'nope');
     ok(r.status === 404 && r.json && r.json.error, 'unknown endpoint → JSON 404');

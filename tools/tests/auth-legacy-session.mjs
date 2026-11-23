@@ -111,6 +111,59 @@ const snap = (m) => {
     ok('dev: probe leaves the fake login alone', res === true && snap(m).sessionActive === true);
 }
 
+// ── #997: the token stays in memory, the cookie carries the session ──────────
+{
+    const m = await load('prod', null);
+    m.useAuthStore.getState().setSession({ token: 'tok', exp: Date.now() + 60_000 });
+    const stored = JSON.parse(mem.get('aura-auth') || '{}').state || {};
+    ok(
+        'prod: token never written to localStorage',
+        !('token' in stored) && stored.sessionActive === true,
+        JSON.stringify(stored),
+    );
+    ok('prod: this page still sends its token', m.adminToken() === 'tok');
+}
+{
+    const m = await load('prod', { tokenExp: Date.now() + 60_000, sessionActive: true });
+    ok('prod: cookie session (expiry, no token) kept on boot', snap(m).sessionActive === true, JSON.stringify(snap(m)));
+    ok('prod: admin calls then use the cookie', m.adminToken() === '@cookie');
+    let sent = null;
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = async (url, init) => {
+        sent = init?.headers || {};
+        return new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+        });
+    };
+    const res = await m.verifyAdminSession();
+    globalThis.fetch = prevFetch;
+    ok('prod: cookie session passes the probe', res === true);
+    ok(
+        'prod: probe sends no Bearer, but X-Aura-Request',
+        sent && !sent.Authorization && sent['X-Aura-Request'] === '1',
+        JSON.stringify(sent),
+    );
+}
+{
+    const m = await load('prod', { token: 'old', tokenExp: Date.now() + 60_000, sessionActive: true });
+    ok('prod: a token from before #997 is still used in memory', m.adminToken() === 'old');
+}
+{
+    let called = '';
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = async (url, init) => {
+        called = `${init?.method} ${url}`;
+        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+    };
+    const m = await load('prod', { tokenExp: Date.now() + 60_000, sessionActive: true });
+    m.logout();
+    await new Promise((r) => setTimeout(r, 10));
+    globalThis.fetch = prevFetch;
+    ok('prod: logout asks the server to drop the cookie', /^POST .*admin\/logout$/.test(called), called);
+    ok('prod: logged out locally', !snap(m).sessionActive && m.adminToken() === null);
+}
+
 rmSync(files.prod, { force: true });
 rmSync(files.dev, { force: true });
 

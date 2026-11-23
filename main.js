@@ -66,6 +66,7 @@ const { createAnnouncements } = require('./lib/announcements');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
 const { isBlockedHost, guardedLookup, isCrossSite } = require('./lib/proxyGuard');
+const { createProxyJar, readCookie, foreignCookies, targetOrigin } = require('./lib/proxyJar');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
 const { adapterTimers } = require('./lib/timers');
@@ -298,6 +299,29 @@ const STRIP_HEADERS = new Set([
 const PROXY_TIMEOUT_MS = 15_000;
 
 /**
+ * What a proxied document may still do once it runs in an opaque origin behind
+ * the web extension (#997). Missing on purpose: `allow-same-origin` (the whole
+ * point — no access to the shared origin's cookies, storage and web session) and
+ * `allow-top-navigation` (a page must not navigate the dashboard away).
+ */
+const PROXY_SANDBOX_CSP =
+    'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals ' +
+    'allow-downloads allow-pointer-lock allow-presentation allow-orientation-lock';
+
+/** Browser cookie naming this browser's server-side proxy jar (lib/proxyJar.js). */
+const PROXY_JAR_COOKIE = 'aura_pj';
+
+/**
+ * Responses a browser renders as plain media, never as a document that runs
+ * script — those keep working unsandboxed (the sound switch reaches into the
+ * media document of a proxied video link).
+ */
+function isInertMedia(contentType) {
+    const ct = String(contentType || '').toLowerCase();
+    return /^(image\/(?!svg)|video\/|audio\/|font\/)/.test(ct);
+}
+
+/**
  * The path prefix a request came in under: `/aura/` when the web adapter
  * extension (lib/webExtension.js) forwarded it, `/` on Aura's own port. The
  * extension strips the prefix from the URL and names it in `X-Aura-Base`; every
@@ -316,16 +340,78 @@ function requestBase(req) {
     return typeof v === 'string' && /^\/(?:[A-Za-z0-9._-]+\/)*$/.test(v) ? v : '/';
 }
 
-function rewriteHtml(html, baseUrl, base = '/') {
+/**
+ * Stand-ins for what a sandboxed (opaque-origin) page cannot use, injected ahead
+ * of the page's own scripts behind the web extension (#997):
+ *
+ *  - `localStorage` / `sessionStorage` throw a SecurityError there, and most
+ *    single-page apps die on the first access. They get an in-memory Storage
+ *    (gone on reload — the page's own state, never the shared origin's).
+ *  - `document.cookie` throws as well. It reads the target's script-visible
+ *    cookies from the server-side jar and keeps what the page writes in memory;
+ *    the requests themselves carry the jar's cookies (lib/proxyJar.js).
+ *  - Aura's sound switch cannot reach into an opaque frame, so the page answers
+ *    `{auraMute: bool|null}` messages from its parent (null = only report) and reports
+ *    `{auraMuteState: bool|null}` back (src-vis/hooks/useIframeMute.ts).
+ *
+ * @param {string} cookies initial `document.cookie` value
+ */
+function sandboxShim(cookies) {
+    const initial = JSON.stringify(cookies || '').replace(/</g, '\\u003c');
+    return (
+        `<script>(function(){` +
+        `function mk(){var d=Object.create(null);return{` +
+        `getItem:function(k){k=String(k);return k in d?d[k]:null},` +
+        `setItem:function(k,v){d[String(k)]=String(v)},` +
+        `removeItem:function(k){delete d[String(k)]},` +
+        `clear:function(){d=Object.create(null)},` +
+        `key:function(i){var k=Object.keys(d)[i];return k===undefined?null:k},` +
+        `get length(){return Object.keys(d).length}}}` +
+        `['localStorage','sessionStorage'].forEach(function(n){` +
+        `try{window[n].length;}catch(e){try{Object.defineProperty(window,n,{value:mk(),configurable:true});}catch(x){}}` +
+        `});` +
+        `try{document.cookie;}catch(e){` +
+        `var jar={};String(${initial}).split(';').forEach(function(p){var i=p.indexOf('=');if(i>0)jar[p.slice(0,i).trim()]=p.slice(i+1).trim();});` +
+        `try{Object.defineProperty(document,'cookie',{configurable:true,` +
+        `get:function(){return Object.keys(jar).map(function(k){return k+'='+jar[k]}).join('; ')},` +
+        `set:function(v){v=String(v);var f=v.split(';')[0],i=f.indexOf('=');if(i<=0)return;var k=f.slice(0,i).trim();` +
+        `if(/;\\s*max-age=(-|0(;|$))/i.test(v))delete jar[k];else jar[k]=f.slice(i+1).trim();}});}catch(x){}` +
+        `}` +
+        `var want=null;` +
+        `function media(){return document.querySelectorAll('video,audio')}` +
+        `function report(){var m=media()[0];try{parent.postMessage({auraMuteState:m?m.muted:null},'*');}catch(e){}}` +
+        `function apply(){if(want===null)return;media().forEach(function(m){if(m.muted!==want)m.muted=want;});}` +
+        `addEventListener('message',function(e){var d=e.data;if(e.source!==parent||!d||typeof d!=='object'||!('auraMute' in d))return;if(typeof d.auraMute==='boolean'){want=d.auraMute;apply();}report();});` +
+        `['loadstart','play'].forEach(function(t){document.addEventListener(t,function(e){var m=e.target;if(want!==null&&m&&typeof m.muted==='boolean')m.muted=want;report();},true);});` +
+        `document.addEventListener('volumechange',report,true);` +
+        `addEventListener('DOMContentLoaded',report);` +
+        `})();</script>`
+    );
+}
+
+/**
+ * Rewrite a proxied HTML page so its links, resources and requests go through
+ * `/proxy` again.
+ *
+ * @param {string} html the page
+ * @param {string} baseUrl the URL it came from
+ * @param {string} [base] Aura's path prefix (`/` or `/aura/`)
+ * @param {{sign?: (absUrl: string) => string, sandbox?: {cookies: string} | null}} [opts]
+ *   `sign` returns the `&t=…` capability key for a target URL (lib/proxyJar.js);
+ *   `sandbox` is set when the page is served with `CSP: sandbox` behind the web
+ *   extension — it then gets stand-ins for the storage the opaque origin lacks.
+ */
+function rewriteHtml(html, baseUrl, base = '/', opts = {}) {
     const proxyPath = `${base}proxy`;
     const proxyWsPath = `${base}proxyws`;
+    const sign = opts.sign || (() => '');
     function toProxy(url) {
         if (!url) return url;
         const trimmed = url.trim();
         if (/^(data:|javascript:|blob:|mailto:|tel:|#)/.test(trimmed)) return url;
         try {
             const abs = new URL(trimmed, baseUrl).toString();
-            return `${proxyPath}?url=${encodeURIComponent(abs)}`;
+            return `${proxyPath}?url=${encodeURIComponent(abs)}${sign(abs)}`;
         } catch {
             return url;
         }
@@ -365,21 +451,22 @@ function rewriteHtml(html, baseUrl, base = '/') {
     const targetOrigin = new URL(baseUrl).origin;
     const tgtNoProto = targetOrigin.replace(/^https?:/, '');
     const wsProto = targetOrigin.startsWith('https:') ? 'wss:' : 'ws:';
+    const shim = opts.sandbox ? sandboxShim(opts.sandbox.cookies) : '';
     const wsSnippet =
-        `<script>(function(){` +
+        `${shim}<script>(function(){` +
         `var tgt=${JSON.stringify(targetOrigin)},tgtNP=${JSON.stringify(tgtNoProto)},wsp=${JSON.stringify(wsProto)},` +
-        `pp=${JSON.stringify(proxyPath)},pw=${JSON.stringify(proxyWsPath)};` +
-        `history.replaceState(history.state,'','/');` +
+        `pp=${JSON.stringify(proxyPath)},pw=${JSON.stringify(proxyWsPath)},tq=${JSON.stringify(sign(baseUrl))};` +
+        `try{history.replaceState(history.state,'','/');}catch(e){}` +
         `function rw(u){` +
         `try{` +
         `var s=String(u);` +
         `if(s.startsWith(pp))return u;` +
         `if(s.charAt(0)==='/'&&s.charAt(1)!=='/'){` +
-        `return pp+'?url='+encodeURIComponent(tgt+s);` +
+        `return pp+'?url='+encodeURIComponent(tgt+s)+tq;` +
         `}` +
         `var a=new URL(s,location.href);` +
         `if((a.origin===location.origin&&!a.pathname.startsWith(pp))||a.origin===tgt){` +
-        `return pp+'?url='+encodeURIComponent(tgt+a.pathname+a.search+a.hash);` +
+        `return pp+'?url='+encodeURIComponent(tgt+a.pathname+a.search+a.hash)+tq;` +
         `}` +
         `}catch(e){}` +
         `return u;` +
@@ -390,7 +477,7 @@ function rewriteHtml(html, baseUrl, base = '/') {
         `var a=new URL(u.replace(/^wss?:/,'https:'),location.href);` +
         `if(a.pathname===pw)return new _W(u,p);` +
         `if(a.origin===location.origin||a.origin===tgt){` +
-        `u=pw+'?url='+encodeURIComponent(wsp+tgtNP+a.pathname+(a.search||''));` +
+        `u=pw+'?url='+encodeURIComponent(wsp+tgtNP+a.pathname+(a.search||''))+tq;` +
         `}` +
         `}catch(e){}` +
         `return new _W(u,p);` +
@@ -482,12 +569,19 @@ function rewriteHtml(html, baseUrl, base = '/') {
     return out;
 }
 
-function rewriteCss(css, baseUrl, base = '/') {
+/**
+ * @param {string} css the stylesheet
+ * @param {string} baseUrl the URL it came from
+ * @param {string} [base] Aura's path prefix
+ * @param {(absUrl: string) => string} [sign] capability key suffix, see rewriteHtml
+ */
+function rewriteCss(css, baseUrl, base = '/', sign = () => '') {
     function toProxy(url) {
         const trimmed = url.replace(/^['"]|['"]$/g, '').trim();
         if (!trimmed || /^(data:|#)/.test(trimmed)) return url;
         try {
-            return `'${`${base}proxy?url=${encodeURIComponent(new URL(trimmed, baseUrl).toString())}`}'`;
+            const abs = new URL(trimmed, baseUrl).toString();
+            return `'${`${base}proxy?url=${encodeURIComponent(abs)}${sign(abs)}`}'`;
         } catch {
             return url;
         }
@@ -568,7 +662,16 @@ function isConfirmedValue(id, state, namespace) {
 /** Upstream must answer the WebSocket upgrade within this; the open socket has no timeout. */
 const WS_HANDSHAKE_TIMEOUT_MS = 15000;
 
-function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, guard = false) {
+/**
+ * @param {import('node:http').IncomingMessage} req the upgrade request
+ * @param {import('node:net').Socket} socket the client socket
+ * @param {string} targetWsUrl ws(s):// target
+ * @param {ioBroker.Logger} log logger
+ * @param {boolean} [sendForwardedFor] add X-Forwarded-* (backend pass-through)
+ * @param {boolean} [guard] user-supplied target: refuse the ioBroker host itself
+ * @param {string} [cookie] Cookie header for the target; undefined = the browser's own
+ */
+function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, guard = false, cookie = undefined) {
     let targetUrl;
     try {
         targetUrl = new URL(targetWsUrl);
@@ -600,7 +703,8 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true, 
     if (guard) opts.lookup = guardedLookup;
     if (req.headers['sec-websocket-protocol'])
         opts.headers['Sec-WebSocket-Protocol'] = req.headers['sec-websocket-protocol'];
-    if (req.headers['cookie']) opts.headers['Cookie'] = req.headers['cookie'];
+    const cookieHeader = cookie === undefined ? req.headers['cookie'] : cookie;
+    if (cookieHeader) opts.headers['Cookie'] = cookieHeader;
     if (sendForwardedFor) applyForwardedHeaders(opts.headers, req);
 
     const proxyReq = lib.request(opts);
@@ -1001,6 +1105,8 @@ class Aura extends utils.Adapter {
         this.on('message', this.onMessage.bind(this));
         this.on('unload', this.onUnload.bind(this));
         this._httpServer = null;
+        /** Cookies and capability keys of sandboxed /proxy pages, see lib/proxyJar.js */
+        this._proxyJar = createProxyJar();
         /** @type {Set<string> | undefined} timer warnings already logged, each only once */
         this._timerWarned = undefined;
         // Serializes every change to messages.history, see _updateMessageHistory
@@ -1599,6 +1705,9 @@ class Aura extends utils.Adapter {
             log: this.log,
             restoreView: (key, content) => this._restoreProtectedView(key, content),
             onCodesChanged: () => this._syncPinCodes(),
+            // One cookie per instance: cookies ignore the port, aura.0 and aura.1
+            // on one host would otherwise log each other out.
+            cookieName: `aura_admin_${this.instance ?? 0}`,
         });
         try {
             const st = await this.getStateAsync('config.dashboard');
@@ -1734,6 +1843,62 @@ class Aura extends utils.Adapter {
         await this.setStateAsync('config.dashboard', { val: JSON.stringify(outValue), ack: true });
         this.log.info(`aura: PIN vault — ${key} restored into config.dashboard (protection removed)`);
         return true;
+    }
+
+    /**
+     * May this request use /proxy (or /proxyws) for `targetUrl`, and with which jar?
+     *
+     * - A valid `t` key (handed out by the rewriter) admits the request whatever
+     *   the browser calls it — the sub-requests of a sandboxed page are all
+     *   `cross-site`, without a Referer.
+     * - Otherwise a cross-site request is a foreign page using the visitor's
+     *   browser: refused, as before.
+     * - Behind the web extension (`base` ≠ `/`) the page is sandboxed and its
+     *   cookies live in the jar the `aura_pj` browser cookie names (made here
+     *   on first use). On Aura's own port nothing changes: no sandbox, no jar.
+     *
+     * @param {import('node:http').IncomingMessage} req the request
+     * @param {URL} targetUrl the proxy target
+     * @param {string} base Aura's path prefix of this request
+     * @returns {{jarId: string|null, sandboxed: boolean, setJarCookie: string|null, keyed: boolean} | null} null = refuse
+     */
+    _proxyAccess(req, targetUrl, base) {
+        const sandboxed = base !== '/';
+        let t = null;
+        try {
+            t = new URL(req.url || '/', 'http://localhost').searchParams.get('t');
+        } catch {
+            /* no key */
+        }
+        const keyed = t ? this._proxyJar.verifyKey(t, targetOrigin(targetUrl)) : null;
+        if (keyed) return { jarId: sandboxed ? keyed : null, sandboxed, setJarCookie: null, keyed: true };
+        if (isCrossSite(req)) return null;
+        if (!sandboxed) return { jarId: null, sandboxed: false, setJarCookie: null, keyed: false };
+        let jarId = this._proxyJar.jarFromCookieValue(readCookie(req, PROXY_JAR_COOKIE));
+        let setJarCookie = null;
+        if (!jarId) {
+            jarId = this._proxyJar.newJarId();
+            const secure = String(req.headers['x-forwarded-proto'] || '').startsWith('https') ? '; Secure' : '';
+            setJarCookie = `${PROXY_JAR_COOKIE}=${this._proxyJar.jarCookieValue(jarId)}; Path=${base}; HttpOnly; SameSite=Lax${secure}`;
+        }
+        return { jarId, sandboxed: true, setJarCookie, keyed: false };
+    }
+
+    /**
+     * `&t=<key>` for a URL the rewriter hands to a sandboxed page, '' without a jar.
+     *
+     * @param {string|null} jarId the page's jar
+     * @param {string} absUrl the URL the page will request through the proxy
+     */
+    _proxyKeyParam(jarId, absUrl) {
+        if (!jarId) return '';
+        try {
+            const u = new URL(absUrl);
+            if (!/^(https?|wss?):$/.test(u.protocol)) return '';
+            return `&t=${this._proxyJar.key(jarId, targetOrigin(u))}`;
+        } catch {
+            return '';
+        }
     }
 
     /** Dispatch a /api/aura/ request to the security API (see lib/security/apiHandler). */
@@ -2104,12 +2269,10 @@ class Aura extends utils.Adapter {
                 return;
             }
             // Proxy and file routes answer only Aura's own pages, not a foreign web
-            // page driving a visitor's browser (lib/proxyGuard.js).
+            // page driving a visitor's browser (lib/proxyGuard.js). A sandboxed
+            // proxied page is cross-site too; its URLs carry a key for /proxy only.
             if (
-                (pathname === '/proxy' ||
-                    pathname === '/feed' ||
-                    pathname.startsWith('/feed/') ||
-                    pathname.startsWith('/fs/')) &&
+                (pathname === '/feed' || pathname.startsWith('/feed/') || pathname.startsWith('/fs/')) &&
                 isCrossSite(req)
             ) {
                 res.writeHead(403);
@@ -2170,10 +2333,42 @@ class Aura extends utils.Adapter {
                     res.end('Proxy target not allowed');
                     return;
                 }
+                const access = this._proxyAccess(req, targetUrl, base);
+                if (!access) {
+                    res.writeHead(403);
+                    res.end('Cross-site request refused');
+                    return;
+                }
+                const { jarId, sandboxed, setJarCookie, keyed } = access;
+                const sign = (/** @type {string} */ abs) => this._proxyKeyParam(jarId, abs);
+                // fetch/XHR of a sandboxed page come from an opaque origin (`Origin:
+                // null`), so for the browser every one of them is cross-origin and
+                // needs CORS. The key already proves the page is one of ours, for
+                // this target only — the proxy answers for the target.
+                const corsFor = keyed && req.headers.origin === 'null';
+                if (corsFor && req.method === 'OPTIONS' && req.headers['access-control-request-method']) {
+                    res.writeHead(204, {
+                        'Access-Control-Allow-Origin': 'null',
+                        'Access-Control-Allow-Credentials': 'true',
+                        'Access-Control-Allow-Methods': String(req.headers['access-control-request-method']),
+                        'Access-Control-Allow-Headers': String(req.headers['access-control-request-headers'] || ''),
+                        'Access-Control-Max-Age': '600',
+                        Vary: 'Origin',
+                    });
+                    res.end();
+                    return;
+                }
 
                 const lib = targetUrl.protocol === 'https:' ? https : http;
                 const fwdHeaders = buildFwdHeaders(req);
                 fwdHeaders['Referer'] = `${targetUrl.origin}/`;
+                // The browser's cookies are the shared origin's (the web session,
+                // Aura's admin cookie) — never the target's business. Behind the
+                // extension the target's own cookies come from the jar; on Aura's
+                // own port the browser still holds them, minus Aura's and web's.
+                delete fwdHeaders['Cookie'];
+                const cookie = jarId ? this._proxyJar.header(jarId, targetUrl) : foreignCookies(req.headers.cookie);
+                if (cookie) fwdHeaders['Cookie'] = cookie;
 
                 const reqOptions = {
                     hostname: targetUrl.hostname,
@@ -2187,12 +2382,35 @@ class Aura extends utils.Adapter {
                 };
 
                 const proxyReq = lib.request(reqOptions, (proxyRes) => {
-                    if ((proxyRes.statusCode === 301 || proxyRes.statusCode === 302) && proxyRes.headers.location) {
-                        const absLocation = new URL(proxyRes.headers.location, targetUrl.toString()).toString();
+                    /** Response headers for the browser: jar instead of Set-Cookie, sandbox behind the extension. */
+                    const outHeaders = () => {
                         const rh = buildHeaders(proxyRes.headers);
-                        rh['location'] = `${base}proxy?url=${encodeURIComponent(absLocation)}`;
-                        res.writeHead(proxyRes.statusCode, rh);
+                        if (jarId) {
+                            this._proxyJar.store(jarId, targetUrl, proxyRes.headers['set-cookie']);
+                            delete rh['set-cookie'];
+                        }
+                        if (sandboxed && !isInertMedia(proxyRes.headers['content-type'])) {
+                            rh['content-security-policy'] = PROXY_SANDBOX_CSP;
+                        }
+                        if (setJarCookie) rh['set-cookie'] = setJarCookie;
+                        if (corsFor) {
+                            for (const k of Object.keys(rh))
+                                if (k.toLowerCase().startsWith('access-control-')) delete rh[k];
+                            rh['access-control-allow-origin'] = 'null';
+                            rh['access-control-allow-credentials'] = 'true';
+                            rh['access-control-expose-headers'] = Object.keys(proxyRes.headers).join(', ');
+                            rh['vary'] = 'Origin';
+                        }
+                        return rh;
+                    };
+                    const st = proxyRes.statusCode || 200;
+                    if ([301, 302, 303, 307, 308].includes(st) && proxyRes.headers.location) {
+                        const absLocation = new URL(proxyRes.headers.location, targetUrl.toString()).toString();
+                        const rh = outHeaders();
+                        rh['location'] = `${base}proxy?url=${encodeURIComponent(absLocation)}${sign(absLocation)}`;
+                        res.writeHead(st, rh);
                         res.end();
+                        proxyRes.resume();
                         return;
                     }
 
@@ -2201,7 +2419,7 @@ class Aura extends utils.Adapter {
                     const isCss = ct.includes('text/css');
 
                     if (isHtml || isCss) {
-                        const resHeaders = buildHeaders(proxyRes.headers);
+                        const resHeaders = outHeaders();
                         delete resHeaders['content-length'];
                         bufferResponse(proxyRes)
                             .then((buf) => {
@@ -2209,8 +2427,13 @@ class Aura extends utils.Adapter {
                                 const enc = charset.toLowerCase() === 'utf-8' ? 'utf8' : 'latin1';
                                 let text = buf.toString(enc);
                                 text = isHtml
-                                    ? rewriteHtml(text, targetUrl.toString(), base)
-                                    : rewriteCss(text, targetUrl.toString(), base);
+                                    ? rewriteHtml(text, targetUrl.toString(), base, {
+                                          sign,
+                                          sandbox: sandboxed
+                                              ? { cookies: jarId ? this._proxyJar.scriptCookies(jarId, targetUrl) : '' }
+                                              : null,
+                                      })
+                                    : rewriteCss(text, targetUrl.toString(), base, sign);
                                 res.writeHead(proxyRes.statusCode || 200, resHeaders);
                                 res.end(text, enc);
                             })
@@ -2219,7 +2442,7 @@ class Aura extends utils.Adapter {
                                 res.end(`Proxy rewrite error: ${e.message}`);
                             });
                     } else {
-                        res.writeHead(proxyRes.statusCode || 200, buildHeaders(proxyRes.headers));
+                        res.writeHead(st, outHeaders());
                         proxyRes.pipe(res, { end: true });
                     }
                 });
@@ -2649,12 +2872,29 @@ class Aura extends utils.Adapter {
             } catch {
                 /* proxyWebSocket answers 400 */
             }
-            if (isCrossSite(req) || (wsHost && isBlockedHost(wsHost))) {
+            let wsAccess = null;
+            try {
+                wsAccess = this._proxyAccess(req, new URL(targetWsUrl), requestBase(req));
+            } catch {
+                /* proxyWebSocket answers 400 */
+            }
+            if ((!wsAccess && wsHost) || (wsHost && isBlockedHost(wsHost))) {
                 socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
                 socket.destroy();
                 return;
             }
-            proxyWebSocket(req, socket, targetWsUrl, this.log, true, true);
+            // Same cookie rule as /proxy: the jar behind the extension, else the
+            // browser's minus Aura's and web's own.
+            let wsCookie = '';
+            try {
+                wsCookie =
+                    wsAccess && wsAccess.jarId
+                        ? this._proxyJar.header(wsAccess.jarId, new URL(targetWsUrl))
+                        : foreignCookies(req.headers.cookie);
+            } catch {
+                /* invalid URL — proxyWebSocket answers 400 */
+            }
+            proxyWebSocket(req, socket, targetWsUrl, this.log, true, true, wsCookie);
         };
         server.on('upgrade', onUpgrade);
 

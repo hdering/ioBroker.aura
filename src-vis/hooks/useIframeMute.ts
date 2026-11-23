@@ -5,8 +5,13 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
  *
  * The parent can only reach into a frame of its own origin — a page loaded
  * through Aura's `/proxy`, a file under `/webfs`, a direct video link through the
- * proxy (the browser wraps it in its own media document). A foreign page stays
+ * proxy (the browser wraps it in its own media document).  * A foreign page stays
  * closed: `reachable` turns false and the caller says so instead of pretending.
+ *
+ * Behind the web extension a proxied page runs sandboxed in an opaque origin
+ * (#997) and is no longer reachable that way. Aura's proxy injects a small
+ * bridge into it instead: `{auraMute}` messages go in, `{auraMuteState}`
+ * reports come back — the page counts as reachable once it answers.
  *
  * `wanted` null leaves the page alone; the hook then only reports what the page
  * itself does (`pageMuted`), so the button shows the real state before the first
@@ -27,9 +32,30 @@ export function useIframeMute(
     const onPageChangeRef = useRef(onPageChange);
     onPageChangeRef.current = onPageChange;
     const docRef = useRef<Document | null>(null);
+    /** The sandboxed page's window when it is reached over the message bridge. */
+    const bridgeRef = useRef<Window | null>(null);
+
+    // Reports of the bridge in a sandboxed proxied page (main.js sandboxShim).
+    useEffect(() => {
+        if (!enabled) return;
+        const onMessage = (e: MessageEvent) => {
+            const win = frameRef.current?.contentWindow;
+            if (!win || e.source !== win || !e.data || typeof e.data !== 'object' || !('auraMuteState' in e.data))
+                return;
+            const state = (e.data as { auraMuteState: unknown }).auraMuteState;
+            bridgeRef.current = win;
+            setReachable(true);
+            if (typeof state !== 'boolean') return;
+            setPageMuted(state);
+            if (wantedRef.current != null && state !== wantedRef.current) onPageChangeRef.current(state);
+        };
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, [enabled, frameRef]);
 
     const attach = useCallback(() => {
         docRef.current = null;
+        bridgeRef.current = null;
         if (!enabled) return;
         let doc: Document | null = null;
         try {
@@ -39,6 +65,8 @@ export function useIframeMute(
         }
         if (!doc) {
             setReachable(false);
+            // Maybe a sandboxed proxied page: ask its bridge (it answers, or nothing does).
+            frameRef.current?.contentWindow?.postMessage({ auraMute: wantedRef.current }, '*');
             return;
         }
         docRef.current = doc;
@@ -69,6 +97,7 @@ export function useIframeMute(
 
     useEffect(() => {
         if (docRef.current) applyMute(docRef.current, wanted);
+        else if (bridgeRef.current && wanted != null) bridgeRef.current.postMessage({ auraMute: wanted }, '*');
     }, [wanted]);
 
     return { reachable: enabled ? reachable : null, pageMuted, attach };
