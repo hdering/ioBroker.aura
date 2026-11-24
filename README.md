@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.5.0-next.8 (2026-11-24) — next/test release
+- 🐛 **Bug fix:** Chart - in timeseries mode a new live value no longer redraws every line from left to right: the drawn series are kept and the value is merged in; new option "Live values at most every (s)" (Behaviour) collects the readings of datapoints that report very often and applies them at most that often ([#1015](https://github.com/hdering/ioBroker.aura/issues/1015))
+
+
 ### 1.5.0-next.7 (2026-11-24) — next/test release
 - 🐛 **Bug fix:** Dashboards no longer open a second connection to ioBroker when the server answers slowly (e.g. while it is busy after a web adapter restart): with "pure web sockets" the replaced connection reconnected by itself, so every such moment added one more connection that subscribed everything and sent all its requests again; a just reconnected dashboard also gives ioBroker more time before it counts the connection as dead
 
@@ -246,11 +250,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** The loading bar along the top edge also runs while the connection to ioBroker is being established (start-up, reconnect) until the offline banner appears, so a page without any hint is always current
 
 
-### 1.0.2 (2026-11-15)
-- 🌟 **New feature:** Thin loading bar along the top edge while the values are refreshed after the app wakes up or reconnects ([#992](https://github.com/hdering/ioBroker.aura/issues/992))
-- 🌟 **New feature:** Circle menu - hide single entries (e.g. Stop for shutters, −/+ for thermostats) with the eye in the order list; thermostat and room climate can drop the setpoint in the middle of the open menu ([#993](https://github.com/hdering/ioBroker.aura/issues/993))
-
-
 ## License
 
 MIT License
@@ -262,6 +261,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

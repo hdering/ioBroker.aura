@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 1.0.2 (2026-11-15)
+- 🌟 **New feature:** Thin loading bar along the top edge while the values are refreshed after the app wakes up or reconnects ([#992](https://github.com/hdering/ioBroker.aura/issues/992))
+- 🌟 **New feature:** Circle menu - hide single entries (e.g. Stop for shutters, −/+ for thermostats) with the eye in the order list; thermostat and room climate can drop the setpoint in the middle of the open menu ([#993](https://github.com/hdering/ioBroker.aura/issues/993))
+
 ## 1.0.1 (2026-11-15)
 - 🐛 **Bug fix:** Clients - a client delete via clients.deleteRequest written with ack=true is now ignored and logged instead of executed; write it without ack
 - 🐛 **Bug fix:** Network requests to the WebSocket proxy and through the web extension now time out instead of hanging
