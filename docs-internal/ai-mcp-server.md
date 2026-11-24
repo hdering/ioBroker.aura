@@ -2235,6 +2235,7 @@ Neue Optionen an `statusoverview` (alle aus `StatusOverviewOptions`, Beschreibun
 | Option | Wirkung |
 | --- | --- |
 | `latchBattery` / `latchUnreach` | Hinweis bleibt, bis er geschlossen wird — der Adapter führt die Liste |
+| `trackBatteryChanges` | Nur Wechsel erfassen (ohne Merkliste): „Gewechselt“ auf jeder Batteriezeile, auch ohne Warnung → Verlaufseintrag `preventive` (#1018) |
 | `latchRecheckDays` (7) | Nachkontrolle nach dem Schließen; neue Meldung ≥ 10 min danach öffnet wieder |
 | `latchSnoozeDays` (2) | „Später“ |
 | `latchAutoClose` | Schließt bei Spannungssprung (≥ 0,3 V und ≥ 25 %) bzw. Prozent (≥ 40 % und ≥ 30 Punkte) |

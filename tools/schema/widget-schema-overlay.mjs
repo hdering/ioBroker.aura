@@ -1091,6 +1091,7 @@ export const WIDGET_OPTION_NOTES = {
             'sinceCategories',
             'rowActions',
             'latchBattery',
+            'trackBatteryChanges',
             'latchUnreach',
             'latchAlarm',
             'latchRecheckDays',

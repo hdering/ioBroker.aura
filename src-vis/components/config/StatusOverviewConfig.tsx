@@ -329,7 +329,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             ([cache, isBatteryDevice]) => {
                 if (cancelled) return;
                 // The widget's own discovery, minus the battery-level lookup the preview has no use for.
-                const kept = discoverStatusCandidates(cache, { ...opts, latchBattery: false }, isBatteryDevice);
+                const kept = discoverStatusCandidates(
+                    cache,
+                    { ...opts, latchBattery: false, trackBatteryChanges: false },
+                    isBatteryDevice,
+                );
                 const count = kept.length;
                 setDevices(deviceRowsOf(kept));
                 const byCat = new Map<CategoryKey, NameSource[]>();
@@ -362,6 +366,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
             offlineExtraPatterns,
             offlineInvert,
             latchBattery: false,
+            trackBatteryChanges: false,
             excludeIds: undefined,
         };
         Promise.all([ensureDatapointCache(), opts.catBattery === false ? undefined : loadBatteryDeviceTest()]).then(
@@ -587,6 +592,23 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     onChange={(v) => set({ [LATCH_KEY[cat]]: v || undefined })}
                     label={def.label}
                 />
+                {cat === 'battery' && (
+                    <div data-track-battery-changes>
+                        <Unavailable
+                            reason={latchOn('battery') ? 'Die Merkliste dokumentiert die Wechsel schon mit' : undefined}
+                        >
+                            <Toggle
+                                checked={latchOn('battery') || !!o.trackBatteryChanges}
+                                onChange={(v) => set({ trackBatteryChanges: v || undefined })}
+                                label="Batteriewechsel dokumentieren"
+                            />
+                        </Unavailable>
+                        <p className={hintCls} style={hintStyle}>
+                            {'„Gewechselt“'} in jeder Batteriezeile, auch ohne Warnung (vorsorglicher Wechsel) – der
+                            Wechsel landet im Verlauf ({'„Zuletzt gewechselt“'}). Braucht den AURA-Adapter.
+                        </p>
+                    </div>
+                )}
                 {cat === 'battery' && latchOn('battery') && (
                     <>
                         <Toggle

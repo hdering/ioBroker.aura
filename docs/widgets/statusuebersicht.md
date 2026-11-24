@@ -169,6 +169,7 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 | Option | Vorgabe | |
 | --- | --- | --- |
 | `latchBattery` | aus | schwache Batterien merken |
+| `trackBatteryChanges` | aus | Batteriewechsel dokumentieren ohne Merkliste: „Gewechselt“ in jeder Batteriezeile, auch vorsorglich; mit `latchBattery` immer an |
 | `latchUnreach` | aus | Ausfälle merken |
 | `latchAlarm` | aus | ausgelöste Rauch-/Wassermelder merken |
 | `latchSnoozeDays` | 2 | „Später“ stellt um so viele Tage zurück |

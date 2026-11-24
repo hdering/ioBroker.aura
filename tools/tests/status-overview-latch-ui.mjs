@@ -347,7 +347,7 @@ const ACTION = {
     await card.locator('[data-latch-jump="battery"]').click();
     const detail = dlg.locator('[data-status-cat-detail="battery"]');
     await detail.waitFor({ timeout: 5000 });
-    await detail.locator('[data-latch-toggle="battery"] label > div').click();
+    await detail.locator('[data-latch-toggle="battery"] > label > div').click();
     check('latch toggle writes latchBattery', (await opts())?.latchBattery === true, JSON.stringify(await opts()));
     await dlg.locator('[data-config-tab="latch"]').click();
     check(
@@ -671,6 +671,63 @@ const rows2 = (page) =>
         'showIgnored: Aufnehmen writes unignore',
         w.length === 1 && w[0].val === `unignore:${GRIFF}`,
         JSON.stringify(w),
+    );
+    await c.ctx.close();
+}
+
+// ── Batteriewechsel dokumentieren ohne Merkliste (trackBatteryChanges, #1018) ──
+{
+    let c = await open({ trackBatteryChanges: true, valueFilter: 'all' }, []);
+    let r = await rows(c.page);
+    const golf = r.find((x) => x.text.includes('Golf'));
+    const griff = r.find((x) => x.text.includes('Drehgriff'));
+    check(
+        'track only: healthy battery has "Gewechselt"',
+        JSON.stringify(golf?.buttons) === '["Gewechselt"]',
+        JSON.stringify(r),
+    );
+    check(
+        'track only: weak battery has "Gewechselt", no "Später"',
+        JSON.stringify(griff?.buttons) === '["Gewechselt"]',
+        JSON.stringify(griff?.buttons),
+    );
+    const reg = (await writes(c.page)).filter((x) => x.id === `${NS}.status.register`);
+    const payload = reg.length ? JSON.parse(reg.at(-1).val) : null;
+    check(
+        'track only: registers with remember false',
+        payload?.settings?.remember === false,
+        JSON.stringify(payload?.settings),
+    );
+    await c.page.evaluate(() => window.__auraShot.writes(true));
+    const golfRow = c.page.locator('.react-grid-item div.flex.items-center.gap-2.py-1', { hasText: 'Golf' });
+    await golfRow.locator('button', { hasText: 'Gewechselt' }).click();
+    await golfRow.locator('button', { hasText: 'Wirklich?' }).click();
+    const w = await writes(c.page);
+    check('track only: preventive change writes ack', w.length === 1 && w[0].val === `ack:${GOLF}`, JSON.stringify(w));
+    // The adapter answers with the closed entry → no second "Gewechselt" in the recheck window.
+    await c.page.evaluate(
+        ([id, list]) => window.__auraShot.mock({ [id]: list }),
+        [
+            `${NS}.status.battery.list`,
+            JSON.stringify([{ id: GOLF, since: now, ackedAt: now, closedBy: 'ack', preventive: true }]),
+        ],
+    );
+    await c.page.waitForTimeout(400);
+    r = await rows(c.page);
+    const after = r.find((x) => x.text.includes('Golf'));
+    check(
+        'track only: closed row stays listed without button',
+        !!after && after.buttons.length === 0,
+        JSON.stringify(after),
+    );
+    await c.ctx.close();
+    // Alerts only (default): the healthy battery is not listed, the weak one has the button.
+    c = await open({ trackBatteryChanges: true }, []);
+    r = await rows(c.page);
+    check(
+        'track only, alerts: one row with "Gewechselt"',
+        r.length === 1 && JSON.stringify(r[0].buttons) === '["Gewechselt"]',
+        JSON.stringify(r),
     );
     await c.ctx.close();
 }

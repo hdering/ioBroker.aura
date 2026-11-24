@@ -22864,6 +22864,19 @@
           ],
           "default": true
         },
+        "trackBatteryChanges": {
+          "type": "boolean",
+          "description": "Document battery changes without the Merkliste: \"Gewechselt\" on every battery row, also before any warning came up, and an entry in the history. Implied by latchBattery. Needs the AURA adapter.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "table",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
         "valueFilter": {
           "type": "string",
           "enum": [

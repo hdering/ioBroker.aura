@@ -62,6 +62,7 @@ import {
     SEVERITY_COLOR,
     LATCH_CATEGORIES,
     latchEnabled,
+    latchRemembers,
     latchKind,
     batteryLimit,
     batteryLevelUnit,
@@ -647,7 +648,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             const payload = {
                 source,
                 cat,
-                settings: { recheckDays: opts.latchRecheckDays ?? 7, autoClose: opts.latchAutoClose === true },
+                settings: {
+                    recheckDays: opts.latchRecheckDays ?? 7,
+                    autoClose: opts.latchAutoClose === true,
+                    // Batteries without the Merkliste: record the changes only (#1018).
+                    ...(latchRemembers(opts, cat) ? {} : { remember: false }),
+                },
                 watch,
             };
             const hash = hashString(JSON.stringify(payload));
@@ -707,6 +713,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         opts.batteryVoltThreshold1Cell,
         opts.latchRecheckDays,
         opts.latchAutoClose,
+        opts.latchBattery,
         deviceNamesKey,
         config.id,
     ]);
@@ -1091,19 +1098,34 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         !item.ignored &&
         (!!item.latch || item.severity !== 'ok');
 
+    /**
+     * "Gewechselt"/"Quittieren": an open or live hint — and (batteries) any row, so a
+     * battery changed before it warned lands in the history too (#1018). Not twice:
+     * a row closed a moment ago (recheck window) has no button.
+     */
+    const canAck = (item: StatusItem) =>
+        !!latchLists[item.category] &&
+        !item.ignored &&
+        (!!item.latch || item.severity !== 'ok' || (item.category === 'battery' && !item.closedAt));
+    const ackTitle = (item: StatusItem) =>
+        item.category !== 'battery'
+            ? 'Hinweis schließen'
+            : item.latch || item.severity !== 'ok'
+              ? 'Batterie gewechselt – Hinweis schließen'
+              : 'Batterie vorsorglich gewechselt – im Verlauf eintragen';
+
     const actionColors = opts.latchActionColors;
     /** Buttons at the end of a row: the latch's close/snooze, then the configured actions. */
     const rowButtons = (item: StatusItem, color: string) => {
         const buttons: React.ReactNode[] = [];
-        const latching = !!latchLists[item.category];
-        if (latching && (item.latch || item.severity !== 'ok')) {
+        if (canAck(item)) {
             const isBattery = item.category === 'battery';
             const snoozeDays = opts.latchSnoozeDays ?? 2;
             buttons.push(
                 <RowButton
                     key="latch-ack"
                     label={isBattery ? 'Gewechselt' : 'Quittieren'}
-                    title={isBattery ? 'Batterie gewechselt – Hinweis schließen' : 'Hinweis schließen'}
+                    title={ackTitle(item)}
                     confirm={opts.latchConfirm !== false}
                     color={actionColors?.ack || color}
                     kind="ack"
@@ -1534,7 +1556,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 />,
             ),
         );
-        if (latchLists[item.category] && (item.latch || item.severity !== 'ok')) {
+        if (canAck(item)) {
             const isBattery = item.category === 'battery';
             const snoozeDays = opts.latchSnoozeDays ?? 2;
             if (item.latch && !item.latch.active) {
@@ -1570,7 +1592,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 <TwoLineButton
                     key="latch-ack"
                     label={isBattery ? 'Gewechselt' : 'Quittieren'}
-                    title={isBattery ? 'Batterie gewechselt – Hinweis schließen' : 'Hinweis schließen'}
+                    title={ackTitle(item)}
                     confirm={opts.latchConfirm !== false}
                     confirmLabel={isBattery ? 'Wirklich gewechselt?' : 'Wirklich quittieren?'}
                     tone="confirm"
@@ -2173,6 +2195,8 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
         const isBattery = e.category === 'battery';
         const facts = [
             showRoom ? e.room : null,
+            // Changed before it ever warned (#1018) — there is no weak period to tell.
+            e.preventive ? 'vorsorglich' : null,
             weak !== null ? `${formatSpan(weak)} ${isBattery ? 'schwach' : 'gemeldet'}` : null,
             life !== null ? `hielt ${formatSpan(life)}` : null,
             levels,
@@ -2182,7 +2206,11 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
         const rowProps = rowPopup.row(e.id, label);
         const tip = [
             `${isBattery ? 'Gewechselt' : 'Geschlossen'} am ${formatDateTime(e.closedAt)}`,
-            e.since ? `${isBattery ? 'schwach' : 'gemeldet'} seit ${formatDateTime(e.since)}` : null,
+            e.preventive
+                ? 'vorsorglich gewechselt – ohne vorherige Warnung'
+                : e.since
+                  ? `${isBattery ? 'schwach' : 'gemeldet'} seit ${formatDateTime(e.since)}`
+                  : null,
             e.prevClosedAt ? `vorheriger Wechsel ${formatDateTime(e.prevClosedAt)}` : null,
             reasonAuto ? 'automatisch erkannt (Spannungs-/Prozentsprung)' : 'per Knopf bestätigt',
             (e.count ?? 1) > 1 ? `${e.count}× gemeldet` : null,

@@ -271,6 +271,11 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     rowActions?: StatusRowAction[];
     /** Remember weak batteries until they are closed ("Gewechselt"), even when LOWBAT goes back to false. Needs the AURA adapter. */
     latchBattery?: boolean;
+    /**
+     * Document battery changes without the Merkliste: "Gewechselt" on every battery row, also
+     * before any warning came up, and an entry in the history. Implied by latchBattery. Needs the AURA adapter.
+     */
+    trackBatteryChanges?: boolean;
     /** Remember unreachable devices until they are acknowledged ("Quittieren"). Needs the AURA adapter. */
     latchUnreach?: boolean;
     /** Remember smoke/water alarms that went off until they are acknowledged ("Quittieren"), even after the sensor is quiet again. Needs the AURA adapter. */
@@ -343,6 +348,8 @@ export interface StatusItem {
     latch?: LatchInfo;
     /** Ignored in the adapter (status.<cat>.ignored); only listed with showIgnored. */
     ignored?: boolean;
+    /** Closed in the adapter, still in its recheck window (applyLatch) — no second "Gewechselt". */
+    closedAt?: number;
 }
 
 const HM_ADAPTERS = new Set(['hm-rpc', 'hmip', 'homematic']);
@@ -1050,7 +1057,18 @@ export interface LatchWatch {
     levelUnit?: 'V' | 'mV' | '%';
 }
 
+/**
+ * Does the adapter keep a list for this category — remembered hints, or (batteries) only
+ * the record of changes (trackBatteryChanges, #1018)?
+ */
 export function latchEnabled(opts: StatusOverviewOptions, cat: CategoryKey): boolean {
+    if (cat === 'battery')
+        return (opts.latchBattery === true || opts.trackBatteryChanges === true) && opts.catBattery !== false;
+    return latchRemembers(opts, cat);
+}
+
+/** Does the adapter remember a hint of this category until it is closed (the Merkliste)? */
+export function latchRemembers(opts: StatusOverviewOptions, cat: CategoryKey): boolean {
     if (cat === 'battery') return opts.latchBattery === true && opts.catBattery !== false;
     if (cat === 'unreach') return opts.latchUnreach === true && opts.catUnreach !== false;
     if (cat === 'alarm') return opts.latchAlarm === true && opts.catAlarm !== false;
@@ -1143,7 +1161,10 @@ export function applyLatch(
     if (!entry || entry.unresolved) return alertLive || (showAll && live) ? live : null;
     if (entry.ackedAt) {
         if (!showAll || !live) return null;
-        return alertLive ? { ...live, severity: 'ok', color: 'var(--text-secondary)' } : live;
+        const closedAt = entry.ackedAt;
+        return alertLive
+            ? { ...live, severity: 'ok', color: 'var(--text-secondary)', closedAt }
+            : { ...live, closedAt };
     }
     const latch: LatchInfo = {
         since: entry.since,
@@ -1405,6 +1426,8 @@ export interface HistoryEntry {
     prevClosedAt?: number;
     /** Taken over from the former battery script. */
     imported?: boolean;
+    /** Changed before any warning came up (#1018) — there was no weak period. */
+    preventive?: boolean;
 }
 
 /** A history entry with its category — what the history layout lists. */
@@ -1507,6 +1530,7 @@ export function formatDateTime(ts: number): string {
 
 /** How long the battery was weak before it was changed (null = unknown). */
 export function weakSpan(e: HistoryEntry): number | null {
+    if (e.preventive) return null; // changed before it ever reported weak (#1018)
     return Number.isFinite(e.since) && e.since! > 0 && e.since! <= e.closedAt ? e.closedAt - e.since! : null;
 }
 
@@ -1620,6 +1644,7 @@ export const STATUS_DISCOVERY_KEYS = [
     'offlineExtraPatterns',
     'offlineInvert',
     'latchBattery',
+    'trackBatteryChanges',
 ] as const satisfies readonly (keyof StatusOverviewOptions)[];
 
 export function discoveryOptions(opts: StatusOverviewOptions): Partial<StatusOverviewOptions> {

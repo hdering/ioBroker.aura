@@ -774,4 +774,65 @@ test('remove holds once the stored filter excludes the id', () => {
     assert.strictEqual(lists.battery.length, 0);
 });
 
+// ── record only (trackBatteryChanges, #1018) ───────────────────────────────
+
+test('record only: a report opens no entry, "Gewechselt" still lands in the history (#1018)', () => {
+    const { engine, lists, histories } = makeEngine();
+    register(engine, { remember: false });
+    engine.update(GOLF_V, { val: 2.2, ts: T0, lc: T0 });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 - DAY_MS });
+    assert.strictEqual(lists.battery.length, 0, 'nothing remembered');
+    const r = engine.command('battery', `ack:${GOLF}`);
+    assert.ok(r.ok);
+    const h = histories.battery[0];
+    assert.strictEqual(h.id, GOLF);
+    assert.strictEqual(h.since, T0 - DAY_MS, 'weak since the live report');
+    assert.strictEqual(h.levelBefore, 2.2);
+    assert.ok(!h.preventive);
+});
+
+test('record only: a fresh report after the change does not reopen (#1018)', () => {
+    const { engine, lists, advance, now } = makeEngine();
+    register(engine, { remember: false });
+    engine.update(GOLF, { val: false, ts: T0, lc: T0 });
+    engine.command('battery', `ack:${GOLF}`);
+    advance(ACK_GRACE_MS + MIN);
+    engine.update(GOLF, { val: true, ts: now(), lc: now() });
+    const e = lists.battery.find((x) => x.id === GOLF);
+    assert.ok(e && e.ackedAt, 'stays closed');
+});
+
+test('preventive change: ack without any warning is recorded as preventive (#1018)', () => {
+    const { engine, histories, events, advance, now } = makeEngine();
+    register(engine);
+    engine.update(GOLF_V, { val: 2.6, ts: T0, lc: T0 });
+    engine.update(GOLF, { val: false, ts: T0, lc: T0 });
+    assert.ok(engine.command('battery', `ack:${GOLF}`).ok);
+    const h = histories.battery[0];
+    assert.strictEqual(h.preventive, true);
+    assert.strictEqual(h.levelBefore, 2.6);
+    assert.strictEqual(events.at(-1).preventive, true);
+    // The new battery reports its level later → completes the entry.
+    advance(5 * MIN);
+    engine.update(GOLF_V, { val: 3.1, ts: now(), lc: now() });
+    assert.strictEqual(histories.battery[0].levelAfter, 3.1);
+});
+
+test('widget options decide remember vs. record only (#1018)', () => {
+    const { engine, lists } = makeEngine();
+    register(engine);
+    engine.setWidgetOptions({ w1: { trackBatteryChanges: true } });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    assert.strictEqual(lists.battery.length, 0, 'tracked, not remembered');
+    assert.ok(engine.watchedIds().includes(GOLF), 'still watched');
+    engine.setWidgetOptions({ w1: { latchBattery: true } });
+    engine.update(GRIFF, { val: true, ts: T0, lc: T0 });
+    assert.ok(
+        lists.battery.find((e) => e.id === GRIFF),
+        'remembered again',
+    );
+    engine.setWidgetOptions({ w1: {} });
+    assert.ok(!engine.watchedIds().includes(GOLF), 'neither → not watched');
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);

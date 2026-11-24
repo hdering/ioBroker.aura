@@ -292,6 +292,26 @@ const writes = (page) => page.evaluate(() => window.__auraShot.writes());
     await ctx.close();
 }
 
+// ── preventive change (#1018): no weak period, says "vorsorglich" ─────────────
+{
+    const prev = [
+        {
+            id: 'hm-rpc.1.X.0.LOW_BAT',
+            name: 'Thermostat Bad',
+            since: now - DAY,
+            closedAt: now - DAY,
+            reason: 'ack',
+            count: 1,
+            preventive: true,
+        },
+    ];
+    const { ctx, page } = await open({}, prev);
+    const r = await rows(page);
+    check('preventive: says vorsorglich', !!r[0]?.sub.includes('vorsorglich'), r[0]?.sub);
+    check('preventive: no weak span', !r[0]?.sub.includes('schwach'), r[0]?.sub);
+    await ctx.close();
+}
+
 // ── 3. empty ──────────────────────────────────────────────────────────────────
 {
     const { ctx, page } = await open({}, []);
