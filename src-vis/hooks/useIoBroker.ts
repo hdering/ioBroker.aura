@@ -13,6 +13,8 @@ interface IoBrokerSocket {
     on(event: string, callback: (...args: unknown[]) => void): void;
     emit(event: string, ...args: unknown[]): void;
     disconnect(): void;
+    /** @iobroker/ws only: close for good - its `disconnect()` reconnects by itself */
+    destroy?(): void;
 }
 
 // The socket library is loaded at runtime from the web adapter
@@ -545,6 +547,11 @@ function revalidateStates(s: IoBrokerSocket): void {
 // Probe it on wake-up: no answer in time means bounce, an answer means we are
 // live and only need fresh values.
 let livenessProbeAt = 0;
+/** When the current socket last (re)connected - the probe leaves a fresh connection alone. */
+let lastConnectAt = 0;
+const PROBE_GRACE_MS = 60 * 1000;
+/** A zombie never answers; a busy ioBroker answers late - give it that time before bouncing. */
+const PROBE_TIMEOUT_MS = 15 * 1000;
 
 function checkConnectionAlive(opts?: { ignoreVisibility?: boolean }): void {
     // Hidden tabs are normally left alone — but a detected freeze/long gap wants
@@ -564,6 +571,11 @@ function checkConnectionAlive(opts?: { ignoreVisibility?: boolean }): void {
         return;
     }
 
+    // Just (re)connected: the library saw the server a moment ago, and a slow answer
+    // now means a busy ioBroker (reconnecting clients after a web restart), not a zombie.
+    // Bouncing then only adds one more connection that sends all its requests again.
+    if (now - lastConnectAt < PROBE_GRACE_MS) return;
+
     let answered = false;
     const probeId = [...subscribers.keys()].find((id) => !isIdPattern(id)) ?? 'system.config';
     s.emit('getState', probeId, () => {
@@ -573,7 +585,7 @@ function checkConnectionAlive(opts?: { ignoreVisibility?: boolean }): void {
     globalThis.setTimeout(() => {
         // Still the same socket, still "connected", but no reply: zombie.
         if (!answered && socket === s) bounceSocket();
-    }, 4000);
+    }, PROBE_TIMEOUT_MS);
 }
 
 // ── Tab-suspend detection ─────────────────────────────────────────────────────
@@ -726,9 +738,18 @@ function createSocket(url: string): IoBrokerSocket {
         void gate.then(() => rawEmit(event, ...args));
         return s;
     };
-    const warmUp = (): void => {
-        globalThis.setTimeout(releaseGate, 10000);
-        rawEmit('getObject', 'system.config', () => releaseGate());
+    const warmUp = (reconnect: boolean): void => {
+        // Wait for the answer, however slow - only a lost one must not hold back forever.
+        globalThis.setTimeout(releaseGate, 120000);
+        const ask = (): void => {
+            if (s.connected) rawEmit('getObject', 'system.config', () => releaseGate());
+        };
+        // After a web restart every device reconnects in the same second: spread their
+        // first requests, so one of them fills the cache before the next one asks. Two
+        // overlapping reads of users and groups are enough for js-controller 7 to empty
+        // the cache again and again (ioBroker.js-controller#3648).
+        if (reconnect) globalThis.setTimeout(ask, Math.random() * 2000);
+        else ask();
     };
 
     // A re-established connection is signalled differently depending on the
@@ -741,9 +762,16 @@ function createSocket(url: string): IoBrokerSocket {
     // page reload created a fresh socket.
     let connectionActive = false;
     const handleConnected = (reconnected: boolean): void => {
+        // A socket that was replaced (bounceSocket) must not come back to life.
+        if (socket !== s) {
+            if (typeof s.destroy === 'function') s.destroy();
+            else s.disconnect();
+            return;
+        }
         if (connectionActive) return;
         connectionActive = true;
-        warmUp();
+        lastConnectAt = Date.now();
+        warmUp(traffic.connects > 0);
         traffic.connects++;
         connectPerfMark = typeof performance !== 'undefined' ? performance.now() : 0;
         firstStateReported = false;
@@ -874,8 +902,13 @@ export function socketDiagnostics(): {
 
 function bounceSocket(): void {
     if (socket) {
-        socket.disconnect();
+        const old = socket;
         socket = null;
+        // @iobroker/ws ("pure web sockets") reconnects after `disconnect()` - only
+        // `destroy()` ends it. Without that every bounce left one more live socket
+        // behind, each re-subscribing everything and sending its requests again.
+        if (typeof old.destroy === 'function') old.destroy();
+        else old.disconnect();
     }
     notifyConnection(false);
     getSocket();
