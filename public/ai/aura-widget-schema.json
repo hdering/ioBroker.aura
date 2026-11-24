@@ -11861,6 +11861,11 @@
         "transparent"
       ],
       "options": {
+        "autoShrink": {
+          "type": "boolean",
+          "default": false,
+          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
+        },
         "defId": {
           "type": "string",
           "description": "Verweis auf den Aufbau (Kinderliste) in aura-group-defs — wie bei group, aber GETEILT: jede Gerätekarte mit derselben defId zeigt dieselben Kinder, nur mit ihrem eigenen Datenpunkt. Für ein weiteres gleiches Gerät eine Karte mit derselben defId und anderem `datapoint` anlegen, ohne groupDefs. Eine neue defId nur für einen neuen Aufbau (dann mit groupDefs)."
@@ -15492,6 +15497,11 @@
         "transparent"
       ],
       "options": {
+        "autoShrink": {
+          "type": "boolean",
+          "default": false,
+          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
+        },
         "defId": {
           "type": "string",
           "description": "Verweis auf die Kinderliste in aura-group-defs. Beim Import wird sie aus dem Feld \"groupDefs\" der Import-JSON angelegt — nicht von Hand vergeben."
@@ -20958,6 +20968,11 @@
           "type": "number",
           "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
         },
+        "closeDp": {
+          "type": "string",
+          "description": "Nur controlMode \"taster\": Datenpunkt für \"Zu\", bekommt true.",
+          "datapoint": true
+        },
         "confirmAction": {
           "type": "boolean",
           "default": false,
@@ -20995,6 +21010,11 @@
         "moveUpValue": {
           "type": "string",
           "description": "Nur controlMode \"move\": Wert für \"Auf\" als Text; \"true\"/\"false\" und Zahlen werden umgewandelt. Leer = false."
+        },
+        "openDp": {
+          "type": "string",
+          "description": "Nur controlMode \"taster\": Datenpunkt für \"Auf\", bekommt true.",
+          "datapoint": true
         },
         "positionLivePreview": {
           "type": "boolean",

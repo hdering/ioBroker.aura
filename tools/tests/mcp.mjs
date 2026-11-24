@@ -142,6 +142,39 @@ check('an option the widget never reads is a warning, not silence', () => {
     assert.ok(hasWarning(res, /bleibt wirkungslos/));
 });
 
+// Options read through a helper module instead of the widget's own options binding
+// are invisible to the source reader and have to come in through EXTRA_OPTIONS.
+// Without them there, a widget that sets them was reported as "liest die Option
+// nicht", although the option does work.
+check('options read through a helper module are known options', () => {
+    const group = validateWidget(
+        {
+            id: 'g-1',
+            type: 'group',
+            title: 'Wohnzimmer',
+            datapoint: '',
+            gridPos: { x: 0, y: 0, w: 16, h: 14 },
+            options: { defId: 'gdef-1', frameless: false, autoShrink: true }, // utils/groupLayout
+        },
+        schema,
+    );
+    assert.deepEqual(group.errors, []);
+    assert.ok(!hasWarning(group, /liest die Option/), JSON.stringify(group.warnings));
+    const shutter = validateWidget(
+        {
+            id: 's-1',
+            type: 'shutter',
+            title: 'Rollladen',
+            datapoint: 'hm-rpc.0.LEQ2.4.LEVEL',
+            gridPos: { x: 0, y: 0, w: 8, h: 4 },
+            options: { controlMode: 'taster', openDp: 'hm-rpc.0.LEQ2.1.STATE', closeDp: 'hm-rpc.0.LEQ2.2.STATE' }, // utils/shutterCommand
+        },
+        schema,
+    );
+    assert.deepEqual(shutter.errors, []);
+    assert.ok(!hasWarning(shutter, /liest die Option/), JSON.stringify(shutter.warnings));
+});
+
 check('forecast options outside the time series mode are a warning', () => {
     const chart = (options) => ({
         id: 'c-1',

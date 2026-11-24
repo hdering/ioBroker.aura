@@ -59,3 +59,4 @@
 - feat: Chart - stepping via the command datapoint ("prev", "next", "today", "now") now also writes the new window back to the date/end and range datapoints, so external from/to fields stay in step (#1016)
 - fix: Status symbols in an own (custom) layout - the status section now says when the grid has no "Status badges" cell (the only place the symbols show there) and adds one with a click; the corner/edge placement options are greyed out there, since the cell sets the position (#1019)
 - feat: History - the VictoriaMetrics adapter (victoriametrics.N) is now recognised as a history source for charts, history table, energy balance and map tracks, and marked in the datapoint picker (#1020)
+- fix: MCP server - aura_validate and the write tools no longer warn that a group or device card does not read "autoShrink", or that a shutter does not read "openDp"/"closeDp" (taster mode): the AI widget schema now lists these options
