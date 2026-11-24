@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.5.0-next.6 (2026-11-24) — next/test release
+- 🐛 **Bug fix:** Dashboards no longer stall a large ioBroker for minutes when they reconnect after the web adapter restarted (e.g. after an Aura update): they now send one request first and the rest once it is answered - before, every one of several hundred requests made js-controller read all users and groups again, which with the jsonl database walks all objects each time
+
+
 ### 1.5.0-next.5 (2026-11-24) — next/test release
 - 🌟 **New feature:** After an update, the browser console notes with a timestamp when a dashboard sees the new version and reloads (or gives up waiting) - helps to find out what slows an update down
 
@@ -251,11 +255,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Tab bar - with centred or right-aligned tabs on phones, the section-menu hamburger was cut off and the first tabs could not be scrolled into view
 
 
-### 1.0.0 (2026-11-14)
-- 🐛 **Bug fix:** Device card - a frameless card no longer shows a phantom border (offset and wider gaps) on tablet and phone ([#989](https://github.com/hdering/ioBroker.aura/issues/989))
-- 🐛 **Bug fix:** Device card - the last-change timestamp of a child whose datapoint uses {{parent}} is shown again ([#989](https://github.com/hdering/ioBroker.aura/issues/989))
-
-
 ## License
 
 MIT License
@@ -267,6 +266,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
