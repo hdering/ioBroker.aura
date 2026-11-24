@@ -31,18 +31,18 @@
         height: 100%; background: #6366f1;
         animation: aura-slide 1.4s ease-in-out infinite;
       }
-      #aura-boot-spinner {
-        width: 28px; height: 28px; border-radius: 50%;
-        border: 2px solid #6366f1; border-top-color: transparent;
-        animation: aura-spin 0.7s linear infinite;
+      /* App logo; the window light pulses while loading */
+      #aura-boot-spinner { width: 56px; height: 56px; }
+      #aura-boot-spinner svg { display: block; width: 100%; height: 100%; }
+      #aura-boot-glow, #aura-boot-window { animation: aura-pulse 1.4s ease-in-out infinite; }
+      @keyframes aura-pulse { 50% { opacity: 0.35; } }
+      @media (prefers-reduced-motion: reduce) {
+        #aura-boot-glow, #aura-boot-window, #aura-boot-bar { animation: none; }
       }
       @keyframes aura-slide {
         0%   { transform: translateX(-100%) scaleX(0.3); }
         50%  { transform: translateX(0%)    scaleX(0.7); }
         100% { transform: translateX(100%) scaleX(0.3); }
-      }
-      @keyframes aura-spin {
-        to { transform: rotate(360deg); }
       }
       #aura-boot-diag {
         display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -80,7 +80,7 @@
   <body>
     <div id="aura-boot">
       <div id="aura-boot-bar-wrap"><div id="aura-boot-bar"></div></div>
-      <div id="aura-boot-spinner"></div>
+      <div id="aura-boot-spinner"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="aura-boot-lbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c4180"/><stop offset="1" stop-color="#1c1c4a"/></linearGradient><linearGradient id="aura-boot-ls" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#a9ccff"/></linearGradient><filter id="aura-boot-lg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.5"/></filter></defs><rect width="64" height="64" rx="15" fill="url(#aura-boot-lbg)"/><rect x=".5" y=".5" width="63" height="63" rx="14.5" fill="none" stroke="#ffffff" stroke-opacity=".12"/><rect id="aura-boot-glow" x="24" y="32" width="16" height="15" rx="3" fill="#ffb938" opacity=".5" filter="url(#aura-boot-lg)"/><path d="M13 51 L32 13 L51 51" fill="none" stroke="url(#aura-boot-ls)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><rect id="aura-boot-window" x="26" y="34" width="12" height="12" rx="2.5" fill="#ffc94d"/></svg></div>
       <span id="aura-boot-text">Aura wird geladen…</span>
       <div id="aura-boot-diag" hidden>
         <div id="aura-boot-diag-detail"></div>

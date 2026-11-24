@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useConfigSync } from '../../hooks/useConfigSync';
 import { version as appVersion } from '../../../package.json';
 import { FEATURES } from '../../featureFlags';
+import { AuraLogo } from '../../components/common/AuraLogo';
 import { DOCS_URL } from '../../utils/docsUrl';
 import { PortalTargetContext, PortalThemeContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
@@ -496,9 +497,10 @@ export function AdminLayout() {
                         >
                             <div title="Adaptive Unified Room Automation">
                                 <p
-                                    className="text-xs font-semibold uppercase tracking-widest mb-0.5"
+                                    className="text-xs font-semibold uppercase tracking-widest mb-0.5 flex items-center gap-1.5"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
+                                    <AuraLogo size={14} />
                                     Aura
                                 </p>
                                 <p className="font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>

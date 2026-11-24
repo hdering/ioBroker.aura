@@ -4,6 +4,7 @@ import { Lock, Eye, EyeOff } from 'lucide-react';
 import { loginWithPin, setupAdmin, loadAdminStatus, useAuthStore } from '../../store/authStore';
 import { useT } from '../../i18n';
 import { AURA_BASE } from '../../utils/basePath';
+import { AuraLogo } from '../../components/common/AuraLogo';
 
 /** Why a login or first-run setup failed → what the user is told. */
 const LOGIN_FAIL_KEY = {
@@ -112,12 +113,7 @@ export function AdminLogin() {
                     style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
                 >
                     <div className="flex flex-col items-center mb-8">
-                        <div
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-                            style={{ background: 'var(--accent)22' }}
-                        >
-                            <Lock size={28} style={{ color: 'var(--accent)' }} />
-                        </div>
+                        <AuraLogo size={56} className="mb-4 drop-shadow-lg" />
                         <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
                             {isFirstTime ? t('login.setup.title') : t('login.title')}
                         </h1>
