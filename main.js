@@ -4662,12 +4662,11 @@ class Aura extends utils.Adapter {
         const base = this.config.customUrl
             ? publicBase(this.config.customUrl, !ownPort || isLoopbackOnly(this.config.bind))
             : null;
-        const port = this.config.port || 8095;
         const langs = ['en', 'de', 'ru', 'pt', 'nl', 'fr', 'it', 'es', 'pl', 'uk', 'zh-cn'];
         const makeName = (v) => Object.fromEntries(langs.map((l) => [l, v]));
 
-        const frontendLink = base ? `${base}/` : `%protocol%://%ip%:${port}/`;
-        const backendLink = base ? `${base}/#/admin` : `%protocol%://%ip%:${port}/#/admin`;
+        const frontendLink = base ? `${base}/` : `%protocol%://%ip%:%port%/`;
+        const backendLink = base ? `${base}/#/admin` : `%protocol%://%ip%:%port%/#/admin`;
         /** @type {Record<string, { link: string, name: Record<string, string> }>} */
         const wantLinks = {
             frontend: { link: frontendLink, name: makeName('Aura Frontend') },

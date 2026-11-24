@@ -69,7 +69,7 @@
     },
     "localLinks": {
       "frontend": {
-        "link": "%protocol%://%ip%:8095/",
+        "link": "%protocol%://%ip%:%port%/",
         "name": {
           "en": "Aura Frontend",
           "de": "Aura Frontend",
@@ -85,7 +85,7 @@
         }
       },
       "backend": {
-        "link": "%protocol%://%ip%:8095/#/admin",
+        "link": "%protocol%://%ip%:%port%/#/admin",
         "name": {
           "en": "Aura Backend",
           "de": "Aura Backend",
