@@ -237,6 +237,8 @@ function fakeApi() {
     const s = io.getSocket();
     s.fire('connect');
     console.log = quiet;
+    // createSocket() holds every emit until its first getObject is answered.
+    await new Promise((r) => setTimeout(r, 5));
     const sent = (command) => s.emitted.filter((e) => e[0] === command).map((e) => e[1]);
 
     const got = [];
@@ -285,13 +287,18 @@ function fakeApi() {
     const sentBefore = s.emitted.length;
     console.log = () => {};
     s.fire('disconnect');
+    // The first request after a reconnect waits 0-2 s at random (createSocket); not here.
+    const random = Math.random;
+    Math.random = () => 0;
     s.fire('reconnect');
+    Math.random = random;
     console.log = quiet;
-    await new Promise((r) => setTimeout(r, 5));
+    await new Promise((r) => setTimeout(r, 50));
     const renewed = (command) =>
         s.emitted
             .slice(sentBefore)
-            .filter((e) => e[0] === command)
+            // The warm-up read of createSocket() is not a renewed subscription.
+            .filter((e) => e[0] === command && e[1] !== 'system.config')
             .map((e) => e[1]);
     check('io objects: every subscription renewed after a reconnect', renewed('subscribeObjects'), [
         'flow.0.diagrams.d1',
@@ -464,6 +471,10 @@ function fakeApi() {
                     if (cb && event === 'getState') {
                         setTimeout(() => cb(null, { val: serverValue, ack: true, ts: serverValue }), 0);
                     }
+                    // The connect gate in createSocket() waits for this answer.
+                    if (cb && event === 'getObject') {
+                        setTimeout(() => cb(null, { _id: args[0], common: {} }), 0);
+                    }
                 },
                 disconnect() {},
                 fire(event, ...args) {
@@ -483,6 +494,8 @@ function fakeApi() {
     const s = io.getSocket();
     s.fire('connect');
     console.log = quiet;
+    // createSocket() holds every emit until its first getObject is answered.
+    await new Promise((r) => setTimeout(r, 5));
     const sent = (command) => s.emitted.filter((e) => e[0] === command).map((e) => e[1]);
     const state = (val) => ({ val, ack: true, ts: Date.now() });
 
@@ -528,9 +541,13 @@ function fakeApi() {
     console.log = () => {};
     s.fire('disconnect');
     serverValue = 9;
+    // The first request after a reconnect waits 0-2 s at random (createSocket); not here.
+    const random = Math.random;
+    Math.random = () => 0;
     s.fire('reconnect');
+    Math.random = random;
     console.log = quiet;
-    await new Promise((r) => setTimeout(r, 5));
+    await new Promise((r) => setTimeout(r, 50));
     check(
         'io patterns: subscribed again after a reconnect',
         sent('subscribe').filter((id) => id.includes('*')),
@@ -1198,3 +1215,5 @@ if (failed) {
     process.exit(1);
 }
 console.log('\nall web component checks passed');
+// The connect gate of createSocket() leaves a 120 s timer behind.
+process.exit(0);
