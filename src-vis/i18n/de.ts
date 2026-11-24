@@ -1447,6 +1447,10 @@ export const de = {
     'wf.edit.style.paddingX': 'Innenabstand links/rechts (px)',
     'wf.edit.style.paddingHint': 'Leer = Innenabstand des Layouts ({n} px).',
     'wf.edit.style.paddingNone': 'Dieses Widget zeichnet ohne Innenabstand.',
+    'wf.edit.status.gridNoCell':
+        'Eigenes Layout: Die Status-Symbole erscheinen nur in einer Zelle mit der Komponente „Status-Badges“ (oder einem einzelnen Symbol) – das Raster hat noch keine.',
+    'wf.edit.status.gridAddCell': 'Status-Zelle einfügen',
+    'wf.edit.status.gridPlacement': 'Im eigenen Layout bestimmt die Zelle „Status-Badges“ die Position.',
     'bgImage.label': 'Hintergrundbild',
     'bgImage.placeholder': 'https://…/bild.jpg, /vis.0/bild.png, Farbe/Verlauf oder Datei wählen',
     'bgImage.cssHint':

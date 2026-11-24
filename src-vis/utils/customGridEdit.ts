@@ -128,3 +128,66 @@ export function gridLineHasContent(grid: CustomGridDef, axis: 'row' | 'col', at:
     }
     return false;
 }
+
+// ── Status symbols in a custom grid (#1019) ──────────────────────────────────
+// The grid has no overlay: the status row shows only where a cell holds it.
+
+/** Component keys that show (part of) the status row in a custom grid. */
+export function isStatusCellKey(key: string | undefined): boolean {
+    if (!key) return false;
+    return (
+        key === 'status-badges' ||
+        key === 'battery-icon' ||
+        key === 'reach-icon' ||
+        key === 'window-icon' ||
+        key.startsWith('status-item:')
+    );
+}
+
+/** Does any cell of the grid show a status symbol? */
+export function gridHasStatusCell(grid: CustomGridDef): boolean {
+    return grid.cells.some((c) => c.type === 'component' && isStatusCellKey(c.componentKey));
+}
+
+/** Indices of the cells that lie under another cell's row/column span. */
+function coveredCells(grid: CustomGridDef): Set<number> {
+    const { cols, rows, cells } = grid;
+    const out = new Set<number>();
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const idx = r * cols + c;
+            if (out.has(idx)) continue;
+            const cell = cells[idx];
+            if (!cell || cell.type === 'empty') continue;
+            const rs = Math.max(1, cell.rowSpan ?? 1);
+            const cs = Math.max(1, cell.colSpan ?? 1);
+            for (let dr = 0; dr < rs && r + dr < rows; dr++)
+                for (let dc = 0; dc < cs && c + dc < cols; dc++) if (dr || dc) out.add((r + dr) * cols + c + dc);
+        }
+    }
+    return out;
+}
+
+/**
+ * Put the 'status-badges' cell where the presets put it (addStatusBadges): the
+ * bottom-right cell when it is free, else a narrow column of its own on the right.
+ */
+export function placeStatusBadgesCell(grid: CustomGridDef): CustomGridDef {
+    const cell: CustomCell = {
+        type: 'component',
+        componentKey: 'status-badges',
+        align: 'right',
+        valign: 'bottom',
+        allowOverflow: true,
+    };
+    let g = grid;
+    const at = () => (g.rows - 1) * g.cols + g.cols - 1;
+    const free = (gg: CustomGridDef, idx: number) =>
+        (gg.cells[idx] ?? EMPTY).type === 'empty' && !coveredCells(gg).has(idx);
+    if (!free(g, at())) {
+        const sizes = grid.colSizes ?? Array.from({ length: grid.cols }, () => '1fr');
+        g = { ...insertGridCol(g, g.cols), colSizes: [...sizes.slice(0, grid.cols), 'auto'] };
+    }
+    const idx = at();
+    return { ...g, cells: g.cells.map((c, i) => (i === idx ? cell : c)) };
+}

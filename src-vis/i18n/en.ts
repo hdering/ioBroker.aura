@@ -1433,6 +1433,10 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.style.paddingX': 'Padding left/right (px)',
     'wf.edit.style.paddingHint': "Empty = the layout's padding ({n} px).",
     'wf.edit.style.paddingNone': 'This widget is drawn without padding.',
+    'wf.edit.status.gridNoCell':
+        'Own layout: the status symbols only show in a cell holding the "Status badges" component (or a single symbol) – the grid has none yet.',
+    'wf.edit.status.gridAddCell': 'Add status cell',
+    'wf.edit.status.gridPlacement': 'In an own layout the "Status badges" cell sets the position.',
     'bgImage.label': 'Background image',
     'bgImage.placeholder': 'https://…/image.jpg, /vis.0/image.png, colour/gradient or pick a file',
     'bgImage.cssHint':
