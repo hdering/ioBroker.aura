@@ -5,7 +5,7 @@
 #
 #   bash update-watch.sh iobroker url iobroker.aura@next
 #
-# Writes /root/update-watch-<time>/ : ping.log (controller PING latency per second,
+# Writes /root/update-watch-<time>/ : ping.log (controller latency per second,
 # states + objects DB), vmstat.log, top.log (every 10 s), cmd.log (the command's
 # output with timestamps), iobroker.log (the ioBroker log of the same minutes).
 set -u
@@ -15,17 +15,21 @@ IOB=/opt/iobroker
 read -r SP OP < <(cd $IOB && node -e 'const c=require("./iobroker-data/iobroker.json");console.log(c.states.port,c.objects.port)')
 
 cat > "$OUT/ping.js" <<'JS'
-// One PING per 250 ms to the states and objects server; per second the slowest answer.
-// A PING without an answer yet counts as the time it has been waiting.
+// Per 250 ms one `get` of a missing key to the states and objects server; per second the
+// slowest answer. The in-memory DB matches command names exactly and in lower case -
+// anything else (PING, GET) is answered too, but with a logged warning each time.
+// A request without an answer yet counts as the time it has been waiting.
 const net = require('net');
 const [sp, op] = process.argv.slice(2).map(Number);
+const cmd = (key) => `*2\r\n$3\r\nget\r\n$${key.length}\r\n${key}\r\n`;
+const keys = { [sp]: 'io.aura-update-watch', [op]: 'cfg.o.aura-update-watch' };
 const conns = [sp, op].map((port) => {
     const c = { port, pending: null, worst: 0, s: net.connect(port, '127.0.0.1') };
     c.s.on('data', () => { if (c.pending) { c.worst = Math.max(c.worst, Date.now() - c.pending); c.pending = null; } });
     c.s.on('error', (e) => console.log(`${new Date().toTimeString().slice(0, 8)} port ${port}: ${e.message}`));
     return c;
 });
-setInterval(() => { for (const c of conns) if (!c.pending) { c.pending = Date.now(); c.s.write('*1\r\n$4\r\nPING\r\n'); } }, 250);
+setInterval(() => { for (const c of conns) if (!c.pending) { c.pending = Date.now(); c.s.write(cmd(keys[c.port])); } }, 250);
 setInterval(() => {
     const t = new Date().toTimeString().slice(0, 8);
     const v = conns.map((c) => Math.max(c.worst, c.pending ? Date.now() - c.pending : 0));
