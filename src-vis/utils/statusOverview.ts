@@ -292,9 +292,9 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     /**
      * Colour of the latch buttons — text and border (armed: fill). CSS colour or theme token
      * like categoryColors. Unset: "Gewechselt"/"Quittieren" keep the row colour (Zweizeilig: green),
-     * "Später" and "Ignorieren" stay neutral.
+     * "Später", "Verwerfen" and "Ignorieren" stay neutral.
      */
-    latchActionColors?: { ack?: string; snooze?: string; ignore?: string };
+    latchActionColors?: { ack?: string; snooze?: string; ignore?: string; dismiss?: string };
     /** Also list the ignored datapoints of this widget, muted, with "Aufnehmen" to take the ignore back (default false). */
     showIgnored?: boolean;
     /**
@@ -1013,6 +1013,8 @@ export interface LatchEntry {
     closedBy?: string;
     reopenedAfter?: number;
     minLevel?: number;
+    /** The level the adapter saw last (open entries only). */
+    level?: number;
     unit?: string;
     unresolved?: boolean;
 }
@@ -1026,7 +1028,15 @@ export interface LatchInfo {
     reopenedAfter?: number;
     /** Lowest level the adapter saw while the entry is open (voltage or percent). */
     level?: number;
+    /** The level it reports now — on a quiet entry, what tells a stale hint apart (#1017). */
+    current?: number;
     unit?: string;
+}
+
+/** "1,2 V" / "450 mV" / "3 %" — a remembered level in the German number format. */
+export function formatLatchLevel(level: number, unit: string): string {
+    const n = level.toLocaleString('de-DE', { maximumFractionDigits: unit === 'V' ? 2 : 0 });
+    return `${n} ${unit}`;
 }
 
 /** What the widget hands the adapter per watched datapoint. */
@@ -1142,15 +1152,20 @@ export function applyLatch(
         ...(entry.snoozedUntil && entry.snoozedUntil > now ? { snoozedUntil: entry.snoozedUntil } : {}),
         ...(entry.reopenedAfter ? { reopenedAfter: entry.reopenedAfter } : {}),
         ...(Number.isFinite(entry.minLevel) && entry.unit ? { level: entry.minLevel, unit: entry.unit } : {}),
+        ...(Number.isFinite(entry.level) && entry.unit ? { current: entry.level, unit: entry.unit } : {}),
     };
     if (alertLive) return { ...live!, latch };
     // A remembered alarm stays red: it did go off, even if the sensor is quiet again.
     const isAlarm = base.category === 'alarm';
+    // A quiet battery shows what it reads now ("1,6 V", "45 %") instead of a bare "schwach":
+    // the value is what tells a stale hint from a battery on its way out (#1017).
     const label =
         base.category === 'battery'
-            ? live && /%$/.test(live.label)
+            ? live && /\d\s*(%|m?V)$/.test(live.label)
                 ? live.label
-                : 'schwach'
+                : latch.current !== undefined && latch.unit
+                  ? formatLatchLevel(latch.current, latch.unit)
+                  : 'schwach'
             : isAlarm
               ? 'Ausgelöst'
               : 'Offline';
@@ -1350,8 +1365,12 @@ export function latchFacts(item: StatusItem, showSince: boolean, long = false): 
     // The two-line row has the room for the longer wording.
     if (showSince && l.since) out.push(`${long ? 'gemeldet seit' : 'seit'} ${formatDay(l.since)}`);
     if (l.count > 1) out.push(`${l.count}× ${item.category === 'alarm' ? 'ausgelöst' : 'gemeldet'}`);
-    if (!l.active)
+    if (!l.active) {
+        // The two-line row names the lowest level in its reading already.
+        if (!long && item.category === 'battery' && l.level !== undefined && l.unit)
+            out.push(`tiefster Wert ${formatLatchLevel(l.level, l.unit)}`);
         out.push(long ? 'meldet zurzeit nichts, bleibt aber gemerkt' : 'meldet zurzeit nichts, bleibt gemerkt');
+    }
     if (l.snoozedUntil) out.push(`zurückgestellt bis ${formatDay(l.snoozedUntil)}`);
     if (l.reopenedAfter)
         out.push(

@@ -122,6 +122,39 @@ eq(
     m.applyLatch(pctLive, { ...open, id: pctDp.id }, { ...base, id: pctDp.id }, false, NOW)?.label,
     '45 %',
 );
+// #1017: a quiet battery says what it reads now, not a bare "schwach".
+const withLevels = { ...open, minLevel: 1.1, level: 1.6, unit: 'V' };
+const quietV = m.applyLatch(liveOk, withLevels, base, false, NOW);
+eq('LOWBAT quiet with a voltage → current level as label', quietV?.label, '1,6 V');
+eq('… current in the latch info', [quietV?.latch?.level, quietV?.latch?.current], [1.1, 1.6]);
+eq('… facts name the lowest level', m.latchFacts(quietV, false), [
+    '3× gemeldet',
+    'tiefster Wert 1,1 V',
+    'meldet zurzeit nichts, bleibt gemerkt',
+]);
+eq(
+    '… two-line facts leave it to the reading',
+    m.latchFacts(quietV, false, true).includes('tiefster Wert 1,1 V'),
+    false,
+);
+const voltDp = dp({
+    id: 'hm-rpc.1.0020DA499B8F41.0.OPERATING_VOLTAGE',
+    type: 'number',
+    role: 'value.voltage',
+    unit: 'V',
+});
+const voltLive = m.evaluateItem(voltDp, 1.5, 'battery', { ...opts, batteryVoltThreshold: 1.2 }, NOW, true);
+if (voltLive)
+    eq(
+        'voltage entry gone quiet keeps the live voltage',
+        m.applyLatch(voltLive, { ...open, id: voltDp.id }, { ...base, id: voltDp.id }, false, NOW)?.label,
+        voltLive.label,
+    );
+eq(
+    'formatLatchLevel',
+    [m.formatLatchLevel(1.234, 'V'), m.formatLatchLevel(1450.4, 'mV'), m.formatLatchLevel(3.4, '%')],
+    ['1,23 V', '1.450 mV', '3 %'],
+);
 eq(
     'unreach quiet entry',
     m.applyLatch(null, { ...open }, { ...base, category: 'unreach' }, false, NOW)?.label,

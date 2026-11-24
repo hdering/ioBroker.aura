@@ -2252,7 +2252,7 @@ Adapter-Seite (`lib/statusLatch.js`, Verdrahtung in `main.js` `_initStatusLatch`
 | --- | --- |
 | `status.register` | Widgets melden ihre Datenpunkte (JSON, `source` = Widget-Id, Hash; nur bei Änderung, sonst 1×/Tag) |
 | `status.<cat>.sources` | zusammengeführte Anmeldungen; ohne Erneuerung nach 30 Tagen vergessen |
-| `status.<cat>.list` | Einträge: id, name, room, since, last, count, active, snoozedUntil, ackedAt, closedBy, reopenedAfter, minLevel, unit |
+| `status.<cat>.list` | Einträge: id, name, room, since, last, count, active, snoozedUntil, ackedAt, closedBy, reopenedAfter, minLevel, level (aktueller Wert), unit |
 | `status.<cat>.cmd` | `ack:` `snooze:[@Tage]` `unsnooze:` `add:[@since]` `remove:` `reopen:<id>[@closedAt]` `import:<JSON>` `ignore:` `unignore:` — Text oder JSON (auch Array); Text nimmt mehrere Ids kommagetrennt; `<id>` darf Seriennummer/Geräte-Id sein. Abarbeitung nacheinander (`_statusSerial`), danach ack=true |
 | `status.<cat>.cmdResult` | Ergebnis des letzten Befehls: `{ts, cmd, ok, done, errors, notes?}` — vor dem ack geschrieben |
 | `status.<cat>.ignored` | nie zu merkende Datenpunkte: `{id, name, ignoredAt}`; Widgets blenden sie aus |

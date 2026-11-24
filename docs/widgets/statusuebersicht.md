@@ -15,7 +15,7 @@ Zeigt von selbst, was Aufmerksamkeit braucht: offene Fenster und Türen, schwach
 | `count` | nur der Zähler |
 | `history` | Zuletzt gewechselt – geschlossene Hinweise aus dem Adapter-Verlauf, siehe unten |
 
-Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`, `compact`, `table` und `twoline`.
+Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“, „Verwerfen“) gibt es in `default`, `compact`, `table` und `twoline`.
 
 ![Layout „Zweizeilig“](assets/statusuebersicht/layout-twoline.png)
 
@@ -176,14 +176,15 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 | `latchAutoClose` | aus | Batterie: schließt bei deutlichem Spannungs-/Prozentsprung |
 | `latchConfirm` | an | „Gewechselt“/„Quittieren“ erst nach zweitem Tippen |
 | `latchIgnore` | aus | Knopf „Ignorieren“ (mit Rückfrage) – für Fehlalarme, wirkt auch ohne Merkliste |
-| `latchActionColors` | – | Farbe je Knopf `{ ack, snooze, ignore }` (Text + Rahmen), CSS-Farbe oder Token |
+| `latchActionColors` | – | Farbe je Knopf `{ ack, snooze, dismiss, ignore }` (Text + Rahmen), CSS-Farbe oder Token |
 | `showIgnored` | aus | ignorierte Datenpunkte gedämpft zeigen, mit „Aufnehmen“ |
 
 | Anzeige in der Zeile | Bedeutung |
 | --- | --- |
 | seit 05.10. | erste Meldung |
 | 3× gemeldet | so oft von „ok“ auf „Problem“ gewechselt |
-| meldet zurzeit nichts, bleibt gemerkt | Datenpunkt ist wieder ok – Zeile gedämpft |
+| meldet zurzeit nichts, bleibt gemerkt | Datenpunkt ist wieder ok – Zeile gedämpft; statt „Später“ gibt es „Verwerfen“ |
+| 1,6 V · tiefster Wert 1,1 V | ruhige Batterie: aktueller Wert, dazu der tiefste seit der Meldung (Zweizeilig: „Batterie war schwach (1,1 V), jetzt 1,6 V“) |
 | zurückgestellt bis 07.10. | „Später“ getippt – gedämpft, zählt nicht im Zähler |
 | trotz Wechsel am 01.10. | in der Nachkontrolle erneut gemeldet |
 
@@ -193,6 +194,13 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 | Automatisch schließen (Spannung) | `OPERATING_VOLTAGE` mindestens 0,3 V **und** 25 % über dem tiefsten Wert des Eintrags |
 | Automatisch schließen (Prozent) | mindestens 40 % **und** 30 Punkte über dem tiefsten Wert |
 | Automatisch schließen (nur `LOWBAT`) | nie – klassische HomeMatic-Geräte ohne Spannung schließt „Gewechselt“; `LOWBAT` flattert bei Kälte |
+
+| Verwerfen | |
+| --- | --- |
+| Wofür | veraltete oder falsche Hinweise, z. B. nach einer zu hoch eingestellten Warnschwelle |
+| Wann | nur bei Einträgen, die zurzeit nichts melden; mit Rückfrage wie „Gewechselt“ (`latchConfirm`) |
+| Wirkung | Eintrag weg, kein Verlaufseintrag, keine Nachkontrolle; der Datenpunkt bleibt überwacht – meldet er wieder, ist der Hinweis neu da |
+| Unterschied zu „Ignorieren“ | „Ignorieren“ schließt den Datenpunkt dauerhaft aus |
 
 Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schließt überall gleichzeitig, und gemerkt wird auch ohne offenen Browser.
 
@@ -229,6 +237,7 @@ Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schl
 | `snoozedUntil` | zurückgestellt bis (ms) |
 | `ackedAt`, `closedBy` | geschlossen am, durch `ack` / `auto` |
 | `reopenedAfter` | wieder geöffnet nach Schließen am (ms) |
+| `minLevel`, `level`, `unit` | tiefster / aktueller Spannungs- bzw. Prozentwert (nur offene Einträge mit Wert) |
 
 | Befehl | |
 | --- | --- |
@@ -236,7 +245,7 @@ Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schl
 | `snooze:<id>` / `snooze:<id>@3` | zurückstellen (Vorgabe 2 Tage) |
 | `unsnooze:<id>` | Zurückstellen aufheben |
 | `add:<id>` / `add:<id>@2026-09-20` | Eintrag anlegen, optional mit „seit“ |
-| `remove:<id>` | Eintrag löschen, ohne Nachkontrolle |
+| `remove:<id>` | Eintrag löschen („Verwerfen“), ohne Nachkontrolle und ohne Verlaufseintrag |
 | `reopen:<id>@<closedAt>` | Wechsel zurücknehmen: Verlaufseintrag weg, Eintrag wieder offen, Event `reopened` mit `reason: "manual"` |
 | `ignore:<id>` | nie mehr merken, Eintrag sofort weg |
 | `unignore:<id>` | Ignorieren aufheben |

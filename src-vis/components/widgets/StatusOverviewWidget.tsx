@@ -74,6 +74,7 @@ import {
     parseIgnoredList,
     ignoredItem,
     latchFacts,
+    formatLatchLevel,
     formatDay,
     defaultRowParts,
     resolveRowParts,
@@ -386,18 +387,23 @@ function TwoLineButton({
     );
 }
 
-/** "1,2 V" — the remembered level in the German number format. */
-function formatLevel(level: number, unit: string): string {
-    const n = level.toLocaleString('de-DE', { maximumFractionDigits: unit === '%' ? 0 : 2 });
-    return `${n} ${unit}`;
-}
+const DISMISS_TITLE = 'Hinweis entfernen, ohne Wechsel zu buchen – kommt wieder, wenn das Gerät erneut meldet';
 
-/** Line 2 starts with the reading: "Batterie schwach (1,2 V)", "Batterie bei 3 %", "Geöffnet". */
+/**
+ * Line 2 starts with the reading: "Batterie schwach (1,2 V)", "Batterie bei 3 %", "Geöffnet".
+ * A quiet remembered battery says what it was and what it reads now —
+ * "Batterie war schwach (1,1 V), jetzt 1,6 V" (#1017).
+ */
 function readingFor(item: StatusItem): string {
     if (item.category !== 'battery' || item.severity === 'ok') return item.label;
-    if (/%$/.test(item.label)) return `Batterie bei ${item.label}`;
     const l = item.latch;
-    return l?.level !== undefined && l.unit ? `Batterie schwach (${formatLevel(l.level, l.unit)})` : 'Batterie schwach';
+    const lowest = l?.level !== undefined && l.unit ? formatLatchLevel(l.level, l.unit) : null;
+    if (l && !l.active) {
+        const now = /\d\s*(%|m?V)$/.test(item.label) ? item.label : null;
+        return `Batterie war schwach${lowest ? ` (${lowest})` : ''}${now ? `, jetzt ${now}` : ''}`;
+    }
+    if (/%$/.test(item.label)) return `Batterie bei ${item.label}`;
+    return lowest ? `Batterie schwach (${lowest})` : 'Batterie schwach';
 }
 
 function StatusOverviewLive({ config, editMode }: WidgetProps) {
@@ -1105,7 +1111,23 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     onRun={() => latchCmd(item, 'ack')}
                 />,
             );
-            if (item.latch && !item.latch.snoozedUntil) {
+            if (item.latch && !item.latch.active) {
+                // Quiet: putting it back helps little; a stale or false hint goes away
+                // without booking a battery change (#1017).
+                buttons.push(
+                    <RowButton
+                        key="latch-dismiss"
+                        label="Verwerfen"
+                        title={DISMISS_TITLE}
+                        confirm={opts.latchConfirm !== false}
+                        confirmLabel="Wirklich verwerfen?"
+                        color={actionColors?.dismiss || 'var(--text-secondary)'}
+                        kind="dismiss"
+                        disabled={editMode}
+                        onRun={() => latchCmd(item, 'remove')}
+                    />,
+                );
+            } else if (item.latch && !item.latch.snoozedUntil) {
                 buttons.push(
                     <RowButton
                         key="latch-snooze"
@@ -1515,7 +1537,22 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         if (latchLists[item.category] && (item.latch || item.severity !== 'ok')) {
             const isBattery = item.category === 'battery';
             const snoozeDays = opts.latchSnoozeDays ?? 2;
-            if (item.latch && !item.latch.snoozedUntil) {
+            if (item.latch && !item.latch.active) {
+                buttons.push(
+                    <TwoLineButton
+                        key="latch-dismiss"
+                        label="Verwerfen"
+                        title={DISMISS_TITLE}
+                        confirm={opts.latchConfirm !== false}
+                        confirmLabel="Wirklich verwerfen?"
+                        tone="neutral"
+                        color={actionColors?.dismiss}
+                        kind="dismiss"
+                        disabled={editMode}
+                        onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `remove:${item.id}`)}
+                    />,
+                );
+            } else if (item.latch && !item.latch.snoozedUntil) {
                 buttons.push(
                     <TwoLineButton
                         key="latch-snooze"

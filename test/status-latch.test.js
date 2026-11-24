@@ -389,6 +389,29 @@ test('remove drops without recheck; unknown ids report an error', () => {
     assert.strictEqual(bad.ok, false);
 });
 
+test('dismiss (#1017): quiet entry goes without history, a new report opens it again', () => {
+    const { engine, lists, histories, advance, now } = makeEngine();
+    register(engine);
+    engine.update(GOLF_V, { val: 1.1, ts: T0 });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    engine.update(GOLF, { val: false, ts: T0 + MIN });
+    engine.update(GOLF_V, { val: 1.6, ts: T0 + 2 * MIN });
+    const e = lists.battery[0];
+    assert.strictEqual(e.active, false);
+    assert.deepStrictEqual([e.minLevel, e.level, e.unit], [1.1, 1.6, 'V'], 'current level rides along');
+
+    assert.ok(engine.command('battery', `remove:${GOLF}`).ok);
+    assert.strictEqual(lists.battery.length, 0);
+    assert.strictEqual(histories.battery.length, 0, 'no battery change booked');
+    assert.ok(engine.watchedIds().includes(GOLF), 'still watched');
+
+    advance(DAY_MS);
+    engine.update(GOLF, { val: true, ts: now(), lc: now() });
+    assert.strictEqual(lists.battery.length, 1, 'a real report comes back');
+    assert.strictEqual(lists.battery[0].count, 1);
+    assert.strictEqual(lists.battery[0].level, 1.6);
+});
+
 test('registration: empty watch removes the source; stale sources age out', () => {
     const { engine, sources, advance } = makeEngine();
     register(engine);

@@ -180,8 +180,13 @@ const ACTION = {
     check('active entry', griff?.latch === 'active', griff?.latch);
     check(
         'buttons',
-        JSON.stringify(golf?.buttons) === JSON.stringify(['Gewechselt', 'Später', 'Notiz']),
+        JSON.stringify(golf?.buttons) === JSON.stringify(['Gewechselt', 'Verwerfen', 'Notiz']),
         JSON.stringify(golf?.buttons),
+    );
+    check(
+        'active entry keeps Später, no Verwerfen',
+        JSON.stringify(griff?.buttons) === JSON.stringify(['Gewechselt', 'Später', 'Notiz']),
+        JSON.stringify(griff?.buttons),
     );
     check('chip counts both', (await chipText(page)).includes('2 Hinweise'), await chipText(page));
 
@@ -220,11 +225,24 @@ const ACTION = {
         (await golfRow.locator('button.aura-status-action').first().textContent()) === 'Gewechselt',
     );
 
-    // Später: no confirm.
+    // Verwerfen (#1017): asks first like Gewechselt, then remove: — no ack, no history.
     await page.evaluate(() => window.__auraShot.writes(true));
-    await golfRow.locator('button', { hasText: 'Später' }).click();
+    await golfRow.locator('button', { hasText: 'Verwerfen' }).click();
+    check('Verwerfen: first tap writes nothing', (await writes(page)).length === 0);
+    await golfRow.locator('button', { hasText: 'Wirklich verwerfen?' }).click();
     w = await writes(page);
-    check('Später writes snooze', w.length === 1 && w[0].val === `snooze:${GOLF}`, JSON.stringify(w));
+    check(
+        'Verwerfen writes remove',
+        w.length === 1 && w[0].id === `${NS}.status.battery.cmd` && w[0].val === `remove:${GOLF}`,
+        JSON.stringify(w),
+    );
+
+    // Später (active entry): no confirm.
+    await page.evaluate(() => window.__auraShot.writes(true));
+    const griffRow = page.locator('.react-grid-item div.flex.items-center.gap-2.py-1', { hasText: 'Drehgriff' });
+    await griffRow.locator('button', { hasText: 'Später' }).click();
+    w = await writes(page);
+    check('Später writes snooze', w.length === 1 && w[0].val === `snooze:${GRIFF}`, JSON.stringify(w));
 
     // Row action with placeholder.
     await page.evaluate(() => window.__auraShot.writes(true));
@@ -507,7 +525,7 @@ const rows2 = (page) =>
         !(await page.locator('.react-grid-item span.uppercase').count()),
     );
     check('twoline: name 14 px (text-sm)', golf?.nameSize === 14, String(golf?.nameSize));
-    check('twoline: reading with level', !!golf?.sub.startsWith('Batterie schwach (1,2 V)'), golf?.sub);
+    check('twoline: quiet reading with level', !!golf?.sub.startsWith('Batterie war schwach (1,2 V)'), golf?.sub);
     check('twoline: room on line 2', !!golf?.sub.includes('Garage'), golf?.sub);
     check('twoline: "gemeldet seit"', /gemeldet seit \d\d\.\d\d\./.test(golf?.sub ?? ''), golf?.sub);
     check('twoline: count', !!golf?.sub.includes('3× gemeldet'), golf?.sub);
@@ -520,8 +538,8 @@ const rows2 = (page) =>
     );
     check('twoline: rule between rows only', r[0].borderTop === '0px' && r[1].borderTop === '1px');
     check(
-        'twoline: buttons action, snooze, close',
-        JSON.stringify(golf?.buttons.map((b) => b.text)) === JSON.stringify(['Notiz', '2 Tage später', 'Gewechselt']),
+        'twoline: quiet row buttons action, dismiss, close',
+        JSON.stringify(golf?.buttons.map((b) => b.text)) === JSON.stringify(['Notiz', 'Verwerfen', 'Gewechselt']),
         JSON.stringify(golf?.buttons),
     );
     check('twoline: buttons ≥ 28 px high', !!golf?.buttons.every((b) => b.h >= 28), JSON.stringify(golf?.buttons));

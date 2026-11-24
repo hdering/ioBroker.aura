@@ -70,6 +70,7 @@ type LatchActionKey = keyof NonNullable<StatusOverviewOptions['latchActionColors
 const LATCH_ACTION_COLOR_FIELDS: { key: LatchActionKey; label: string; fallback: string }[] = [
     { key: 'ack', label: 'Gewechselt / Quittieren', fallback: '#22c55e' },
     { key: 'snooze', label: 'Später', fallback: '#94a3b8' },
+    { key: 'dismiss', label: 'Verwerfen', fallback: '#94a3b8' },
     { key: 'ignore', label: 'Ignorieren', fallback: '#94a3b8' },
 ];
 
@@ -961,7 +962,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 Ein Hinweis bleibt stehen, bis er erledigt ist – auch wenn das Gerät zwischendurch wieder {'„ok“'}{' '}
                 meldet: eine Batterie, deren LOWBAT bei Kälte kurz auf true springt, ein Gerät, das nachts kurz weg war,
                 ein Rauchmelder, der ausgelöst hat. Geschlossen wird mit {'„Gewechselt“'} bzw. {'„Quittieren“'} in der
-                Zeile, {'„Später“'} stellt zurück. Der Adapter führt die Liste für alle Geräte.
+                Zeile, {'„Später“'} stellt zurück. Meldet das Gerät zurzeit nichts, entfernt {'„Verwerfen“'} einen
+                veralteten Hinweis ohne Eintrag im Verlauf. Der Adapter führt die Liste für alle Geräte.
             </p>
             <SubGroup title="Gemerkt wird" count={latchSummary}>
                 <div className="flex flex-wrap gap-1.5" data-latch-summary>

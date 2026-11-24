@@ -22425,9 +22425,12 @@
             },
             "ignore": {
               "type": "string"
+            },
+            "dismiss": {
+              "type": "string"
             }
           },
-          "description": "Colour of the latch buttons — text and border (armed: fill). CSS colour or theme token like categoryColors. Unset: \"Gewechselt\"/\"Quittieren\" keep the row colour (Zweizeilig: green), \"Später\" and \"Ignorieren\" stay neutral.",
+          "description": "Colour of the latch buttons — text and border (armed: fill). CSS colour or theme token like categoryColors. Unset: \"Gewechselt\"/\"Quittieren\" keep the row colour (Zweizeilig: green), \"Später\", \"Verwerfen\" and \"Ignorieren\" stay neutral.",
           "onlyLayouts": [
             "default",
             "compact",
