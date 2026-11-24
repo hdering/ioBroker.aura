@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.115.0 (2026-11-13)
+- 🌟 **New feature:** Editor - arrange mode on touch devices: tap a widget, drag its grip to move it and its corner to resize it on tablets and phones ([#699](https://github.com/hdering/ioBroker.aura/issues/699))
+- 🌟 **New feature:** Editor - a short note when "scale like the frontend" is switched on, explaining that the shown heights follow the preview while the design grid is saved
+
 ## 0.114.2 (2026-11-13)
 - 🌟 **New feature:** Group / Device card - new "No frame" option: no background, border or inner spacing, the widgets inside sit on the tab grid with the same edges and height as outside ([#981](https://github.com/hdering/ioBroker.aura/issues/981))
 - 🌟 **New feature:** Editor - resizing a widget shows its live size (grid cells and px) ([#981](https://github.com/hdering/ioBroker.aura/issues/981))

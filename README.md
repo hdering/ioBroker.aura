@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.5.0-next.4 (2026-11-24) — next/test release
+- 🐛 **Bug fix:** Icon picker - icon sets of vis-2-widgets-icontwo no longer vanish after an ioBroker restart; a pack that is missing while vis-2 is still starting is looked up again after 30 seconds
+
+
 ### 1.5.0-next.3 (2026-11-24) — next/test release
 - 🐛 **Bug fix:** The frontend now notices an adapter update and reloads itself even when its connection stays up during the update; before, open dashboards could keep running the old version
 - 🐛 **Bug fix:** Instances - an own port that is switched off and no longer forwarded is no longer shown in the instance list of admin (it is kept and comes back when "Forward the old port" is switched on again) ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
@@ -252,11 +256,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Group - a mirrored device card or group no longer scrolls inside a group on phones and tablets ([#988](https://github.com/hdering/ioBroker.aura/issues/988))
 
 
-### 0.115.0 (2026-11-13)
-- 🌟 **New feature:** Editor - arrange mode on touch devices: tap a widget, drag its grip to move it and its corner to resize it on tablets and phones ([#699](https://github.com/hdering/ioBroker.aura/issues/699))
-- 🌟 **New feature:** Editor - a short note when "scale like the frontend" is switched on, explaining that the shown heights follow the preview while the design grid is saved
-
-
 ## License
 
 MIT License
@@ -268,6 +267,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
