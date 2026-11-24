@@ -2622,6 +2622,9 @@ export const EXTRA_OPTIONS = {
     },
     shutter: {
         // Read in utils/shutterCommand, shared with the popup and group actions.
+        // openDp/closeDp: the meaning stands in WIDGET_OPTION_NOTES.
+        openDp: { type: 'string' },
+        closeDp: { type: 'string' },
         moveDp: {
             type: 'string',
             description: 'Nur controlMode "move": ein Fahr-DP für Auf und Ab (z. B. KNX-Objekt "Auf/Ab", DPT 1.008).',
@@ -2733,6 +2736,9 @@ export const EXTRA_OPTIONS = {
                 'Zeilen hoch wie ihre Kinder. Schaltet transparent/transparency und autoShrink ab. Wirkt auch bei ' +
                 'devicecard.',
         },
+        // Read via groupAutoShrink (utils/groupLayout), not the options binding; the meaning
+        // stands in WIDGET_OPTION_NOTES.
+        autoShrink: { type: 'boolean', default: false },
     },
     panels: {
         defId: {
