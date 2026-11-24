@@ -13,7 +13,7 @@ interface IoBrokerSocket {
     on(event: string, callback: (...args: unknown[]) => void): void;
     emit(event: string, ...args: unknown[]): void;
     disconnect(): void;
-    /** @iobroker/ws only: close for good - its `disconnect()` reconnects by itself */
+    /** `@iobroker/ws` only: close for good - its `disconnect()` reconnects by itself */
     destroy?(): void;
 }
 

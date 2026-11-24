@@ -2621,7 +2621,8 @@ export const en: Record<TranslationKey, string> = {
     'historytable.col.time': 'Time',
     'historytable.col.value': 'Value',
     'historytable.noDatapoint': 'No datapoint configured',
-    'historytable.noAdapter': 'No history adapter (history, sql, influxdb, victoriametrics) is enabled for this datapoint.',
+    'historytable.noAdapter':
+        'No history adapter (history, sql, influxdb, victoriametrics) is enabled for this datapoint.',
     'historytable.loading': 'Loading history…',
     'historytable.empty': 'No values recorded',
     'historytable.truncated': 'Only the newest {n} values',

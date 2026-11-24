@@ -2650,7 +2650,8 @@ export const de = {
     'historytable.col.time': 'Uhrzeit',
     'historytable.col.value': 'Wert',
     'historytable.noDatapoint': 'Kein Datenpunkt konfiguriert',
-    'historytable.noAdapter': 'Für diesen Datenpunkt ist kein History-Adapter (history, sql, influxdb, victoriametrics) aktiv.',
+    'historytable.noAdapter':
+        'Für diesen Datenpunkt ist kein History-Adapter (history, sql, influxdb, victoriametrics) aktiv.',
     'historytable.loading': 'Lade Verlauf…',
     'historytable.empty': 'Keine Werte aufgezeichnet',
     'historytable.truncated': 'Nur die neuesten {n} Werte',
