@@ -143,6 +143,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.6.0-next.1 (2026-11-24) — next/test release
+- 🐛 **Bug fix:** Status overview - with "Publish to ioBroker" on, the admin dashboard no longer lists its lists.<id> datapoints as orphaned, so "Clean up" no longer deletes them (the adapter also refuses that delete now); a status overview whose lists.<id> object was left without type and states is restored at the next adapter start ([#1021](https://github.com/hdering/ioBroker.aura/issues/1021))
+- 🐛 **Bug fix:** MCP server - a datapoint with a JSON path (<id>?<path>, one field of a JSON state) is no longer refused as "does not exist" by aura_validate and the write tools, and aura_review no longer lists such list rows as dead datapoints ([#1023](https://github.com/hdering/ioBroker.aura/issues/1023))
+- 🐛 **Bug fix:** MCP server - aura_validate and the write tools no longer warn that a group or device card does not read "autoShrink", or that a shutter does not read "openDp"/"closeDp" (taster mode): the AI widget schema now lists these options ([#1029](https://github.com/hdering/ioBroker.aura/issues/1029))
+- 🌟 **New feature:** New Aura icon (a house-shaped "A" with a lit window) for the adapter, browser tab, home screen and PWA; it also shows on the admin login, next to "Aura" in the admin sidebar and on the loading screen, where the window light pulses while Aura starts
+
+
 ### 1.6.0-next.0 (2026-11-24) — next/test release
 - 🌟 **New feature:** Chart - stepping via the command datapoint ("prev", "next", "today", "now") now also writes the new window back to the date/end and range datapoints, so external from/to fields stay in step ([#1016](https://github.com/hdering/ioBroker.aura/issues/1016))
 - 🐛 **Bug fix:** Status symbols in an own (custom) layout - the status section now says when the grid has no "Status badges" cell (the only place the symbols show there) and adds one with a click; the corner/edge placement options are greyed out there, since the cell sets the position ([#1019](https://github.com/hdering/ioBroker.aura/issues/1019))
@@ -247,12 +254,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Last change - the datapoint field for the timestamp is now also shown when the widget has its own datapoint; a fixed id left there (e.g. in a device card child) made every card show the same time and could not be seen or cleared ([#996](https://github.com/hdering/ioBroker.aura/issues/996))
 
 
-### 1.1.0-next.1 (2026-11-17) — next/test release
-- 🐛 **Bug fix:** Status overview - classic HomeMatic window/door contacts (role value.window, e.g. HM-Sec-SCo) are now found, one row per window; a heating group's window state no longer duplicates the contacts of its room
-- 🌟 **New feature:** Status overview - better default names: generic channel names like "Channel sensor" give way to the device name, and a state name repeating its channel ("X:0.LOW_BAT") loses the prefix; new name filter preset to drop the HomeMatic channel number
-- 🌟 **New feature:** Status overview - own display names per device ("Edit device names"), used for every row of the device, the remembered hints and the history
-
-
 ## License
 
 MIT License
@@ -264,6 +265,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
