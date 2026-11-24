@@ -407,6 +407,49 @@ check('the widget datapoint of a device card child may be a placeholder', () => 
     assert.ok(hasError(validateWidget(child('erfunden.0.dp'), schema, { knownDatapoints: known }), /erfunden\.0\.dp/));
 });
 
+check('a datapoint with a JSON path is checked by its state id', () => {
+    const known = new Set(['0_userdata.0.trips']);
+    // `<id>?<path>` reads one field of a JSON state (src-vis/utils/dpRef.ts): the
+    // display subscribes to the id and walks the path into the value. Looked up
+    // whole, the reference "did not exist" — on the widget and in a condition
+    // clause alike — and a correct widget could not be written.
+    const widget = (datapoint, clauseDp) => ({
+        id: 'v-json',
+        type: 'value',
+        title: 'Linie',
+        datapoint,
+        gridPos: { x: 0, y: 0, w: 6, h: 3 },
+        options: {
+            conditions: [
+                {
+                    id: 'c',
+                    logic: 'AND',
+                    clauses: [{ datapoint: clauseDp, operator: 'contains', value: 'late' }],
+                    style: {},
+                },
+            ],
+        },
+    });
+    const ctx = { knownDatapoints: known };
+    assert.deepEqual(
+        validateWidget(widget('0_userdata.0.trips?0.line', '0_userdata.0.trips?0.flags'), schema, ctx).errors,
+        [],
+    );
+    // The state id itself still has to exist, and the message names it.
+    assert.ok(
+        hasError(
+            validateWidget(widget('0_userdata.0.tirps?0.line', '0_userdata.0.trips?0.flags'), schema, ctx),
+            /Datenpunkt "0_userdata\.0\.tirps"/,
+        ),
+    );
+    assert.ok(
+        hasError(
+            validateWidget(widget('0_userdata.0.trips?0.line', '0_userdata.0.tirps?0.flags'), schema, ctx),
+            /clauses\[0\]\.datapoint: Datenpunkt "0_userdata\.0\.tirps"/,
+        ),
+    );
+});
+
 // ── A chart on a datapoint nobody logs ────────────────────────────────────────
 // The mistake that looks least like one: the id exists, the type is a number, the
 // options are spelled right, and the chart draws an empty frame for ever.
@@ -2634,6 +2677,31 @@ check('datapoints one level down are collected, dividers and placeholders are no
     assert.ok(!ids.includes('divider:1'), 'a divider row carries no datapoint');
     assert.ok(!ids.includes('regel-1'), 'a rule id is not a datapoint');
     assert.ok(!ids.some((id) => id.includes('{{')), 'a placeholder is resolved per row and must not be checked');
+});
+
+check('a datapoint with a JSON path is collected, and reviewed, by its state id', () => {
+    // A list row may show one field of a JSON state (ListWidget makes such a row
+    // read-only). Collected whole, `<id>?<path>` was not in the id list, and
+    // aura_review reported every such row as a dead datapoint.
+    const list = {
+        id: 'l-json',
+        type: 'list',
+        title: 'Fahrten',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 10, h: 6 },
+        options: { entries: [{ id: '0_userdata.0.trips?0.line' }, { id: '0_userdata.0.trips?1.line' }] },
+    };
+    const ids = collectDatapointRefs(list, schema, { loose: true }).map((r) => r.id);
+    assert.deepEqual([...new Set(ids)], ['0_userdata.0.trips']);
+    const res = auditDashboard({
+        places: [{ where: 'Fahrten', widgets: [list] }],
+        schema,
+        knownDatapoints: new Set(['0_userdata.0.trips']),
+    });
+    assert.ok(
+        !res.findings.some((f) => f.id === 'dead-datapoints'),
+        `no dead datapoint expected, got ${JSON.stringify(res.findings.find((f) => f.id === 'dead-datapoints'))}`,
+    );
 });
 
 check('a power reading is not a meter, whatever the datapoint is called', () => {
