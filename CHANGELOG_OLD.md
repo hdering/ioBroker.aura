@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 1.1.0-next.0 (2026-11-16) — next/test release
+- 🐛 **Bug fix:** Adapter - no more "adapter is shutting down" warnings and "Connection is closed" rejection when the instance restarts itself right after an update
+- 🌟 **New feature:** The loading bar along the top edge also runs while the connection to ioBroker is being established (start-up, reconnect) until the offline banner appears, so a page without any hint is always current
+
 ## 1.0.2 (2026-11-15)
 - 🌟 **New feature:** Thin loading bar along the top edge while the values are refreshed after the app wakes up or reconnects ([#992](https://github.com/hdering/ioBroker.aura/issues/992))
 - 🌟 **New feature:** Circle menu - hide single entries (e.g. Stop for shutters, −/+ for thermostats) with the eye in the order list; thermostat and room climate can drop the setpoint in the middle of the open menu ([#993](https://github.com/hdering/ioBroker.aura/issues/993))

@@ -143,6 +143,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.6.0-next.0 (2026-11-24) — next/test release
+- 🌟 **New feature:** Chart - stepping via the command datapoint ("prev", "next", "today", "now") now also writes the new window back to the date/end and range datapoints, so external from/to fields stay in step ([#1016](https://github.com/hdering/ioBroker.aura/issues/1016))
+- 🐛 **Bug fix:** Status symbols in an own (custom) layout - the status section now says when the grid has no "Status badges" cell (the only place the symbols show there) and adds one with a click; the corner/edge placement options are greyed out there, since the cell sets the position ([#1019](https://github.com/hdering/ioBroker.aura/issues/1019))
+- 🌟 **New feature:** History - the VictoriaMetrics adapter (victoriametrics.N) is now recognised as a history source for charts, history table, energy balance and map tracks, and marked in the datapoint picker ([#1020](https://github.com/hdering/ioBroker.aura/issues/1020))
+- 🌟 **New feature:** Status overview - a remembered hint whose datapoint reports nothing at the moment can now be dismissed ("Verwerfen") without booking a battery change: it leaves the list, adds no history entry and comes back on the next real report; a quiet battery now shows its current voltage or percent and the lowest value seen instead of a bare "schwach" ([#1017](https://github.com/hdering/ioBroker.aura/issues/1017))
+- 🌟 **New feature:** Status overview - battery changes can now be documented without the remembered-hints list: new option "Document battery changes" puts "Gewechselt" on every battery row, also before any warning came up, and records the change in the history ("Zuletzt gewechselt"); a change without a prior warning is shown there as "vorsorglich" (preventive) instead of a weak period ([#1018](https://github.com/hdering/ioBroker.aura/issues/1018))
+
+
 ### 1.5.0-next.8 (2026-11-24) — next/test release
 - 🐛 **Bug fix:** Chart - in timeseries mode a new live value no longer redraws every line from left to right: the drawn series are kept and the value is merged in; new option "Live values at most every (s)" (Behaviour) collects the readings of datapoints that report very often and applies them at most that often ([#1015](https://github.com/hdering/ioBroker.aura/issues/1015))
 
@@ -245,11 +253,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Status overview - own display names per device ("Edit device names"), used for every row of the device, the remembered hints and the history
 
 
-### 1.1.0-next.0 (2026-11-16) — next/test release
-- 🐛 **Bug fix:** Adapter - no more "adapter is shutting down" warnings and "Connection is closed" rejection when the instance restarts itself right after an update
-- 🌟 **New feature:** The loading bar along the top edge also runs while the connection to ioBroker is being established (start-up, reconnect) until the offline banner appears, so a page without any hint is always current
-
-
 ## License
 
 MIT License
@@ -261,6 +264,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
