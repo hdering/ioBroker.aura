@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.5.0-next.7 (2026-11-24) — next/test release
+- 🐛 **Bug fix:** Dashboards no longer open a second connection to ioBroker when the server answers slowly (e.g. while it is busy after a web adapter restart): with "pure web sockets" the replaced connection reconnected by itself, so every such moment added one more connection that subscribed everything and sent all its requests again; a just reconnected dashboard also gives ioBroker more time before it counts the connection as dead
+
+
 ### 1.5.0-next.6 (2026-11-24) — next/test release
 - 🐛 **Bug fix:** Dashboards no longer stall a large ioBroker for minutes when they reconnect after the web adapter restarted (e.g. after an Aura update): they now send one request first and the rest once it is answered - before, every one of several hundred requests made js-controller read all users and groups again, which with the jsonl database walks all objects each time
 
@@ -247,14 +251,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Circle menu - hide single entries (e.g. Stop for shutters, −/+ for thermostats) with the eye in the order list; thermostat and room climate can drop the setpoint in the middle of the open menu ([#993](https://github.com/hdering/ioBroker.aura/issues/993))
 
 
-### 1.0.1 (2026-11-15)
-- 🐛 **Bug fix:** Clients - a client delete via clients.deleteRequest written with ack=true is now ignored and logged instead of executed; write it without ack
-- 🐛 **Bug fix:** Network requests to the WebSocket proxy and through the web extension now time out instead of hanging
-- 🐛 **Bug fix:** Device card - without frame, its widgets no longer end short on the right in the phone/tablet stack in browsers with classic scrollbars such as Fully Kiosk ([#989](https://github.com/hdering/ioBroker.aura/issues/989))
-- 🌟 **New feature:** Section menu - new option to pin the hamburger in the tab bar, so it stays reachable when a tab further along is open (mainly on phones)
-- 🐛 **Bug fix:** Tab bar - with centred or right-aligned tabs on phones, the section-menu hamburger was cut off and the first tabs could not be scrolled into view
-
-
 ## License
 
 MIT License
@@ -266,6 +262,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
