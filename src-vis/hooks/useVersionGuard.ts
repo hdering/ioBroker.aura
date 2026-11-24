@@ -1,27 +1,26 @@
 import { useEffect, useRef } from 'react';
 import { version as bundledVersion } from '../../package.json';
-import { useIoBroker, getObjectViewDirect } from './useIoBroker';
+import { useIoBroker, getObjectDirect, subscribeObjectDirect } from './useIoBroker';
+import { NS } from '../utils/namespace';
 
-const RELOAD_DELAY_MS = 1500;
+/** Long enough for the restarts of an update to settle, so the reload does not hit a 502. */
+const RELOAD_DELAY_MS = 3000;
 const RELOAD_MARK_KEY = 'aura-version-reload-mark';
+const INSTANCE_ID = `system.adapter.${NS}`;
 
-async function fetchAuraAdapterVersion(): Promise<string | null> {
-    try {
-        const result = await getObjectViewDirect('instance', 'system.adapter.aura.', 'system.adapter.aura.香');
-        const row = result.rows[0];
-        if (!row) return null;
-        const common = (row.value as unknown as { common?: { version?: string } }).common;
-        return common?.version ?? null;
-    } catch {
-        return null;
-    }
+function versionOf(obj: unknown): string | null {
+    return (obj as { common?: { version?: string } } | null)?.common?.version ?? null;
 }
 
 /**
- * On every (re-)connect, compare the bundled package.json version to the
- * version reported by the live aura adapter instance. If they diverge, the
- * served bundle is stale (adapter was upgraded) — reload the page so the
- * browser fetches the new assets.
+ * Compares the bundled package.json version with the version of the running Aura
+ * instance and reloads the page once they differ: the served bundle is stale
+ * (the adapter was updated), the reload fetches the new assets.
+ *
+ * The instance object is read on every (re-)connect AND subscribed: an update
+ * writes the new version into it while the socket may well stay connected
+ * (web extension with hot reload), or only after the reconnect - a check on
+ * connect alone missed both.
  *
  * Skipped in dev: the dev bundle's version may legitimately differ from the
  * running adapter's installed version.
@@ -32,11 +31,11 @@ export function useVersionGuard(): void {
 
     useEffect(() => {
         if (import.meta.env.DEV) return;
-        if (!connected || reloadingRef.current) return;
+        if (!connected) return;
         let cancelled = false;
-        void (async () => {
-            const live = await fetchAuraAdapterVersion();
-            if (cancelled || !live) return;
+
+        const check = (live: string | null): void => {
+            if (cancelled || !live || reloadingRef.current) return;
             if (live === bundledVersion) {
                 // Versions match again — clear any stale reload mark from a prior cycle.
                 try {
@@ -57,9 +56,8 @@ export function useVersionGuard(): void {
             } catch {
                 /* ignore */
             }
+            reloadingRef.current = true;
             if (alreadyTried) {
-                reloadingRef.current = true;
-
                 console.warn(
                     `[Aura] adapter ${live} ≠ bundle ${bundledVersion} after reload — staying on stale bundle to avoid loop`,
                 );
@@ -70,13 +68,17 @@ export function useVersionGuard(): void {
             } catch {
                 /* ignore */
             }
-            reloadingRef.current = true;
-
             console.info(`[Aura] adapter version ${live} differs from bundle ${bundledVersion} — reloading once`);
             globalThis.setTimeout(() => window.location.reload(), RELOAD_DELAY_MS);
-        })();
+        };
+
+        const unsubscribe = subscribeObjectDirect(INSTANCE_ID, (obj) => check(versionOf(obj)));
+        void getObjectDirect(INSTANCE_ID, { skipCache: true })
+            .then((obj) => check(versionOf(obj)))
+            .catch(() => {});
         return () => {
             cancelled = true;
+            unsubscribe();
         };
     }, [connected]);
 }

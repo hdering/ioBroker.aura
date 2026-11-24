@@ -48,3 +48,4 @@
 - fix: Chart - switching the time range quickly no longer leaves the chart stuck on the wrong range: a slower history answer for the previous range (e.g. 3 months still loading after switching to 24 h) is discarded instead of overwriting the current one; applies to the range chips, linked charts and the navigation datapoints (#1013)
 - fix: Chart - in JSON mode, series hidden via the legend now stay hidden when the datapoint delivers new JSON (#1014)
 - fix: Status overview and dynamic list no longer download every object while the adapter restarts (e.g. during an update) - they ask the adapter again instead; with several dashboards open this could stall a large ioBroker installation for minutes
+- fix: The frontend now notices an adapter update and reloads itself even when its connection stays up during the update; before, open dashboards could keep running the old version
