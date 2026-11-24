@@ -1034,6 +1034,28 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             />
                         </button>
                     </div>
+                    {/* Live update interval (issue #1015) */}
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.liveInterval')}
+                        </label>
+                        <input
+                            type="number"
+                            min={0}
+                            max={3600}
+                            value={(o.echartLiveInterval as number | undefined) ?? ''}
+                            placeholder="0"
+                            onChange={(e) => {
+                                const n = Math.round(Number(e.target.value));
+                                setO({ echartLiveInterval: e.target.value && n > 0 ? Math.min(3600, n) : undefined });
+                            }}
+                            className="w-20 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                            style={inputStyle}
+                        />
+                    </div>
+                    <p className="text-[10px] mb-2 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.liveIntervalHint')}
+                    </p>
                 </>
             </ConfigSection>
 

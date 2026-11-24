@@ -105,6 +105,8 @@ export function refLineCarriers(
         const bands = onAxis.filter((r) => r.to !== undefined);
         return [
             {
+                // Stable id: the timeseries chart replaces series by id (issue #1015).
+                id: `ref-carrier-${axis}`,
                 type: 'scatter',
                 name: '',
                 yAxisIndex: axis,

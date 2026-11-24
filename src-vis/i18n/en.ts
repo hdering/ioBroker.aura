@@ -2473,6 +2473,9 @@ export const en: Record<TranslationKey, string> = {
     'echart.areaOpacity': 'Area opacity: {value}%',
     'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
     'echart.animation': 'Animation',
+    'echart.liveInterval': 'Live values at most every (s)',
+    'echart.liveIntervalHint':
+        'For datapoints that report very often: new values are collected and applied at most this often. Empty or 0 = immediately.',
     'echart.showCurrentValue': 'Current value',
     'echart.currentValueSource': 'Current value is',
     'echart.currentValueFirst': 'First value',

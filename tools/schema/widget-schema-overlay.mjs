@@ -1994,6 +1994,10 @@ export const WIDGET_OPTION_NOTES = {
                 'Wo die Beschriftung der Jetzt-Linie steht: "top" (Standard, oberes Ende) oder "bottom" (unteres Ende).',
         },
         echartAnimation: { description: 'Übergänge animieren.' },
+        echartLiveInterval: {
+            description:
+                'Live-Werte höchstens alle N Sekunden übernehmen (gesammelt, je Reihe der letzte Wert). Für Datenpunkte, die sehr oft melden; leer/0 = sofort.',
+        },
         echartShowXAxis: { description: 'X-Achse anzeigen.' },
         echartXLabelCount: {
             description:

@@ -691,7 +691,9 @@ function EChartBody({ config, editMode }: WidgetProps) {
               }))
         : [];
 
-    const seriesDataMap = useMultiSeriesData(effectiveSeries, connected, subscribe, getState);
+    // Live values held back to at most one batch per interval (issue #1015).
+    const liveIntervalMs = Math.max(0, Number(o.echartLiveInterval) || 0) * 1000;
+    const seriesDataMap = useMultiSeriesData(effectiveSeries, connected, subscribe, getState, liveIntervalMs);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartRef = useRef<any>(null);
@@ -1051,6 +1053,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
     };
 
     const leftAxis: Record<string, unknown> = {
+        // Ids keep the axes matched under `replaceMerge` instead of recreated (issue #1015).
+        id: 'y-left',
         type: 'value',
         // Fit the axis to the data range instead of forcing zero in — otherwise a
         // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
@@ -1072,6 +1076,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
 
     const rightAxis: Record<string, unknown> = hasRightAxis
         ? {
+              id: 'y-right',
               type: 'value',
               scale: !zeroBased(1) || rightMin !== undefined,
               axisLabel: {
@@ -1087,7 +1092,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
               ...(rightMax !== undefined ? { max: rightMax } : {}),
               ...axisExtras(1, rightValueLabels, rightMin, rightMax),
           }
-        : { show: false };
+        : { id: 'y-right', show: false };
 
     // ── Own scales (issue #959) ──
     // Width of an axis' label strip, estimated from the numbers it will carry: echarts places an
@@ -1142,6 +1147,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
         const offset = strips[side].reduce((sum, w) => sum + w + OWN_AXIS_GAP, 0);
         if (show) strips[side].push(axisStripWidth(index, format, min, max));
         return {
+            id: `y-own-${index}`,
             type: 'value',
             position: side,
             offset: show ? offset : 0,
@@ -1782,6 +1788,10 @@ function EChartBody({ config, editMode }: WidgetProps) {
     const seriesList = echartSeries.map((s, idx) => {
         const data = alignedData[idx];
         return {
+            // A stable id lets `replaceMerge` match the series to the one already drawn. Without
+            // it echarts drops and recreates every series on each live value and replays the
+            // draw-in animation across the whole window (issue #1015).
+            id: `s${idx}:${s.id}`,
             name: s.name,
             type: s.chartType === 'area' ? 'line' : s.chartType,
             // A band is filled with the colour it was given, a single area stays a wash — see

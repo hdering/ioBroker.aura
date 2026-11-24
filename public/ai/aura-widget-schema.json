@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.5.0-next.1",
+    "auraVersion": "1.5.0-next.7",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -12788,6 +12788,11 @@
           "type": "string",
           "default": "",
           "description": "Einheit der linken Y-Achse."
+        },
+        "echartLiveInterval": {
+          "type": "number",
+          "default": 0,
+          "description": "Live-Werte höchstens alle N Sekunden übernehmen (gesammelt, je Reihe der letzte Wert). Für Datenpunkte, die sehr oft melden; leer/0 = sofort."
         },
         "echartMode": {
           "type": "string",

@@ -836,6 +836,20 @@ function installScreenshotApi(): void {
             });
         },
 
+        /** Tags the series models of the n-th chart and reports how many earlier tags are still
+         *  there. A series echarts drops and recreates (and draws in again from the left) comes
+         *  back untagged — a live value must keep every model (issue #1015). */
+        chartSeriesKept(index = 0): { total: number; kept: number } | null {
+            const el = document.querySelectorAll('[_echarts_instance_]')[index];
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            const model = (inst as unknown as { getModel(): { getSeries(): Record<string, unknown>[] } }).getModel();
+            const list = model.getSeries();
+            const kept = list.filter((s) => s.__auraTag === true).length;
+            for (const s of list) s.__auraTag = true;
+            return { total: list.length, kept };
+        },
+
         /** Dispatches an echarts action on the n-th chart, the way a click would — e.g.
          *  `{ type: 'legendUnSelect', name }` hides a series via its legend (issue #1014). */
         chartAction(action: Record<string, unknown>, index = 0): boolean {

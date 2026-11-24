@@ -110,6 +110,7 @@
     "test:mcp": "node tools/tests/mcp.mjs",
     "test:chart-gallery": "node tools/tests/chart-gallery.mjs",
     "test:chart-nav": "node tools/tests/chart-nav.mjs",
+    "test:chart-live-redraw": "node tools/tests/chart-live-redraw.mjs",
     "test:chart-formula": "node tools/tests/chart-formula.mjs",
     "test:chart-forecast": "node tools/tests/chart-forecast.mjs",
     "test:chart-own-axis": "node tools/tests/chart-own-axis.mjs",

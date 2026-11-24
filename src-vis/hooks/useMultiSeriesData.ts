@@ -1612,6 +1612,8 @@ export function useMultiSeriesData(
     connected: boolean,
     subscribe: (id: string, cb: (state: ioBrokerState) => void) => () => void,
     getState?: (id: string) => Promise<ioBrokerState | null>,
+    /** Live readings are collected and applied at most this often, all at once (issue #1015). 0 = at once. */
+    liveIntervalMs = 0,
 ): Map<string, SeriesDataResult> {
     const [resultsMap, setResultsMap] = useState<Map<string, SeriesDataResult>>(new Map());
     const mountedRef = useRef(true);
@@ -2184,6 +2186,31 @@ export function useMultiSeriesData(
     useEffect(() => {
         if (!connected || series.length === 0) return;
         /**
+         * With an interval set, readings are held back and handed on together — the latest one per
+         * subscription — at most once per interval, so a chart over datapoints that report every
+         * second redraws in one go instead of on every reading (issue #1015). The first reading after
+         * a quiet spell goes through on the next tick.
+         */
+        const pending = new Map<(state: ioBrokerState) => void, ioBrokerState>();
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let lastFlush = 0;
+        const flush = () => {
+            timer = null;
+            lastFlush = Date.now();
+            const batch = [...pending];
+            pending.clear();
+            for (const [cb, state] of batch) cb(state);
+        };
+        const sub: typeof subscribe =
+            liveIntervalMs > 0
+                ? (id, cb) =>
+                      subscribe(id, (state) => {
+                          pending.set(cb, state);
+                          if (timer === null)
+                              timer = setTimeout(flush, Math.max(0, lastFlush + liveIntervalMs - Date.now()));
+                      })
+                : subscribe;
+        /**
          * Move the period value along with a live reading (issue #749): a counter books the rise,
          * `change` is measured against the window's first reading, min/max widen. An average needs
          * the whole window and waits for the periodic refetch. A drop books nothing — a reset, or a
@@ -2225,7 +2252,7 @@ export function useMultiSeriesData(
                 if (formulaProblem(formula, s.formulaInputs)) return [];
                 const inputs = usableInputs(s.formulaInputs);
                 return inputs.map((input) =>
-                    subscribe(input.datapointId, (state: ioBrokerState) => {
+                    sub(input.datapointId, (state: ioBrokerState) => {
                         const num = chartNumber(state.val);
                         if (num === null) return;
                         const vars = { ...(formulaVarsRef.current.get(s.id) ?? {}), [input.name]: num };
@@ -2268,7 +2295,7 @@ export function useMultiSeriesData(
                 if (s.source === 'json') {
                     // JSON datapoints are rewritten as a whole — re-parse the payload instead of
                     // appending a point, and skip the update when the raw value is unchanged.
-                    return subscribe(s.datapointId, (state: ioBrokerState) => {
+                    return sub(s.datapointId, (state: ioBrokerState) => {
                         const rawStr = typeof state.val === 'string' ? state.val : JSON.stringify(state.val);
                         if (lastRawRef.current.get(s.id) === rawStr) return;
                         lastRawRef.current.set(s.id, rawStr);
@@ -2292,7 +2319,7 @@ export function useMultiSeriesData(
                     // reading would spike the chart. Only the still-open trailing bar can grow, and
                     // only while the update still falls into its bucket; once the counter rolls into
                     // the next bucket the base is stale and the next refetch takes over.
-                    return subscribe(s.datapointId, (state: ioBrokerState) => {
+                    return sub(s.datapointId, (state: ioBrokerState) => {
                         const num = chartNumber(state.val);
                         if (num === null) return;
                         // The unit comes from the fetch that filled the bar, not from a second
@@ -2320,7 +2347,7 @@ export function useMultiSeriesData(
                         });
                     });
                 }
-                return subscribe(s.datapointId, (state: ioBrokerState) => {
+                return sub(s.datapointId, (state: ioBrokerState) => {
                     const num = chartNumber(state.val);
                     if (num === null) return;
                     const val = seriesValue(s, num);
@@ -2388,9 +2415,11 @@ export function useMultiSeriesData(
         return () => {
             unsubs.forEach((u) => u());
             formulaUnsubs.forEach((u) => u());
+            if (timer !== null) clearTimeout(timer);
+            pending.clear();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [depKey, connected, subscribe]);
+    }, [depKey, connected, subscribe, liveIntervalMs]);
 
     return useMemo(() => {
         if (periodMap.size === 0) return resultsMap;
