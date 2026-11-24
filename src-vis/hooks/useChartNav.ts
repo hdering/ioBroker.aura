@@ -112,7 +112,7 @@ export interface ChartNav {
     pickRange: (fromIso: string, toIso: string) => void;
 }
 
-type Origin = 'user' | 'dp' | 'group';
+type Origin = 'user' | 'cmd' | 'dp' | 'group';
 
 export function useChartNav(opts: ChartNavOptions): ChartNav {
     const { startRange, startCustomValue, startCustomUnit, startLead, lockRange, paging, anchor, group } = opts;
@@ -190,7 +190,9 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
 
     /**
      * The one way the selection changes. `user` = clicked in this widget: tell the group and write
-     * the datapoints. `dp` = a datapoint moved it: tell the group, but write nothing back.
+     * the datapoints. `cmd` = the command datapoint stepped it: like a click, so external from–to
+     * fields stay in step (#1016) — linked charts follow the group without writing a second time.
+     * `dp` = a date/range datapoint moved it: tell the group, but write nothing back.
      * `group` = another linked chart moved it: just follow.
      */
     const navigate = (chip: RangeChip | null, nextRef: number | null, origin: Origin) => {
@@ -208,7 +210,7 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         const key = nextChip?.key ?? now.current.chip;
         now.current = { ref: r, chip: key };
         if (origin !== 'group' && group) publish(group, { chip: key, ref: r });
-        if (origin !== 'user') return;
+        if (origin !== 'user' && origin !== 'cmd') return;
         if (endId) {
             // From–to: the window's first and last day, also for a chip or a step.
             const s = spanOf(key);
@@ -339,7 +341,7 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         const cmd = parseNavCommand(st.val);
         if (!cmd) return;
         if (group && !useChartNavStore.getState().claimCommand(group, `${cmdId}@${st.ts}`)) return;
-        command(cmd, 'dp');
+        command(cmd, 'cmd');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cmdDp.state]);
 

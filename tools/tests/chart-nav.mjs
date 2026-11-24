@@ -321,6 +321,38 @@ await mount([chart('free-dp', 0, { echartNavDateDp: 'test.nav.from', echartNavEn
     );
 }
 
+// #1016: a step via the command datapoint writes start and end back as well. Offline,
+// useDatapoint only subscribes once "connected" — the reconnect play switches that on.
+await mount(
+    [
+        chart('free-cmd', 0, {
+            echartNavDateDp: 'test.cmd.from',
+            echartNavEndDp: 'test.cmd.to',
+            echartNavCommandDp: 'test.cmd.cmd',
+        }),
+    ],
+    { 'test.cmd.from': iso(midnight(15)), 'test.cmd.to': iso(midnight(6)), 'test.cmd.cmd': '' },
+);
+{
+    await page.evaluate(() => window.__auraShot.simulateReconnect({}));
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__auraShot.writes(true));
+    await page.evaluate(() => window.__auraShot.captureWrites(true));
+    await page.evaluate(() => window.__auraShot.mock({ 'test.cmd.cmd': 'prev' }));
+    await page.waitForTimeout(500);
+    // "Connected", the history goes to the dead socket and the axes stay empty — the
+    // written bounds are the window the step landed on.
+    const writes = await page.evaluate(() => window.__auraShot.writes());
+    await page.evaluate(() => window.__auraShot.simulateDisconnect());
+    const from = writes.filter((x) => x.id === 'test.cmd.from').map((x) => x.val);
+    const to = writes.filter((x) => x.id === 'test.cmd.to').map((x) => x.val);
+    check(
+        'and writes first and last day back (#1016)',
+        from.at(-1) === iso(midnight(25)) && to.at(-1) === iso(midnight(16)),
+        JSON.stringify({ from, to }),
+    );
+}
+
 // ── Back to the configured range after idle (#932) ───────────────────────────────────────
 // 0.04 min = 2.4 s; the option takes minutes, fractions only matter here.
 await mount([
