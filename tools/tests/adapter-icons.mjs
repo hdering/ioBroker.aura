@@ -313,6 +313,59 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
     check('iob pack: icon served from the pack', f.res.status === 200 && String(f.res.body).includes('currentColor'));
 }
 
+// ── 2d. pack missing at first (vis-2 still uploading after a restart) ─────────
+{
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><path fill="currentColor"/></svg>');
+    const packJson = JSON.stringify({ fan: { src: svg.toString('base64'), name: 'Fan', words: [] } });
+    let uploaded = false;
+    const warns = [];
+    const adapter = {
+        async getForeignObjectsAsync() {
+            return {
+                'system.adapter.vis-2-widgets-icontwo': {
+                    _id: 'system.adapter.vis-2-widgets-icontwo',
+                    common: {
+                        name: 'vis-2-widgets-icontwo',
+                        type: 'visualization-icons',
+                        version: '1.42.2',
+                        visIconSets: { s: { name: 'Solid', url: 'vis-2-widgets-icontwo/icon-set-solid.json' } },
+                    },
+                },
+            };
+        },
+        async readDirAsync() {
+            throw new Error('no web storage');
+        },
+        async readFileAsync(ns) {
+            if (uploaded && ns === 'vis-2') return { file: Buffer.from(packJson) };
+            throw new Error('not found');
+        },
+    };
+    const realNow = Date.now;
+    let now = realNow();
+    Date.now = () => now;
+    try {
+        const icons = createAdapterIcons({ source: ioBrokerIconSource(adapter), log: { warn: (m) => warns.push(m) } });
+        const first = await call(icons, '/adapter-icons/sets');
+        check(
+            'retry: set hidden while its pack is missing',
+            first.json?.sets?.length === 0,
+            JSON.stringify(first.json),
+        );
+        uploaded = true;
+        await call(icons, '/adapter-icons/sets');
+        check('retry: miss is not re-read immediately', warns.length === 1, String(warns.length));
+        now += 31 * 1000;
+        const later = await call(icons, '/adapter-icons/sets');
+        const set = later.json?.sets?.find((s) => s.id === 'vis-2-widgets-icontwo');
+        check('retry: set appears once the pack is there', set?.count === 1, JSON.stringify(later.json));
+        const f = await call(icons, '/adapter-icons/file/vis-2-widgets-icontwo/icon-set-solid/fan.svg');
+        check('retry: icon served after the retry', f.res.status === 200);
+    } finally {
+        Date.now = realNow;
+    }
+}
+
 // ── 2c. MCP tool aura_icons: pack names and keywords are searchable ───────────
 {
     const { callTool } = require('../../lib/mcp/tools.js');

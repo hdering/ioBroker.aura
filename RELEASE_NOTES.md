@@ -51,3 +51,4 @@
 - fix: The frontend now notices an adapter update and reloads itself even when its connection stays up during the update; before, open dashboards could keep running the old version
 - fix: Instances - an own port that is switched off and no longer forwarded is no longer shown in the instance list of admin (it is kept and comes back when "Forward the old port" is switched on again) (#997)
 - fix: After an update the frontend reloads only once the updated Aura answers, and the "Aura is not reachable" page of the web adapter retries by itself - before, dashboards could stay on that error page after an update
+- fix: Icon picker - icon sets of vis-2-widgets-icontwo no longer vanish after an ioBroker restart; a pack that is missing while vis-2 is still starting is looked up again after 30 seconds
