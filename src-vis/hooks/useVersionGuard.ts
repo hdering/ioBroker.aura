@@ -29,17 +29,33 @@ async function reloadWhenServed(): Promise<void> {
     const running = runningBundle();
     const started = Date.now();
     const url = window.location.pathname + window.location.search;
+    // With timestamps, so the reload of each device can be lined up with the ioBroker log.
+    const say = (what: string) =>
+        console.info(
+            `[Aura] ${new Date().toLocaleTimeString()} ${what} (after ${Math.round((Date.now() - started) / 1000)} s)`,
+        );
+    let failed = 0;
     for (;;) {
         await new Promise((r) => globalThis.setTimeout(r, POLL_MS));
-        if (!running || Date.now() - started > GIVE_UP_MS) break;
+        if (!running || Date.now() - started > GIVE_UP_MS) {
+            say(`new bundle not seen (${failed} failed requests) — reloading anyway`);
+            break;
+        }
         try {
             const r = await fetch(url, { cache: 'no-store' });
-            if (!r.ok) continue;
+            if (!r.ok) {
+                failed++;
+                continue;
+            }
             const html = await r.text();
             const served = BUNDLE_RE.exec(html)?.[0];
-            if (html.includes('__AURA_NAMESPACE__') && served && served !== running) break;
+            if (html.includes('__AURA_NAMESPACE__') && served && served !== running) {
+                say(`new bundle ${served} served (${failed} failed requests before) — reloading`);
+                break;
+            }
         } catch {
             /* Aura is restarting - next round */
+            failed++;
         }
     }
     window.location.reload();
