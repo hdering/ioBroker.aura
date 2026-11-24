@@ -50,3 +50,4 @@
 - fix: Status overview and dynamic list no longer download every object while the adapter restarts (e.g. during an update) - they ask the adapter again instead; with several dashboards open this could stall a large ioBroker installation for minutes
 - fix: The frontend now notices an adapter update and reloads itself even when its connection stays up during the update; before, open dashboards could keep running the old version
 - fix: Instances - an own port that is switched off and no longer forwarded is no longer shown in the instance list of admin (it is kept and comes back when "Forward the old port" is switched on again) (#997)
+- fix: After an update the frontend reloads only once the updated Aura answers, and the "Aura is not reachable" page of the web adapter retries by itself - before, dashboards could stay on that error page after an update

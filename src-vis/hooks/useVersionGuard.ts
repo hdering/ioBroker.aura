@@ -3,10 +3,47 @@ import { version as bundledVersion } from '../../package.json';
 import { useIoBroker, getObjectDirect, subscribeObjectDirect } from './useIoBroker';
 import { NS } from '../utils/namespace';
 
-/** Long enough for the restarts of an update to settle, so the reload does not hit a 502. */
-const RELOAD_DELAY_MS = 3000;
+const POLL_MS = 3000;
+/** The new bundle never showed up (same build, only the version changed): reload anyway. */
+const GIVE_UP_MS = 3 * 60 * 1000;
 const RELOAD_MARK_KEY = 'aura-version-reload-mark';
 const INSTANCE_ID = `system.adapter.${NS}`;
+const BUNDLE_RE = /assets\/index-[\w-]+\.js/;
+
+/** The entry bundle this page runs, e.g. `assets/index-Bcl2ubms.js`. */
+function runningBundle(): string | null {
+    for (const s of Array.from(document.querySelectorAll<HTMLScriptElement>('script[src]'))) {
+        const m = BUNDLE_RE.exec(s.src);
+        if (m) return m[0];
+    }
+    return null;
+}
+
+/**
+ * The new version is written into the instance object before Aura restarts with
+ * it - a reload right away lands in that restart (502 from the web extension).
+ * Wait until the page address answers with an index.html of ANOTHER bundle, i.e.
+ * the updated Aura is up and serving.
+ */
+async function reloadWhenServed(): Promise<void> {
+    const running = runningBundle();
+    const started = Date.now();
+    const url = window.location.pathname + window.location.search;
+    for (;;) {
+        await new Promise((r) => globalThis.setTimeout(r, POLL_MS));
+        if (!running || Date.now() - started > GIVE_UP_MS) break;
+        try {
+            const r = await fetch(url, { cache: 'no-store' });
+            if (!r.ok) continue;
+            const html = await r.text();
+            const served = BUNDLE_RE.exec(html)?.[0];
+            if (html.includes('__AURA_NAMESPACE__') && served && served !== running) break;
+        } catch {
+            /* Aura is restarting - next round */
+        }
+    }
+    window.location.reload();
+}
 
 function versionOf(obj: unknown): string | null {
     return (obj as { common?: { version?: string } } | null)?.common?.version ?? null;
@@ -68,8 +105,10 @@ export function useVersionGuard(): void {
             } catch {
                 /* ignore */
             }
-            console.info(`[Aura] adapter version ${live} differs from bundle ${bundledVersion} — reloading once`);
-            globalThis.setTimeout(() => window.location.reload(), RELOAD_DELAY_MS);
+            console.info(
+                `[Aura] adapter version ${live} differs from bundle ${bundledVersion} — reloading once the new bundle is served`,
+            );
+            void reloadWhenServed();
         };
 
         const unsubscribe = subscribeObjectDirect(INSTANCE_ID, (obj) => check(versionOf(obj)));
