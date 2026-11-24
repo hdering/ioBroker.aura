@@ -53,3 +53,4 @@
 - fix: After an update the frontend reloads only once the updated Aura answers, and the "Aura is not reachable" page of the web adapter retries by itself - before, dashboards could stay on that error page after an update
 - fix: Icon picker - icon sets of vis-2-widgets-icontwo no longer vanish after an ioBroker restart; a pack that is missing while vis-2 is still starting is looked up again after 30 seconds
 - feat: After an update, the browser console notes with a timestamp when a dashboard sees the new version and reloads (or gives up waiting) - helps to find out what slows an update down
+- fix: Dashboards no longer stall a large ioBroker for minutes when they reconnect after the web adapter restarted (e.g. after an Aura update): they now send one request first and the rest once it is answered - before, every one of several hundred requests made js-controller read all users and groups again, which with the jsonl database walks all objects each time

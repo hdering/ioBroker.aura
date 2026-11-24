@@ -699,6 +699,38 @@ function createSocket(url: string): IoBrokerSocket {
     // would mishandle it — it connects at the root).
     const s = io.connect(url, { transports: ['websocket', 'polling'] });
 
+    // One request first, the rest after its answer - on every (re)connect. js-controller
+    // checks the user's rights for each request and keeps users and groups in a cache;
+    // while that cache is empty (web was restarted, e.g. by an Aura update) EVERY request
+    // reads all users and groups on its own - with the jsonl DB each read walks all
+    // objects. A dashboard reconnecting with hundreds of requests at once made 1,500 such
+    // reads and blocked a large installation for minutes. The first answer means the
+    // cache is filled, so the others only hit it. Requests made while offline wait here
+    // too instead of in socket.io's buffer, so they come after the first one as well.
+    const rawEmit = s.emit.bind(s) as (event: string, ...args: unknown[]) => unknown;
+    let gate: Promise<void> | null = null;
+    let openGate: (() => void) | null = null;
+    const closeGate = (): void => {
+        if (gate) return;
+        gate = new Promise<void>((resolve) => (openGate = resolve));
+    };
+    const releaseGate = (): void => {
+        const open = openGate;
+        gate = null;
+        openGate = null;
+        open?.();
+    };
+    closeGate();
+    (s as { emit: (event: string, ...args: unknown[]) => unknown }).emit = (event, ...args) => {
+        if (!gate) return rawEmit(event, ...args);
+        void gate.then(() => rawEmit(event, ...args));
+        return s;
+    };
+    const warmUp = (): void => {
+        globalThis.setTimeout(releaseGate, 10000);
+        rawEmit('getObject', 'system.config', () => releaseGate());
+    };
+
     // A re-established connection is signalled differently depending on the
     // runtime socket library: the bundled classic socket.io-client re-fires
     // 'connect', whereas @iobroker/ws ("pure web sockets") fires 'reconnect'.
@@ -711,6 +743,7 @@ function createSocket(url: string): IoBrokerSocket {
     const handleConnected = (reconnected: boolean): void => {
         if (connectionActive) return;
         connectionActive = true;
+        warmUp();
         traffic.connects++;
         connectPerfMark = typeof performance !== 'undefined' ? performance.now() : 0;
         firstStateReported = false;
@@ -749,6 +782,7 @@ function createSocket(url: string): IoBrokerSocket {
     s.on('reconnect', () => handleConnected(true));
     s.on('disconnect', () => {
         connectionActive = false;
+        closeGate();
         traffic.disconnects++;
         // Nothing is being kept current while we are offline, so every cached value
         // now needs confirming — even for subscriptions that outlive the drop (the
