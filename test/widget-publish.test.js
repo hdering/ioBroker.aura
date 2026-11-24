@@ -500,6 +500,66 @@ test('main.js: start without a browser, status registration kept, orphan and rem
     assert.ok(!subscribed.has(WIN1));
 });
 
+test('main.js: a registration left in an object without type comes back at start', async () => {
+    const status = { id: 's1', type: 'statusoverview', title: 'Status', options: { publishCount: true } };
+    const reg = [{ id: 'hm.0.win1', cat: 'window', name: 'Fenster Bad', role: 'sensor.window' }];
+    const { a, objects, states, subscribed, settle } = makeAdapter({
+        objects: {
+            // Only the native of the channel is left: no type, no common, none of the four states.
+            // The start scan reads channels, so this object is not in it.
+            'aura.0.lists.s1': { native: { statusItems: reg, statusHash: 'h1' } },
+        },
+        states: { 'config.dashboard': { val: dashboardWith([status]) } },
+        foreign: { 'hm.0.win1': st(true) },
+    });
+    await a._initStatusLatch();
+    await a._initWidgetPublish();
+    await settle();
+    assert.ok(subscribed.has('hm.0.win1'), 'registration restored without a browser');
+    assert.strictEqual(objects.get('aura.0.lists.s1').type, 'channel');
+    for (const sub of ['count', 'items', 'text', 'ts']) {
+        assert.strictEqual(objects.get(`aura.0.lists.s1.${sub}`)?.type, 'state', `${sub} created again`);
+    }
+    assert.strictEqual(states.get('lists.s1.count').val, 1);
+    // The widget compares this hash before it sends its list again.
+    assert.strictEqual(objects.get('aura.0.lists.s1').native.statusHash, 'h1');
+});
+
+test('main.js: deleteList keeps the datapoints of a widget that still publishes, removes an orphan', async () => {
+    const list = staticList();
+    const { a, objects, states, settle } = makeAdapter({
+        states: { 'config.dashboard': { val: dashboardWith([list]) } },
+        foreign: { [WIN1]: st(true), [WIN2]: st(false), [WIN3]: st(true) },
+    });
+    await a._initStatusLatch();
+    await a._initWidgetPublish();
+    await settle();
+    // An orphan that turned up after the start (an older version, a restore).
+    for (const sub of ['', '.count', '.items', '.text', '.ts']) {
+        objects.set(`aura.0.lists.old${sub}`, { type: sub ? 'state' : 'channel', common: {}, native: {} });
+    }
+    const replies = [];
+    a.sendTo = (_from, _command, result) => replies.push(result);
+    const ask = (widgetId) =>
+        a.onMessage({ command: 'deleteList', message: { widgetId }, from: 'system.adapter.admin.0', callback: {} });
+
+    await ask('w1');
+    await settle();
+    assert.strictEqual(replies.pop().ok, false, 'refused for a widget in the dashboard');
+    for (const sub of ['', '.count', '.items', '.text', '.ts']) {
+        assert.ok(objects.has(`aura.0.lists.w1${sub}`), `lists.w1${sub} kept`);
+    }
+    // The datapoints keep following the values.
+    await a.onStateChange(WIN1, st(false, T0 + 50));
+    await settle();
+    assert.strictEqual(states.get('lists.w1.count').val, 1);
+
+    await ask('old');
+    await settle();
+    assert.strictEqual(replies.pop().ok, true);
+    assert.ok(![...objects.keys()].some((k) => k.startsWith('aura.0.lists.old')), 'orphan removed');
+});
+
 (async () => {
     for (const t of tests) {
         try {
