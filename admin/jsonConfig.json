@@ -380,7 +380,12 @@
       "md": 6,
       "lg": 4,
       "xl": 4,
-      "hidden": "(data.ownPort !== true && !!data.webInstance && data.portRedirect !== true)"
+      "hidden": "(data.ownPort !== true && !!data.webInstance && data.portRedirect !== true)",
+      "onChange": {
+        "alsoDependsOn": ["portRedirect", "ownPort"],
+        "calculateFunc": "data.port || data.portBefore || 8095",
+        "ignoreOwnChanges": true
+      }
     },
     "bind": {
       "type": "select",

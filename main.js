@@ -35,6 +35,7 @@ const {
     publicBase,
     portHolders,
     usedResourceCheck,
+    ownPortNumber,
 } = require('./lib/serverBind');
 const { syncOwnInstanceObject } = require('./lib/ownInstanceObject');
 const { ipcPath, defaultDataRoot, removeStaleSocket, isPipe } = require('./lib/ipcEndpoint');
@@ -1917,7 +1918,7 @@ class Aura extends utils.Adapter {
         const web = this._noOwnPort || isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
         return mcpBaseOptions({
             customUrl: this.config.customUrl,
-            port: this.config.port || 8095,
+            port: ownPortNumber(this.config),
             https: !!this.config.secure,
             bind: this.config.bind,
             web,
@@ -2068,7 +2069,7 @@ class Aura extends utils.Adapter {
             config: this.config,
             alive,
             server: {
-                port: this.config.port || 8095,
+                port: ownPortNumber(this.config),
                 bind: listenAddress(this.config.bind) || '',
                 https: !!this._httpsActive,
                 httpsWanted: !!this.config.secure,
@@ -2137,7 +2138,7 @@ class Aura extends utils.Adapter {
     }
 
     async startHttpServer() {
-        const port = this.config.port || 8095;
+        const port = ownPortNumber(this.config);
         const useHttps = !!this.config.secure;
 
         const backend = await this.resolveSocketBackend();
@@ -7187,7 +7188,7 @@ class Aura extends utils.Adapter {
                     {
                         ...mcpBaseOptions({
                             customUrl: this.config.customUrl,
-                            port: this.config.port,
+                            port: ownPortNumber(this.config),
                             https: this._httpsActive,
                             bind: this.config.bind,
                             web,

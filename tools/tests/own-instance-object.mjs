@@ -192,6 +192,11 @@ await test('a decided ownPort is never asked again (no restart loop)', async () 
         const obj = settled();
         obj.native.ownPort = v;
         obj.native.portRedirect = v;
+        if (!v) {
+            // off and not forwarded: the port was already cleared on an earlier start
+            obj.native.port = 0;
+            obj.native.portBefore = 8095;
+        }
         let asked = 0;
         const r = await syncOwnInstanceObject(
             obj,
@@ -270,6 +275,34 @@ await test('forwarding the old port: on for a port in use, off for a new one, de
     later.native.portRedirect = true;
     assert.equal((await syncOwnInstanceObject(later, deps({ clearResetAdminPin: false }))).changed, false);
     assert.equal(later.native.portRedirect, true);
+});
+
+await test('an unused port is cleared once and comes back with the forwarding', async () => {
+    const obj = settled();
+    obj.native.ownPort = false;
+    obj.native.portRedirect = false;
+    obj.native.port = 8096;
+    const r = await syncOwnInstanceObject(obj, deps({ clearResetAdminPin: false }));
+    assert.equal(r.changed, true);
+    assert.equal(obj.native.port, 0, 'admin and js-controller stop listing it');
+    assert.equal(obj.native.portBefore, 8096);
+    assert.ok(r.reasons.some((x) => x.startsWith('native.port')));
+    assert.equal((await syncOwnInstanceObject(obj, deps({ clearResetAdminPin: false }))).changed, false, 'no loop');
+    // forwarding switched on again (dialog left the port empty): the number comes back
+    obj.native.portRedirect = true;
+    assert.equal((await syncOwnInstanceObject(obj, deps({ clearResetAdminPin: false }))).changed, true);
+    assert.equal(obj.native.port, 8096);
+    // a port still in use, or without a web instance, is never cleared
+    for (const [ownPort, portRedirect, webInstance] of [
+        [true, true, 'web.0'],
+        [false, true, 'web.0'],
+        [false, false, ''],
+    ]) {
+        const o = settled();
+        Object.assign(o.native, { ownPort, portRedirect, webInstance, port: 8095 });
+        await syncOwnInstanceObject(o, deps({ clearResetAdminPin: false }));
+        assert.equal(o.native.port, 8095, JSON.stringify({ ownPort, portRedirect, webInstance }));
+    }
 });
 
 await test('main.js writes its instance object in one place only', async () => {
