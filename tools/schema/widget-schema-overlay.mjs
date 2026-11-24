@@ -1675,7 +1675,7 @@ export const WIDGET_OPTION_NOTES = {
     historytable: {
         historyInstance: {
             description:
-                'History-Adapterinstanz, z. B. "history.0", "sql.0" oder "influxdb.0". Leer = erste im Datenpunkt aktivierte Instanz.',
+                'History-Adapterinstanz, z. B. "history.0", "sql.0", "influxdb.0" oder "victoriametrics.0". Leer = erste im Datenpunkt aktivierte Instanz.',
         },
         historyMode: {
             type: 'string',

@@ -46,7 +46,7 @@ export interface DatapointEntry {
  * were not read (e.g. a disabled one). Other adapters use `common.custom` as well –
  * iot for the Alexa smart names, for instance – and must not count as "history".
  */
-export const KNOWN_LOGGING_ADAPTERS = new Set(['history', 'influxdb', 'sql']);
+export const KNOWN_LOGGING_ADAPTERS = new Set(['history', 'influxdb', 'sql', 'victoriametrics']);
 
 export function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
     if (!name) return fallback;

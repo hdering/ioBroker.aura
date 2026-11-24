@@ -74,7 +74,7 @@ const OPTION_SEED = {
             key: 'entries[].historyInstance',
             type: 'string',
             default: 'auto',
-            note: 'history/influxdb/sql; leer = aus common.custom erkannt',
+            note: 'history/influxdb/sql/victoriametrics; leer = aus common.custom erkannt',
         },
         {
             key: 'entries[].aggregate',

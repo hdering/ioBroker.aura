@@ -428,6 +428,7 @@ check('logging instances are read the way the frontend reads them', () => {
         'history.0',
         'sql.1',
     ]);
+    assert.deepEqual(loggingInstances({ 'victoriametrics.0': { enabled: true } }), ['victoriametrics.0']);
     // Switched off counts as not logged, and a foreign custom entry is not history.
     assert.deepEqual(loggingInstances({ 'influxdb.0': { enabled: false } }), []);
     assert.deepEqual(loggingInstances({ 'javascript.0': { enabled: true } }), []);

@@ -305,7 +305,9 @@ function DpRowCells({
                                   ? 'flux'
                                   : adapterName === 'sql'
                                     ? 'SQL'
-                                    : adapterName.slice(0, 4);
+                                    : adapterName === 'victoriametrics'
+                                      ? 'VM'
+                                      : adapterName.slice(0, 4);
                         return (
                             <span
                                 key={adapterId}

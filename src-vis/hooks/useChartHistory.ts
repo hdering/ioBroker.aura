@@ -59,6 +59,8 @@ export function detectHistoryAdapters(custom: Record<string, { enabled?: boolean
         if (key.startsWith('history.')) result.push({ instance: key, label: `History  (${key})` });
         else if (key.startsWith('influxdb.')) result.push({ instance: key, label: `InfluxDB (${key})` });
         else if (key.startsWith('sql.')) result.push({ instance: key, label: `SQL      (${key})` });
+        // Same getHistory interface (@iobroker/aggregate) as the three above (issue #1020).
+        else if (key.startsWith('victoriametrics.')) result.push({ instance: key, label: `VictoriaMetrics (${key})` });
     }
     return result;
 }
