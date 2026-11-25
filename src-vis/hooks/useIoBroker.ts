@@ -727,6 +727,8 @@ function createSocket(url: string): IoBrokerSocket {
     // `path` (socket.io's default /socket.io is already correct, and @iobroker/ws
     // would mishandle it — it connects at the root).
     const s = io.connect(url, { transports: ['websocket', 'polling'] });
+    // A page loaded within web's cache window may hold the library of the old mode.
+    watchSocketLibWhileOffline();
 
     // One request first, the rest after its answer - on every (re)connect. js-controller
     // checks the user's rights for each request and keeps users and groups in a cache;
@@ -847,6 +849,7 @@ function createSocket(url: string): IoBrokerSocket {
             'background:#ef4444;color:#fff;font-weight:bold;border-radius:0 3px 3px 0;padding:2px 6px;',
         );
         notifyConnection(false);
+        if (socket === s) watchSocketLibWhileOffline();
     });
     s.on('objectChange', (...args: unknown[]) => {
         const id = args[0] as string;
@@ -986,6 +989,75 @@ function scheduleIoRetry(): void {
             }
         });
     }, 1500);
+}
+
+// The web instance can switch between classic socket.io and "pure web sockets"
+// (@iobroker/ws) while dashboards are open. web restarts and serves the other
+// library from then on, but an open page keeps the one it loaded - and the two
+// cannot talk to each other: a socket.io client knocking on a pure-ws server makes
+// web log `"error" - No sid found` on every attempt until the page is reloaded.
+// So while offline, look at what /socket.io/socket.io.js is now and swap the
+// library in place when its kind changed. Subscriptions live in this module and
+// are sent again on the next connect.
+type SocketLibKind = 'socketio' | 'ws';
+
+/** Kind of the library this page runs: socket.io-client exports a Manager, `@iobroker/ws` only `connect`. */
+function loadedLibKind(): SocketLibKind | null {
+    const lib = getIo() as (IoBrokerSocketFactory & { Manager?: unknown }) | null;
+    if (!lib) return null;
+    return typeof lib.Manager === 'function' ? 'socketio' : 'ws';
+}
+
+/** Kind of the library web serves right now, read past every cache (ws.js has max-age=60). */
+async function servedLibKind(): Promise<SocketLibKind | null> {
+    try {
+        const res = await fetch(`/socket.io/socket.io.js?_kind=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return null;
+        const text = await res.text();
+        if (text.includes('ioBroker WebSockets')) return 'ws';
+        if (/Socket\.IO v\d/.test(text)) return 'socketio';
+    } catch {
+        /* web restarting - ask again on the next round */
+    }
+    return null;
+}
+
+const LIB_CHECK_FIRST_MS = 4000;
+const LIB_CHECK_MAX_MS = 60000;
+let libCheckTimer: ReturnType<typeof setTimeout> | null = null;
+
+function watchSocketLibWhileOffline(delay = LIB_CHECK_FIRST_MS): void {
+    if (libCheckTimer || typeof window === 'undefined') return;
+    libCheckTimer = setTimeout(() => {
+        libCheckTimer = null;
+        if (socket?.connected) return;
+        void (async () => {
+            const loaded = loadedLibKind();
+            const served = await servedLibKind();
+            if (socket?.connected) return;
+            if (loaded && served && loaded !== served) {
+                console.warn(
+                    `[Aura] the web instance switched to ${served === 'ws' ? 'pure web sockets (@iobroker/ws)' : 'classic socket.io'} - loading its socket library`,
+                );
+                const old = socket;
+                socket = null;
+                if (old) {
+                    if (typeof old.destroy === 'function') old.destroy();
+                    else old.disconnect();
+                }
+                delete (globalThis as { io?: unknown }).io;
+                if (await loadSocketLib()) {
+                    getSocket();
+                    watchSocketLibWhileOffline();
+                    return;
+                }
+                // Not loaded: createSocket() hands out the stub and retries the script itself.
+                getSocket();
+                return;
+            }
+            watchSocketLibWhileOffline(Math.min(delay * 2, LIB_CHECK_MAX_MS));
+        })();
+    }, delay);
 }
 
 /** Update the ioBroker target and reconnect.
