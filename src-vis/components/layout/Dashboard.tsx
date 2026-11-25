@@ -740,19 +740,10 @@ export function Dashboard({
                                     className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2"
                                     style={scrollerStyle}
                                 >
-                                    {/* Reflow-hidden widgets from all tabs rendered off-screen */}
-                                    <div
-                                        style={{
-                                            position: 'fixed',
-                                            top: -9999,
-                                            left: -9999,
-                                            width: 1,
-                                            height: 1,
-                                            overflow: 'hidden',
-                                            pointerEvents: 'none',
-                                            opacity: 0,
-                                        }}
-                                    >
+                                    {/* Reflow-hidden widgets from all tabs stay mounted so conditions keep
+                                        evaluating, but are not rendered: off-screen they kept on laying out
+                                        and animating, whatever tab is shown. */}
+                                    <div style={{ display: 'none' }}>
                                         {tabs.flatMap((tab) =>
                                             (tab.widgets ?? [])
                                                 .filter((w) => reflowHiddenIds.has(rid(w.id)))
@@ -999,19 +990,8 @@ export function Dashboard({
                             {resolutionOverlay}
                             {rglWidth > 0 && (
                                 <GridScaleContext.Provider value={gridCols.scale}>
-                                    {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}
-                                    <div
-                                        style={{
-                                            position: 'fixed',
-                                            top: -9999,
-                                            left: -9999,
-                                            width: 1,
-                                            height: 1,
-                                            overflow: 'hidden',
-                                            pointerEvents: 'none',
-                                            opacity: 0,
-                                        }}
-                                    >
+                                    {/* Reflow-hidden widgets: see comment above for mobile branch. */}
+                                    <div style={{ display: 'none' }}>
                                         {tabs.flatMap((tab) =>
                                             (tab.widgets ?? [])
                                                 .filter((w) => reflowHiddenIds.has(rid(w.id)))
