@@ -85,6 +85,9 @@ const LAYOUT = {
     name: 'Switch',
     slug: 'switch',
     activeSectionId: 'sec',
+    // A fluid grid, so a narrower window narrows the group for sure: on the fixed one its
+    // width moves by a pixel or not at all, depending on the scrollbars of the system.
+    settings: { gridWidthMode: 'fluid', fluidDesignWidth: 1200 },
     sections: [
         {
             id: 'sec',
