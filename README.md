@@ -143,6 +143,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.6.0-next.2 (2026-11-25) — next/test release
+- 🐛 **Bug fix:** Frontend stayed on "No connection to ioBroker" and loaded no values when the web instance uses classic socket.io (option "pure web sockets" off): the new "one request first" connect step held back the connect event itself
+- 🐛 **Bug fix:** Switching the web instance between classic socket.io and "pure web sockets" no longer floods its log with "No sid found" until every open dashboard is reloaded: an offline dashboard now notices that the socket library changed, loads the new one and reconnects by itself
+
+
 ### 1.6.0-next.1 (2026-11-24) — next/test release
 - 🐛 **Bug fix:** Status overview - with "Publish to ioBroker" on, the admin dashboard no longer lists its lists.<id> datapoints as orphaned, so "Clean up" no longer deletes them (the adapter also refuses that delete now); a status overview whose lists.<id> object was left without type and states is restored at the next adapter start ([#1021](https://github.com/hdering/ioBroker.aura/issues/1021))
 - 🐛 **Bug fix:** MCP server - a datapoint with a JSON path (<id>?<path>, one field of a JSON state) is no longer refused as "does not exist" by aura_validate and the write tools, and aura_review no longer lists such list rows as dead datapoints ([#1023](https://github.com/hdering/ioBroker.aura/issues/1023))
@@ -250,10 +255,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Universal widget (custom grid) - a cell without its own horizontal alignment is centred; the editor now marks "Centre" for it instead of "Left", so choosing "Left" takes effect right away ([#1001](https://github.com/hdering/ioBroker.aura/issues/1001))
 
 
-### 1.1.0-next.2 (2026-11-17) — next/test release
-- 🐛 **Bug fix:** Last change - the datapoint field for the timestamp is now also shown when the widget has its own datapoint; a fixed id left there (e.g. in a device card child) made every card show the same time and could not be seen or cleared ([#996](https://github.com/hdering/ioBroker.aura/issues/996))
-
-
 ## License
 
 MIT License
@@ -265,6 +266,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -198,12 +198,18 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const width = size.w;
     const height = size.h;
 
+    // A zero width is never believed, like the Dashboard's own (#636): a tab that is
+    // not on screen is display:none and measures 0. Taking that over unmounted every
+    // child on leaving the tab and built all of them again on the way back, each one
+    // reading its datapoints anew. The last good size is kept instead — the observer
+    // delivers the real one again as soon as the tab is shown.
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
-        const ro = new ResizeObserver(([e]) =>
-            setSize({ w: Math.floor(e.contentRect.width), h: Math.floor(e.contentRect.height) }),
-        );
+        const ro = new ResizeObserver(([e]) => {
+            const w = Math.floor(e.contentRect.width);
+            if (w > 0) setSize({ w, h: Math.floor(e.contentRect.height) });
+        });
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
@@ -755,7 +761,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
             >
-                {width > 0 && (
+                {width > 0 && !isCollapsed && (
                     <ReactGridLayout
                         layout={layout}
                         cols={cols}
