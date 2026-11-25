@@ -687,6 +687,23 @@ if (typeof document !== 'undefined') {
     }, HEARTBEAT_MS);
 }
 
+/** Events socket.io-client v2 emits locally on the socket itself - never sent to the server. */
+const LOCAL_SOCKET_EVENTS = new Set([
+    'connect',
+    'connect_error',
+    'connect_timeout',
+    'connecting',
+    'disconnect',
+    'error',
+    'reconnect',
+    'reconnect_attempt',
+    'reconnect_failed',
+    'reconnect_error',
+    'reconnecting',
+    'ping',
+    'pong',
+]);
+
 function createSocket(url: string): IoBrokerSocket {
     const io = getIo();
     if (!io) {
@@ -734,7 +751,11 @@ function createSocket(url: string): IoBrokerSocket {
     };
     closeGate();
     (s as { emit: (event: string, ...args: unknown[]) => unknown }).emit = (event, ...args) => {
-        if (!gate) return rawEmit(event, ...args);
+        // Classic socket.io v2 fires its own lifecycle events (`connect`, `disconnect`, …)
+        // through this same `emit`. Holding those back would hold back the very `connect`
+        // that sends the first request - the page stayed offline on every web instance
+        // without "pure web sockets".
+        if (!gate || LOCAL_SOCKET_EVENTS.has(event)) return rawEmit(event, ...args);
         void gate.then(() => rawEmit(event, ...args));
         return s;
     };

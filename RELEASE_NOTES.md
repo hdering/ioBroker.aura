@@ -65,3 +65,4 @@
 - fix: MCP server - a datapoint with a JSON path (<id>?<path>, one field of a JSON state) is no longer refused as "does not exist" by aura_validate and the write tools, and aura_review no longer lists such list rows as dead datapoints (#1023)
 - fix: MCP server - aura_validate and the write tools no longer warn that a group or device card does not read "autoShrink", or that a shutter does not read "openDp"/"closeDp" (taster mode): the AI widget schema now lists these options (#1029)
 - feat: New Aura icon (a house-shaped "A" with a lit window) for the adapter, browser tab, home screen and PWA; it also shows on the admin login, next to "Aura" in the admin sidebar and on the loading screen, where the window light pulses while Aura starts
+- fix: Frontend stayed on "No connection to ioBroker" and loaded no values when the web instance uses classic socket.io (option "pure web sockets" off): the new "one request first" connect step held back the connect event itself
