@@ -526,15 +526,6 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         shrinkToFit(next);
     };
 
-    childActions.current = {
-        remove: onRemove,
-        change: updateChild,
-        duplicate: (id) => {
-            const child = gridChildren.find((c) => c.id === id);
-            if (child) duplicateChild(child);
-        },
-    };
-
     // Off-screen render of condition-hidden+reflow children so their
     // useConditionStyle subscriptions stay alive and can bring them back.
     const offScreenHidden =
@@ -567,6 +558,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 </ContentAutoHeightBlockedContext.Provider>
             </div>
         ) : null;
+
+    childActions.current = {
+        remove: onRemove,
+        change: updateChild,
+        duplicate: (id) => {
+            const child = gridChildren.find((c) => c.id === id);
+            if (child) duplicateChild(child);
+        },
+    };
 
     // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
