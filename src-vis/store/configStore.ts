@@ -49,6 +49,11 @@ export interface FrontendSettings {
      *  into `tabletCols` columns instead of the desktop grid. 0 (or ≤ mobileBreakpoint) = off. */
     tabletBreakpoint: number;
     tabletCols: number;
+    /** Columns of the tablet band while the window is a low landscape screen — a phone
+     *  turned sideways (#1030). 0 = off (tabletCols applies). */
+    landscapeCols: number;
+    /** Window height (px) up to which a landscape window counts as a phone for landscapeCols. */
+    landscapeMaxHeight: number;
     /** How a column flow (tablet, or a phone with mobileCols > 1) deals its unpinned cards (#939):
      *  'count' = fewest cards, 'height' = shortest column, 'compact' = as few columns as needed. */
     flowFill: 'count' | 'height' | 'compact';
@@ -245,6 +250,9 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     // layout or globally in the Grid section.
     tabletBreakpoint: 0,
     tabletCols: 2,
+    // Off by default: existing tablet flows keep their column count (#1030).
+    landscapeCols: 0,
+    landscapeMaxHeight: 500,
     flowFill: 'count',
     // Off by default like the tablet band: a stretched grid would change every
     // existing dashboard after an update (#413).

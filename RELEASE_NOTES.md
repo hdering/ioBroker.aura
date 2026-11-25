@@ -70,3 +70,4 @@
 - fix: Switching the web instance between classic socket.io and "pure web sockets" no longer floods its log with "No sid found" until every open dashboard is reloaded: an offline dashboard now notices that the socket library changed, loads the new one and reconnects by itself
 - fix: Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew (#1031)
 - fix: Group - switching tabs no longer draws the widgets of every group on every tab opened before again (#1033)
+- feat: Grid & Mobile - new "Columns in landscape" setting: a phone turned sideways (landscape, window no taller than "Landscape up to height", default 500 px) gets its own column count in the tablet band, e.g. 4 columns on the PC and 3 on the phone; cards pinned to a column that does not exist there are dealt anew (#1030)

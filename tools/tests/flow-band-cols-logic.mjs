@@ -222,6 +222,67 @@ eq(
 );
 eq('redealBlock 2 -> 4', redealBlock([['a', 'c'], ['b']], 4), [['a'], ['b'], ['c'], []]);
 
+// ── Querformat mit weniger Spalten (issue #1030): reduced ───────────────────
+/** Acht Karten, im 4er-Tablet-Fluss fest auf Spalte i % 4 gelegt. */
+const pinned4 = () =>
+    mk()
+        .slice(0, 8)
+        .map((w, i) => ({ ...w, tabletOrder: i, tabletCol: i % 4 }));
+eq('ohne reduced: Spalte 4 faellt in Spalte 3 (bisheriges Verhalten)', shape(flowBands(pinned4(), 'tablet', 3)), [
+    [
+        ['w0', 'w4'],
+        ['w1', 'w5'],
+        ['w2', 'w3', 'w6', 'w7'],
+    ],
+]);
+eq('reduced: Pins ausserhalb werden neu verteilt', shape(flowBands(pinned4(), 'tablet', 3, { reduced: true })), [
+    [
+        // w3 (Spalte 4) geht in die leerste Spalte (links bei Gleichstand), w7 ebenso.
+        ['w0', 'w3', 'w4'],
+        ['w1', 'w5', 'w7'],
+        ['w2', 'w6'],
+    ],
+]);
+eq(
+    'reduced: eigene Blockspaltenzahl 4 wird auf 3 gekappt',
+    flowBands(
+        mk()
+            .slice(0, 4)
+            .map((w, i) => ({
+                ...w,
+                tabletOrder: i,
+                ...(i === 0 ? { tabletBandCols: 4, tabletBandWidths: [2, 1, 1, 1] } : {}),
+            })),
+        'tablet',
+        3,
+        { reduced: true },
+    ).map((b) => [b.columns.length, b.widths ?? null]),
+    [[3, null]],
+);
+eq(
+    'reduced: eigene Blockspaltenzahl 2 bleibt',
+    flowBands(
+        mk()
+            .slice(0, 4)
+            .map((w, i) => ({ ...w, tabletOrder: i, ...(i === 0 ? { tabletBandCols: 2 } : {}) })),
+        'tablet',
+        3,
+        { reduced: true },
+    ).map((b) => b.columns.length),
+    [2],
+);
+eq(
+    'ohne reduced: eigene Blockspaltenzahl 4 bleibt 4',
+    flowBands(
+        mk()
+            .slice(0, 4)
+            .map((w, i) => ({ ...w, tabletOrder: i, ...(i === 0 ? { tabletBandCols: 4 } : {}) })),
+        'tablet',
+        3,
+    ).map((b) => b.columns.length),
+    [4],
+);
+
 let failed = 0;
 for (const r of results) {
     if (!r.ok) failed++;

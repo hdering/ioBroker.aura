@@ -112,6 +112,8 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
         'mobileCols',
         'tabletBreakpoint',
         'tabletCols',
+        'landscapeCols',
+        'landscapeMaxHeight',
         'flowFill',
         'gridWidthMode',
         'fluidDesignWidth',

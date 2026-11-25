@@ -965,7 +965,8 @@ async function build() {
                     'Spalte im Tablet-Fluss, 0-basiert, auf die Spaltenzahl gekappt. ' +
                     'Fehlt sie, verteilt die Einstellung flowFill: count = Spalte mit den wenigsten Widgets ' +
                     '(ohne Zuordnung: abwechselnd), height = niedrigste Spalte, compact = so wenige Spalten wie nötig, ' +
-                    'Block zentriert. Ein gesetztes tabletCol schließt den Block von compact aus.',
+                    'Block zentriert. Ein gesetztes tabletCol schließt den Block von compact aus. ' +
+                    'Im Querformat mit weniger Spalten (Einstellung landscapeCols) zählt ein tabletCol jenseits der letzten Spalte als nicht gesetzt.',
             },
             tabletWide: {
                 type: 'boolean',
@@ -977,7 +978,8 @@ async function build() {
                 type: 'number',
                 description:
                     '1–4: dieses Widget beginnt einen neuen Spaltenblock im Tablet-Fluss mit eigener Spaltenzahl. ' +
-                    'Gilt bis zum nächsten Band oder Block; tabletCol wird auf diese Zahl gekappt. Fehlt sie, gilt tabletCols.',
+                    'Gilt bis zum nächsten Band oder Block; tabletCol wird auf diese Zahl gekappt. Fehlt sie, gilt tabletCols. ' +
+                    'Im Querformat (landscapeCols) wird sie auf landscapeCols gekappt.',
             },
             tabletBandWidths: {
                 type: 'array',

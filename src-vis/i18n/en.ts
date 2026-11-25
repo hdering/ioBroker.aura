@@ -339,6 +339,12 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.mobileBreak': 'Mobile Breakpoint',
     'settings.grid.tabletBreak': 'Tablet Breakpoint',
     'settings.grid.tabletCols': 'Tablet columns',
+    'settings.grid.landscapeCols': 'Columns in landscape',
+    'settings.grid.landscapeMaxHeight': 'Landscape up to height',
+    'settings.grid.landscapeHint':
+        'For phones in landscape: wider than the mobile breakpoint, but low. Applies in the tablet band while the window is landscape and no taller than set. Cards pinned to a column that no longer exists are dealt anew. Off = like the tablet.',
+    'settings.grid.landscapeUnavailable':
+        'Only takes effect with the tablet band on (tablet breakpoint above the mobile breakpoint).',
     'settings.grid.groupMobile': 'Mobile',
     'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile columns',

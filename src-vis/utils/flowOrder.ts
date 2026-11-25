@@ -178,6 +178,13 @@ export type FlowBandOptions<W> = {
     gap?: number;
     /** Compact: how much taller than its tallest card a block may get, px. */
     tolerance?: number;
+    /**
+     * The flow runs with fewer columns than it was arranged for — a phone in landscape
+     * (#1030). A block's own column count is capped to `cols`, and a card pinned to a
+     * column the block no longer has is dealt like an unpinned one instead of piling
+     * into the last column. The stored arrangement is untouched.
+     */
+    reduced?: boolean;
 };
 
 /** Slack the compact fill allows over the tallest card — the number the issue's
@@ -280,6 +287,7 @@ export function flowBands<W extends FlowWidget>(
             // it keeps its columns, compact only fills it by height.
             mayShrink: !pending.own,
             tolerance: opts.tolerance ?? COMPACT_TOLERANCE,
+            dropOutOfRange: !!opts.reduced,
         });
         pending = null;
     };
@@ -289,7 +297,8 @@ export function flowBands<W extends FlowWidget>(
             bands.push({ kind: 'full', widget: w });
             continue;
         }
-        const own = bandColsOf(w, mode);
+        const stored = bandColsOf(w, mode);
+        const own = stored !== null && opts.reduced ? Math.min(stored, cols) : stored;
         if (!pending || own !== null) {
             flush();
             const block = Array.from({ length: own ?? cols }, () => [] as W[]);
@@ -354,11 +363,17 @@ function dealBlock<W>(
         gap: number;
         mayShrink: boolean;
         tolerance: number;
+        /** A pin past the block's last column counts as no pin (reduced flow, #1030). */
+        dropOutOfRange?: boolean;
     },
 ): void {
     const block = band.columns;
     const n = block.length;
-    const anyPin = cards.some((w) => o.pinOf(w) !== null);
+    const pinOf = (w: W): number | null => {
+        const pin = o.pinOf(w);
+        return pin !== null && o.dropOutOfRange && pin >= n ? null : pin;
+    };
+    const anyPin = cards.some((w) => pinOf(w) !== null);
     if (o.fill === 'compact' && o.mayShrink && !anyPin && n > 1 && cards.length > 0) {
         const rank = new Map(cards.map((w, i) => [w, i]));
         const tallestFirst = [...cards].sort((a, b) => o.heightOf(b) - o.heightOf(a) || rank.get(a)! - rank.get(b)!);
@@ -386,7 +401,7 @@ function dealBlock<W>(
     const byHeight = o.fill !== 'count';
     const h = Array.from({ length: n }, () => 0);
     for (const w of cards) {
-        const pin = o.pinOf(w);
+        const pin = pinOf(w);
         const col =
             pin !== null ? Math.min(n - 1, Math.max(0, pin)) : byHeight ? lowestColumn(h) : emptiestColumn(block);
         h[col] += (block[col].length ? o.gap : 0) + o.heightOf(w);

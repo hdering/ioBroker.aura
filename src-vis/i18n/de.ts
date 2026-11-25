@@ -341,6 +341,12 @@ export const de = {
     'settings.grid.mobileBreak': 'Mobile-Breakpoint',
     'settings.grid.tabletBreak': 'Tablet-Breakpoint',
     'settings.grid.tabletCols': 'Tablet-Spalten',
+    'settings.grid.landscapeCols': 'Spalten im Querformat',
+    'settings.grid.landscapeMaxHeight': 'Querformat bis Höhe',
+    'settings.grid.landscapeHint':
+        'Für Handys im Querformat: breiter als der Mobile-Breakpoint, aber niedrig. Greift im Tablet-Bereich, wenn das Fenster quer liegt und nicht höher ist als angegeben. Fest zugeordnete Spalten, die es dann nicht gibt, werden neu verteilt. Aus = wie Tablet.',
+    'settings.grid.landscapeUnavailable':
+        'Wirkt nur mit eingeschaltetem Tablet-Bereich (Tablet-Breakpoint über dem Mobile-Breakpoint).',
     'settings.grid.groupMobile': 'Mobile',
     'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile-Spalten',

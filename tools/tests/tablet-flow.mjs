@@ -45,8 +45,8 @@ function widgetDefs(orders = {}) {
 }
 
 /** Frischer Kontext je Breite: der Dashboard-Zweig haengt an der gemessenen Breite. */
-async function open(width) {
-    const ctx = await browser.newContext({ viewport: { width, height: 900 }, ignoreHTTPSErrors: true });
+async function open(width, height = 900) {
+    const ctx = await browser.newContext({ viewport: { width, height }, ignoreHTTPSErrors: true });
     const page = await ctx.newPage();
     const pageErrors = [];
     page.on('pageerror', (e) => pageErrors.push(e.message));
@@ -305,6 +305,42 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
         `D ${g.boxes.D.width} C ${g.boxes.C.width} von ${g.flowWidth}`,
     );
     check('3 Spalten: kein Ueberlauf', g.overflowX !== null && g.overflowX <= 0, `${g.overflowX}px`);
+    await ctx.close();
+}
+
+// ── Handy im Querformat (#1030): eigene Spaltenzahl im Tablet-Band ──────────────────────
+{
+    const { ctx, page, pageErrors } = await open(900, 412);
+    const base = { tabletBreakpoint: 2000, tabletCols: 4 };
+    await show(page, { settings: { ...base, landscapeCols: 0 } });
+    let g = await geometry(page);
+    check('Querformat aus: 4 Spalten wie Tablet', g.cols === 4, String(g.cols));
+
+    await show(page, {
+        settings: { ...base, landscapeCols: 3, landscapeMaxHeight: 500 },
+        orders: {
+            A: { tabletOrder: 0, tabletCol: 0, tabletWide: false },
+            B: { tabletOrder: 1, tabletCol: 3, tabletWide: false },
+            D: { tabletOrder: 3, tabletCol: 3 },
+            E: { tabletOrder: 4, tabletCol: 3, tabletWide: false },
+        },
+    });
+    g = await geometry(page);
+    check('Querformat 3: drei Spalten bei 900x412', g.cols === 3, String(g.cols));
+    const lefts = ['A', 'B', 'D', 'E'].map((id) => g.boxes[id].left);
+    check(
+        'Querformat: Pins auf Spalte 4 werden verteilt, nicht gestapelt',
+        new Set(lefts).size >= 3,
+        lefts.join(','),
+    );
+    check('Querformat: kein Ueberlauf', g.overflowX !== null && g.overflowX <= 0, `${g.overflowX}px`);
+
+    // Höher als die Grenze: wieder die Tablet-Spalten, ohne Neuladen.
+    await page.setViewportSize({ width: 900, height: 700 });
+    await page.waitForTimeout(400);
+    g = await geometry(page);
+    check('900x700 (hoeher als 500): zurueck auf 4 Spalten', g.cols === 4, String(g.cols));
+    check('Querformat: keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
     await ctx.close();
 }
 

@@ -22,6 +22,8 @@ const GRID_KEYS = [
     'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
+    'landscapeCols',
+    'landscapeMaxHeight',
     'flowFill',
     'gridWidthMode',
     'fluidDesignWidth',
@@ -48,6 +50,8 @@ export function GridSection({ contextId }: GridSectionProps) {
     const [mobCols, mobColsOv] = eff('mobileCols');
     const [tab, tabOv] = eff('tabletBreakpoint');
     const [tabCols, tabColsOv] = eff('tabletCols');
+    const [landCols, landColsOv] = eff('landscapeCols');
+    const [landH, landHOv] = eff('landscapeMaxHeight');
     const [hideScroll, hideScrollOv] = eff('hideGridScrollbar');
     const [widthMode, widthModeOv] = eff('gridWidthMode');
     const [designW, designWOv] = eff('fluidDesignWidth');
@@ -75,6 +79,8 @@ export function GridSection({ contextId }: GridSectionProps) {
     const effectiveSnapX = (snapX ?? effectiveRowH) as number;
     const effectiveTab = (tab ?? 0) as number;
     const effectiveTabCols = (tabCols ?? 2) as number;
+    const effectiveLandCols = (landCols ?? 0) as number;
+    const effectiveLandH = (landH ?? 500) as number;
     const effectiveMob = (mob ?? 600) as number;
     const effectiveMobCols = (mobCols ?? 1) as number;
     const [fill, fillOv] = eff('flowFill');
@@ -438,6 +444,63 @@ export function GridSection({ contextId }: GridSectionProps) {
                             { label: '4', value: 4 },
                         ]}
                     />
+                    {/* Phone in landscape (#1030): wider than the mobile breakpoint, so it
+                        lands in the tablet band — but far less tall. 0 = like the tablet. */}
+                    <Unavailable
+                        reason={effectiveTab > effectiveMob ? undefined : t('settings.grid.landscapeUnavailable')}
+                    >
+                        <div className="space-y-4">
+                            <SliderSetting
+                                label={t('settings.grid.landscapeCols')}
+                                value={effectiveLandCols}
+                                min={0}
+                                max={4}
+                                step={1}
+                                onChange={(v) => set('landscapeCols', v)}
+                                isOverridden={landColsOv}
+                                info={
+                                    <OverrideState
+                                        contextId={contextId}
+                                        keys={['landscapeCols']}
+                                        label={t('settings.grid.landscapeCols')}
+                                        format={(_, v) => (v ? String(v) : t('settings.grid.mobileOff'))}
+                                    />
+                                }
+                                presets={[
+                                    { label: t('settings.grid.mobileOff'), value: 0 },
+                                    { label: '2', value: 2 },
+                                    { label: '3', value: 3 },
+                                ]}
+                            />
+                            {effectiveLandCols > 0 && (
+                                <SliderSetting
+                                    label={t('settings.grid.landscapeMaxHeight')}
+                                    value={effectiveLandH}
+                                    min={300}
+                                    max={900}
+                                    step={10}
+                                    unit=" px"
+                                    onChange={(v) => set('landscapeMaxHeight', v)}
+                                    isOverridden={landHOv}
+                                    info={
+                                        <OverrideState
+                                            contextId={contextId}
+                                            keys={['landscapeMaxHeight']}
+                                            label={t('settings.grid.landscapeMaxHeight')}
+                                            format={(_, v) => `${v} px`}
+                                        />
+                                    }
+                                    presets={[
+                                        { label: '500', value: 500 },
+                                        { label: '600', value: 600 },
+                                    ]}
+                                />
+                            )}
+                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.grid.landscapeHint')}
+                            </p>
+                        </div>
+                    </Unavailable>
                 </div>
             </div>
             {/* How the column flows deal their cards (#939) — one switch for tablet and

@@ -138,6 +138,7 @@ Schriftart, Schriftgrößen und Abstände.
 | Mobile-Spalten             | Spaltenzahl unter dem Mobile-Breakpoint (1–4, Vorgabe 1); breite Widgets belegen anteilig mehrere Spalten |
 | Tablet-Breakpoint          | Fensterbreite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken); das Bereichs-Menü hat dort seine eigene „Platzierung auf Tablets“ |
 | Tablet-Spalten             | Spaltenzahl im Tablet-Bereich (1–4); breite Widgets belegen anteilig mehrere Spalten |
+| Spalten im Querformat      | Spaltenzahl im Tablet-Bereich, solange das Fenster quer liegt und nicht höher ist als „Querformat bis Höhe“ (Vorgabe 500 px) — Handy quer. Aus = Tablet-Spalten. Feste Spalten, die es dann nicht gibt, werden neu verteilt |
 | Spalten füllen             | Wie Karten ohne feste Spalte verteilt werden, gilt für Tablet- und mehrspaltigen Mobile-Fluss (siehe unten) |
 | Fensterbreite füllen       | Aus = feste Spaltenbreite (breites Fenster lässt rechts Platz, schmales scrollt). An = Spaltenzahl bleibt, die Widgets strecken sich auf die volle Fensterbreite; Höhen bleiben. Der Editor zeigt die Entwurfsansicht, mit [Wie im Frontend skalieren](./editor) die gestreckte |
 | Entwurfsbreite             | Breite, auf die das Layout gestreckt wird. Auto = belegte Breite des Bereichs (Inhalt füllt immer die volle Breite) |
@@ -148,7 +149,7 @@ Schriftart, Schriftgrößen und Abstände.
 | Fensterbreite                        | Darstellung                                  |
 | ------------------------------------ | -------------------------------------------- |
 | unter Mobile-Breakpoint              | Mobile-Spalten                               |
-| zwischen Mobile- und Tablet-Breakpoint | Tablet-Spalten                             |
+| zwischen Mobile- und Tablet-Breakpoint | Tablet-Spalten (quer und niedrig: Spalten im Querformat) |
 | darüber                              | Raster — fest oder auf Fensterbreite gestreckt, Höhe wahlweise mit |
 
 | Spalten füllen | Verteilung | Spalten |

@@ -57,6 +57,7 @@ import { useFlowHeights } from '../../hooks/useFlowHeights';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
+import { useLandscapeLow } from '../../hooks/useLandscapeLow';
 import { useGridEditInteraction } from '../../hooks/useGridEditInteraction';
 import { reportMetric } from '../../utils/perfMetrics';
 import { resolveEmbedMobileHeight } from '../../utils/embedMobileHeight';
@@ -203,6 +204,10 @@ export function Dashboard({
     // The tablet band is measured on the window, not on this component's box — see
     // flowModeFor. The box (containerWidth, below) still decides the phone stack.
     const viewportWidth = useViewportWidth();
+    // Phone in landscape (#1030): its own column count inside the tablet band.
+    // 0 = off — the band keeps tabletCols, as it always did.
+    const landscapeCols = Math.min(4, Math.max(0, Math.round(settings.landscapeCols ?? 0)));
+    const landscapeLow = useLandscapeLow(landscapeCols > 0 ? (settings.landscapeMaxHeight ?? 500) : 0);
     const hideGridScrollbar = settings.hideGridScrollbar ?? false;
     const guidelinesEnabled = settings.guidelinesEnabled ?? false;
     const guidelinesWidth = settings.guidelinesWidth ?? 1280;
@@ -690,7 +695,12 @@ export function Dashboard({
               { container: containerWidth, viewport: viewportWidth },
               { mobileBreakpoint, tabletBreakpoint, editMode },
           );
-    const flowCols = flowMode === 'tablet' ? tabletCols : mobileCols;
+    // A phone turned sideways sits in the tablet band but is far less tall than a
+    // tablet — it gets its own column count. Fewer columns than the band was arranged
+    // for: pins past the last column are dealt anew (flowBands `reduced`).
+    const landscapeActive = flowMode === 'tablet' && landscapeCols > 0 && landscapeLow;
+    const flowCols = flowMode === 'tablet' ? (landscapeActive ? landscapeCols : tabletCols) : mobileCols;
+    const flowReduced = landscapeActive && landscapeCols < tabletCols;
     // Filling the columns by height (#939) needs the cards' real heights. They are
     // measured on the active tab and frozen while the user works — see useFlowHeights.
     const flowFill = normalizeFlowFill(settings.flowFill);
@@ -774,8 +784,13 @@ export function Dashboard({
                                                 flowMode,
                                                 flowCols,
                                                 fillByHeight
-                                                    ? { fill: flowFill, heightOf: flowHeightOf, gap: MARGIN }
-                                                    : {},
+                                                    ? {
+                                                          fill: flowFill,
+                                                          heightOf: flowHeightOf,
+                                                          gap: MARGIN,
+                                                          reduced: flowReduced,
+                                                      }
+                                                    : { reduced: flowReduced },
                                             );
                                             // One box per widget — the same height rules whether it sits in the phone
                                             // stack, a tablet column or a full-width band; `span` only feeds the test hook.
