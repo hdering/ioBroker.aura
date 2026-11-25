@@ -7674,7 +7674,11 @@ function WidgetFrameInner({
     useEffect(() => {
         const el = collapsedHeaderEl.current;
         if (!isCollapsed || !el) return;
-        const report = () => setCollapsedHeader(rid, Math.ceil(el.getBoundingClientRect().height));
+        // Not while its tab is hidden: everything measures 0 there (see GroupWidget).
+        const report = () => {
+            const h = Math.ceil(el.getBoundingClientRect().height);
+            if (h > 0) setCollapsedHeader(rid, h);
+        };
         report();
         const ro = new ResizeObserver(report);
         ro.observe(el);
