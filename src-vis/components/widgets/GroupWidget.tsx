@@ -480,24 +480,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         shrinkToFit(next);
     };
 
-    // Off-screen render of condition-hidden+reflow children so their
-    // useConditionStyle subscriptions stay alive and can bring them back.
+    // Condition-hidden+reflow children stay mounted so their useConditionStyle
+    // subscriptions stay alive and can bring them back, but are not rendered:
+    // off-screen they kept on laying out and animating.
     const offScreenHidden =
         reflowHiddenChildren.length > 0 ? (
-            <div
-                style={{
-                    position: 'fixed',
-                    top: -9999,
-                    left: -9999,
-                    width: 1,
-                    height: 1,
-                    overflow: 'hidden',
-                    pointerEvents: 'none',
-                    opacity: 0,
-                }}
-            >
-                {/* No content auto-height off-screen: the 1px box would report a
-                    meaningless height for a child that is hidden anyway. */}
+            <div style={{ display: 'none' }}>
+                {/* No content auto-height here: an unrendered child has no height. */}
                 <ContentAutoHeightBlockedContext.Provider value={true}>
                     {reflowHiddenChildren.map((c) => (
                         <WidgetFrame

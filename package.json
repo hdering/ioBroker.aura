@@ -126,6 +126,7 @@
     "test:widget-fullscreen": "node tools/tests/widget-fullscreen.mjs",
     "test:diagnostics": "node tools/tests/diagnostics-report.mjs",
     "test:zero-width": "node tools/tests/dashboard-zero-width.mjs",
+    "test:reflow-hidden-parked": "node tools/tests/reflow-hidden-parked.mjs",
     "test:widget-fullscreen-logic": "node tools/tests/widget-fullscreen-logic.mjs",
     "test:click-action-icon-logic": "node tools/tests/click-action-icon-logic.mjs",
     "test:click-action-icon": "node tools/tests/click-action-icon.mjs",
