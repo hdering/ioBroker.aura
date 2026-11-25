@@ -66,4 +66,4 @@
 - fix: MCP server - aura_validate and the write tools no longer warn that a group or device card does not read "autoShrink", or that a shutter does not read "openDp"/"closeDp" (taster mode): the AI widget schema now lists these options (#1029)
 - feat: New Aura icon (a house-shaped "A" with a lit window) for the adapter, browser tab, home screen and PWA; it also shows on the admin login, next to "Aura" in the admin sidebar and on the loading screen, where the window light pulses while Aura starts
 - fix: Frontend stayed on "No connection to ioBroker" and loaded no values when the web instance uses classic socket.io (option "pure web sockets" off): the new "one request first" connect step held back the connect event itself
-- fix: Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew, so a tab made of groups is there at once
+- fix: Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew
