@@ -69,3 +69,4 @@
 - fix: Frontend stayed on "No connection to ioBroker" and loaded no values when the web instance uses classic socket.io (option "pure web sockets" off): the new "one request first" connect step held back the connect event itself
 - fix: Switching the web instance between classic socket.io and "pure web sockets" no longer floods its log with "No sid found" until every open dashboard is reloaded: an offline dashboard now notices that the socket library changed, loads the new one and reconnects by itself
 - fix: Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew (#1031)
+- fix: Group - switching tabs no longer draws the widgets of every group on every tab opened before again (#1033)

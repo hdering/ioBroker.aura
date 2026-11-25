@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { Layers, Loader, ChevronDown } from 'lucide-react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import type { WidgetProps, WidgetConfig, WidgetType, ioBrokerState } from '../../types';
@@ -78,6 +78,34 @@ function GroupEmptyState({ loading }: { loading: boolean }) {
     );
 }
 
+interface ChildActions {
+    remove: (id: string) => void;
+    change: (widget: WidgetConfig) => void;
+    duplicate: (id: string) => void;
+}
+const NO_CHILD_ACTIONS: ChildActions = { remove: () => {}, change: () => {}, duplicate: () => {} };
+
+/** True when two child objects differ in nothing but their identity. */
+function sameChild(a: WidgetConfig, b: WidgetConfig): boolean {
+    const keys = Object.keys(a) as (keyof WidgetConfig)[];
+    if (keys.length !== Object.keys(b).length) return false;
+    const p = a.gridPos;
+    const q = b.gridPos;
+    return keys.every((k) =>
+        k === 'gridPos' ? p.x === q.x && p.y === q.y && p.w === q.w && p.h === q.h : a[k] === b[k],
+    );
+}
+
+/** Hands out the object of the previous render for every child nothing changed on. */
+function keepIdentity(next: WidgetConfig[], last: Map<string, WidgetConfig>): WidgetConfig[] {
+    return next.map((c) => {
+        const prev = last.get(c.id);
+        if (prev && sameChild(prev, c)) return prev;
+        last.set(c.id, c);
+        return c;
+    });
+}
+
 export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const t = useT();
     const configLayout = config.layout ?? 'default';
@@ -102,6 +130,21 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const children = useGroupDefsStore((s) => s.defs[defId] ?? []);
+    // The children's frames are memoised (frameEqual in WidgetFrame), but a group
+    // renders with the dashboard and on every measurement of its own box. Packing the
+    // children makes a fresh object of each, and the handlers below were closures of
+    // this render — so every child rendered along, on hidden tabs too, several times
+    // per tab switch. Objects and handlers are kept as long as nothing changed.
+    const shownChildren = useRef(new Map<string, WidgetConfig>());
+    const childActions = useRef<ChildActions>(NO_CHILD_ACTIONS);
+    const removeChild = useCallback((id: string) => childActions.current.remove(id), []);
+    const changeChild = useCallback((w: WidgetConfig) => childActions.current.change(w), []);
+    const duplicators = useRef(new Map<string, () => void>());
+    const duplicatorOf = (id: string) => {
+        let fn = duplicators.current.get(id);
+        if (!fn) duplicators.current.set(id, (fn = () => childActions.current.duplicate(id)));
+        return fn;
+    };
     // Group children hydrate from ioBroker after boot (can take a few seconds).
     // Until then an empty `children` means "still loading", not "genuinely empty"
     // — show a spinner instead of the "no widgets" text in that window.
@@ -145,7 +188,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const stretchedRowPx = useStretchedRowHeight();
     const childRowPx = !autoShrink && stretchedRowPx ? stretchedRowPx : cellSize;
     const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap, frameless);
-    const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
+    const gridChildren = keepIdentity(
+        !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized),
+        shownChildren.current,
+    );
     // A mirror renders its SOURCE, so in the phone stack it must size like the
     // source: a mirrored device card or group takes its natural height instead of
     // a fixed gridPos.h box it can only scroll in (#988) — same rule as the tab's
@@ -493,14 +539,23 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             key={c.id}
                             config={c}
                             editMode={false}
-                            onRemove={onRemove}
-                            onConfigChange={updateChild}
+                            onRemove={removeChild}
+                            onConfigChange={changeChild}
                             inGroup
                         />
                     ))}
                 </ContentAutoHeightBlockedContext.Provider>
             </div>
         ) : null;
+
+    childActions.current = {
+        remove: onRemove,
+        change: updateChild,
+        duplicate: (id) => {
+            const child = gridChildren.find((c) => c.id === id);
+            if (child) duplicateChild(child);
+        },
+    };
 
     // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
@@ -693,9 +748,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                     <WidgetFrame
                                         config={child}
                                         editMode={false}
-                                        onRemove={onRemove}
-                                        onConfigChange={updateChild}
-                                        onDuplicate={() => duplicateChild(child)}
+                                        onRemove={removeChild}
+                                        onConfigChange={changeChild}
+                                        onDuplicate={duplicatorOf(child.id)}
                                         inGroup
                                     />
                                 </div>
@@ -834,9 +889,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 <WidgetFrame
                                     config={child}
                                     editMode={editMode}
-                                    onRemove={onRemove}
-                                    onConfigChange={updateChild}
-                                    onDuplicate={() => duplicateChild(child)}
+                                    onRemove={removeChild}
+                                    onConfigChange={changeChild}
+                                    onDuplicate={duplicatorOf(child.id)}
                                     inGroup
                                 />
                             </div>
