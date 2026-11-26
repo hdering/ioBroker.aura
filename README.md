@@ -143,109 +143,19 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
-### 1.7.0-next.0 (2026-11-26) — next/test release
-- 🌟 **New feature:** Energy flow (evcc) - new layout "Energiebalken": an evcc-style energy bar with the sources (battery, PV self-consumption, PV export, grid) as segments, brackets for "In" above and "Out" below (house, loadpoints, battery charging, feed-in) and the battery state of charge on the right
-
-
-### 1.6.0-next.5 (2026-11-26) — next/test release
-- 🌟 **New feature:** Chart - the bar interval of meter (consumption) series can now be chosen in the frontend: a new interval chip bar (hour, day, week, month, quarter, year) and an own interval per range chip (e.g. 2 years as monthly bars); new "per quarter" interval, and "automatic" now keeps monthly bars up to 3 years and quarterly bars up to 10 years instead of switching to yearly bars after one year ([#1036](https://github.com/hdering/ioBroker.aura/issues/1036))
-
-
-### 1.6.0-next.4 (2026-11-26) — next/test release
-- 🐛 **Bug fix:** Tab switch - leaving and opening a tab with groups, folded widgets or widgets with automatic height is faster: a tab that is not shown no longer reports their heights as 0, which redrew the whole dashboard once per widget, with every group on every tab opened before ([#1034](https://github.com/hdering/ioBroker.aura/issues/1034))
-- 🐛 **Bug fix:** MCP - changing a widget (e.g. only its title) is no longer refused because of an error the widget already had; such errors are reported as warnings, and a value widget without a datapoint that only shows its HTML template is accepted ([#1035](https://github.com/hdering/ioBroker.aura/issues/1035))
-
-
-### 1.6.0-next.3 (2026-11-25) — next/test release
-- 🐛 **Bug fix:** Conditions - a widget taken out of the grid by a condition ("hide" with "reflow") is no longer laid out and animated in the background on every tab; it stays loaded, so its condition brings it back as before ([#1032](https://github.com/hdering/ioBroker.aura/issues/1032))
-- 🐛 **Bug fix:** Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew ([#1031](https://github.com/hdering/ioBroker.aura/issues/1031))
-- 🐛 **Bug fix:** Group - switching tabs no longer draws the widgets of every group on every tab opened before again ([#1033](https://github.com/hdering/ioBroker.aura/issues/1033))
-- 🌟 **New feature:** Grid & Mobile - new "Columns in landscape" setting: a phone turned sideways (landscape, window no taller than "Landscape up to height", default 500 px) gets its own column count in the tablet band, e.g. 4 columns on the PC and 3 on the phone; cards pinned to a column that does not exist there are dealt anew ([#1030](https://github.com/hdering/ioBroker.aura/issues/1030))
-
-
-### 1.6.0-next.2 (2026-11-25) — next/test release
-- 🐛 **Bug fix:** Frontend stayed on "No connection to ioBroker" and loaded no values when the web instance uses classic socket.io (option "pure web sockets" off): the new "one request first" connect step held back the connect event itself
-- 🐛 **Bug fix:** Switching the web instance between classic socket.io and "pure web sockets" no longer floods its log with "No sid found" until every open dashboard is reloaded: an offline dashboard now notices that the socket library changed, loads the new one and reconnects by itself
-
-
-### 1.6.0-next.1 (2026-11-24) — next/test release
-- 🐛 **Bug fix:** Status overview - with "Publish to ioBroker" on, the admin dashboard no longer lists its lists.<id> datapoints as orphaned, so "Clean up" no longer deletes them (the adapter also refuses that delete now); a status overview whose lists.<id> object was left without type and states is restored at the next adapter start ([#1021](https://github.com/hdering/ioBroker.aura/issues/1021))
-- 🐛 **Bug fix:** MCP server - a datapoint with a JSON path (<id>?<path>, one field of a JSON state) is no longer refused as "does not exist" by aura_validate and the write tools, and aura_review no longer lists such list rows as dead datapoints ([#1023](https://github.com/hdering/ioBroker.aura/issues/1023))
-- 🐛 **Bug fix:** MCP server - aura_validate and the write tools no longer warn that a group or device card does not read "autoShrink", or that a shutter does not read "openDp"/"closeDp" (taster mode): the AI widget schema now lists these options ([#1029](https://github.com/hdering/ioBroker.aura/issues/1029))
-- 🌟 **New feature:** New Aura icon (a house-shaped "A" with a lit window) for the adapter, browser tab, home screen and PWA; it also shows on the admin login, next to "Aura" in the admin sidebar and on the loading screen, where the window light pulses while Aura starts
-
-
-### 1.6.0-next.0 (2026-11-24) — next/test release
-- 🌟 **New feature:** Chart - stepping via the command datapoint ("prev", "next", "today", "now") now also writes the new window back to the date/end and range datapoints, so external from/to fields stay in step ([#1016](https://github.com/hdering/ioBroker.aura/issues/1016))
-- 🐛 **Bug fix:** Status symbols in an own (custom) layout - the status section now says when the grid has no "Status badges" cell (the only place the symbols show there) and adds one with a click; the corner/edge placement options are greyed out there, since the cell sets the position ([#1019](https://github.com/hdering/ioBroker.aura/issues/1019))
-- 🌟 **New feature:** History - the VictoriaMetrics adapter (victoriametrics.N) is now recognised as a history source for charts, history table, energy balance and map tracks, and marked in the datapoint picker ([#1020](https://github.com/hdering/ioBroker.aura/issues/1020))
-- 🌟 **New feature:** Status overview - a remembered hint whose datapoint reports nothing at the moment can now be dismissed ("Verwerfen") without booking a battery change: it leaves the list, adds no history entry and comes back on the next real report; a quiet battery now shows its current voltage or percent and the lowest value seen instead of a bare "schwach" ([#1017](https://github.com/hdering/ioBroker.aura/issues/1017))
-- 🌟 **New feature:** Status overview - battery changes can now be documented without the remembered-hints list: new option "Document battery changes" puts "Gewechselt" on every battery row, also before any warning came up, and records the change in the history ("Zuletzt gewechselt"); a change without a prior warning is shown there as "vorsorglich" (preventive) instead of a weak period ([#1018](https://github.com/hdering/ioBroker.aura/issues/1018))
-
-
-### 1.5.0-next.8 (2026-11-24) — next/test release
-- 🐛 **Bug fix:** Chart - in timeseries mode a new live value no longer redraws every line from left to right: the drawn series are kept and the value is merged in; new option "Live values at most every (s)" (Behaviour) collects the readings of datapoints that report very often and applies them at most that often ([#1015](https://github.com/hdering/ioBroker.aura/issues/1015))
-
-
-### 1.5.0-next.7 (2026-11-24) — next/test release
-- 🐛 **Bug fix:** Dashboards no longer open a second connection to ioBroker when the server answers slowly (e.g. while it is busy after a web adapter restart): with "pure web sockets" the replaced connection reconnected by itself, so every such moment added one more connection that subscribed everything and sent all its requests again; a just reconnected dashboard also gives ioBroker more time before it counts the connection as dead
-
-
-### 1.5.0-next.6 (2026-11-24) — next/test release
-- 🐛 **Bug fix:** Dashboards no longer stall a large ioBroker for minutes when they reconnect after the web adapter restarted (e.g. after an Aura update): they now send one request first and the rest once it is answered - before, every one of several hundred requests made js-controller read all users and groups again, which with the jsonl database walks all objects each time
-
-
-### 1.5.0-next.5 (2026-11-24) — next/test release
-- 🌟 **New feature:** After an update, the browser console notes with a timestamp when a dashboard sees the new version and reloads (or gives up waiting) - helps to find out what slows an update down
-
-
-### 1.5.0-next.4 (2026-11-24) — next/test release
-- 🐛 **Bug fix:** Icon picker - icon sets of vis-2-widgets-icontwo no longer vanish after an ioBroker restart; a pack that is missing while vis-2 is still starting is looked up again after 30 seconds
-
-
-### 1.5.0-next.3 (2026-11-24) — next/test release
-- 🐛 **Bug fix:** The frontend now notices an adapter update and reloads itself even when its connection stays up during the update; before, open dashboards could keep running the old version
-- 🐛 **Bug fix:** Instances - an own port that is switched off and no longer forwarded is no longer shown in the instance list of admin (it is kept and comes back when "Forward the old port" is switched on again) ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
-- 🐛 **Bug fix:** After an update the frontend reloads only once the updated Aura answers, and the "Aura is not reachable" page of the web adapter retries by itself - before, dashboards could stay on that error page after an update
-
-
-### 1.5.0-next.2 (2026-11-23) — next/test release
-- 🐛 **Bug fix:** Chart - switching the time range quickly no longer leaves the chart stuck on the wrong range: a slower history answer for the previous range (e.g. 3 months still loading after switching to 24 h) is discarded instead of overwriting the current one; applies to the range chips, linked charts and the navigation datapoints ([#1013](https://github.com/hdering/ioBroker.aura/issues/1013))
-- 🐛 **Bug fix:** Chart - in JSON mode, series hidden via the legend now stay hidden when the datapoint delivers new JSON ([#1014](https://github.com/hdering/ioBroker.aura/issues/1014))
-- 🐛 **Bug fix:** Status overview and dynamic list no longer download every object while the adapter restarts (e.g. during an update) - they ask the adapter again instead; with several dashboards open this could stall a large ioBroker installation for minutes
-
-
-### 1.5.0-next.1 (2026-11-23) — next/test release
-- ⚠️ **Breaking change:** Aura moves into the web adapter - Aura is now reached through a web instance as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), its own port (8095) is deprecated and will be removed in a coming major version. Existing installations keep the port for now: choose the web instance at the top of the instance settings, move kiosk URLs, bookmarks, home screen icons, reverse proxies and MCP clients (copy the client configuration again) to /aura/, then switch "Own port (deprecated)" off. After that the old port only forwards to /aura/ and takes each device's settings along ("Forward the old port"), and the log names every device that still comes that way. Reverse proxies must point at the web instance and forward the whole host (the socket runs on /), before the own port is switched off - behind a proxy the old port explains this instead of forwarding. A base URL set in the instance (e.g. https://aura.example.com) means <that host>/aura/ for the instance links and the MCP client configuration once Aura runs through the web instance. The web adapter (8.0.0 or newer) is now required and installed along with Aura. New installations start without an own port when a web instance runs on the same host; without one Aura opens its port anyway. One web instance serves one Aura instance - the settings, the logs and the backend check name a clash. Also: the web extension talks to Aura over a local socket, pages shown through Aura's proxy run sandboxed and no longer get the cookies of the ioBroker host, and the admin login is kept in an HttpOnly cookie ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
-
-
-### 1.5.0-next.0 (2026-11-23) — next/test release
-- ⚠️ **Breaking change:** Aura moves into the web adapter - Aura is now reached through a web instance as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), its own port (8095) is deprecated and will be removed in a coming major version. Existing installations keep the port for now: choose the web instance at the top of the instance settings, move kiosk URLs, bookmarks, home screen icons, reverse proxies and MCP clients (copy the client configuration again) to /aura/, then switch "Own port (deprecated)" off. After that the old port only forwards to /aura/ and takes each device's settings along ("Forward the old port"), and the log names every device that still comes that way. The web adapter (8.0.0 or newer) is now required and installed along with Aura. New installations start without an own port when a web instance runs on the same host; without one Aura opens its port anyway. One web instance serves one Aura instance - the settings, the logs and the backend check name a clash. Also: the web extension talks to Aura over a local socket, pages shown through Aura's proxy run sandboxed and no longer get the cookies of the ioBroker host, and the admin login is kept in an HttpOnly cookie ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
-
-
-### 1.4.0-next.4 (2026-11-22) — next/test release
-- 🌟 **New feature:** Status overview - second sort rule ("Then sort by": name, room or urgency), e.g. urgent hints first and below them grouped by room ([#1012](https://github.com/hdering/ioBroker.aura/issues/1012))
-- 🐛 **Bug fix:** Chart - in comparison mode a series with "Show earlier values" (time shift) now shows the last recorded value at that earlier time instead of the current value; its history instance is detected automatically, and without recorded history the bar stays empty ([#730](https://github.com/hdering/ioBroker.aura/issues/730))
-- 🐛 **Bug fix:** Status overview - row actions writing to a placeholder target such as {id} or {device} are no longer listed as references to missing datapoints ([#1008](https://github.com/hdering/ioBroker.aura/issues/1008))
-- 🌟 **New feature:** Status overview - devices running on a single 1.5 V cell (1x AA/AAA by battery type or manual assignment, e.g. HmIP-SWDO) get their own voltage warning threshold (default 1.2 V) instead of being reported as weak against the 2.4 V limit ([#1009](https://github.com/hdering/ioBroker.aura/issues/1009))
-- 🐛 **Bug fix:** Battery types - devices that report only a battery voltage (V/mV) are now listed on the battery types page too, so their type can be assigned for the status overview ([#1010](https://github.com/hdering/ioBroker.aura/issues/1010))
-- 🌟 **New feature:** Status overview - the counts are available as header values: hints and watched devices in total and per category (widget value, or {hints} {devices} {battery_devices} … in a text item, e.g. "3 hints of 10 devices"); the number beside a category heading can show hints, devices or "3 / 10"; when the header shows the hint count, the built-in count chip steps back by itself; hint counts take the severity colour (green, orange, red) ([#1011](https://github.com/hdering/ioBroker.aura/issues/1011))
-- 🌟 **New feature:** Header items - new option "As chip": the item gets a background tinted in its colour, like a status chip
-- 🐛 **Bug fix:** Status overview - a header item in row 1 no longer overlaps the widget's own count chip; header items now sit in the widget's title row ([#1011](https://github.com/hdering/ioBroker.aura/issues/1011))
-
-
-### 1.4.0-next.3 (2026-11-21) — next/test release
-- 🐛 **Bug fix:** Status overview - in the card layout long values (e.g. a text datapoint) no longer run past the tile: they end in "…" on one line; the new option "Wrap long values" (Optik, card layout) wraps them onto several lines instead
-
-
-### 1.4.0-next.2 (2026-11-21) — next/test release
-- 🌟 **New feature:** Device card - new "Further datapoints": besides its own datapoint a card can hold more datapoints under a short name (e.g. an outdoor sensor as "outside"), usable in the card's widgets as {{outside}}, {{outside_parent}}, {{outside_dpname}} …; linked cards show the short names of the others as empty rows to fill in ([#1007](https://github.com/hdering/ioBroker.aura/issues/1007))
-- 🌟 **New feature:** Editor - the options menu of a group or device card with hidden title and icon now starts with a heading in the colour of its nesting level (widget type and title), so with nested frameless boxes it is clear which level the menu belongs to
-
-
-### 1.4.0-next.1 (2026-11-21) — next/test release
-- 🐛 **Bug fix:** Status overview / lists - the row popup "Datapoints of the device" opens much faster: it reads only the clicked device's branch instead of the whole object database, which took up to 20 seconds on large installations
-- 🌟 **New feature:** Status overview - new setting "Additional alarm datapoints" in the smoke & water alarm category: datapoints matching these patterns (text or /regex/) count as alarms even without an alarm role, e.g. a Shelly Flood mirrored over MQTT; true (or 1) triggers the alarm. The same field also exists for open windows & doors ("Additional window and door datapoints") and lights on ("Additional light datapoints"; a number counts as brightness). A "+ Datapoint" button next to each of these fields (and next to "Additional offline datapoints") picks single datapoints from the datapoint picker and appends their ids
+### 1.7.0 (2026-11-26)
+- ⚠️ **Breaking change:** Aura moves into the web adapter - reachable as <web-port>/aura/, the own port 8095 is deprecated; please follow the upgrade notice ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
+- 🌟 **New feature:** Status overview - greatly extended: tabbed configuration dialog, table layout with configurable rows, battery voltage/percent with own thresholds (also for 1.5 V cells), additional battery/alarm/window/light datapoints, own device names, documenting battery changes, counts as header values
+- 🌟 **New feature:** Chart - selectable bar interval for consumption series (incl. per quarter), smoother live updates, command datapoint keeps external from/to fields in step ([#1036](https://github.com/hdering/ioBroker.aura/issues/1036))
+- 🌟 **New feature:** Device card - further datapoints under short names, usable as {{name}} in the card's widgets ([#1007](https://github.com/hdering/ioBroker.aura/issues/1007))
+- 🌟 **New feature:** Grid & Mobile - own column count for phones in landscape ([#1030](https://github.com/hdering/ioBroker.aura/issues/1030))
+- 🌟 **New feature:** Web components - bind the edited value to a datapoint; clear message when a component cannot be loaded ([#958](https://github.com/hdering/ioBroker.aura/issues/958))
+- 🌟 **New feature:** Click actions accept datapoint placeholders in URLs; the datapoint picker can pin its filters ([#1006](https://github.com/hdering/ioBroker.aura/issues/1006))
+- 🌟 **New feature:** History - VictoriaMetrics recognised as history source ([#1020](https://github.com/hdering/ioBroker.aura/issues/1020))
+- 🌟 **New feature:** New Aura icon for adapter, browser tab, home screen and loading screen
+- 🐛 **Bug fix:** Performance and stability - faster tab switching with groups, no more stalls of large installations after updates or reconnects, dashboards reload reliably after an update
+- 🐛 **Bug fix:** MCP server - far fewer false warnings and refusals when AI agents edit dashboards
+- All 65 changes: https://github.com/hdering/ioBroker.aura/releases/tag/v1.7.0
 
 
 ## License
@@ -259,6 +169,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
