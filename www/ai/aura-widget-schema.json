@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.6.0-next.2",
+    "auraVersion": "1.6.0-next.4",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2793,7 +2793,7 @@
         "deltaBucket": {
           "type": "string",
           "ref": "DeltaBucketSetting",
-          "description": "Calendar bucket the `delta` aggregation differences over (default `hour`). `auto` derives it from the active window instead — see `resolveDeltaBucket`."
+          "description": "Calendar bucket the `delta` aggregation differences over (default `hour`; also `quarter`). `auto` derives it from the active window instead — up to 1 day hourly, 45 days daily, 180 days weekly, 3 years monthly, 10 years quarterly, beyond that yearly. A range chip with `/…` or the widget's `intervalChips` override it in the frontend."
         },
         "source": {
           "type": "string",
@@ -2891,6 +2891,7 @@
         "day",
         "week",
         "month",
+        "quarter",
         "year",
         "auto"
       ]
@@ -13023,6 +13024,13 @@
           "type": "number",
           "description": "Nur mit Zeitachse (Zeitreihe, JSON mit echartJsonTimeAxis): ungefähre Zahl der Beschriftungen auf der Zeitachse (1–24, leer = automatisch, ECharts-Standard 5). Richtwert — die Ticks rasten auf runde Zeiten ein; sich überschneidende Beschriftungen fallen ohnehin weg. Für schmale Diagramme z. B. 3."
         },
+        "intervalChips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Eigene Chip-Leiste im Frontend, mit der man die Balkenbreite der Zähler-Reihen (aggregate \"delta\") umschaltet, z. B. [\"d\", \"w\", \"M\", \"q\", \"y\"] (Tag, Woche, Monat, Quartal, Jahr; \"auto\" = nach Zeitraum, \"h\" = Stunde). Die Wahl gilt für alle delta-Reihen und schlägt deltaBucket und das \"/…\" eines Zeitraum-Chips, bis ein Chip mit eigenem \"/…\" gewählt wird. Chips, die zum aktiven Zeitraum über 1500 oder keinen ganzen Balken ergäben, sind ausgegraut. Ohne delta-Reihe keine Leiste. Leer = keine Leiste."
+        },
         "lockRange": {
           "type": "boolean",
           "default": false,
@@ -13067,7 +13075,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Ein \"+\" hängt einen Vorlauf in die Zukunft an (nur Zeitreihe, Prognosen): \"2d+36h=Prognose\" = rollend jetzt − 12 h bis jetzt + 36 h; überschreibt echartRangeLead für diesen Chip (\"+0h\" = ohne). Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
+          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Ein \"+\" hängt einen Vorlauf in die Zukunft an (nur Zeitreihe, Prognosen): \"2d+36h=Prognose\" = rollend jetzt − 12 h bis jetzt + 36 h; überschreibt echartRangeLead für diesen Chip (\"+0h\" = ohne). Ein \"/\" am Ende legt die Balkenbreite der Zähler-Reihen (aggregate \"delta\") fest, solange der Chip aktiv ist: \"2y/M=2 Jahre\" = zwei Jahre in Monatsbalken; Codes h, d, w, M, q (Quartal), y, auto; überschreibt deltaBucket der Reihen. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
         }
       }
     },

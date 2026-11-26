@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-11-20",
+    "measured": "2026-11-26",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1796,6 +1796,26 @@
             ]
           },
           "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        },
+        {
+          "key": "intervalChips",
+          "label": "Intervall-Chips (intervalChips, nur bei aggregate delta)",
+          "when": {
+            "all": [
+              {
+                "path": "intervalChips",
+                "nonEmpty": true
+              },
+              {
+                "path": "echartSeries[].aggregate",
+                "equals": "delta"
+              }
+            ]
+          },
+          "basePx": 24,
           "fontScalePx": {
             "basePx": 13.3
           }
