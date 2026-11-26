@@ -381,6 +381,22 @@ check('an invalid layout lists the valid ones', () => {
 
 check('datapoint expectations follow the widget type', () => {
     assert.ok(hasError(validateWidget({ ...OK_SWITCH, datapoint: '' }, schema), /braucht einen Datenpunkt/));
+    // A value tile that only shows its htmlTemplate renders without one (#1035).
+    const heading = {
+        id: 'h',
+        type: 'value',
+        title: 'Überschrift',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 8, h: 2 },
+        options: { htmlTemplate: '<b>Updates</b>' },
+    };
+    const headingRes = validateWidget(heading, schema);
+    assert.deepEqual(headingRes.errors, []);
+    assert.ok(hasWarning(headingRes, /zeigt nur das htmlTemplate/));
+    assert.ok(
+        hasError(validateWidget({ ...heading, options: {} }, schema), /braucht einen Datenpunkt/),
+        'without a template the datapoint is still required',
+    );
     const clock = { id: 'c', type: 'clock', title: 'Uhr', datapoint: 'x.0.y', gridPos: { x: 0, y: 0, w: 6, h: 4 } };
     assert.ok(hasWarning(validateWidget(clock, schema), /wertet "datapoint" nicht aus/));
 });
@@ -6359,6 +6375,62 @@ check('an overlap the write moves into stays an error', () => {
     assert.equal(overlapMade.res.isError, true);
     assert.match(overlapMade.res.content[0].text, /überlappen sich im Raster/);
     assert.doesNotMatch(overlapMade.res.content[0].text, /stand vorher schon so/);
+});
+
+/** A tab with one widget that already carries an error, and a clean one beside it (#1035). */
+function brokenSeed() {
+    const a = overlapSeed();
+    const cfg = JSON.parse(a.states['config.dashboard']);
+    const widgets = cfg.state.layouts[0].sections[0].tabs[0].widgets;
+    widgets[0].datapoint = '';
+    widgets[1].gridPos = { x: 8, y: 0, w: 8, h: 4 };
+    a.states['config.dashboard'] = JSON.stringify(cfg);
+    return a;
+}
+
+const brokenTitle = await callAt(
+    'write',
+    'aura_update_widget',
+    { widgetId: 'oben', patch: JSON.stringify({ title: 'Neuer Titel' }) },
+    brokenSeed(),
+);
+check('an error the widget already had does not block a change that leaves it alone', () => {
+    assert.ok(!brokenTitle.res.isError, brokenTitle.res.content[0].text);
+    assert.match(brokenTitle.res.content[0].text, /braucht einen Datenpunkt.*bestand schon vorher/);
+    const layouts = JSON.parse(brokenTitle.adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].sections[0].tabs[0].widgets[0].title, 'Neuer Titel');
+});
+
+const brokenBatch = await callAt(
+    'write',
+    'aura_update_widgets',
+    {
+        patches: JSON.stringify([
+            { widgetId: 'oben', patch: { title: 'A' } },
+            { widgetId: 'unten', patch: { title: 'B' } },
+        ]),
+    },
+    brokenSeed(),
+);
+check('… nor the rest of a batch', () => {
+    assert.ok(!brokenBatch.res.isError, brokenBatch.res.content[0].text);
+    const widgets = JSON.parse(brokenBatch.adapter.states['config.dashboard']).state.layouts[0].sections[0].tabs[0]
+        .widgets;
+    assert.deepEqual(
+        widgets.map((w) => w.title),
+        ['A', 'B'],
+    );
+});
+
+const brokenNew = await callAt(
+    'write',
+    'aura_update_widget',
+    { widgetId: 'oben', patch: JSON.stringify({ layout: 'dial' }) },
+    brokenSeed(),
+);
+check('an error the change introduces still refuses it', () => {
+    assert.equal(brokenNew.res.isError, true);
+    assert.match(brokenNew.res.content[0].text, /layout "dial" gibt es für switch nicht/);
 });
 
 const compactDry = await callAt('write', 'aura_compact', { tab: 'Startseite', dryRun: true }, overlapSeed());
