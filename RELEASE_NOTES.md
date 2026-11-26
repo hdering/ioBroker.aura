@@ -10,6 +10,23 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 # 'breaking:' marks a change users must act on - it becomes the Breaking change marker
 # and is listed first. Pair it with an upgrade notice in io-package.json common.messages.
+# Long list before a stable release: put a '## Summary' block above an '## All changes' heading
+# (about 10 bullets, same style). The stable release then puts only the summary into the
+# admin news and README; the full list goes to the GitHub release notes. Betas ignore it.
+## Summary
+- breaking: Aura moves into the web adapter - reachable as <web-port>/aura/, the own port 8095 is deprecated; please follow the upgrade notice (#997)
+- feat: Status overview - greatly extended: tabbed configuration dialog, table layout with configurable rows, battery voltage/percent with own thresholds (also for 1.5 V cells), additional battery/alarm/window/light datapoints, own device names, documenting battery changes, counts as header values
+- feat: Chart - selectable bar interval for consumption series (incl. per quarter), smoother live updates, command datapoint keeps external from/to fields in step (#1036)
+- feat: Device card - further datapoints under short names, usable as {{name}} in the card's widgets (#1007)
+- feat: Grid & Mobile - own column count for phones in landscape (#1030)
+- feat: Web components - bind the edited value to a datapoint; clear message when a component cannot be loaded (#958)
+- feat: Click actions accept datapoint placeholders in URLs; the datapoint picker can pin its filters (#1006)
+- feat: History - VictoriaMetrics recognised as history source (#1020)
+- feat: New Aura icon for adapter, browser tab, home screen and loading screen
+- fix: Performance and stability - faster tab switching with groups, no more stalls of large installations after updates or reconnects, dashboards reload reliably after an update
+- fix: MCP server - far fewer false warnings and refusals when AI agents edit dashboards
+
+## All changes
 - fix: Adapter - no more "adapter is shutting down" warnings and "Connection is closed" rejection when the instance restarts itself right after an update
 - feat: The loading bar along the top edge also runs while the connection to ioBroker is being established (start-up, reconnect) until the offline banner appears, so a page without any hint is always current
 - fix: Status overview - classic HomeMatic window/door contacts (role value.window, e.g. HM-Sec-SCo) are now found, one row per window; a heating group's window state no longer duplicates the contacts of its room
