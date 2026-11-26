@@ -171,6 +171,7 @@
     "test:group-stretch": "node tools/tests/group-stretch.mjs",
     "test:group-tab-switch": "node tools/tests/group-tab-switch.mjs",
     "test:tab-switch-renders": "node tools/tests/tab-switch-renders.mjs",
+    "test:hidden-tab-heights": "node tools/tests/hidden-tab-heights.mjs",
     "test:group-frameless": "node tools/tests/group-frameless.mjs",
     "test:editor-fluid-preview": "node tools/tests/editor-fluid-preview.mjs",
     "test:group-pullout": "node tools/tests/group-pullout.mjs",

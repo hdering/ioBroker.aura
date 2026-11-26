@@ -350,13 +350,19 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // groupRows) reserves exactly what the bar occupies — icon size, master control
     // and font scale all change it, so it must be measured instead of guessed at
     // 36/37px. Being a few px short is what raised the group's inner scrollbar.
+    // A zero of a bar that is there is not believed (see the size above): a tab that is
+    // not on screen measures 0. Every group on it reported that on leaving and its real
+    // height on the way back, and each report rendered the whole dashboard again.
     useEffect(() => {
         const el = headerRef.current;
         if (!hasHeaderContent || !el) {
             setGroupHeader(config.id, 0);
             return;
         }
-        const report = () => setGroupHeader(config.id, Math.ceil(el.getBoundingClientRect().height));
+        const report = () => {
+            const h = Math.ceil(el.getBoundingClientRect().height);
+            if (h > 0) setGroupHeader(config.id, h);
+        };
         report();
         const ro = new ResizeObserver(report);
         ro.observe(el);

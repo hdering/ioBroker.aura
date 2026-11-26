@@ -71,3 +71,4 @@
 - fix: Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew (#1031)
 - fix: Group - switching tabs no longer draws the widgets of every group on every tab opened before again (#1033)
 - feat: Grid & Mobile - new "Columns in landscape" setting: a phone turned sideways (landscape, window no taller than "Landscape up to height", default 500 px) gets its own column count in the tablet band, e.g. 4 columns on the PC and 3 on the phone; cards pinned to a column that does not exist there are dealt anew (#1030)
+- fix: Tab switch - leaving and opening a tab with groups, folded widgets or widgets with automatic height is faster: a tab that is not shown no longer reports their heights as 0, which redrew the whole dashboard once per widget, with every group on every tab opened before (#1034)

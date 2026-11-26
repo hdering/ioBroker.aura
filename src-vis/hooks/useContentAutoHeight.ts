@@ -44,7 +44,12 @@ export function useContentAutoHeight(config: WidgetConfig): {
                 useAutoHeightStore.getState().clear(widgetId);
                 return;
             }
-            const report = () => useAutoHeightStore.getState().setHeight(widgetId, el.offsetHeight);
+            // An element without a box is on a tab that is not on screen (display:none) and
+            // measures 0, whatever its content. Its last height is kept; empty content that
+            // is on screen still has a box and reports its 0.
+            const report = () => {
+                if (el.getClientRects().length) useAutoHeightStore.getState().setHeight(widgetId, el.offsetHeight);
+            };
             report();
             const ro = new ResizeObserver(report);
             ro.observe(el);
