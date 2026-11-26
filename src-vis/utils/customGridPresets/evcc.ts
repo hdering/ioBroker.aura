@@ -2,10 +2,10 @@ import type { CustomCell, CustomGridDef, WidgetLayout } from '../../types';
 import { GridBuilder } from './gridBuilder';
 import { comp, gapRow, showIconOf, showTitleOf, type Opts } from './common';
 
-// evcc (EvccWidget): default, compact, flow, battery, production, consumption,
+// evcc (EvccWidget): default, compact, flow, bar, battery, production, consumption,
 // loadpoints. Its layouts scale with the widget width, so the preset stacks the
 // layout's pieces as components that keep that scaling — 'header', 'flow-row',
-// 'flow-diagram', 'compact-row', 'battery-view' / 'production-view' /
+// 'flow-diagram', 'energy-bar', 'compact-row', 'battery-view' / 'production-view' /
 // 'consumption-view', 'loadpoints' / 'loadpoints-compact' and 'tariff'. The power
 // fields (pvPower, gridPower …) stay available for a grid of one's own.
 
@@ -37,6 +37,13 @@ export function buildEvccGrid(layout: WidgetLayout, o: Opts): CustomGridDef | nu
             return b.build();
         case 'flow':
             stack([...(header ? ['header'] : []), 'flow-diagram', ...(showLoadpoints ? ['loadpoints'] : [])], 8);
+            return b.build();
+        case 'bar':
+            // Centred like the layout; the loadpoints are brackets of the bar itself.
+            b.row('1fr', []);
+            if (header) b.row('auto', [left('header')]);
+            b.row('auto', [left('energy-bar')]);
+            b.row('1fr', []);
             return b.build();
         case 'loadpoints':
             stack([...(header ? ['header'] : []), 'loadpoints'], 8);

@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.6.0-next.4",
+    "auraVersion": "1.6.0-next.5",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -14279,6 +14279,7 @@
         "default",
         "compact",
         "flow",
+        "bar",
         "battery",
         "production",
         "consumption",
@@ -14417,6 +14418,36 @@
             "1fr"
           ]
         },
+        "bar": {
+          "cols": 1,
+          "rows": 4,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "header",
+              "align": "left",
+              "valign": "top"
+            },
+            {
+              "type": "component",
+              "componentKey": "energy-bar",
+              "align": "left",
+              "valign": "top"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        },
         "battery": {
           "cols": 1,
           "rows": 2,
@@ -14518,6 +14549,7 @@
         "battery-view",
         "compact-row",
         "consumption-view",
+        "energy-bar",
         "flow-diagram",
         "flow-row",
         "header",

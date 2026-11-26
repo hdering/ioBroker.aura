@@ -51,6 +51,9 @@ Wie Default — gleicher Aufbau mit Energiefluss-Zeile und Ladepunkten.
 ### Flow
 Animiertes Energiefluss-Diagramm als SVG mit Sonne, Netz, Haus, Batterie und Ladepunkten.
 
+### Energiebalken
+Balken im evcc-Stil: woher die Leistung kommt (Speicher · PV-Eigenverbrauch · PV-Export · Netzbezug), mit Klammern oben für die Quellen („In“) und unten für die Verbraucher („Out“: Haus, Ladepunkte, Speicher laden, Einspeisung). Rechts das Akku-Symbol mit Ladestand (Option *Batterie*). Werte, die nicht in ihre Klammer passen, stehen darüber bzw. darunter.
+
 ### Loadpoints
 Nur die ausführlichen Ladepunkt-Karten, scrollbar.
 
@@ -67,7 +70,7 @@ Nur die PV-Erzeugung groß, mit Einspeisung und Eigenanteil.
 Nur der Hausverbrauch groß, mit Netzbezug/-einspeisung und Tarif.
 
 ### Custom
-Felder `pvPower`, `gridPower`, `homePower`, `batterySoc`, `batteryPower`, `gridImport`, `gridExport` frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `header`, `flow-row`, `flow-diagram`, `compact-row`, `battery-view` · `production-view` · `consumption-view`, `loadpoints`, `loadpoints-compact` und `tariff` — sie skalieren wie im Layout.
+Felder `pvPower`, `gridPower`, `homePower`, `batterySoc`, `batteryPower`, `gridImport`, `gridExport` frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `header`, `flow-row`, `flow-diagram`, `energy-bar`, `compact-row`, `battery-view` · `production-view` · `consumption-view`, `loadpoints`, `loadpoints-compact` und `tariff` — sie skalieren wie im Layout.
 
 ## Einstellungen
 

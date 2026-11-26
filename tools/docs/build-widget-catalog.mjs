@@ -397,6 +397,7 @@ const CUSTOM_KEYS = {
             'header',
             'flow-row',
             'flow-diagram',
+            'energy-bar',
             'compact-row',
             'battery-view',
             'production-view',

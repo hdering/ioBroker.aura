@@ -9,6 +9,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
+import { EnergyBarView, type EnergyBarConsumer } from './EvccEnergyBar';
 import { DatapointPicker } from '../config/DatapointPicker';
 import {
     ENERGY_ADAPTERS,
@@ -1559,6 +1560,27 @@ function EvccWidgetInner({ config }: WidgetProps) {
     const flowLpIndices = showLoadpoints ? visibleLpIndices : [];
 
     const flowH = (showBattery ? 190 : 160) * flowScale;
+    // Layout `bar`: the loadpoints get their own bracket below the bar, cut out of
+    // the house like evcc does (evcc's homePower already leaves them out).
+    const barConsumers: EnergyBarConsumer[] = visLps.map(({ lp, idx }) => ({
+        key: String(idx),
+        label: lp.title || lp.vehicleTitle || t('evcc.loadpoint', { n: idx + 1 }),
+        icon: lp.featureHeating ? 'heat' : 'car',
+        w: Math.max(0, Number(lp.chargePower) || 0),
+    }));
+    const energyBar = (
+        <EnergyBarView
+            pv={site.pvPower}
+            grid={site.gridPower}
+            home={site.homePower}
+            battery={site.batteryPower}
+            soc={effectiveBattDp || batteryJson ? site.batterySoc : null}
+            showBattery={showBattery}
+            consumers={barConsumers}
+            fmt={fmtKW}
+            scale={flowScale}
+        />
+    );
     const tariffEl =
         site.tariffGrid > 0 ? (
             <div className="text-right shrink-0" style={{ color: 'var(--text-secondary)', fontSize: 10 * tariffScale }}>
@@ -1590,6 +1612,7 @@ function EvccWidgetInner({ config }: WidgetProps) {
                                 />
                             </div>
                         ),
+                        'energy-bar': <div className="w-full">{energyBar}</div>,
                         'compact-row': (
                             <div className="w-full">
                                 <CompactRow site={site} showBattery={showBattery} scale={mainScale} />
@@ -1652,6 +1675,18 @@ function EvccWidgetInner({ config }: WidgetProps) {
                         gridExport: site.gridPower < -10 ? 'Ja' : 'Nein',
                     }}
                 />
+            </div>
+        );
+
+    if (layout === 'bar')
+        return (
+            <div
+                ref={boxRef}
+                className="aura-widget-row flex flex-col h-full justify-center"
+                style={{ gap: 4 * headerScale }}
+            >
+                {headerEl}
+                {energyBar}
             </div>
         );
 

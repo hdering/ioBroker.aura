@@ -43,7 +43,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     slider: ['default', 'custom'],
     thermostat: ['default', 'compact', 'minimal', 'dial', 'circle', 'custom'],
     enum: ['default', 'compact', 'minimal', 'card', 'circle', 'custom'],
-    evcc: ['default', 'compact', 'flow', 'battery', 'production', 'consumption', 'loadpoints', 'custom'],
+    evcc: ['default', 'compact', 'flow', 'bar', 'battery', 'production', 'consumption', 'loadpoints', 'custom'],
     light: ['light-all', 'light-brightness', 'light-color', 'light-temperature', 'custom'],
     switch: ['default', 'card', 'compact', 'custom'],
     dimmer: ['default', 'compact', 'minimal', 'custom'],
@@ -137,6 +137,7 @@ const LABEL_TEXT: Partial<Record<WidgetLayout, string>> = {
 /** The same layout means something else per widget, so the label does too. */
 const LABEL_PER_TYPE: Record<string, Partial<Record<WidgetLayout, string>>> = {
     fill: { default: 'Tank', battery: 'Batterie', bar: 'Balken' },
+    evcc: { bar: 'Energiebalken' },
     knob: { default: 'Bogen' },
     trashSchedule: { compact: 'Kompakt' },
     scenes: { default: 'Liste', card: 'Kacheln' },
