@@ -143,6 +143,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.6.0-next.4 (2026-11-26) — next/test release
+- 🐛 **Bug fix:** Tab switch - leaving and opening a tab with groups, folded widgets or widgets with automatic height is faster: a tab that is not shown no longer reports their heights as 0, which redrew the whole dashboard once per widget, with every group on every tab opened before ([#1034](https://github.com/hdering/ioBroker.aura/issues/1034))
+- 🐛 **Bug fix:** MCP - changing a widget (e.g. only its title) is no longer refused because of an error the widget already had; such errors are reported as warnings, and a value widget without a datapoint that only shows its HTML template is accepted ([#1035](https://github.com/hdering/ioBroker.aura/issues/1035))
+
+
 ### 1.6.0-next.3 (2026-11-25) — next/test release
 - 🐛 **Bug fix:** Conditions - a widget taken out of the grid by a condition ("hide" with "reflow") is no longer laid out and animated in the background on every tab; it stays loaded, so its condition brings it back as before ([#1032](https://github.com/hdering/ioBroker.aura/issues/1032))
 - 🐛 **Bug fix:** Group - a group keeps its widgets when the tab is left: coming back no longer builds all of them again and no longer reads every datapoint anew ([#1031](https://github.com/hdering/ioBroker.aura/issues/1031))
@@ -249,17 +254,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Click actions - the URL of "External link" and "iFrame popup" may contain datapoint placeholders: {dp} is the value of the clicked list row (or the widget's datapoint), {adapter.0.id} that of any datapoint; e.g. http://{dp}/ opens an IP stored in a datapoint, a missing http:// is added ([#1006](https://github.com/hdering/ioBroker.aura/issues/1006))
 
 
-### 1.2.0-next.0 (2026-11-19) — next/test release
-- 🌟 **New feature:** Web components - bind the value a component edits (e.g. a schedule or a list) to a datapoint (new widget option value datapoint); JSON text arrives as an object and changes are written back ([#958](https://github.com/hdering/ioBroker.aura/issues/958))
-- 🐛 **Bug fix:** Status overview - mains-powered HomeMatic IP devices (plugs, switches, dimmers) whose OPERATING_VOLTAGE reads 0 V are no longer reported as weak batteries; entries already remembered for them disappear ([#1000](https://github.com/hdering/ioBroker.aura/issues/1000))
-- 🌟 **New feature:** Status overview - new "Detected datapoints" list in the widget editor: every found datapoint has a checkbox to hide it (stored in the existing exclusion list), and an alias and the datapoint it reads from are marked as duplicates, with one click to hide all originals or all aliases ([#1002](https://github.com/hdering/ioBroker.aura/issues/1002))
-
-
-### 1.0.2 (2026-11-15)
-- 🌟 **New feature:** Thin loading bar along the top edge while the values are refreshed after the app wakes up or reconnects ([#992](https://github.com/hdering/ioBroker.aura/issues/992))
-- 🌟 **New feature:** Circle menu - hide single entries (e.g. Stop for shutters, −/+ for thermostats) with the eye in the order list; thermostat and room climate can drop the setpoint in the middle of the open menu ([#993](https://github.com/hdering/ioBroker.aura/issues/993))
-
-
 ## License
 
 MIT License
@@ -271,6 +265,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
