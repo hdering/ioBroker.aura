@@ -1236,6 +1236,33 @@ const MIN_MODIFIERS = {
                 ],
             },
         },
+        {
+            // The interval chips (#1036) share the row with the range chips and wrap into a row
+            // of their own where both do not fit — only drawn for counter (`delta`) series.
+            key: 'intervalChips',
+            label: 'Intervall-Chips (intervalChips, nur bei aggregate delta)',
+            when: {
+                all: [
+                    { path: 'intervalChips', nonEmpty: true },
+                    { path: 'echartSeries[].aggregate', equals: 'delta' },
+                ],
+            },
+            options: {
+                intervalChips: ['d', 'w', 'M', 'q', 'y'],
+                echartSeries: [
+                    {
+                        id: 's1',
+                        name: 'Leistung',
+                        datapointId: DP_HIST,
+                        chartType: 'bar',
+                        historyInstance: HISTORY_INSTANCE,
+                        yAxisIndex: 0,
+                        aggregate: 'delta',
+                        deltaBucket: 'auto',
+                    },
+                ],
+            },
+        },
         ...controlSizeModifiers('echartDayNav'),
     ],
     // Offline (no history) the simple chart is skipped, so these land only with a connected run.

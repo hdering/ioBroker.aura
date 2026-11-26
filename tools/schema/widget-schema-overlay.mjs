@@ -1914,8 +1914,18 @@ export const WIDGET_OPTION_NOTES = {
                 'Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder "total", optional ' +
                 'mit eigener Beschriftung nach "=": ["1M", "3M=Quartal", "12M", "total"]. Ein "+" hängt einen Vorlauf in ' +
                 'die Zukunft an (nur Zeitreihe, Prognosen): "2d+36h=Prognose" = rollend jetzt − 12 h bis jetzt + 36 h; ' +
-                'überschreibt echartRangeLead für diesen Chip ("+0h" = ohne). Steht der Standard-Zeitraum nicht in der ' +
-                'Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips.',
+                'überschreibt echartRangeLead für diesen Chip ("+0h" = ohne). Ein "/" am Ende legt die Balkenbreite der ' +
+                'Zähler-Reihen (aggregate "delta") fest, solange der Chip aktiv ist: "2y/M=2 Jahre" = zwei Jahre in ' +
+                'Monatsbalken; Codes h, d, w, M, q (Quartal), y, auto; überschreibt deltaBucket der Reihen. Steht der ' +
+                'Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips.',
+        },
+        intervalChips: {
+            description:
+                'Eigene Chip-Leiste im Frontend, mit der man die Balkenbreite der Zähler-Reihen (aggregate "delta") ' +
+                'umschaltet, z. B. ["d", "w", "M", "q", "y"] (Tag, Woche, Monat, Quartal, Jahr; "auto" = nach Zeitraum, ' +
+                '"h" = Stunde). Die Wahl gilt für alle delta-Reihen und schlägt deltaBucket und das "/…" eines Zeitraum-Chips, ' +
+                'bis ein Chip mit eigenem "/…" gewählt wird. Chips, die zum aktiven Zeitraum über 1500 oder keinen ganzen ' +
+                'Balken ergäben, sind ausgegraut. Ohne delta-Reihe keine Leiste. Leer = keine Leiste.',
         },
         echartRangeLead: {
             type: 'string',

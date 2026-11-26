@@ -25,7 +25,9 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { parseRangeToken, parseRangeChips, unitSpanMs, rangeKey } = await import(pathToFileURL(bundle).href);
+const { parseRangeToken, parseRangeChips, parseIntervalChips, unitSpanMs, rangeKey } = await import(
+    pathToFileURL(bundle).href
+);
 rmSync(bundle, { force: true });
 
 let n = 0;
@@ -123,6 +125,44 @@ check('a lead into the future rides on the chip (2d+36h)', () => {
     // The same range with and without lead are two chips.
     assert.equal(parseRangeChips(['2d', '2d+36h']).length, 2);
     assert.equal(parseRangeToken('2d').lead, undefined);
+});
+
+check('a chip can name the bar interval of the counter series (2y/M, #1036)', () => {
+    const c = parseRangeToken('2y/M=2 Jahre');
+    assert.equal(c.key, '2y');
+    assert.equal(c.bucket, 'month');
+    assert.equal(c.label, '2 Jahre');
+    assert.equal(parseRangeToken('2y/M').label, '2 Jahre');
+    assert.equal(parseRangeToken('5y/q').bucket, 'quarter');
+    assert.equal(parseRangeToken('5y/Q').bucket, 'quarter');
+    assert.equal(parseRangeToken('total/y').bucket, 'year');
+    assert.equal(parseRangeToken('total/y').range, 'total');
+    assert.equal(parseRangeToken('7d/auto').bucket, 'auto');
+    // Lead and interval together; the interval stays out of the key.
+    const l = parseRangeToken('2d+36h/h');
+    assert.equal(l.key, '2d+36h');
+    assert.equal(l.lead, '36h');
+    assert.equal(l.bucket, 'hour');
+    assert.equal(parseRangeToken('2y/x'), null);
+    assert.equal(parseRangeToken('2y').bucket, undefined);
+    // The same range with another interval is the same chip — the first one stays.
+    assert.deepEqual(
+        parseRangeChips(['2y/M', '2y/d']).map((x) => x.bucket),
+        ['month'],
+    );
+});
+
+check('interval chips parse codes and drop junk', () => {
+    assert.deepEqual(parseIntervalChips(['d', 'w', 'M', 'q', 'y', 'auto']), [
+        'day',
+        'week',
+        'month',
+        'quarter',
+        'year',
+        'auto',
+    ]);
+    assert.deepEqual(parseIntervalChips('d, M;bad\nM'), ['day', 'month']);
+    assert.deepEqual(parseIntervalChips(undefined), []);
 });
 
 console.log(`range-chips: ${n} checks passed`);

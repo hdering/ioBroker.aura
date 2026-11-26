@@ -181,6 +181,7 @@ export function ChartSeriesHistoryPanel({
                         <option value="day">{t('echart.bucketDay')}</option>
                         <option value="week">{t('echart.bucketWeek')}</option>
                         <option value="month">{t('echart.bucketMonth')}</option>
+                        <option value="quarter">{t('echart.bucketQuarter')}</option>
                         <option value="year">{t('echart.bucketYear')}</option>
                     </select>
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>

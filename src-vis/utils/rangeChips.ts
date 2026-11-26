@@ -11,8 +11,58 @@
  * Tokens that spell one of the built-in presets resolve to that preset, so a chip list that merely
  * reorders the defaults fetches and buckets exactly like before. Everything else becomes a
  * `custom` range with value + unit.
+ *
+ * A `/` names the bar interval of the counter (`delta`) series while the chip is active (issue
+ * #1036): `2y/M` shows two years as monthly bars. Codes: `h` `d` `w` `M` `q` `y` and `auto`.
  */
-import type { EChartTimeRange } from '../hooks/useMultiSeriesData';
+import type { DeltaBucketSetting, EChartTimeRange } from '../hooks/useMultiSeriesData';
+
+/** Interval code of a token → bucket. Case matters for `M` (month) vs. a minute, as in the ranges. */
+const BUCKET_CODES: Record<string, DeltaBucketSetting> = {
+    h: 'hour',
+    d: 'day',
+    w: 'week',
+    M: 'month',
+    q: 'quarter',
+    Q: 'quarter',
+    y: 'year',
+    auto: 'auto',
+};
+
+/** Code a bucket is written as in a token — the inverse of `BUCKET_CODES`. */
+export const BUCKET_CODE: Record<DeltaBucketSetting, string> = {
+    hour: 'h',
+    day: 'd',
+    week: 'w',
+    month: 'M',
+    quarter: 'q',
+    year: 'y',
+    auto: 'auto',
+};
+
+/** Interval codes offered by the interval chip bar, fine to coarse. */
+export const INTERVAL_CODES = ['auto', 'h', 'd', 'w', 'M', 'q', 'y'] as const;
+
+/** One interval code (`M`, `q`, `auto`) → bucket setting, or null. */
+export function parseBucketCode(raw: unknown): DeltaBucketSetting | null {
+    if (typeof raw !== 'string') return null;
+    const s = raw.trim();
+    return BUCKET_CODES[s] ?? (s.toLowerCase() === 'auto' ? 'auto' : null);
+}
+
+/**
+ * The configured interval chips — codes as an array or one string separated by commas, semicolons
+ * or line breaks. Invalid codes are dropped, duplicates keep their first position.
+ */
+export function parseIntervalChips(raw: unknown): DeltaBucketSetting[] {
+    const list = Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split(/[,;\n]+/) : [];
+    const out: DeltaBucketSetting[] = [];
+    for (const item of list) {
+        const b = parseBucketCode(item);
+        if (b && !out.includes(b)) out.push(b);
+    }
+    return out;
+}
 
 /**
  * Units of a custom range: minutes, hours, days, weeks, calendar months, calendar years. Minutes are a
@@ -38,6 +88,8 @@ export interface RangeChip {
     unit?: RangeUnit;
     /** Lead into the future as a token (`36h`, `0h`), only when the chip names one. */
     lead?: string;
+    /** Bar interval of the `delta` series while the chip is active (`2y/M`) — not part of `key`. */
+    bucket?: DeltaBucketSetting;
     label: string;
 }
 
@@ -111,6 +163,14 @@ export function parseRangeToken(raw: unknown): RangeChip | null {
     const eq = raw.indexOf('=');
     const full = (eq >= 0 ? raw.slice(0, eq) : raw).trim();
     const caption = eq >= 0 ? raw.slice(eq + 1).trim() : '';
+    // `2y/M`, `2d+36h/h` — the interval comes last and is no part of the chip's key.
+    const slash = full.indexOf('/');
+    if (slash >= 0) {
+        const bucket = parseBucketCode(full.slice(slash + 1));
+        if (!bucket) return null;
+        const chip = parseRangeToken(full.slice(0, slash) + (eq >= 0 ? `=${caption}` : ''));
+        return chip && { ...chip, bucket };
+    }
     const plus = full.indexOf('+');
     const body = (plus >= 0 ? full.slice(0, plus) : full).trim();
     let lead: string | undefined;

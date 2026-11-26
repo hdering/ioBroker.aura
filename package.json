@@ -440,6 +440,7 @@
     "test:clause-logic": "node tools/tests/clause-logic.mjs",
     "test:range-chips": "node tools/tests/range-chips.mjs",
     "test:chart-range-chips": "node tools/tests/chart-range-chips.mjs",
+    "test:chart-interval-chips": "node tools/tests/chart-interval-chips.mjs",
     "test:clause-join-ui": "node tools/tests/clause-join-ui.mjs",
     "test:condition-set": "node tools/tests/condition-set.mjs",
     "test:condition-set-ui": "node tools/tests/condition-set-ui.mjs",

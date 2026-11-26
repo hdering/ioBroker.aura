@@ -13,13 +13,22 @@ import {
     resolveJsonArray,
     resolveJsonSeriesEntries,
     suggestJsonArrayPaths,
+    type DeltaBucketSetting,
     type EChartSeriesConfig,
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
 import { useT } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
 import { RangeChipsEditor } from './RangeChipsEditor';
-import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
+import {
+    INTERVAL_CODES,
+    parseBucketCode,
+    parseIntervalChips,
+    parseRangeChips,
+    RANGE_UNITS,
+    rangeKey,
+    type RangeUnit,
+} from '../../utils/rangeChips';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
@@ -188,6 +197,18 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // An own chip list (issue #709) supersedes the preset toggles.
     const hasOwnChips = parseRangeChips(o.rangeChips).length > 0;
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
+    // Interval chips re-bucket the counter series in the frontend (issue #1036).
+    const hasDelta = series.some((s) => s.aggregate === 'delta');
+    const intervalChips = parseIntervalChips(o.intervalChips);
+    const toggleIntervalChip = (b: DeltaBucketSetting) => {
+        const on = intervalChips.includes(b);
+        // Kept in the bar's fine-to-coarse order, written as the short codes the MCP knows.
+        const next = INTERVAL_CODES.filter((c) => {
+            const cb = parseBucketCode(c)!;
+            return cb === b ? !on : intervalChips.includes(cb);
+        });
+        setO({ intervalChips: next.length > 0 ? [...next] : undefined });
+    };
     /**
      * The mode NEVER touches the series. It used to normalise their data sources — every series
      * to `json` in the JSON mode, back to `history` in the other two — which quietly flattened a
@@ -901,8 +922,47 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                             : []),
                                     ]}
                                     onChange={(next) => setO({ rangeChips: next })}
+                                    withInterval={hasDelta}
                                 />
                             )}
+                            <Unavailable reason={hasDelta ? undefined : t('echart.intervalChipsNoDelta')}>
+                                <div className="mt-2" data-testid="echart-interval-chips-config">
+                                    <label
+                                        className="text-[11px] mb-1 block"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('echart.intervalChips')}
+                                    </label>
+                                    <div className="flex gap-1 flex-wrap">
+                                        {INTERVAL_CODES.map((code) => {
+                                            const b = parseBucketCode(code)!;
+                                            const active = intervalChips.includes(b);
+                                            return (
+                                                <button
+                                                    key={code}
+                                                    data-bucket={b}
+                                                    onClick={() => toggleIntervalChip(b)}
+                                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                    style={{
+                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        minWidth: 36,
+                                                    }}
+                                                >
+                                                    {t(`echart.intervalChip.${b}`)}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <p
+                                        className="text-[10px] mt-1"
+                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                    >
+                                        {t('echart.intervalChipsHint')}
+                                    </p>
+                                </div>
+                            </Unavailable>
                             <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                                 <input
                                     type="checkbox"

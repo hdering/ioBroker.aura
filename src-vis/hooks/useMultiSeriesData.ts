@@ -24,7 +24,10 @@ import {
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
 
 /** Calendar bucket the `delta` aggregation differences a rising counter over. */
-export type DeltaBucket = 'hour' | 'day' | 'week' | 'month' | 'year';
+export type DeltaBucket = 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
+
+/** Buckets from fine to coarse — hour, day, month, quarter and year nest; the week does not. */
+export const DELTA_BUCKET_ORDER: DeltaBucket[] = ['hour', 'day', 'week', 'month', 'quarter', 'year'];
 
 /** What the user picks — `auto` derives the bucket from the selected window (issue #536). */
 export type DeltaBucketSetting = DeltaBucket | 'auto';
@@ -149,8 +152,10 @@ export interface EChartSeriesConfig {
      */
     aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total' | 'none' | 'delta';
     /**
-     * Calendar bucket the `delta` aggregation differences over (default `hour`). `auto` derives it
-     * from the active window instead — see `resolveDeltaBucket`.
+     * Calendar bucket the `delta` aggregation differences over (default `hour`; also `quarter`). `auto`
+     * derives it from the active window instead — up to 1 day hourly, 45 days daily, 180 days weekly,
+     * 3 years monthly, 10 years quarterly, beyond that yearly. A range chip with `/…` or the widget's
+     * `intervalChips` override it in the frontend.
      */
     deltaBucket?: DeltaBucketSetting;
     /**
@@ -280,6 +285,7 @@ export function nextBucketStart(ts: number, bucket: DeltaBucket): number {
     else if (bucket === 'day') d.setDate(d.getDate() + 1);
     else if (bucket === 'week') d.setDate(d.getDate() + 7);
     else if (bucket === 'month') d.setMonth(d.getMonth() + 1);
+    else if (bucket === 'quarter') d.setMonth(d.getMonth() + 3);
     else d.setFullYear(d.getFullYear() + 1);
     return d.getTime();
 }
@@ -522,6 +528,10 @@ export function bucketStart(ts: number, bucket: DeltaBucket): number {
     d.setDate(1);
     if (bucket === 'month') return d.getTime();
     // Day is already 1, so setting the month can't roll over into the next one.
+    if (bucket === 'quarter') {
+        d.setMonth(d.getMonth() - (d.getMonth() % 3));
+        return d.getTime();
+    }
     d.setMonth(0);
     return d.getTime();
 }
@@ -533,6 +543,7 @@ export function prevBucketStart(ts: number, bucket: DeltaBucket): number {
     else if (bucket === 'day') d.setDate(d.getDate() - 1);
     else if (bucket === 'week') d.setDate(d.getDate() - 7);
     else if (bucket === 'month') d.setMonth(d.getMonth() - 1);
+    else if (bucket === 'quarter') d.setMonth(d.getMonth() - 3);
     else d.setFullYear(d.getFullYear() - 1);
     return d.getTime();
 }
@@ -547,14 +558,34 @@ export function prevBucketStart(ts: number, bucket: DeltaBucket): number {
  * the bucket a user would expect rather than one step coarser. The weekly band only ever comes from
  * a custom window (no preset falls into it) and keeps a "90 days" selection at ~13 bars instead of
  * the three a monthly bucket would give.
+ *
+ * Monthly bars reach up to three years and quarterly ones up to ten (issue #1036): a two-year
+ * window used to drop straight to the yearly bucket and came out as three bars.
  */
 export function resolveDeltaBucket(setting: DeltaBucketSetting | undefined, rangeMs: number): DeltaBucket {
     if (setting !== 'auto') return setting ?? 'hour';
     if (rangeMs <= 26 * 3_600_000) return 'hour';
     if (rangeMs <= 45 * 86_400_000) return 'day';
     if (rangeMs <= 180 * 86_400_000) return 'week';
-    if (rangeMs <= 400 * 86_400_000) return 'month';
+    if (rangeMs <= 1130 * 86_400_000) return 'month';
+    if (rangeMs <= 3700 * 86_400_000) return 'quarter';
     return 'year';
+}
+
+/**
+ * Number of bars a bucket would give over a window, roughly — used to grey out interval chips
+ * whose choice would flood the chart (hourly bars over a year) or leave it with a single bar.
+ */
+export function approxBucketCount(bucket: DeltaBucket, rangeMs: number): number {
+    const len: Record<DeltaBucket, number> = {
+        hour: 3_600_000,
+        day: 86_400_000,
+        week: 7 * 86_400_000,
+        month: 30.44 * 86_400_000,
+        quarter: 91.31 * 86_400_000,
+        year: 365.25 * 86_400_000,
+    };
+    return rangeMs / len[bucket];
 }
 
 /**
@@ -614,7 +645,7 @@ export function deltaFetchCount(step: number, rangeMs: number): number {
  * better: the monthly bars would then hang out by most of a month.
  */
 export function rollingWindowStart(series: EChartSeriesConfig[], rangeMs: number, end: number): number {
-    const order: DeltaBucket[] = ['hour', 'day', 'week', 'month', 'year'];
+    const order = DELTA_BUCKET_ORDER;
     const coarsest = series
         .filter(
             (s) =>

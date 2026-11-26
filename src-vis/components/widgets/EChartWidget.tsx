@@ -14,6 +14,8 @@ import {
     shiftTime,
     reducePeriod,
     periodFromBars,
+    approxBucketCount,
+    type DeltaBucketSetting,
     type EChartSeriesConfig,
     type EChartTimeRange,
     type JsonAxisBounds,
@@ -70,7 +72,14 @@ import {
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { HistoryErrorNote } from './HistoryErrorNote';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
-import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
+import {
+    parseIntervalChips,
+    parseRangeChips,
+    rangeKey,
+    rangeLabel,
+    type RangeChip,
+    type RangeUnit,
+} from '../../utils/rangeChips';
 import { useChartNav } from '../../hooks/useChartNav';
 import { parseLead, parseNavFuture } from '../../utils/chartNav';
 import {
@@ -644,6 +653,36 @@ function EChartBody({ config, editMode }: WidgetProps) {
     // Points after now are data, not artefacts — the fetch neither stops at now nor trims them.
     const futureOn = isTimeseries && (navFuture.kind !== 'none' || leadMs > 0 || navCurrent === 'starts-today');
 
+    // ── Bar interval of the counter (`delta`) series (issue #1036) ──
+    // Three layers, the first that is set wins: the interval chip picked in the frontend, the
+    // interval of the active range chip (`2y/M`), the series' own setting.
+    const intervalChips = parseIntervalChips(o.intervalChips as string[] | undefined);
+    const hasDelta = echartSeries.some((s) => s.aggregate === 'delta');
+    const activeChip = chipList.find((c) => c.key === nav.chipKey);
+    const [pickedBucket, setPickedBucket] = useState<DeltaBucketSetting | null>(null);
+    // A range chip that names its own interval takes over again when it is picked.
+    const chipBucket = activeChip?.bucket;
+    useEffect(() => {
+        if (chipBucket) setPickedBucket(null);
+    }, [nav.chipKey, chipBucket]);
+    // Window the interval is judged against — `total` has no known length up front.
+    const bucketWindowMs = dayWindow
+        ? dayWindow.end - dayWindow.start
+        : activeRange === 'total'
+          ? null
+          : rangeToMs(activeRange, activeCustomVal, activeCustomUnit);
+    /** An interval that would give more than 1500 bars or not even one is not offered. */
+    const intervalUsable = (b: DeltaBucketSetting) => {
+        if (b === 'auto' || bucketWindowMs === null) return true;
+        const n = approxBucketCount(b, bucketWindowMs);
+        return n <= 1500 && n >= 1;
+    };
+    const bucketOverride: DeltaBucketSetting | undefined =
+        pickedBucket && intervalUsable(pickedBucket) ? pickedBucket : chipBucket;
+    // What the interval bar lights up: the override, else what the first counter series is set to.
+    const shownBucket: DeltaBucketSetting =
+        bucketOverride ?? echartSeries.find((s) => s.aggregate === 'delta')?.deltaBucket ?? 'hour';
+
     /**
      * Where a series takes its data from, with the mode having the last word. The JSON mode reads
      * every series out of its datapoint value — that is what the mode IS — so it overrides the
@@ -664,6 +703,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
         // A shifted comparison bar is the last reading at the shifted "now" (issue #730) — raw rows,
         // not the average of the window's last bucket. An explicit aggregate stays.
         aggregate: echartMode === 'comparison' && !s.aggregate && seriesTimeShift(s) ? ('none' as const) : s.aggregate,
+        deltaBucket: s.aggregate === 'delta' && bucketOverride ? bucketOverride : s.deltaBucket,
         historyRange: activeRange,
         historyRangeCustomValue: activeCustomVal,
         historyRangeCustomUnit: activeCustomUnit,
@@ -2040,11 +2080,49 @@ function EChartBody({ config, editMode }: WidgetProps) {
             </div>
         ) : null;
 
+    // Interval chips (issue #1036) — only a chart with counter series has bars to re-bucket.
+    const intervalSelector =
+        hasHistory && hasDelta && intervalChips.length > 0 ? (
+            <div
+                className={`nodrag flex ${chartControlGap(chipSize)} min-w-0 overflow-x-auto aura-no-scrollbar`}
+                data-testid="echart-interval-chips"
+            >
+                {intervalChips.map((b) => {
+                    const active = shownBucket === b;
+                    const usable = intervalUsable(b);
+                    return (
+                        <button
+                            key={b}
+                            className={`${chartControlCls(chipSize)} shrink-0 whitespace-nowrap`}
+                            style={{
+                                background: active ? 'var(--accent)' : 'var(--app-border)',
+                                color: active ? '#fff' : 'var(--text-secondary)',
+                            }}
+                            disabled={!usable}
+                            data-bucket={b}
+                            onClick={() => setPickedBucket(b)}
+                        >
+                            {t(`echart.intervalChip.${b}`)}
+                        </button>
+                    );
+                })}
+            </div>
+        ) : null;
+    const chipsRow =
+        rangeSelector && intervalSelector ? (
+            <div className="flex items-center gap-x-3 gap-y-1 min-w-0 flex-wrap">
+                {rangeSelector}
+                {intervalSelector}
+            </div>
+        ) : (
+            rangeSelector || intervalSelector
+        );
+
     const dayNavControls = dayNav && hasHistory ? <ChartNavBar nav={nav} chips={chipList} size={navSize} /> : null;
     // Chips and paging bar each sit above or below the chart on their own (#871).
     const controlsAt = (below: boolean) => (
         <ChartControlsRow
-            chips={chipsBelow === below && rangeSelector}
+            chips={chipsBelow === below && chipsRow}
             bar={navBelow === below && dayNavControls}
             below={below}
         />

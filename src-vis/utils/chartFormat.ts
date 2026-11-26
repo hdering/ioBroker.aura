@@ -21,9 +21,9 @@ export function formatYTick(value: number, decimals: number, compact: boolean, f
 }
 
 /** Calendar bucket a `delta` series is differenced over — mirrors `DeltaBucket` of the data hook. */
-export type ChartBucket = 'hour' | 'day' | 'week' | 'month' | 'year';
+export type ChartBucket = 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
 
-const BUCKET_ORDER: ChartBucket[] = ['hour', 'day', 'week', 'month', 'year'];
+const BUCKET_ORDER: ChartBucket[] = ['hour', 'day', 'week', 'month', 'quarter', 'year'];
 
 /** The coarsest of the given buckets — the one the shared x axis has to be readable at. */
 export function coarsestBucket(buckets: (ChartBucket | undefined)[]): ChartBucket | undefined {
@@ -42,6 +42,7 @@ export function coarsestBucket(buckets: (ChartBucket | undefined)[]): ChartBucke
  */
 export function bucketAxisMinInterval(bucket: ChartBucket): number {
     if (bucket === 'year') return 365 * 86_400_000;
+    if (bucket === 'quarter') return 89 * 86_400_000;
     if (bucket === 'month') return 28 * 86_400_000;
     if (bucket === 'week' || bucket === 'day') return 86_400_000;
     return 3_600_000;
@@ -57,6 +58,8 @@ export function bucketAxisMinInterval(bucket: ChartBucket): number {
  */
 export function bucketBandMs(bucket: ChartBucket): number {
     if (bucket === 'year') return 365 * 86_400_000;
+    // Q1 of a common year: 31 + 28 + 31 days.
+    if (bucket === 'quarter') return 90 * 86_400_000;
     if (bucket === 'month') return 28 * 86_400_000;
     if (bucket === 'week') return 7 * 86_400_000;
     if (bucket === 'day') return 86_400_000;
@@ -88,6 +91,11 @@ export function bucketAxisMax(dataMin: number, dataMax: number, lastBucket: numb
     return Math.max(dataMax + pad - bucketBandMs(bucket) / 2, lastBucket);
 }
 
+/** `Q1 2026` — the same in every language the frontend speaks. */
+function quarterLabel(d: Date): string {
+    return `Q${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`;
+}
+
 /** Local calendar granularity of a timestamp: `year` = exactly Jan 1st 00:00, and so on. */
 function tsUnit(d: Date): ChartBucket | 'sub-hour' {
     if (d.getMinutes() || d.getSeconds() || d.getMilliseconds()) return 'sub-hour';
@@ -109,10 +117,12 @@ export function bucketAxisLabel(ts: number, bucket: ChartBucket, locale: string)
     const d = new Date(ts);
     const unit = tsUnit(d);
     const rank = (u: ChartBucket | 'sub-hour') => (u === 'sub-hour' ? -1 : BUCKET_ORDER.indexOf(u));
-    // A week bucket has no unit of its own — its bars start at midnight, like a day's.
-    const needed = bucket === 'week' ? 'day' : bucket;
+    // A week bucket has no unit of its own — its bars start at midnight, like a day's. A quarter's
+    // start on the first of a month, and only every third month is one.
+    const needed = bucket === 'week' ? 'day' : bucket === 'quarter' ? 'month' : bucket;
     if (rank(unit) < rank(needed)) return '';
     if (bucket === 'year') return String(d.getFullYear());
+    if (bucket === 'quarter') return d.getMonth() % 3 === 0 ? quarterLabel(d) : '';
     if (bucket === 'month') {
         const month = d.toLocaleDateString(locale, { month: 'short' });
         // January carries the year, so a multi-year window stays readable without a second row.
@@ -130,6 +140,7 @@ export function bucketAxisLabel(ts: number, bucket: ChartBucket, locale: string)
 export function bucketTooltipLabel(ts: number, bucket: ChartBucket, locale: string): string {
     const d = new Date(ts);
     if (bucket === 'year') return String(d.getFullYear());
+    if (bucket === 'quarter') return quarterLabel(d);
     if (bucket === 'month') return d.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
     if (bucket === 'week' || bucket === 'day') return d.toLocaleDateString(locale, { dateStyle: 'medium' });
     return d.toLocaleString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });

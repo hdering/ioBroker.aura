@@ -343,6 +343,36 @@ check('classify - a plain rising meter is not', looksLikeResettingCounter(meter)
     );
 }
 
+// -- 14. quarters, and the auto bucket of multi-year windows (issue #1036) -------------------
+{
+    const DAY = 86_400_000;
+    check(
+        '2 year window - auto bucket is month, not year (3 bars)',
+        resolveDeltaBucket('auto', 731 * DAY) === 'month',
+        resolveDeltaBucket('auto', 731 * DAY),
+    );
+    check('5 year window - auto bucket is quarter', resolveDeltaBucket('auto', 5 * 365 * DAY) === 'quarter');
+    check('15 year window - auto bucket is year', resolveDeltaBucket('auto', 15 * 365 * DAY) === 'year');
+    const may = new Date(2026, 4, 17, 13, 0).getTime();
+    check(
+        'quarter bucket starts on the first of Jan/Apr/Jul/Oct',
+        bucketStart(may, 'quarter') === new Date(2026, 3, 1).getTime() &&
+            bucketStart(new Date(2026, 11, 31).getTime(), 'quarter') === new Date(2026, 9, 1).getTime(),
+        new Date(bucketStart(may, 'quarter')).toString(),
+    );
+    // Daily rising meter over Jan-Jun: two quarterly bars, the first holds Jan-Mar.
+    const meter = [];
+    for (let t = new Date(2026, 0, 1).getTime(); t <= new Date(2026, 5, 30).getTime(); t += DAY) {
+        meter.push([t, meter.length]);
+    }
+    const q = bucketDeltas(meter, 'quarter', new Date(2026, 0, 1).getTime()).points;
+    check(
+        'quarterly deltas - one bar per quarter',
+        q.length === 2 && q[0][0] === new Date(2026, 0, 1).getTime() && q[1][0] === new Date(2026, 3, 1).getTime(),
+        JSON.stringify(q.map(([ts, v]) => [new Date(ts).toISOString().slice(0, 10), round(v)])),
+    );
+}
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);
