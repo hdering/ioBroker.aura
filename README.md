@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.6.0-next.5 (2026-11-26) — next/test release
+- 🌟 **New feature:** Chart - the bar interval of meter (consumption) series can now be chosen in the frontend: a new interval chip bar (hour, day, week, month, quarter, year) and an own interval per range chip (e.g. 2 years as monthly bars); new "per quarter" interval, and "automatic" now keeps monthly bars up to 3 years and quarterly bars up to 10 years instead of switching to yearly bars after one year ([#1036](https://github.com/hdering/ioBroker.aura/issues/1036))
+
+
 ### 1.6.0-next.4 (2026-11-26) — next/test release
 - 🐛 **Bug fix:** Tab switch - leaving and opening a tab with groups, folded widgets or widgets with automatic height is faster: a tab that is not shown no longer reports their heights as 0, which redrew the whole dashboard once per widget, with every group on every tab opened before ([#1034](https://github.com/hdering/ioBroker.aura/issues/1034))
 - 🐛 **Bug fix:** MCP - changing a widget (e.g. only its title) is no longer refused because of an error the widget already had; such errors are reported as warnings, and a value widget without a datapoint that only shows its HTML template is accepted ([#1035](https://github.com/hdering/ioBroker.aura/issues/1035))
@@ -246,14 +250,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Status overview - new setting "Additional battery datapoints" in the battery category: datapoints matching these patterns (text or /regex/) count as batteries even without a battery role, e.g. Shelly devices mirrored over MQTT; numbers or text are read as a level in %, booleans as a low-battery flag
 
 
-### 1.3.0-next.0 (2026-11-20) — next/test release
-- 🐛 **Bug fix:** Status overview - aliases filed as alias.0.<room>.<device>.<state> now count as one device each instead of the whole room folder, so a percent battery alias no longer hides the voltage and LOWBAT aliases of the other devices in that room; device names and the battery level lookup follow ([#1002](https://github.com/hdering/ioBroker.aura/issues/1002))
-- 🌟 **New feature:** Status overview - new layout "Table": every part of a row is a column lined up across all rows, so values, battery types and rooms sit under each other, with a header row of column names; new "Row layout" setting to order, place (left / behind the name / right; two-line layout: line 1 / line 2 / right) and hide the parts of a row, e.g. the battery type before the value ([#1003](https://github.com/hdering/ioBroker.aura/issues/1003))
-- 🌟 **New feature:** Adapter - new message "help": a description of all messages for AI agents (e.g. pi-agent) and script authors, and common.supportedMessages.help
-- 🌟 **New feature:** Datapoint picker - new "Pin filters" button: the chosen filters (e.g. adapter "alias") are remembered and every picker opens with them; changes are kept while pinned, "Unpin" goes back to the default ([#1005](https://github.com/hdering/ioBroker.aura/issues/1005))
-- 🌟 **New feature:** Click actions - the URL of "External link" and "iFrame popup" may contain datapoint placeholders: {dp} is the value of the clicked list row (or the widget's datapoint), {adapter.0.id} that of any datapoint; e.g. http://{dp}/ opens an IP stored in a datapoint, a missing http:// is added ([#1006](https://github.com/hdering/ioBroker.aura/issues/1006))
-
-
 ## License
 
 MIT License
@@ -265,6 +261,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
