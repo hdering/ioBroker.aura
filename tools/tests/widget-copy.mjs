@@ -54,6 +54,7 @@ await build({
                         'export const withSuppressedDirty = (fn) => fn();',
                         'export const registerExternalReader = () => {};',
                         'export const registerPreSaveHook = () => {};',
+                        'export const registerSaveVeto = () => {};',
                         'export const isScreenshotMode = () => false;',
                     ].join('\n'),
                     loader: 'js',
