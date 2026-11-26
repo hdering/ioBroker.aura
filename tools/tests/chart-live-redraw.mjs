@@ -4,6 +4,10 @@
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/chart-live-redraw.mjs
 //
+// Needs a dev server that is connected to an ioBroker (the default proxy target from
+// .iobroker-url). Against a dead target (AURA_IOBROKER_URL=http://127.0.0.1:9) the charts get no
+// history at all, not even the mocked one, and four checks fail with "0 → 0" points.
+//
 // The reported picture: six series on sockets that report every 1–4 s. Every reading of any of
 // them redrew all lines from left to right — the chart replaced its series, and without ids
 // echarts could not match the new ones to the drawn ones, so it dropped and recreated each.
