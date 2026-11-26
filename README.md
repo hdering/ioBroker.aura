@@ -143,6 +143,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.7.0-next.0 (2026-11-26) — next/test release
+- 🌟 **New feature:** Energy flow (evcc) - new layout "Energiebalken": an evcc-style energy bar with the sources (battery, PV self-consumption, PV export, grid) as segments, brackets for "In" above and "Out" below (house, loadpoints, battery charging, feed-in) and the battery state of charge on the right
+
+
 ### 1.6.0-next.5 (2026-11-26) — next/test release
 - 🌟 **New feature:** Chart - the bar interval of meter (consumption) series can now be chosen in the frontend: a new interval chip bar (hour, day, week, month, quarter, year) and an own interval per range chip (e.g. 2 years as monthly bars); new "per quarter" interval, and "automatic" now keeps monthly bars up to 3 years and quarterly bars up to 10 years instead of switching to yearly bars after one year ([#1036](https://github.com/hdering/ioBroker.aura/issues/1036))
 
@@ -244,12 +248,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Status overview - new setting "Additional alarm datapoints" in the smoke & water alarm category: datapoints matching these patterns (text or /regex/) count as alarms even without an alarm role, e.g. a Shelly Flood mirrored over MQTT; true (or 1) triggers the alarm. The same field also exists for open windows & doors ("Additional window and door datapoints") and lights on ("Additional light datapoints"; a number counts as brightness). A "+ Datapoint" button next to each of these fields (and next to "Additional offline datapoints") picks single datapoints from the datapoint picker and appends their ids
 
 
-### 1.4.0-next.0 (2026-11-21) — next/test release
-- 🌟 **New feature:** Add widget dialog - the "Web components" section shows how many components are available
-- 🌟 **New feature:** Status overview - the many settings moved from the options panel into a tabbed dialog "Configure status overview" (categories with a list on the left and their settings on the right, datapoints, reminder list, rows, names, battery types); the panel keeps only the quick display options
-- 🌟 **New feature:** Status overview - new setting "Additional battery datapoints" in the battery category: datapoints matching these patterns (text or /regex/) count as batteries even without a battery role, e.g. Shelly devices mirrored over MQTT; numbers or text are read as a level in %, booleans as a low-battery flag
-
-
 ## License
 
 MIT License
@@ -261,6 +259,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
