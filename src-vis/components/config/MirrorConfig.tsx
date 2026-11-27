@@ -271,6 +271,8 @@ function WidgetSourcePicker({ config, onConfigChange }: Props) {
         });
     };
 
+    const sizeFromSource = config.options?.sizeFromSource === true;
+
     const rowStyle = (id: string): React.CSSProperties => ({
         padding: '4px 8px',
         cursor: 'pointer',
@@ -338,6 +340,32 @@ function WidgetSourcePicker({ config, onConfigChange }: Props) {
                     </div>
                 )}
             </div>
+            {/* "Größe wie Quelle" (#1041): the mirror always takes the source's w × h. */}
+            <div className="flex items-center justify-between pt-2">
+                <label className="text-[11px]" style={labelStyle}>
+                    {t('mirror.sizeFromSource')}
+                </label>
+                <button
+                    type="button"
+                    data-aura-mirror-size-from-source=""
+                    onClick={() =>
+                        onConfigChange({
+                            ...config,
+                            options: { ...config.options, sizeFromSource: sizeFromSource ? undefined : true },
+                        })
+                    }
+                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                    style={{ background: sizeFromSource ? 'var(--accent)' : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: sizeFromSource ? '18px' : '2px' }}
+                    />
+                </button>
+            </div>
+            <p className="text-[10px]" style={labelStyle}>
+                {t('mirror.sizeFromSourceHint')}
+            </p>
         </div>
     );
 }

@@ -51,7 +51,7 @@ import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { isGroupType } from '../../utils/groupTypes';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { TabChainProvider } from '../../contexts/TabChainContext';
-import { mirrorTargetWidgetId } from '../../utils/mirrorSource';
+import { mirrorFollowsSourceSize, mirrorTargetWidgetId, withSourceSize } from '../../utils/mirrorSource';
 import { flowBands, flowGridTemplate, flowModeFor, normalizeFlowFill } from '../../utils/flowOrder';
 import { useFlowHeights } from '../../hooks/useFlowHeights';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
@@ -274,7 +274,18 @@ export function Dashboard({
     );
 
     // In frontend view, use provided override; otherwise use the active section
-    const tabs = viewTabs ?? section.tabs;
+    // A mirror with "Größe wie Quelle" is placed with its source's w × h (#1041) —
+    // derived here once, so the desktop grid, the phone stack and the editor all see it.
+    const rawTabs = viewTabs ?? section.tabs;
+    const tabs = useMemo(
+        () =>
+            rawTabs.map((tab) => {
+                const list = tab.widgets ?? [];
+                const sized = list.map((w) => withSourceSize(w, widgetById));
+                return sized.some((w, i) => w !== list[i]) ? { ...tab, widgets: sized } : tab;
+            }),
+        [rawTabs, widgetById],
+    );
     const activeTabId = viewActiveTabId ?? section.activeTabId;
 
     // One stable callback for every frame — an inline arrow would defeat WidgetFrame's memo.
@@ -1277,6 +1288,10 @@ export function Dashboard({
                                                         // day it opens again — dragging its edge would only persist a
                                                         // transient row count, so the handle is taken away while folded.
                                                         ...(editMode && collapsedItemNow(w, gw)
+                                                            ? { isResizable: false }
+                                                            : {}),
+                                                        // "Größe wie Quelle": the size is the source's — resize that one.
+                                                        ...(editMode && mirrorFollowsSourceSize(w)
                                                             ? { isResizable: false }
                                                             : {}),
                                                     };

@@ -19,8 +19,9 @@ Im Editor unter **Widget bearbeiten → Spiegel**. Die Liste enthält jedes Widg
 | Option | Standard | |
 | --- | --- | --- |
 | `targetWidgetId` | — | ID des Quell-Widgets; `— Kein Widget —` hebt die Zuordnung auf |
+| `sizeFromSource` | aus | **Größe wie Quelle**: Breite und Höhe immer wie die Quelle — wird sie größer gezogen, wächst der Spiegel mit; im Editor nicht separat skalierbar |
 
-Beim Auswählen übernimmt der Spiegel einmalig Breite, Höhe und die Rahmen-Optionen `transparent`, `transparency` und `styleOverride` der Quelle, damit er von Anfang an gleich aussieht. Danach sind beide unabhängig.
+Beim Auswählen übernimmt der Spiegel einmalig (ohne **Größe wie Quelle**) Breite, Höhe und die Rahmen-Optionen `transparent`, `transparency` und `styleOverride` der Quelle, damit er von Anfang an gleich aussieht. Danach sind beide unabhängig.
 
 ## Quelle vs. Spiegel
 
@@ -28,7 +29,7 @@ Beim Auswählen übernimmt der Spiegel einmalig Breite, Höhe und die Rahmen-Opt
 | --- | --- |
 | Inhalt, Titel, Icon, Werte, Layout | Quelle |
 | Position im Raster | Spiegel |
-| Größe (`w` × `h`) | Spiegel — beim Auswählen von der Quelle übernommen |
+| Größe (`w` × `h`) | Spiegel — beim Auswählen von der Quelle übernommen; mit `sizeFromSource` immer Quelle (nur auf Tab-Ebene, nicht in Gruppen) |
 | Höhe an Inhalt anpassen (`autoHeight`) | Quelle — eigener Schalter am Spiegel ersetzt sie |
 | Transparenz und Stil-Overrides des Rahmens | Spiegel |
 | „Letzte Änderung"-Overlay | Quelle |

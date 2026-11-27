@@ -132,6 +132,109 @@ if ((await toggle.count()) === 1) {
 await page.keyboard.press('Escape');
 await page.evaluate(() => window.__auraShot.setEditMode(false));
 
+// ── 5. "Größe wie Quelle": the mirror takes the source's w × h, live ────────
+async function sized(srcGrid, sizeFromSource) {
+    scenario += 1;
+    const src = `w-msz-src-${scenario}`;
+    const mir = `w-msz-mir-${scenario}`;
+    const cfgs = (g) => [
+        { id: src, type: 'html', title: 'HTML', gridPos: { x: 0, y: 0, ...g }, options: { htmlContent: blocks(2) } },
+        {
+            id: mir,
+            type: 'mirror',
+            title: 'Spiegel',
+            gridPos: { x: 12, y: 0, w: 2, h: 3 },
+            options: { targetWidgetId: src, ...(sizeFromSource ? { sizeFromSource: true } : {}) },
+        },
+    ];
+    const measure = async (g) => {
+        await page.evaluate((c) => window.__auraShot.showWidgets(c), cfgs(g));
+        await page.waitForTimeout(900);
+        return page.evaluate(
+            ([s, m]) => {
+                const box = (id) => {
+                    const el = document.querySelector(`[data-aura-widget="${id}"]`);
+                    const it = el?.closest('.react-grid-item') ?? el;
+                    const r = it?.getBoundingClientRect();
+                    return r ? { w: Math.round(r.width), h: Math.round(r.height) } : { w: -1, h: -1 };
+                };
+                return { src: box(s), mir: box(m) };
+            },
+            [src, mir],
+        );
+    };
+    return { small: await measure(srcGrid[0]), big: await measure(srcGrid[1]) };
+}
+const grid = [
+    { w: 4, h: 6 },
+    { w: 8, h: 14 },
+];
+const on = await sized(grid, true);
+check(
+    'size from source: same size',
+    on.small.mir.w === on.small.src.w && on.small.mir.h === on.small.src.h,
+    JSON.stringify(on.small),
+);
+check(
+    'size from source: follows a bigger source',
+    on.big.mir.w === on.big.src.w && on.big.mir.h === on.big.src.h,
+    JSON.stringify(on.big),
+);
+const offSz = await sized(grid, false);
+check(
+    'own size: unchanged when the source grows',
+    offSz.big.mir.w === offSz.small.mir.w && offSz.big.mir.h === offSz.small.mir.h,
+    JSON.stringify(offSz.big.mir),
+);
+
+// Editor: no resize handle on a size-following mirror, the switch in its dialog
+await page.evaluate(() => window.__auraShot.setEditMode(true));
+await page.waitForTimeout(800);
+const handles = await page.evaluate(() => {
+    const n = (id) =>
+        document
+            .querySelector(`[data-aura-widget="${id}"]`)
+            ?.closest('.react-grid-item')
+            ?.classList.contains('react-resizable-hide')
+            ? 0
+            : 1;
+    const ids = [...document.querySelectorAll('[data-aura-widget^="w-msz-"]')].map((e) =>
+        e.getAttribute('data-aura-widget'),
+    );
+    return Object.fromEntries(ids.map((id) => [id, n(id)]));
+});
+const mirIds = Object.keys(handles).filter((k) => k.includes('-mir-'));
+check('editor: plain mirror still resizable', mirIds.length === 1 && handles[mirIds[0]] > 0, JSON.stringify(handles));
+await sized(grid, true);
+await page.evaluate(() => window.__auraShot.setEditMode(true));
+await page.waitForTimeout(800);
+const lastMir = `w-msz-mir-${scenario}`;
+const lockedHandles = await page.evaluate(
+    (id) =>
+        document
+            .querySelector(`[data-aura-widget="${id}"]`)
+            ?.closest('.react-grid-item')
+            ?.classList.contains('react-resizable-hide')
+            ? 0
+            : 1,
+    lastMir,
+);
+check('editor: size-following mirror has no resize handle', lockedHandles === 0, `${lockedHandles}`);
+const mcard = page.locator(`[data-aura-widget="${lastMir}"]`);
+await mcard.hover();
+await mcard.locator('.aura-edit-chrome button').first().click();
+await page.locator('button:text-is("Bearbeiten")').click();
+await page.waitForTimeout(600);
+await page.evaluate(() => window.__auraShot.unfoldSections?.());
+await page.waitForTimeout(300);
+const sw = page.locator('.aura-widget-edit-modal [data-aura-mirror-size-from-source]');
+check(
+    'dialog offers "Größe wie Quelle", on',
+    (await sw.count()) === 1 && (await sw.evaluate((b) => b.style.background)).includes('accent'),
+);
+await page.keyboard.press('Escape');
+await page.evaluate(() => window.__auraShot.setEditMode(false));
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

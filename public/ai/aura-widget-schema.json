@@ -20297,6 +20297,11 @@
           "type": "boolean",
           "description": "Widget-Spiegel: Höhe an den Inhalt der Quelle anpassen, wie autoHeight der Quelle (nur wenn deren Typ es kann). Leer = wie die Quelle, true/false = nur für den Spiegel an/aus – false lässt den Spiegel bei seinem gridPos.h, auch wenn die Quelle mitwächst. Nicht beim Tab-Spiegel."
         },
+        "sizeFromSource": {
+          "type": "boolean",
+          "default": false,
+          "description": "Widget-Spiegel \"Größe wie Quelle\": true = der Spiegel hat immer w und h der Quelle (eigene gridPos.w/h werden ignoriert, im Editor nicht separat skalierbar), Position bleibt die eigene. Größe also an der Quelle ändern. autoHeight hat Vorrang vor der Höhe. Nur auf Tab-Ebene, nicht als Kind einer Gruppe."
+        },
         "sourceKind": {
           "description": "Was gespiegelt wird: leer = ein Widget (targetWidgetId), \"tab\" = ein ganzer Tab (targetTabId). Ein Tab-Spiegel zeigt den Tab live im eigenen Kasten; seine Höhe ist frei (h), Überhang scrollt."
         },

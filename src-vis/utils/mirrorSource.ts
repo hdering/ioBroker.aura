@@ -25,3 +25,30 @@ export function mirrorTargetWidgetId(w: WidgetConfig | undefined): string | unde
     if (w?.type !== 'mirror' || isTabMirror(w)) return undefined;
     return (w.options?.targetWidgetId as string | undefined) || undefined;
 }
+
+/** A widget mirror with "Größe wie Quelle" (`sizeFromSource`): it always takes its source's w × h. */
+export function mirrorFollowsSourceSize(w: WidgetConfig | undefined): boolean {
+    return !!mirrorTargetWidgetId(w) && w?.options?.sizeFromSource === true;
+}
+
+// One derived object per (mirror, source size) — a fresh object on every render would
+// defeat WidgetFrame's memo.
+const sizedCache = new WeakMap<WidgetConfig, { w: number; h: number; out: WidgetConfig }>();
+
+/**
+ * The mirror as the grid places it: with `sizeFromSource` its own position and the
+ * source's width/height, so resizing the original resizes the mirror too. Everything
+ * else (and every other widget) comes back unchanged, same object.
+ */
+export function withSourceSize(w: WidgetConfig, byId: ReadonlyMap<string, WidgetConfig>): WidgetConfig {
+    if (!mirrorFollowsSourceSize(w)) return w;
+    const src = byId.get(mirrorTargetWidgetId(w) ?? '');
+    if (!src || src.type === 'mirror') return w;
+    const { w: sw, h: sh } = src.gridPos;
+    if (w.gridPos.w === sw && w.gridPos.h === sh) return w;
+    const hit = sizedCache.get(w);
+    if (hit && hit.w === sw && hit.h === sh) return hit.out;
+    const out = { ...w, gridPos: { ...w.gridPos, w: sw, h: sh } };
+    sizedCache.set(w, { w: sw, h: sh, out });
+    return out;
+}

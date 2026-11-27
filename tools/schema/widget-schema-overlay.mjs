@@ -707,6 +707,13 @@ export const WIDGET_OPTION_NOTES = {
         method: { description: 'HTTP-Methode.' },
     },
     mirror: {
+        sizeFromSource: {
+            description:
+                'Widget-Spiegel "Größe wie Quelle": true = der Spiegel hat immer w und h der Quelle (eigene ' +
+                'gridPos.w/h werden ignoriert, im Editor nicht separat skalierbar), Position bleibt die eigene. ' +
+                'Größe also an der Quelle ändern. autoHeight hat Vorrang vor der Höhe. Nur auf Tab-Ebene, nicht ' +
+                'als Kind einer Gruppe.',
+        },
         autoHeight: {
             description:
                 'Widget-Spiegel: Höhe an den Inhalt der Quelle anpassen, wie autoHeight der Quelle (nur wenn deren ' +
@@ -2783,6 +2790,8 @@ export const EXTRA_OPTIONS = {
     // Read by utils/autoHeight usesContentAutoHeight via the source (#1041).
     mirror: {
         autoHeight: { type: 'boolean' },
+        // Read in utils/mirrorSource withSourceSize (Dashboard), not by the widget.
+        sizeFromSource: { type: 'boolean', default: false },
     },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own

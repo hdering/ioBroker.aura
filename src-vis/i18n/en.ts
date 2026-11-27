@@ -1382,6 +1382,9 @@ export const en: Record<TranslationKey, string> = {
         'The widget grows as tall as its content instead of filling a fixed height. The set height is then overridden and can no longer be changed by hand.',
     'wf.edit.autoHeightMirrorHint':
         "The mirror grows as tall as the source's content. Without its own setting it follows the source – turn it off to give the mirror a height of its own.",
+    'mirror.sizeFromSource': 'Same size as source',
+    'mirror.sizeFromSourceHint':
+        'The mirror always takes the width and height of its source – resize the source and the mirror follows. Off = a size of its own. Fit height to content takes precedence.',
     'wf.edit.autoHeightNoScripts':
         'The sandbox does not allow scripts – the HTML cannot report its height. Add allow-scripts to the custom sandbox flags.',
     'wf.edit.defaultCollapsed': 'Collapsed by default',

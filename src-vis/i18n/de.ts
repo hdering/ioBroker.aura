@@ -1396,6 +1396,9 @@ export const de = {
         'Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe wird dann überschrieben und lässt sich nicht mehr manuell ändern.',
     'wf.edit.autoHeightMirrorHint':
         'Der Spiegel wird so hoch wie der Inhalt der Quelle. Ohne eigene Einstellung gilt die der Quelle – ausschalten, wenn der Spiegel eine eigene Höhe behalten soll.',
+    'mirror.sizeFromSource': 'Größe wie Quelle',
+    'mirror.sizeFromSourceHint':
+        'Der Spiegel übernimmt immer Breite und Höhe der Quelle – wird sie größer gezogen, wächst er mit. Aus = eigene Größe. Höhe nach Inhalt hat Vorrang.',
     'wf.edit.autoHeightNoScripts':
         'Die Sandbox erlaubt keine Skripte – das HTML kann seine Höhe nicht melden. Bei eigenen Sandbox-Flags allow-scripts ergänzen.',
     'wf.edit.defaultCollapsed': 'Standardmäßig eingeklappt',
