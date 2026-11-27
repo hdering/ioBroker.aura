@@ -214,6 +214,7 @@ export function AlarmWidget({ config, editMode }: WidgetProps) {
             enableableDp: str(o.enableableDp),
             countdownDp: str(o.countdownDp),
             countdownUnit: o.countdownUnit === 'endTs' ? 'endTs' : 's',
+            silentCountdownDp: str(o.silentCountdownDp),
             circuitsDp: str(o.circuitsDp),
             contacts: (o.contacts as AlarmContactDef[] | undefined) ?? [],
             contactsBlockArm: o.contactsBlockArm === true,
@@ -228,20 +229,22 @@ export function AlarmWidget({ config, editMode }: WidgetProps) {
             logDp: str(o.logDp),
             logSeparator: ((o.logSeparator as LogSeparator) ?? 'br') as LogSeparator,
             logLines,
-            pinCheck: o.pinCheck === 'dp' ? 'dp' : 'none',
+            pinCheck: o.pinCheck === 'dp' || o.pinCheck === 'aura' ? o.pinCheck : 'none',
+            pinCode: str(o.pinCode),
             pinDp: str(o.pinDp),
             pinPayload: o.pinPayload === 'pin' ? 'pin' : 'json',
             wrongPinDp: str(o.wrongPinDp),
             requirePin,
             requireArmPin,
             disarmMode: modes.find((m) => m.disarm),
+            modes,
         },
         manual,
     );
     const src = manual ? manualSrc : adapter;
 
     // #911: touch keypad in a popup instead of the inline field (wall tablets)
-    const pinPossible = manual ? o.pinCheck === 'dp' : true;
+    const pinPossible = manual ? o.pinCheck === 'dp' || o.pinCheck === 'aura' : true;
     const keypad = pinPossible && (requirePin || requireArmPin) && o.pinInput === 'keypad';
 
     const WidgetIcon = getWidgetIcon((o.icon as string) ?? 'ShieldAlert', ShieldAlert);
@@ -288,10 +291,24 @@ export function AlarmWidget({ config, editMode }: WidgetProps) {
     };
     const submitPin = (code = pin) => {
         if (!code) return;
-        src.submitPin(triggered ? { kind: 'disarm' } : pinTarget, code);
+        const verdict = src.submitPin(triggered ? { kind: 'disarm' } : pinTarget, code);
         setPin('');
+        // Aura checks the code asynchronously — a miss keeps the entry open with its message.
+        if (verdict instanceof Promise) {
+            void verdict.then((ok) => {
+                if (ok) setPinOpen(false);
+            });
+            return;
+        }
         setPinOpen(false);
     };
+    const pinErrorText = (() => {
+        const e = src.pinError;
+        if (!e) return '';
+        if (e.kind === 'locked') return t('alarm.pin.locked', { s: e.retryAfter }) as string;
+        if (e.kind === 'unknown') return t('alarm.pin.unknownCode') as string;
+        return t('alarm.pin.unavailable') as string;
+    })();
     const pinForDisarm =
         triggered || pinTarget.kind === 'disarm' || (pinTarget.kind === 'mode' && pinTarget.mode.disarm);
     const pinWhileTriggered = triggered && src.pinWhileTriggered;
@@ -406,6 +423,7 @@ export function AlarmWidget({ config, editMode }: WidgetProps) {
                 <AlarmKeypadModal
                     title={(pinForDisarm ? t('alarm.keypad.title') : t('alarm.keypad.titleArm')) as string}
                     wrongPin={src.wrongPin}
+                    errorText={pinErrorText || undefined}
                     onSubmit={submitPin}
                     onCancel={cancelPin}
                 />
@@ -429,8 +447,10 @@ export function AlarmWidget({ config, editMode }: WidgetProps) {
                         <KeyRound size={Math.round(14 * sizeScale)} />
                         {t('alarm.pinPlaceholder') as string}
                     </button>
-                    {src.wrongPin && (
-                        <span style={{ color: '#ef4444', fontSize: fsTiny }}>{t('alarm.wrongPin') as string}</span>
+                    {(src.wrongPin || pinErrorText) && (
+                        <span style={{ color: '#ef4444', fontSize: fsTiny }}>
+                            {pinErrorText || (t('alarm.wrongPin') as string)}
+                        </span>
                     )}
                 </div>
             ) : /* PIN entry: after a PIN request, and always while an alarm is triggered */
@@ -496,9 +516,12 @@ export function AlarmWidget({ config, editMode }: WidgetProps) {
                             <X size={Math.round(14 * sizeScale)} />
                         </button>
                     )}
-                    {src.wrongPin && (
-                        <span className="basis-full" style={{ color: '#ef4444', fontSize: fsTiny }}>
-                            {t('alarm.wrongPin') as string}
+                    {(src.wrongPin || pinErrorText) && (
+                        <span
+                            className="aura-alarm-pin-error basis-full"
+                            style={{ color: '#ef4444', fontSize: fsTiny }}
+                        >
+                            {pinErrorText || (t('alarm.wrongPin') as string)}
                         </span>
                     )}
                 </div>

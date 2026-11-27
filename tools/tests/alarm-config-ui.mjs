@@ -186,6 +186,64 @@ check(
     (await page.locator(`.aura-widget-${ID}-hint .aura-alarm-hint`).count()) === 1,
 );
 
+// ── instance detection (adapter mode) ────────────────────────────────────────
+async function openFresh(id, options, views) {
+    await page.evaluate(
+        ([wid, opts, v]) => {
+            const a = window.__auraShot;
+            a.mockObjectView(v);
+            a.unfoldSections();
+            a.showWidgets(
+                [
+                    {
+                        id: wid,
+                        type: 'alarm',
+                        title: 'Alarmanlage',
+                        datapoint: '',
+                        gridPos: { x: 0, y: 0, w: 6, h: 8 },
+                        options: opts,
+                    },
+                ],
+                { editMode: true },
+            );
+            a.setEditMode(true);
+        },
+        [id, options, views],
+    );
+    await page.waitForTimeout(400);
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.locator(`.aura-widget-${id} .aura-edit-chrome button`).first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    await page.waitForTimeout(600);
+}
+await openFresh('w-alarm-noinst', {}, { instance: [] });
+check('no instance: hint shown', (await page.locator('[data-aura-alarm-no-instance]').count()) === 1);
+await page.locator('[data-aura-alarm-no-instance] button').click();
+await settle();
+check(
+    'no instance: button switches to own datapoints',
+    (await page.evaluate(() => window.__auraShot.widgetOptions('w-alarm-noinst'))).sourceMode === 'manual',
+);
+await page.keyboard.press('Escape');
+await openFresh(
+    'w-alarm-inst',
+    { alarmPrefix: 'alarm.0' },
+    {
+        instance: [
+            { id: 'system.adapter.alarm.0', value: {} },
+            { id: 'system.adapter.alarm.1', value: {} },
+        ],
+    },
+);
+check('instances: both offered', (await page.locator('[data-aura-alarm-instances] button').count()) === 2);
+await page.locator('[data-aura-alarm-instances] button', { hasText: 'alarm.1' }).click();
+await settle();
+check(
+    'instances: pick sets the prefix',
+    (await page.evaluate(() => window.__auraShot.widgetOptions('w-alarm-inst'))).alarmPrefix === 'alarm.1',
+);
+await page.keyboard.press('Escape');
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

@@ -35,6 +35,8 @@ export interface UnlockResult {
  */
 interface ApiJson {
     configured?: boolean;
+    ok?: boolean;
+    error?: string;
     token?: string;
     exp?: unknown;
     retryAfter?: number;
@@ -317,5 +319,23 @@ export async function pinUnlock(key: string, pin: string): Promise<UnlockOutcome
         };
     if (status === 429) return { ok: false, reason: 'ratelimited', retryAfter: json?.retryAfter };
     if (status === 401) return { ok: false, reason: 'wrong' };
+    return { ok: false, reason: 'error' };
+}
+
+export type PinVerifyOutcome =
+    | { ok: true }
+    | { ok: false; reason: 'wrong' | 'ratelimited' | 'unknown' | 'error'; retryAfter?: number };
+
+/**
+ * Check a code against a named PIN of the vault (#1037: alarm widget with
+ * `pinCheck: 'aura'`). Only says yes or no — it unlocks nothing; the widget writes
+ * its command afterwards. Rate-limited per PIN like the view unlock.
+ */
+export async function pinVerify(code: string, pin: string): Promise<PinVerifyOutcome> {
+    const { status, json } = await request('POST', 'pin/verify', { body: { code, pin } });
+    if (status === 200 && json?.ok === true) return { ok: true };
+    if (status === 429) return { ok: false, reason: 'ratelimited', retryAfter: json?.retryAfter };
+    if (status === 401) return { ok: false, reason: 'wrong' };
+    if (status === 404 && json?.error === 'unknown code') return { ok: false, reason: 'unknown' };
     return { ok: false, reason: 'error' };
 }

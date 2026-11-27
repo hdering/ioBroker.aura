@@ -1243,7 +1243,9 @@ export interface AlarmModeDef {
     hidden?: boolean; // keep the entry but do not show the button
     writeDp?: string; // manual mode: datapoint the button writes; empty = stateDp
     writeValue?: string; // manual mode: value written; empty = key
-    activeWhen?: string; // manual mode: raw stateDp value that lights the button; empty = writeValue
+    activeWhen?: string; // manual mode: value that lights the button (of activeDp, else stateDp); empty = writeValue, with activeDp "true"
+    activeDp?: string; // manual mode: own datapoint that says whether this mode is on (systems with one boolean per mode)
+    phase?: AlarmPhase; // manual mode: status shown while this button is active and stateDp is empty; unset = off (disarm) / armed
     disarm?: boolean; // manual mode: this button disarms (PIN rule "Deaktivieren", always reachable during an alarm)
     requirePin?: boolean; // manual mode: PIN for this button; unset = requirePinForDisarm / requirePinForArm
 }

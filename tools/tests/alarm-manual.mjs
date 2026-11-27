@@ -386,6 +386,117 @@ check(
     JSON.stringify(await modeTexts(sel)),
 );
 
+// ── 7. One boolean per mode, no state datapoint ──────────────────────────────
+const PER_MODE = {
+    sourceMode: 'manual',
+    modes: [
+        { key: 'off', label: 'Aus', disarm: true, writeDp: `${D}.cmdOff`, writeValue: 'true', activeDp: `${D}.isOff` },
+        {
+            key: 'away',
+            label: 'Weg',
+            writeDp: `${D}.cmdAway`,
+            writeValue: 'true',
+            activeDp: `${D}.isAway`,
+            phase: 'armed',
+        },
+        {
+            key: 'night',
+            label: 'Nacht',
+            writeDp: `${D}.cmdNight`,
+            writeValue: 'true',
+            activeDp: `${D}.isNight`,
+            phase: 'night',
+        },
+    ],
+};
+sel = await show({ [`${D}.isOff`]: false, [`${D}.isAway`]: false, [`${D}.isNight`]: true }, PER_MODE);
+check(
+    'per mode: NACHT lit by its own datapoint',
+    JSON.stringify(norm(await activeModes(sel))) === '["NACHT"]',
+    JSON.stringify(await activeModes(sel)),
+);
+check('per mode: pill from the active mode', /nachtruhe/i.test(await pill(sel)), await pill(sel));
+sel = await show({ [`${D}.isOff`]: 1, [`${D}.isAway`]: 0, [`${D}.isNight`]: 0 }, PER_MODE);
+check(
+    'per mode: 1 counts as on',
+    JSON.stringify(norm(await activeModes(sel))) === '["AUS"]',
+    JSON.stringify(await activeModes(sel)),
+);
+check('per mode: AUS active = deactivated', /deaktiviert/i.test(await pill(sel)), await pill(sel));
+await resetWrites();
+await page.locator(`${sel} .aura-alarm-mode`, { hasText: /weg/i }).click();
+await settle();
+w = await writes();
+check(
+    'per mode: button writes its own command',
+    w.length === 1 && w[0].id === `${D}.cmdAway` && w[0].val === true,
+    JSON.stringify(w),
+);
+
+// ── 8. Silent alarm countdown ────────────────────────────────────────────────
+sel = await show({ [`${D}.state`]: true, [`${D}.silent`]: 45 }, { ...MANUAL, silentCountdownDp: `${D}.silent` });
+const cdText = await page.locator(`${sel} .aura-alarm-countdown`).innerText();
+check('silent countdown shown', /stiller alarm/i.test(cdText) && cdText.includes('45s'), cdText);
+
+// ── 9. PIN checked by Aura (named PIN, /api/aura/pin/verify faked) ───────────
+let verifyCalls = [];
+let verifyAnswer = { status: 200, body: { ok: true } };
+await page.route('**/api/aura/pin/verify', async (route) => {
+    verifyCalls.push(JSON.parse(route.request().postData() || '{}'));
+    await route.fulfill({
+        status: verifyAnswer.status,
+        contentType: 'application/json',
+        body: JSON.stringify(verifyAnswer.body),
+    });
+});
+const AURA_PIN = { ...MAPPED, pinCheck: 'aura', pinCode: 'code-1', pinDp: undefined };
+sel = await show({ [`${D}.state`]: 1 }, AURA_PIN);
+const pinField = () => page.locator(`${sel} input[type="password"]`);
+const enterPin = async (code) => {
+    await pinField().fill(code);
+    await pinField().press('Enter');
+    await page.waitForTimeout(600);
+};
+await resetWrites();
+await page.locator(`${sel} .aura-alarm-mode`, { hasText: /aus/i }).click();
+await settle();
+verifyAnswer = { status: 401, body: { error: 'invalid pin' } };
+await enterPin('1111');
+check(
+    'aura: code sent with the PIN id',
+    verifyCalls.at(-1)?.code === 'code-1' && verifyCalls.at(-1)?.pin === '1111',
+    JSON.stringify(verifyCalls),
+);
+check('aura: wrong PIN writes nothing', (await writes()).length === 0, JSON.stringify(await writes()));
+check(
+    'aura: wrong PIN keeps the field open with the message',
+    (await pinField().count()) === 1 &&
+        (await page.locator(`${sel} .aura-alarm-pin-error`).innerText()).match(/falsche pin/i) !== null,
+);
+verifyAnswer = { status: 429, body: { error: 'too many attempts', retryAfter: 15 } };
+await enterPin('2222');
+check(
+    'aura: lockout message with seconds',
+    (await page.locator(`${sel} .aura-alarm-pin-error`).innerText()).includes('15'),
+);
+verifyAnswer = { status: 404, body: { error: 'unknown code' } };
+await enterPin('3333');
+check(
+    'aura: deleted PIN says so',
+    /gibt es nicht mehr/i.test(await page.locator(`${sel} .aura-alarm-pin-error`).innerText()),
+);
+verifyAnswer = { status: 200, body: { ok: true } };
+await enterPin('4444');
+w = await writes();
+check(
+    'aura: right PIN writes the mode itself',
+    w.length === 1 && w[0].id === `${D}.state` && w[0].val === 0,
+    JSON.stringify(w),
+);
+check('aura: field closes after success', (await pinField().count()) === 0);
+check('aura: no PIN datapoint written', !w.some((x) => String(x.id).endsWith('.pin')));
+await page.unroute('**/api/aura/pin/verify');
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

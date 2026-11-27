@@ -1711,6 +1711,7 @@ class Aura extends utils.Adapter {
             log: this.log,
             restoreView: (key, content) => this._restoreProtectedView(key, content),
             onCodesChanged: () => this._syncPinCodes(),
+            widgetCodeUsers: (id) => this._widgetCodeUsers(id),
             // One cookie per instance: cookies ignore the port, aura.0 and aura.1
             // on one host would otherwise log each other out.
             cookieName: `aura_admin_${this.instance ?? 0}`,
@@ -1809,6 +1810,61 @@ class Aura extends utils.Adapter {
      * migration of views stored before PINs had names) and after a named PIN got
      * a new code. Writes only when something changed.
      */
+    /**
+     * Widgets that check a named PIN themselves (#1037: alarm widget with
+     * `pinCheck: 'aura'`) — as `widget:<id>`, so the vault refuses to delete a code
+     * one of them still asks for. Walks the dashboard, group children, popups and
+     * the content of PIN-protected views.
+     *
+     * @param {string} codeId named PIN id
+     * @returns {Promise<string[]>} users of the code
+     */
+    async _widgetCodeUsers(codeId) {
+        const roots = [];
+        for (const id of ['config.dashboard', 'config.group-defs', 'config.popup-config']) {
+            const st = await this.getStateAsync(id);
+            if (st && typeof st.val === 'string' && st.val) {
+                try {
+                    roots.push(JSON.parse(st.val));
+                } catch {
+                    /* unreadable state: nothing to find there */
+                }
+            }
+        }
+        if (this.vault) {
+            try {
+                roots.push(this.vault.load().sections || {});
+            } catch {
+                /* vault unreadable: the sections are checked by codeUsers anyway */
+            }
+        }
+        const users = new Set();
+        const walk = (node, depth) => {
+            if (!node || typeof node !== 'object' || depth > 40) {
+                return;
+            }
+            if (Array.isArray(node)) {
+                for (const x of node) {
+                    walk(x, depth + 1);
+                }
+                return;
+            }
+            const o = node.options;
+            if (node.type === 'alarm' && o && o.pinCheck === 'aura' && o.pinCode === codeId) {
+                users.add(`widget:${node.id || '?'}`);
+            }
+            for (const v of Object.values(node)) {
+                if (v && typeof v === 'object') {
+                    walk(v, depth + 1);
+                }
+            }
+        };
+        for (const r of roots) {
+            walk(r, 0);
+        }
+        return [...users];
+    }
+
     async _syncPinCodes() {
         if (!this.vault) return;
         const data = this.vault.load();

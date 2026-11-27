@@ -2131,7 +2131,9 @@ export const WIDGET_OPTION_NOTES = {
                 'Modus-Buttons (AlarmModeDef[]). Adapter-Modus: nur die keys off|sharp|inside|night, davon wirken ' +
                 'label/icon/color/hidden und die Reihenfolge; fehlende keys werden angehängt. Manueller Modus: beliebig viele, ' +
                 'jeder schreibt writeValue (leer = key) in writeDp (leer = stateDp) und leuchtet, wenn stateDp activeWhen ' +
-                '(leer = writeValue) enthält; disarm: true markiert den Aus-Button.',
+                '(leer = writeValue) enthält; disarm: true markiert den Aus-Button. Anlagen mit einem Bool je Modus: ' +
+                'activeDp je Button (leuchtet bei true bzw. activeWhen), stateDp leer lassen — dann zeigt die Statuszeile ' +
+                'phase des aktiven Buttons.',
         },
         modesDp: {
             description:
@@ -2199,6 +2201,7 @@ export const WIDGET_OPTION_NOTES = {
             description: 'Manuell: false = Scharfschalten gesperrt; die Scharf-Buttons werden ausgegraut.',
         },
         countdownDp: { description: 'Manuell: Countdown-Datenpunkt, Einheit siehe countdownUnit.' },
+        silentCountdownDp: { description: 'Manuell: Countdown bis zum stillen Alarm, Einheit wie countdownUnit.' },
         countdownUnit: {
             description:
                 'Manuell: "s" = Restsekunden (Standard), "endTs" = Endzeitpunkt als Zeitstempel (ms oder s), das Widget zählt selbst.',
@@ -2233,8 +2236,14 @@ export const WIDGET_OPTION_NOTES = {
         },
         pinCheck: {
             description:
-                'Manuell: "none" (Standard) = keine PIN; "dp" = PIN-Anfrage in pinDp schreiben, ein Skript prüft und schaltet selbst. ' +
-                'Das Widget schaltet dann nicht direkt.',
+                'Manuell: "none" (Standard) = keine PIN; "dp" = PIN-Anfrage in pinDp schreiben, ein Skript prüft und schaltet selbst ' +
+                '(das Widget schaltet dann nicht direkt); "aura" = Aura prüft die benannte PIN pinCode auf dem Server ' +
+                '(Rate-Limit) und schreibt erst danach selbst. Schutz der Bedienung, kein Zugriffsschutz.',
+        },
+        pinCode: {
+            description:
+                'Manuell mit pinCheck "aura": Id einer benannten PIN aus dem Aura-Tresor (Layouts › Zugriffsschutz). ' +
+                'Eine so benutzte PIN lässt sich nicht löschen.',
         },
         pinDp: { description: 'Manuell mit pinCheck "dp": Datenpunkt für die PIN-Anfrage.' },
         pinPayload: {

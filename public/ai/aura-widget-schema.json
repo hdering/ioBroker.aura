@@ -6420,7 +6420,17 @@
         },
         "activeWhen": {
           "type": "string",
-          "description": "manual mode: raw stateDp value that lights the button; empty = writeValue"
+          "description": "manual mode: value that lights the button (of activeDp, else stateDp); empty = writeValue, with activeDp \"true\""
+        },
+        "activeDp": {
+          "type": "string",
+          "description": "manual mode: own datapoint that says whether this mode is on (systems with one boolean per mode)",
+          "datapoint": true
+        },
+        "phase": {
+          "type": "string",
+          "ref": "AlarmPhase",
+          "description": "manual mode: status shown while this button is active and stateDp is empty; unset = off (disarm) / armed"
         },
         "disarm": {
           "type": "boolean",
@@ -6431,6 +6441,20 @@
           "description": "manual mode: PIN for this button; unset = requirePinForDisarm / requirePinForArm"
         }
       }
+    },
+    "AlarmPhase": {
+      "type": "string",
+      "enum": [
+        "off",
+        "armed",
+        "inside",
+        "night",
+        "arming",
+        "triggered",
+        "silent",
+        "failed",
+        "aborted"
+      ]
     },
     "AlarmZoneDef": {
       "type": "object",
@@ -6479,20 +6503,6 @@
           "description": "text in the status pill; empty = default text of the phase"
         }
       }
-    },
-    "AlarmPhase": {
-      "type": "string",
-      "enum": [
-        "off",
-        "armed",
-        "inside",
-        "night",
-        "arming",
-        "triggered",
-        "silent",
-        "failed",
-        "aborted"
-      ]
     },
     "AlarmContactDef": {
       "type": "object",
@@ -7992,7 +8002,7 @@
             "type": "object",
             "ref": "AlarmModeDef"
           },
-          "description": "Modus-Buttons (AlarmModeDef[]). Adapter-Modus: nur die keys off|sharp|inside|night, davon wirken label/icon/color/hidden und die Reihenfolge; fehlende keys werden angehängt. Manueller Modus: beliebig viele, jeder schreibt writeValue (leer = key) in writeDp (leer = stateDp) und leuchtet, wenn stateDp activeWhen (leer = writeValue) enthält; disarm: true markiert den Aus-Button."
+          "description": "Modus-Buttons (AlarmModeDef[]). Adapter-Modus: nur die keys off|sharp|inside|night, davon wirken label/icon/color/hidden und die Reihenfolge; fehlende keys werden angehängt. Manueller Modus: beliebig viele, jeder schreibt writeValue (leer = key) in writeDp (leer = stateDp) und leuchtet, wenn stateDp activeWhen (leer = writeValue) enthält; disarm: true markiert den Aus-Button. Anlagen mit einem Bool je Modus: activeDp je Button (leuchtet bei true bzw. activeWhen), stateDp leer lassen — dann zeigt die Statuszeile phase des aktiven Buttons."
         },
         "modesDp": {
           "description": "Bei modesSource \"json\": Datenpunkt mit JSON (optional mit ?pfad). Formen: Liste von AlarmModeDef, Map {\"0\":\"Aus\",\"1\":\"Scharf\"} (key = geschriebener Wert), [\"Aus\",\"Scharf\"] oder {\"modes\":[…],\"zones\":[…]}.",
@@ -8023,7 +8033,10 @@
           "description": "Manuell: Wert für panicDp (Standard \"true\")."
         },
         "pinCheck": {
-          "description": "Manuell: \"none\" (Standard) = keine PIN; \"dp\" = PIN-Anfrage in pinDp schreiben, ein Skript prüft und schaltet selbst. Das Widget schaltet dann nicht direkt."
+          "description": "Manuell: \"none\" (Standard) = keine PIN; \"dp\" = PIN-Anfrage in pinDp schreiben, ein Skript prüft und schaltet selbst (das Widget schaltet dann nicht direkt); \"aura\" = Aura prüft die benannte PIN pinCode auf dem Server (Rate-Limit) und schreibt erst danach selbst. Schutz der Bedienung, kein Zugriffsschutz."
+        },
+        "pinCode": {
+          "description": "Manuell mit pinCheck \"aura\": Id einer benannten PIN aus dem Aura-Tresor (Layouts › Zugriffsschutz). Eine so benutzte PIN lässt sich nicht löschen."
         },
         "pinDp": {
           "description": "Manuell mit pinCheck \"dp\": Datenpunkt für die PIN-Anfrage.",
@@ -8122,6 +8135,11 @@
           "type": "boolean",
           "default": true,
           "description": "Zonen-Kacheln anzeigen."
+        },
+        "silentCountdownDp": {
+          "description": "Manuell: Countdown bis zum stillen Alarm, Einheit wie countdownUnit.",
+          "type": "string",
+          "datapoint": true
         },
         "sirenDp": {
           "description": "Manuell: Datenpunkt der Sirene, nur Anzeige (zählt als ausgelöst).",

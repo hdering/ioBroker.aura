@@ -59,12 +59,15 @@ const vault = new vaultMod.VaultFile(dir);
 const restored = [];
 let restoreFails = false;
 let codesChanged = 0;
+let alarmWidgetCode = null;
 const api = createSecurityApi({
     vault,
     log: { info() {}, warn() {}, error() {} },
     onCodesChanged: async () => {
         codesChanged++;
     },
+    // #1037: an alarm widget that checks a named PIN itself.
+    widgetCodeUsers: async (id) => (alarmWidgetCode === id ? ['widget:w-alarm'] : []),
     restoreView: async (key, content) => {
         if (restoreFails) throw new Error('state write failed');
         restored.push({ key, widgets: (content && content.tabs && content.tabs[0].widgets.length) ?? null });
@@ -336,6 +339,22 @@ try {
         delete d.sections['tab:sX:tY'];
         vault.save(d);
     }
+    // ── widget PIN check (#1037) ─────────────────────────────────────────────
+    r = await call('POST', 'pin/verify', { body: { code: codeId, pin: '135790' } });
+    ok(r.status === 200 && r.json.ok === true, 'pin/verify: the right code is a yes');
+    ok(Object.keys(r.json).length === 1, 'pin/verify hands out nothing but the yes');
+    r = await call('POST', 'pin/verify', { body: { code: codeId, pin: '0000' } });
+    ok(r.status === 401, 'pin/verify: a wrong code is a no');
+    r = await call('POST', 'pin/verify', { body: { code: 'nope', pin: '0000' } });
+    ok(r.status === 404 && r.json.error === 'unknown code', 'pin/verify: an unknown PIN id says so');
+    for (let i = 0; i < 4; i++) await call('POST', 'pin/verify', { body: { code: codeId, pin: '0000' } });
+    r = await call('POST', 'pin/verify', { body: { code: codeId, pin: '135790' } });
+    ok(r.status === 429 && r.json.retryAfter > 0, 'pin/verify: five misses lock it, even for the right code');
+    api.attempts.delete(`verify:${codeId}`);
+    alarmWidgetCode = codeId;
+    r = await call('POST', 'vault/codes/delete', { token: adminToken, body: { id: codeId } });
+    ok(r.status === 409 && r.json.users.includes('widget:w-alarm'), 'a PIN an alarm widget asks for cannot be deleted');
+    alarmWidgetCode = null;
     r = await call('POST', 'vault/codes/delete', { token: adminToken, body: { id: codeId } });
     ok(r.status === 200 && r.json.removed === true && !vault.load().codes[codeId], 'an unused PIN is deleted');
 

@@ -23,7 +23,9 @@ const AUTO_ICON = ['icon'];
 const AUTO_COLOR = ['color', 'colour'];
 const AUTO_WRITE_DP = ['writeDp', 'dp', 'datapoint', 'stateId', 'oid'];
 const AUTO_WRITE_VALUE = ['writeValue', 'value', 'val'];
-const AUTO_ACTIVE = ['activeWhen', 'active', 'activeValue'];
+const AUTO_ACTIVE = ['activeWhen', 'activeValue'];
+const AUTO_ACTIVE_DP = ['activeDp', 'statusDp', 'stateDp'];
+const PHASES = ['off', 'armed', 'inside', 'night', 'arming', 'triggered', 'silent', 'failed', 'aborted'];
 const AUTO_ONOFF = ['onOffDp', 'onOff', 'switchDp', 'enabledDp', 'dp', 'datapoint'];
 const AUTO_TRIGGERED = ['triggeredDp', 'triggered', 'alarmDp', 'alarm'];
 
@@ -130,6 +132,14 @@ export function parseAlarmModesJson(raw: unknown): AlarmListResult<AlarmModeDef>
         if (writeValue !== undefined && writeValue !== key) mode.writeValue = writeValue;
         const activeWhen = toText(pick(o, undefined, AUTO_ACTIVE));
         if (activeWhen !== undefined) mode.activeWhen = activeWhen;
+        const activeDp = validDp(pick(o, undefined, AUTO_ACTIVE_DP));
+        if (activeDp === false) {
+            rejected.push({ row: key, reason: 'ungültiger Datenpunkt' });
+            return;
+        }
+        if (activeDp) mode.activeDp = activeDp;
+        const phase = toText(o.phase);
+        if (phase && PHASES.includes(phase)) mode.phase = phase as AlarmModeDef['phase'];
         if (asBool(o.disarm) === true) mode.disarm = true;
         const reqPin = asBool(o.requirePin ?? o.pin);
         if (reqPin !== undefined) mode.requirePin = reqPin;

@@ -13,7 +13,7 @@ Zwei Datenquellen:
 
 ## Datenquelle: Alarm-Adapter
 
-Kein klassischer Haupt-Datenpunkt. Stattdessen wird ein **Instanz-Präfix** gesetzt (`alarmPrefix`, Standard `alarm.0`); darunter liest und schreibt das Widget automatisch:
+Kein klassischer Haupt-Datenpunkt. Stattdessen wird ein **Instanz-Präfix** gesetzt (`alarmPrefix`, Standard `alarm.0`); darunter liest und schreibt das Widget automatisch. Der Editor listet die gefundenen Instanzen zum Anklicken; gibt es keine, bietet er **Eigene Datenpunkte verwenden** an.
 
 | Datenpunkt | Richtung | |
 | --- | --- | --- |
@@ -33,20 +33,21 @@ Kein klassischer Haupt-Datenpunkt. Stattdessen wird ein **Instanz-Präfix** gese
 
 ## Datenquelle: Eigene Datenpunkte
 
-Pflicht ist nur der Zustand. Elemente ohne Datenpunkt erscheinen nicht; im Editor sind sie ausgegraut.
+Pflicht ist nur der Zustand — oder ein eigener Aktiv-Datenpunkt je Modus-Button (s. u.). Elemente ohne Datenpunkt erscheinen nicht; im Editor sind sie ausgegraut.
 **Aus Alarm-Adapter übernehmen** füllt alle Felder mit den Adapter-Pfaden — Startpunkt zum Austauschen einzelner Elemente.
 
 ![](./assets/alarmanlage/source.png)
 
 | Option | | |
 | --- | --- | --- |
-| `stateDp` | Pflicht | Zustand der Anlage (Bool, Zahl oder Text) |
+| `stateDp` | lesen | Zustand der Anlage (Bool, Zahl oder Text); leer bei einem Bool je Modus |
 | `stateMap` | | Wert → Zustand, s. u. |
 | `triggeredDp` · `sirenDp` | lesen | Alarm ausgelöst · Sirene (Bool) |
 | `enableableDp` | lesen | `false` = Scharfschalten gesperrt |
 | `contacts` · `contactsBlockArm` | lesen | Fenster/Türen mit Namen; offene sperren das Scharfschalten |
 | `circuitsDp` | lesen | offene Kreise als Text |
 | `countdownDp` · `countdownUnit` | lesen | `s` Restsekunden · `endTs` Endzeitpunkt (Zeitstempel) |
+| `silentCountdownDp` | lesen | Countdown bis zum stillen Alarm, gleiche Einheit |
 | `noticeDp` | lesen | Meldung (Text oder Bool) |
 | `quitDp` · `quitValue` | schreiben | Quittieren (Standard `true`) |
 | `delayDp` · `delayValue` | schreiben | Mit Verzögerung scharf (Standard `true`) |
@@ -95,11 +96,18 @@ Beide Listen kommen entweder aus den Widget-Einstellungen oder aus einem JSON-Da
 | `hidden` | | ausblenden |
 | `writeDp` | nur eigene DPs | leer = `stateDp` |
 | `writeValue` | nur eigene DPs | leer = `key` |
-| `activeWhen` | nur eigene DPs | Wert von `stateDp`, bei dem der Button leuchtet; leer = `writeValue` |
+| `activeWhen` | nur eigene DPs | Wert, bei dem der Button leuchtet; leer = `writeValue` bzw. `true` mit `activeDp` |
+| `activeDp` | nur eigene DPs | eigener Datenpunkt „dieser Modus ist an“; leer = `stateDp` vergleichen |
+| `phase` | nur eigene DPs | Zustand in der Statuszeile, solange der Button leuchtet und `stateDp` leer ist |
 | `disarm` | nur eigene DPs | Button schaltet aus (PIN-Regel „Deaktivieren") |
 | `requirePin` | nur eigene DPs | PIN für diesen Button; leer = globale Einstellung |
 
 Beim Alarm-Adapter wirken nur Text, Icon, Farbe, Ausblenden und Reihenfolge.
+
+| Anlage meldet … | Einstellung |
+| --- | --- |
+| einen Zustand (Zahl/Text) | `stateDp` + `stateMap`, Buttons mit `writeValue` |
+| ein Bool je Modus | `stateDp` leer, je Button `activeDp` (+ `phase`) und `writeDp` |
 
 ![](./assets/alarmanlage/modes.png)
 
@@ -184,12 +192,15 @@ Blendet die einzelnen Blöcke der Karte ein oder aus.
 | --- | --- |
 | Alarm-Adapter | Der Adapter prüft (Instanz-Einstellungen → Passwort) |
 | Eigene Datenpunkte | `pinCheck: dp` — das Widget schreibt nur die Anfrage in `pinDp`, ein Skript prüft und schaltet |
+| Eigene Datenpunkte | `pinCheck: aura` — Aura prüft eine benannte PIN (Layouts › Zugriffsschutz) auf dem Server, danach schaltet das Widget |
 
 | Option | Standard | |
 | --- | --- | --- |
-| `pinCheck` | `none` | `none` · `dp` |
+| `pinCheck` | `none` | `none` · `dp` · `aura` |
+| `pinCode` | | benannte PIN bei `aura`; im Editor wählbar oder neu anlegen |
 | `pinDp` | | Datenpunkt für die Anfrage |
 | `pinPayload` | `json` | `json` = `{"pin","mode","dp","value"}` · `pin` = nur die PIN |
 | `wrongPinDp` | | Rückmeldung „falsche PIN" (Bool) |
 
-Aura prüft die PIN nicht selbst; die Befehls-Datenpunkte bleiben über ioBroker schreibbar.
+Nach 5 falschen Eingaben sperrt Aura die PIN stufenweise (5 s → 15 s → 60 s → 300 s). Eine PIN, die ein Alarm-Widget benutzt, lässt sich nicht löschen.
+Die PIN schützt die Bedienung im Widget, nicht die Datenpunkte: die bleiben über ioBroker schreibbar.

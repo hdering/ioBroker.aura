@@ -65,6 +65,10 @@ export interface ResolvedMode {
     writeDp?: string;
     writeValue: string;
     activeWhen: string;
+    /** Manual: own on/off datapoint of this mode; empty = compare stateDp. */
+    activeDp?: string;
+    /** Status while this mode is active and there is no stateDp. */
+    phase: AlarmPhase;
 }
 
 const ADAPTER_MODES: { key: string; labelKey: TranslationKey; icon: string; color: string; legacy: string }[] = [
@@ -74,6 +78,7 @@ const ADAPTER_MODES: { key: string; labelKey: TranslationKey; icon: string; colo
     { key: 'night', labelKey: 'alarm.mode.night', icon: 'Moon', color: '#6366f1', legacy: 'showModeNight' },
 ];
 export const ADAPTER_MODE_KEYS = ADAPTER_MODES.map((m) => m.key);
+const ADAPTER_MODE_PHASE: Record<string, AlarmPhase> = { off: 'off', sharp: 'armed', inside: 'inside', night: 'night' };
 
 /** The four fixed adapter modes as list rows (seed of the editor). */
 export function adapterModeDefaults(): AlarmModeDef[] {
@@ -107,6 +112,7 @@ export function resolveAdapterModes(list: AlarmModeDef[] | undefined, legacy: Re
             disarm: key === 'off',
             writeValue: String(USE_LIST[key as keyof typeof USE_LIST]),
             activeWhen: '',
+            phase: ADAPTER_MODE_PHASE[key] ?? 'armed',
         });
     }
     return out;
@@ -127,7 +133,9 @@ export function resolveManualModes(list: AlarmModeDef[] | undefined): ResolvedMo
                 requirePin: m.requirePin,
                 writeDp: m.writeDp || undefined,
                 writeValue,
-                activeWhen: m.activeWhen ?? writeValue,
+                activeWhen: m.activeWhen ?? (m.activeDp ? 'true' : writeValue),
+                activeDp: m.activeDp || undefined,
+                phase: m.phase && ALARM_PHASES.includes(m.phase) ? m.phase : m.disarm ? 'off' : 'armed',
             };
         });
 }

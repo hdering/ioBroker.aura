@@ -17,7 +17,8 @@ import type {
     WidgetConfig,
 } from '../../types';
 import { useT } from '../../i18n';
-import { getStateDirect } from '../../hooks/useIoBroker';
+import { getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { usePinCodeStore, sortedCodes } from '../../store/pinCodeStore';
 import { splitDpRef, extractJsonPath } from '../../utils/dpRef';
 import { readCommonStates } from '../../utils/commonStates';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -431,9 +432,42 @@ function ModesEditor({
                                 <ValueField
                                     label={t('alarm.cfg.mode.activeWhen') as string}
                                     value={m.activeWhen}
-                                    placeholder={m.writeValue ?? m.key}
+                                    placeholder={m.activeDp ? 'true' : (m.writeValue ?? m.key)}
                                     onChange={(activeWhen) => patch(i, { activeWhen })}
                                 />
+                            </div>
+                            <label className="text-[9px] block" style={labelSty}>
+                                {t('alarm.cfg.mode.activeDp') as string}
+                            </label>
+                            <DpInput
+                                dense
+                                value={m.activeDp}
+                                onChange={(activeDp) => patch(i, { activeDp })}
+                                placeholder={t('alarm.cfg.mode.activeDpPh') as string}
+                                testId={`activeDp-${m.key}`}
+                            />
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] shrink-0" style={labelSty}>
+                                    {t('alarm.cfg.mode.phase') as string}
+                                </label>
+                                <select
+                                    value={m.phase ?? ''}
+                                    onChange={(e) =>
+                                        patch(i, { phase: (e.target.value || undefined) as AlarmPhase | undefined })
+                                    }
+                                    className={cellCls}
+                                    style={inputSty}
+                                >
+                                    <option value="">
+                                        {t(m.disarm ? 'alarm.state.deactivated' : 'alarm.state.sharp') as string} (
+                                        {t('alarm.cfg.mode.pin.auto') as string})
+                                    </option>
+                                    {ALARM_PHASES.map((p) => (
+                                        <option key={p} value={p}>
+                                            {t(PHASE_INFO[p].labelKey) as string}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="flex items-center gap-3 pt-0.5">
                                 <label className="flex items-center gap-1 text-[10px]" style={labelSty}>
@@ -950,6 +984,185 @@ function ContactsEditor({
     );
 }
 
+/** Adapter mode: the alarm instances found — or the hint that there is none (#1037). */
+function AdapterInstances({
+    prefix,
+    onPick,
+    onManual,
+}: {
+    prefix: string;
+    onPick: (p: string) => void;
+    onManual: () => void;
+}) {
+    const t = useT();
+    const [list, setList] = useState<string[] | null>(null);
+    useEffect(() => {
+        let alive = true;
+        const start = 'system.adapter.alarm.';
+        void getObjectViewDirect('instance', start, `${start}\u9999`).then((view) => {
+            if (!alive) return;
+            setList(
+                (view.rows ?? [])
+                    .map((row) => row.id.replace(/^system\.adapter\./, ''))
+                    .filter((id) => /^alarm\.\d+$/.test(id))
+                    .sort(),
+            );
+        });
+        return () => {
+            alive = false;
+        };
+    }, []);
+    if (list === null) return null;
+    if (list.length === 0)
+        return (
+            <div
+                className="rounded-lg p-2 mb-2 space-y-1.5 text-[11px]"
+                style={{ border: '1px solid #f59e0b66', background: '#f59e0b14', color: 'var(--text-secondary)' }}
+                data-aura-alarm-no-instance=""
+            >
+                <div>{t('alarm.cfg.noInstance') as string}</div>
+                <button
+                    onClick={onManual}
+                    className="text-[11px] px-2 py-1 rounded-lg hover:opacity-80"
+                    style={{ ...inputSty, color: 'var(--text-primary)' }}
+                >
+                    {t('alarm.cfg.useManual') as string}
+                </button>
+            </div>
+        );
+    if (list.length === 1 && list[0] === prefix) return null;
+    return (
+        <div className="flex flex-wrap items-center gap-1 mb-2" data-aura-alarm-instances="">
+            <span className="text-[10px]" style={labelSty}>
+                {t('alarm.cfg.instances') as string}
+            </span>
+            {list.map((id) => (
+                <button
+                    key={id}
+                    onClick={() => onPick(id)}
+                    className="text-[10px] px-2 py-0.5 rounded-lg font-mono hover:opacity-80"
+                    style={{
+                        ...inputSty,
+                        background: id === prefix ? 'var(--accent)' : 'var(--app-bg)',
+                        color: id === prefix ? '#fff' : 'var(--text-secondary)',
+                    }}
+                >
+                    {id}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+/**
+ * Named PIN of the vault for pinCheck "aura": pick one or create one. Only the id is
+ * stored in the widget; name and code stay in the vault (Layouts › Zugriffsschutz).
+ */
+function NamedPinField({ value, onChange }: { value: string | undefined; onChange: (id: string | undefined) => void }) {
+    const t = useT();
+    const codes = usePinCodeStore((st) => st.codes);
+    const loaded = usePinCodeStore((st) => st.loaded);
+    const load = usePinCodeStore((st) => st.load);
+    const save = usePinCodeStore((st) => st.save);
+    const [creating, setCreating] = useState(false);
+    const [name, setName] = useState('');
+    const [digits, setDigits] = useState('');
+    const [error, setError] = useState('');
+    useEffect(() => {
+        if (!loaded) void load();
+    }, [loaded, load]);
+    const create = async () => {
+        if (digits.trim().length < 4) {
+            setError(t('pin.tooShort') as string);
+            return;
+        }
+        const res = await save({ name: name.trim() || (t('alarm.title') as string), pin: digits.trim() });
+        if (!res.ok) {
+            setError((res.reason === 'tooShort' ? t('pin.tooShort') : t('pin.saveFailed')) as string);
+            return;
+        }
+        onChange(res.id);
+        setCreating(false);
+        setName('');
+        setDigits('');
+        setError('');
+    };
+    const missing = !!value && loaded && !codes[value];
+    return (
+        <div className="space-y-1.5" data-aura-alarm-named-pin="">
+            <label className={labelCls} style={labelSty}>
+                {t('alarm.cfg.pinCode') as string}
+            </label>
+            <select
+                value={creating ? '__new' : (value ?? '')}
+                onChange={(e) => {
+                    const v = e.target.value;
+                    setError('');
+                    if (v === '__new') {
+                        setCreating(true);
+                        return;
+                    }
+                    setCreating(false);
+                    onChange(v || undefined);
+                }}
+                className={inputCls}
+                style={inputSty}
+            >
+                <option value="">{t('alarm.cfg.pinCode.none') as string}</option>
+                {sortedCodes(codes).map(([id, c]) => (
+                    <option key={id} value={id}>
+                        {c.name} ({c.len})
+                    </option>
+                ))}
+                {missing && <option value={value}>{t('alarm.cfg.pinCode.missing') as string}</option>}
+                <option value="__new">{t('alarm.cfg.pinCode.new') as string}</option>
+            </select>
+            {creating && (
+                <div className="flex gap-1">
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder={t('alarm.cfg.pinCode.name') as string}
+                        className={cellCls}
+                        style={inputSty}
+                    />
+                    <input
+                        type="password"
+                        inputMode="numeric"
+                        autoComplete="new-password"
+                        value={digits}
+                        onChange={(e) => setDigits(e.target.value.replace(/\D/g, ''))}
+                        placeholder={t('alarm.cfg.pinCode.digits') as string}
+                        className={`${cellCls} font-mono`}
+                        style={{ ...inputSty, width: 110, flex: 'none' }}
+                    />
+                    <button
+                        onClick={() => void create()}
+                        className="text-[11px] px-2 rounded-lg hover:opacity-80 shrink-0"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                    >
+                        {t('alarm.cfg.pinCode.create') as string}
+                    </button>
+                </div>
+            )}
+            {error && (
+                <p className="text-[10px]" style={{ color: '#ef4444' }}>
+                    {error}
+                </p>
+            )}
+            {missing && (
+                <p className="text-[10px]" style={{ color: '#f59e0b' }}>
+                    {t('alarm.cfg.pinCode.missingHint') as string}
+                </p>
+            )}
+            <p className="text-[10px]" style={hintSty}>
+                {t('alarm.cfg.pinCode.hint') as string}
+            </p>
+        </div>
+    );
+}
+
 // ── panel ────────────────────────────────────────────────────────────────────
 
 export function AlarmConfig({
@@ -968,8 +1181,8 @@ export function AlarmConfig({
     const prefix = (o.alarmPrefix as string) ?? 'alarm.0';
     const logLines = (o.logLines as number) ?? 5;
     const sizeScale = (o.sizeScale as number) ?? 1;
-    const pinCheck = o.pinCheck === 'dp' ? 'dp' : 'none';
-    const pinPossible = !manual || (pinCheck === 'dp' && !!s('pinDp'));
+    const pinCheck = o.pinCheck === 'dp' || o.pinCheck === 'aura' ? o.pinCheck : 'none';
+    const pinPossible = !manual || (pinCheck === 'dp' && !!s('pinDp')) || (pinCheck === 'aura' && !!s('pinCode'));
     const modesFromJson = o.modesSource === 'json';
     const zonesFromJson = o.zonesSource === 'json';
     const contacts = (o.contacts as AlarmContactDef[] | undefined) ?? [];
@@ -1004,7 +1217,7 @@ export function AlarmConfig({
         {
             key: 'showCountdown',
             label: t('alarm.cfg.showCountdown') as string,
-            disabledReason: need(!!s('countdownDp')),
+            disabledReason: need(!!s('countdownDp') || !!s('silentCountdownDp')),
         },
         {
             key: 'showCircuits',
@@ -1084,6 +1297,11 @@ export function AlarmConfig({
                 />
                 {!manual ? (
                     <div>
+                        <AdapterInstances
+                            prefix={prefix}
+                            onPick={(p) => set({ alarmPrefix: p })}
+                            onManual={() => switchSource('manual')}
+                        />
                         <label className={labelCls} style={labelSty}>
                             {t('alarm.cfg.prefix') as string}
                         </label>
@@ -1183,6 +1401,12 @@ export function AlarmConfig({
                                     </select>
                                 </div>
                             </DpField>
+                            <DpField
+                                label={t('alarm.cfg.silentCountdownDp') as string}
+                                hint={t('alarm.cfg.silentCountdownDp.hint') as string}
+                                value={s('silentCountdownDp')}
+                                onChange={(v) => set({ silentCountdownDp: v })}
+                            />
                             <ContactsEditor contacts={contacts} onChange={(c) => set({ contacts: c })} />
                             <Unavailable
                                 reason={contacts.length ? undefined : (t('alarm.cfg.contacts.none') as string)}
@@ -1338,8 +1562,12 @@ export function AlarmConfig({
                             >
                                 <option value="none">{t('alarm.cfg.pinCheck.none') as string}</option>
                                 <option value="dp">{t('alarm.cfg.pinCheck.dp') as string}</option>
+                                <option value="aura">{t('alarm.cfg.pinCheck.aura') as string}</option>
                             </select>
                         </div>
+                        {pinCheck === 'aura' && (
+                            <NamedPinField value={s('pinCode')} onChange={(id) => set({ pinCode: id })} />
+                        )}
                         {pinCheck === 'dp' && (
                             <>
                                 <DpField

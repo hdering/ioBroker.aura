@@ -8,6 +8,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useIoBroker } from '../../../hooks/useIoBroker';
+import { pinVerify } from '../../../utils/pinApi';
 import type { AlarmContactDef, AlarmPhase, AlarmStateMapEntry, ioBrokerState } from '../../../types';
 import {
     ADAPTER_CODE_PHASE,
@@ -43,6 +44,8 @@ export interface AlarmSource {
     quitNotice: { text: string; failed: boolean } | null;
     passiveNotice: string;
     wrongPin: boolean;
+    /** PIN check failed for another reason than a wrong code (Aura check only). */
+    pinError: { kind: 'locked'; retryAfter: number } | { kind: 'unknown' } | { kind: 'unavailable' } | null;
     log: { time: string; text: string }[];
     /** null = no presence datapoint. */
     presence: boolean | null;
@@ -53,7 +56,8 @@ export interface AlarmSource {
     /** What a press does: run at once, ask for the PIN first, or nothing (adapter: arming an armed system with PIN). */
     plan(target: PinTarget): 'run' | 'pin' | 'skip';
     run(target: PinTarget): void;
-    submitPin(target: PinTarget, pin: string): void;
+    /** Aura check: resolves with the verdict, the PIN entry stays open on a miss. */
+    submitPin(target: PinTarget, pin: string): void | Promise<boolean>;
     panic(): void;
     quit(): void;
     togglePresence(): void;
@@ -172,6 +176,7 @@ export function useAlarmAdapterSource(s: AdapterSettings, enabled: boolean): Ala
         quitNotice: canQuit ? { text: activationFailed ? '' : notificationList, failed: activationFailed } : null,
         passiveNotice: notificationList,
         wrongPin: get('info.wrong_password') === true,
+        pinError: null,
         log: parseLog(get('info.log_today'), s.logLines, 'br'),
         presence: presenceRaw === undefined ? false : presenceRaw === true,
         hasDelay: true,
@@ -226,6 +231,7 @@ export interface ManualSettings {
     enableableDp: string;
     countdownDp: string;
     countdownUnit: 's' | 'endTs';
+    silentCountdownDp: string;
     circuitsDp: string;
     contacts: AlarmContactDef[];
     contactsBlockArm: boolean;
@@ -240,13 +246,17 @@ export interface ManualSettings {
     logDp: string;
     logSeparator: LogSeparator;
     logLines: number;
-    pinCheck: 'none' | 'dp';
+    pinCheck: 'none' | 'dp' | 'aura';
+    /** Named PIN of the vault (pinCheck 'aura'). */
+    pinCode: string;
     pinDp: string;
     pinPayload: 'json' | 'pin';
     wrongPinDp: string;
     requirePin: boolean;
     requireArmPin: boolean;
     disarmMode: ResolvedMode | undefined;
+    /** The visible mode buttons — their own on/off datapoints are subscribed here. */
+    modes: ResolvedMode[];
 }
 
 export function useAlarmManualSource(s: ManualSettings, enabled: boolean): AlarmSource {
@@ -258,18 +268,34 @@ export function useAlarmManualSource(s: ManualSettings, enabled: boolean): Alarm
         s.sirenDp,
         s.enableableDp,
         s.countdownDp,
+        s.silentCountdownDp,
         s.circuitsDp,
         s.noticeDp,
         s.presenceDp,
         s.logDp,
         s.pinCheck === 'dp' ? s.wrongPinDp : '',
     ];
-    const ids = enabled ? [...single, ...contactIds].filter(Boolean) : [];
+    const modeIds = s.modes.map((m) => m.activeDp ?? '');
+    const ids = enabled ? [...single, ...contactIds, ...modeIds].filter(Boolean) : [];
     const v = useStates(ids);
     const get = (id: string) => (id ? v[id] : undefined);
 
     const rawState = get(s.stateDp);
-    const st = phaseFromValue(rawState, s.stateMap);
+    const isActive = (m: ResolvedMode): boolean => {
+        const raw = m.activeDp ? get(m.activeDp) : rawState;
+        if (raw === undefined || raw === null || String(raw) === '') return false;
+        // "true" also takes 1 / "on" from a boolean-ish datapoint of the mode.
+        if (m.activeDp && m.activeWhen === 'true') return isSet(raw);
+        return sameValue(raw, m.activeWhen);
+    };
+    // Without a state datapoint (one boolean per mode) the active button says what is on;
+    // an arming mode wins over a lit "Aus".
+    const activeMode = s.stateDp
+        ? undefined
+        : (s.modes.find((m) => !m.disarm && isActive(m)) ?? s.modes.find((m) => isActive(m)));
+    const st = s.stateDp
+        ? phaseFromValue(rawState, s.stateMap)
+        : { phase: activeMode?.phase ?? ('off' as AlarmPhase), label: undefined, known: !!activeMode };
     const triggered =
         isTriggeredPhase(st.phase) ||
         (!!s.triggeredDp && isSet(get(s.triggeredDp))) ||
@@ -283,10 +309,15 @@ export function useAlarmManualSource(s: ManualSettings, enabled: boolean): Alarm
         !(s.contactsBlockArm && openContacts.length > 0);
 
     const cdRaw = get(s.countdownDp);
-    const now = useTicker(enabled && s.countdownUnit === 'endTs' && Number(cdRaw) > 0);
+    const silentRaw = get(s.silentCountdownDp);
+    const now = useTicker(enabled && s.countdownUnit === 'endTs' && (Number(cdRaw) > 0 || Number(silentRaw) > 0));
     const notice = s.noticeDp ? noticeOf(get(s.noticeDp)) : { active: false, text: '' };
     const presenceRaw = get(s.presenceDp);
-    const pinOn = s.pinCheck === 'dp' && !!s.pinDp;
+    const pinViaDp = s.pinCheck === 'dp' && !!s.pinDp;
+    const pinViaAura = s.pinCheck === 'aura' && !!s.pinCode;
+    const pinOn = pinViaDp || pinViaAura;
+    const [auraWrong, setAuraWrong] = useState(false);
+    const [pinError, setPinError] = useState<AlarmSource['pinError']>(null);
 
     const writeMode = (m: ResolvedMode) => {
         const dp = m.writeDp || s.stateDp;
@@ -302,18 +333,18 @@ export function useAlarmManualSource(s: ManualSettings, enabled: boolean): Alarm
         sleep: false,
         enableable,
         activationCountdown: s.countdownDp ? countdownSeconds(cdRaw, s.countdownUnit, now) : 0,
-        silentCountdown: 0,
+        silentCountdown: s.silentCountdownDp ? countdownSeconds(silentRaw, s.countdownUnit, now) : 0,
         openCircuits: circuitsText,
         quitNotice: notice.active && s.quitDp ? { text: notice.text, failed: false } : null,
         passiveNotice: notice.active && !s.quitDp ? notice.text : '',
-        wrongPin: pinOn && !!s.wrongPinDp && isSet(get(s.wrongPinDp)),
+        wrongPin: pinViaAura ? auraWrong : pinViaDp && !!s.wrongPinDp && isSet(get(s.wrongPinDp)),
+        pinError: pinViaAura ? pinError : null,
         log: s.logDp ? parseLog(get(s.logDp), s.logLines, s.logSeparator) : [],
         presence: s.presenceDp ? isSet(presenceRaw) : null,
         hasDelay: !!s.delayDp,
         hasPanic: !!s.panicDp,
         hasQuit: !!s.quitDp,
-        isModeActive: (m) =>
-            rawState !== undefined && rawState !== null && String(rawState) !== '' && sameValue(rawState, m.activeWhen),
+        isModeActive: isActive,
         plan: (t) => {
             if (!pinOn) return 'run';
             if (t.kind === 'delay') return s.requireArmPin ? 'pin' : 'run';
@@ -333,6 +364,35 @@ export function useAlarmManualSource(s: ManualSettings, enabled: boolean): Alarm
         submitPin: (t, pin) => {
             if (!pinOn) return;
             const tt: PinTarget = triggered ? { kind: 'disarm' } : t;
+            if (pinViaAura) {
+                const run = () => {
+                    if (tt.kind === 'delay') {
+                        if (s.delayDp) setState(s.delayDp, typedValue(s.delayValue));
+                        return;
+                    }
+                    const m = targetMode(tt);
+                    if (m) writeMode(m);
+                };
+                return pinVerify(s.pinCode, pin).then((r) => {
+                    if (r.ok) {
+                        setAuraWrong(false);
+                        setPinError(null);
+                        run();
+                        return true;
+                    }
+                    if (r.reason === 'wrong') {
+                        setAuraWrong(true);
+                        setPinError(null);
+                    } else if (r.reason === 'ratelimited') {
+                        setAuraWrong(false);
+                        setPinError({ kind: 'locked', retryAfter: r.retryAfter ?? 0 });
+                    } else {
+                        setAuraWrong(false);
+                        setPinError({ kind: r.reason === 'unknown' ? 'unknown' : 'unavailable' });
+                    }
+                    return false;
+                });
+            }
             const m = targetMode(tt);
             const action =
                 tt.kind === 'delay'

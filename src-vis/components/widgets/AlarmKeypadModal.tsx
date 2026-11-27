@@ -22,11 +22,13 @@ interface Props {
     title: string;
     /** The adapter reported a wrong code for the previous attempt. */
     wrongPin?: boolean;
+    /** Other reason the last code was not accepted (locked, PIN deleted, server away); wins over wrongPin. */
+    errorText?: string;
     onSubmit: (pin: string) => void;
     onCancel: () => void;
 }
 
-export function AlarmKeypadModal({ title, wrongPin, onSubmit, onCancel }: Props) {
+export function AlarmKeypadModal({ title, wrongPin, errorText, onSubmit, onCancel }: Props) {
     const t = useT();
     const portal = usePortalTarget();
     const themeVars = usePortalThemeVars();
@@ -88,13 +90,17 @@ export function AlarmKeypadModal({ title, wrongPin, onSubmit, onCancel }: Props)
                     <div className="text-base font-semibold">{title}</div>
                 </div>
 
-                <PinDots count={Math.max(4, entry.length)} filled={entry.length} error={wrongPin && !entry} />
+                <PinDots
+                    count={Math.max(4, entry.length)}
+                    filled={entry.length}
+                    error={(wrongPin || !!errorText) && !entry}
+                />
 
                 <div
                     className="text-[11px] text-center"
                     style={{ minHeight: 14, color: 'var(--color-error, #ef4444)' }}
                 >
-                    {wrongPin && !entry ? t('alarm.wrongPin') : ''}
+                    {(wrongPin || errorText) && !entry ? errorText || t('alarm.wrongPin') : ''}
                 </div>
 
                 <NumericKeypad onDigit={push} onClear={() => setEntry('')} onBack={back} />

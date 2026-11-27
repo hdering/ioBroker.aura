@@ -255,6 +255,43 @@ eq(
 );
 eq('takeover: state map = adapter codes', m.phaseFromValue(3, take.stateMap).phase, 'triggered');
 
+// ── one boolean per mode (#1037 follow-up) ───────────────────────────────────
+const perMode = m.resolveManualModes([
+    { key: 'off', disarm: true, activeDp: 'a.0.off' },
+    { key: 'away', activeDp: 'a.0.away', phase: 'armed' },
+    { key: 'night', activeDp: 'a.0.night', activeWhen: '2', phase: 'night' },
+    { key: 'x', phase: 'bogus' },
+]);
+eq(
+    'activeDp: activeWhen defaults to "true"',
+    perMode.map((x) => x.activeWhen),
+    ['true', 'true', '2', 'x'],
+);
+eq('activeDp kept', perMode[1].activeDp, 'a.0.away');
+eq(
+    'phase: own, else off for disarm / armed',
+    perMode.map((x) => x.phase),
+    ['off', 'armed', 'night', 'armed'],
+);
+eq(
+    'adapter modes carry their phase',
+    m.resolveAdapterModes(undefined, {}).map((x) => x.phase),
+    ['off', 'armed', 'inside', 'night'],
+);
+eq(
+    'json: activeDp + phase parsed',
+    m.parseAlarmModesJson([
+        { key: 'night', activeDp: 'a.0.night', phase: 'night' },
+        { key: 'y', phase: 'nope' },
+    ]).items,
+    [{ key: 'night', activeDp: 'a.0.night', phase: 'night' }, { key: 'y' }],
+);
+eq(
+    'json: bad activeDp rejected',
+    m.parseAlarmModesJson([{ key: 'z', activeDp: 'http://x' }]).rejected.map((r) => r.reason),
+    ['ungültiger Datenpunkt'],
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);
