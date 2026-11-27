@@ -152,7 +152,9 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
 
     // theme: Aura's variables as they apply to this widget (a section may have its own theme)
     const themeEpoch = useThemeEpoch();
-    const themeRef = useRef<WebComponentTheme | null>(null);
+    // remembered per element: after a reconnect the catalog is read again and the element
+    // is created anew - it needs the theme even when the theme itself did not change (#1043)
+    const themeRef = useRef<{ el: WebComponentElement; theme: WebComponentTheme } | null>(null);
     useLayoutEffect(() => {
         if (status !== 'ready' || !elRef.current || !hostRef.current) return;
         const css = getComputedStyle(hostRef.current);
@@ -163,9 +165,10 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
             css.fontFamily,
             parseFloat(root.fontSize) || 16,
         );
-        if (themeRef.current && isSameTheme(themeRef.current, theme)) return;
-        themeRef.current = theme;
-        elRef.current.theme = theme;
+        const el = elRef.current;
+        if (themeRef.current?.el === el && isSameTheme(themeRef.current.theme, theme)) return;
+        themeRef.current = { el, theme };
+        el.theme = theme;
     }, [status, themeEpoch]);
 
     // dialogs: in Aura's look instead of the browser's <dialog>

@@ -7,7 +7,8 @@
 //
 // - short catalog: the manifest answers 404 at first; the widget shows the
 //   component after the retry (SHORT_CATALOG_RETRY_MS, 10 s) without a reload
-// - reconnect: after a connection drop the catalog is read once more
+// - reconnect: after a connection drop the catalog is read once more, and the
+//   element created anew gets the (dark) theme again (#1043)
 //
 // The component is served by the browser itself (page.route) and the instance list
 // is mocked with __auraShot.mockObjectView, so no adapter and no ioBroker are needed.
@@ -64,6 +65,7 @@ await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
 await page.evaluate(() => {
     const shot = window.__auraShot;
+    shot.setTheme('dark');
     shot.mockObject({ 'system.config': { _id: 'system.config', type: 'config', common: { language: 'de' } } });
     shot.mockObjectView({
         instance: [
@@ -118,6 +120,8 @@ await page.evaluate(() => {
 await page.waitForTimeout(1500);
 check('reconnect: the catalog is read again', manifestReads > settled, `reads ${settled} -> ${manifestReads}`);
 check('reconnect: the component is still shown', (await element.count()) === 1);
+const themeType = await element.evaluate((el) => el.theme?.type);
+check('reconnect: the new element has the dark theme (#1043)', themeType === 'dark', `theme.type ${themeType}`);
 
 check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
 await browser.close();
