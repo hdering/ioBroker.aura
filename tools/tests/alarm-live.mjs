@@ -196,7 +196,7 @@ try {
 } finally {
     await page.evaluate(() => window.__auraShot.captureWrites(true)).catch(() => {});
     // The web socket may not delete objects (permissionError) — remove them on the host:
-    console.log(`  note: test objects stay; remove one by one (a * pattern deletes nothing):`);
+    console.log(`  note: test objects stay; remove on the host with  echo y | iobroker object del '${R}.*'  or one by one:`);
     for (const id of Object.keys(OBJECTS)) console.log(`    iobroker object del ${R}.${id}`);
 }
 
