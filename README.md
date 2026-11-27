@@ -1,8 +1,34 @@
 # ioBroker.aura
 
-**Aura** is a modern visualization dashboard for [ioBroker](https://www.iobroker.net/).
+<img src="https://raw.githubusercontent.com/hdering/ioBroker.aura/main/admin/aura.png" width="80" align="right" alt="Aura logo">
 
-📖 **[Documentation](https://hdering.github.io/ioBroker.aura/)** – widgets, settings, screenshots
+[![Number of installations](https://iobroker.live/badges/aura-installed.svg)](https://www.iobroker.net/#en/adapters)
+[![Stable version](https://iobroker.live/badges/aura-stable.svg)](https://www.iobroker.net/#en/adapters)
+[![NPM version](https://img.shields.io/npm/v/iobroker.aura.svg)](https://www.npmjs.com/package/iobroker.aura)
+
+**Aura** is a modern, touch-friendly visualization dashboard for [ioBroker](https://www.iobroker.net/).
+Build dashboards in the browser with a drag-and-drop editor - no code, no separate VIS project -
+and use them on wall tablets, phones and desktops.
+
+![Aura dashboard](https://raw.githubusercontent.com/hdering/ioBroker.aura/main/docs/public/readme/dashboard.png)
+
+|   |   |
+|---|---|
+| 📖 **[Documentation](https://hdering.github.io/ioBroker.aura/)** | All widgets, settings and how-tos with screenshots (German) |
+| 🚀 **[First steps](https://hdering.github.io/ioBroker.aura/start/)** | Set up your first dashboard in the right order |
+| 🧩 **[Widgets](https://hdering.github.io/ioBroker.aura/widgets/)** | Lights, shutters, thermostats, charts, cameras, lists, status overview and more |
+| 💬 **[Forum (help & questions)](https://forum.iobroker.net/topic/84910/test-adapter-aura)** | Questions, tips and feedback in the ioBroker forum |
+| 🐞 **[Bugs & feature requests](https://github.com/hdering/ioBroker.aura/issues)** | Report on GitHub |
+
+**Highlights:** drag-and-drop grid editor · themes with light and dark mode · own
+layouts for tablet and phone · charts from history adapters · device cards and popups · PIN
+protection · screensaver · home screen app · AI access via a built-in MCP server.
+
+> ⚠️ **Version 1.7.0 and newer (Latest repository): port 8095 is deprecated.** Aura now runs inside
+> the web adapter at `http://<iobroker-ip>:<web-port>/aura/` (usually port 8082). Existing
+> installations keep port 8095 for now - switch to the web adapter with the
+> [moving guide](https://hdering.github.io/ioBroker.aura/anleitungen/umzug-web-adapter) (German).
+> **Stable 1.0.x is not affected** and still opens at `http://<iobroker-ip>:8095/`.
 
 ---
 
