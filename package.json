@@ -212,6 +212,7 @@
     "test:alarm-model": "node tools/tests/alarm-model-logic.mjs",
     "test:alarm-manual": "node tools/tests/alarm-manual.mjs",
     "test:alarm-config-ui": "node tools/tests/alarm-config-ui.mjs",
+    "test:alarm-live": "node tools/tests/alarm-live.mjs",
     "test:cell-bar-color": "node tools/tests/cell-bar-color.mjs",
     "test:climate-mode-paths": "node tools/tests/climate-mode-paths.mjs",
     "test:climate-metrics": "node tools/tests/climate-metrics.mjs",
