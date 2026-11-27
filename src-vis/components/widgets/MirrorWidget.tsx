@@ -6,6 +6,7 @@ import { EmbeddedWidget } from './EmbeddedWidget';
 import { TabMirror } from './TabMirror';
 import { useT } from '../../i18n';
 import { mirrorAutoHeight } from '../../utils/autoHeight';
+import { stripMirrorHead, withMirrorHead } from '../../utils/mirrorSource';
 import { ContentAutoHeightIdContext } from '../../hooks/useContentAutoHeight';
 
 /** Small centered notice card used for the mirror's various "cannot render" states. */
@@ -57,13 +58,12 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
     // source, otherwise on/off for the mirror alone. Its height reports under the
     // mirror's id (ContentAutoHeightIdContext), never over the source's.
     const mirrorAuto = config.options?.autoHeight;
-    const shownTarget = useMemo(
-        () =>
-            target && target.type !== 'mirror'
-                ? { ...target, options: { ...target.options, autoHeight: mirrorAutoHeight(mirrorAuto, target) } }
-                : target,
-        [target, mirrorAuto],
-    );
+    // Header options the mirror set itself (#1042) lie on top of the source's.
+    const shownTarget = useMemo(() => {
+        if (!target || target.type === 'mirror') return target;
+        const headed = withMirrorHead(target, config);
+        return { ...headed, options: { ...headed.options, autoHeight: mirrorAutoHeight(mirrorAuto, target) } };
+    }, [target, mirrorAuto, config]);
 
     if (!targetId) {
         return editMode ? (
@@ -110,9 +110,9 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
             <EmbeddedWidget
                 target={shownTarget ?? target}
                 gridPos={config.gridPos}
-                // The body saw the mirror's autoHeight — the source keeps its own.
+                // The body saw the mirror's autoHeight and header options — the source keeps its own.
                 onOptionsChange={(options) => {
-                    const next = { ...options };
+                    const next = { ...stripMirrorHead(options, target, config) };
                     if (target.options && 'autoHeight' in target.options) next.autoHeight = target.options.autoHeight;
                     else delete next.autoHeight;
                     updateWidget(target.id, { options: next });

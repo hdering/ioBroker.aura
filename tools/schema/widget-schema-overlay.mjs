@@ -728,7 +728,10 @@ export const WIDGET_OPTION_NOTES = {
         targetWidgetId: {
             description:
                 'Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind "tab"). ' +
-                'Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat.',
+                'Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat. ' +
+                'Ebenso die Kopfzeile: showTitle, showIcon, icon, iconSize, iconColor, titleColor, titleSize, ' +
+                'titleAlign, iconPlace, titleRow und headerItems folgen einzeln der Quelle, solange der Spiegel ' +
+                'sie nicht selbst setzt (headerItems [] = keine). Die Quelle behält immer ihre eigenen.',
         },
         targetTabId: {
             description:

@@ -266,7 +266,7 @@ import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
 import { useColorBindings } from '../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { runtimeId, useRenderTransform, useRuntimeScope } from '../../contexts/RenderTransformContext';
-import { isTabMirror, mirrorTargetWidgetId } from '../../utils/mirrorSource';
+import { isTabMirror, mirrorTargetWidgetId, withMirrorHead } from '../../utils/mirrorSource';
 import { findTabSource } from '../widgets/TabMirror';
 import { isGroupType } from '../../utils/groupTypes';
 import {
@@ -7274,6 +7274,17 @@ function WidgetFrameInner({
                 : undefined,
         [mirrorLcSource, dark],
     );
+    // The header of a widget mirror (#1042): the source's title/symbol look, places and
+    // header items, with whatever the mirror set itself on top. Every other widget
+    // (and a tab mirror) uses its own config.
+    const mirrorHead = useMemo(
+        () =>
+            mirrorBase && mirrorBase.type !== 'mirror' && config.type === 'mirror'
+                ? withMirrorHead(resolveDualDeep(mirrorBase, dark), renderConfig)
+                : undefined,
+        [mirrorBase, dark, renderConfig, config.type],
+    );
+    const headCfg = mirrorHead ?? renderConfig;
     // A mirror of a whole tab: its name for the editor badge.
     const mirrorTabName = useDashboardStore((s) =>
         isTabMirror(config)
@@ -7342,8 +7353,8 @@ function WidgetFrameInner({
     // The widget's own title / icon look (#725). Not on a group — its children sit inside
     // the same box and would inherit it; GroupWidget puts it on its header bar (#832) —
     // nor on the section title, which draws these options itself.
-    const ownLookOn = !isGroupType(config.type) && config.type !== 'header';
-    const ownOpts = renderConfig.options ?? {};
+    const ownLookOn = !isGroupType(headCfg.type) && headCfg.type !== 'header';
+    const ownOpts = headCfg.options ?? {};
     const ownTitleColor = ownLookOn ? (ownOpts.titleColor as string | undefined) || undefined : undefined;
     const ownTitleSize = ownLookOn ? Number(ownOpts.titleSize) || undefined : undefined;
     const ownIconColor = ownLookOn ? (ownOpts.iconColor as string | undefined) || undefined : undefined;
@@ -7705,8 +7716,9 @@ function WidgetFrameInner({
         ro.observe(el);
         return () => ro.disconnect();
     }, [isCollapsed, rid, setCollapsedHeader]);
-    // A mirror folds to its SOURCE's icon and title — its own are empty.
-    const collapsedSource = mirrorLcSource ?? renderConfig;
+    // A mirror folds to its SOURCE's icon and title — its own are empty — with its own
+    // header options on top (#1042).
+    const collapsedSource = mirrorHead ?? mirrorLcSource ?? renderConfig;
     const collapsedMeta = WIDGET_BY_TYPE[collapsedSource.type as WidgetType];
     const collapsedTitle = collapsedSource.title || collapsedMeta?.label || collapsedSource.type;
     const collapsedShowIcon = collapsedSource.options?.showIcon !== false;
@@ -7738,11 +7750,12 @@ function WidgetFrameInner({
     // Header items (issue #676) of the folded card. A mirror shows its source's.
     const collapsedHeaderItems = useHeaderItems(collapsedSource, true, isCollapsed, ActionIcon);
     // Expanded, the widget places the items into its own title row (HeaderSlotsContext);
-    // the mirror is left out — it draws its source's body, not a header of its own.
+    // a widget mirror hands its source's body the source's items, or its own (#1042).
+    // A tab mirror has no title row.
     const expandedHeaderItems = useHeaderItems(
-        renderConfig,
+        headCfg,
         false,
-        !isCollapsed && config.type !== 'mirror',
+        !isCollapsed && (config.type !== 'mirror' || !!mirrorHead),
         ActionIcon,
     );
     // Which rows the widget drew itself. A row nobody drew falls back to a strip above
@@ -7765,8 +7778,8 @@ function WidgetFrameInner({
             items: expandedHeaderItems,
             register: registerHeaderRow,
             onAction: onHeaderAction,
-            iconPlace: renderConfig.options?.iconPlace as IconPlace | undefined,
-            titleRow: renderConfig.options?.titleRow as number | undefined,
+            iconPlace: headCfg.options?.iconPlace as IconPlace | undefined,
+            titleRow: headCfg.options?.titleRow as number | undefined,
             titleInRow2: hdrRows.t2 > 0,
             // Expanded collapsible card (issue #941): the title row looks like the
             // folded header and folds it. In the editor only the chevron does — a
@@ -7780,8 +7793,8 @@ function WidgetFrameInner({
             expandedHeaderItems,
             registerHeaderRow,
             onHeaderAction,
-            renderConfig.options?.iconPlace,
-            renderConfig.options?.titleRow,
+            headCfg.options?.iconPlace,
+            headCfg.options?.titleRow,
             hdrRows.t2,
             frameCollapsible,
             isCollapsed,
@@ -7803,7 +7816,7 @@ function WidgetFrameInner({
     };
     // An 'action' item puts the click-action icon on a slot; the corner button and the
     // folded header's trailing icon step back for it in the state it shows in.
-    const storedHeaderItems = headerItems(config.options);
+    const storedHeaderItems = headerItems(mirrorHead ? mirrorHead.options : config.options);
     const actionItemIn = (collapsed: boolean) =>
         headerActionEnabled && storedHeaderItems.some((i) => i.source === 'action' && headerItemVisible(i, collapsed));
     const actionItemFolded = actionItemIn(true);
@@ -10146,9 +10159,16 @@ function WidgetFrameInner({
                                         {/* Header items (issue #676): extra values in the header row.
                                         The editor is too large for this panel, so it opens as
                                         its own popup. */}
-                                        {config.type !== 'mirror' &&
+                                        {(config.type !== 'mirror' || !!mirrorHead) &&
                                             (() => {
-                                                const hdrCount = headerItems(o).length;
+                                                // A widget mirror (#1042) shows its source's header
+                                                // with its own settings on top; edits stay on the mirror.
+                                                const hdrCfg = mirrorHead ?? config;
+                                                const hdrType = hdrCfg.type;
+                                                const hdrList = headerItems(hdrCfg.options);
+                                                const inheritedItems =
+                                                    !!mirrorHead && headerItems(mirrorBase?.options).length > 0;
+                                                const hdrCount = hdrList.length;
                                                 return (
                                                     <>
                                                         <div className="flex items-center justify-between gap-2">
@@ -10194,29 +10214,34 @@ function WidgetFrameInner({
                                                                 wide
                                                             >
                                                                 <HeaderItemsEditor
-                                                                    items={headerItems(o)}
-                                                                    config={config}
+                                                                    items={hdrList}
+                                                                    config={hdrCfg}
                                                                     hasClickAction={hasClickAction}
                                                                     // Expanded without a TitleRow (fixed layouts) the widget
                                                                     // keeps its symbol where it is — only the folded header
                                                                     // follows iconPlace. A folded card has no body to ask.
                                                                     iconFixed={!isCollapsed && hdrRows.r1 === 0}
                                                                     defaultIcon={
-                                                                        WIDGET_BY_TYPE[config.type as WidgetType]?.Icon
+                                                                        WIDGET_BY_TYPE[hdrType as WidgetType]?.Icon
                                                                     }
                                                                     // Title and symbol themselves (#725) — Darstellung
                                                                     // only opens this dialog now.
                                                                     head={{
-                                                                        iconAllowed: config.type !== 'stateimage',
-                                                                        titleAllowed: config.type !== 'mediaplayer',
-                                                                        iconPickable: config.type !== 'windowcontact',
-                                                                        offByDefault: config.type === 'menu',
+                                                                        iconAllowed: hdrType !== 'stateimage',
+                                                                        titleAllowed: hdrType !== 'mediaplayer',
+                                                                        iconPickable: hdrType !== 'windowcontact',
+                                                                        offByDefault: hdrType === 'menu',
                                                                         onChange: (patch) => setO(patch),
                                                                     }}
                                                                     onLayoutChange={(patch) => setO({ ...patch })}
                                                                     onChange={(next) =>
                                                                         setO({
-                                                                            headerItems: next.length ? next : undefined,
+                                                                            // A mirror keeps an empty list when the
+                                                                            // source has items — "none" is its choice.
+                                                                            headerItems:
+                                                                                next.length || inheritedItems
+                                                                                    ? next
+                                                                                    : undefined,
                                                                         })
                                                                     }
                                                                 />

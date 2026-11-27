@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.8.0",
+    "auraVersion": "1.9.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -20421,7 +20421,7 @@
         },
         "targetWidgetId": {
           "type": "string",
-          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\"). Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat."
+          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\"). Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat. Ebenso die Kopfzeile: showTitle, showIcon, icon, iconSize, iconColor, titleColor, titleSize, titleAlign, iconPlace, titleRow und headerItems folgen einzeln der Quelle, solange der Spiegel sie nicht selbst setzt (headerItems [] = keine). Die Quelle behält immer ihre eigenen."
         }
       }
     },

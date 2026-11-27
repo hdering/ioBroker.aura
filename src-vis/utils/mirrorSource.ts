@@ -52,3 +52,53 @@ export function withSourceSize(w: WidgetConfig, byId: ReadonlyMap<string, Widget
     sizedCache.set(w, { w: sw, h: sh, out });
     return out;
 }
+
+/**
+ * Header options a widget mirror may set for itself (#1042): title/symbol on and off,
+ * their look and place, and the header items. Unset, each follows the source.
+ */
+export const MIRROR_HEAD_KEYS = [
+    'showTitle',
+    'showIcon',
+    'icon',
+    'iconSize',
+    'iconColor',
+    'titleColor',
+    'titleSize',
+    'titleAlign',
+    'iconPlace',
+    'titleRow',
+    'headerItems',
+] as const;
+
+/** The mirror's own header options — only the keys it actually set. */
+export function mirrorHeadOverrides(mirror: WidgetConfig | undefined): Record<string, unknown> {
+    const o = mirror?.options ?? {};
+    const out: Record<string, unknown> = {};
+    for (const k of MIRROR_HEAD_KEYS) if (o[k] !== undefined) out[k] = o[k];
+    return out;
+}
+
+/** The source as the mirror shows it: its options with the mirror's own header options on top. */
+export function withMirrorHead(source: WidgetConfig, mirror: WidgetConfig | undefined): WidgetConfig {
+    const own = mirrorHeadOverrides(mirror);
+    if (!Object.keys(own).length) return source;
+    return { ...source, options: { ...source.options, ...own } };
+}
+
+/**
+ * Options the mirrored body wrote back, before they go to the source: the header
+ * options the mirror laid on top come off again, the source keeps its own.
+ */
+export function stripMirrorHead(
+    written: WidgetConfig['options'],
+    source: WidgetConfig,
+    mirror: WidgetConfig | undefined,
+): WidgetConfig['options'] {
+    const next = { ...written };
+    for (const k of Object.keys(mirrorHeadOverrides(mirror))) {
+        if (source.options && k in source.options) next[k] = source.options[k];
+        else delete next[k];
+    }
+    return next;
+}
