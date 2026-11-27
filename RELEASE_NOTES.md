@@ -14,5 +14,3 @@
 # Long list before a stable release: put a '## Summary' block above an '## All changes' heading
 # (about 10 bullets, same style). The stable release then puts only the summary into the
 # admin news and README; the full list goes to the GitHub release notes. Betas ignore it.
-- fix: Mirror - the mirror now shows its source's header (title colour and size, symbol place, header items) and can format its own header (Appearance -> Header); settings it leaves unset follow the source (#1042)
-- fix: Web component - after a reconnect the component kept the light theme instead of the dark one (#1043)
