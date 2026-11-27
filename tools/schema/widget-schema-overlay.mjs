@@ -707,6 +707,12 @@ export const WIDGET_OPTION_NOTES = {
         method: { description: 'HTTP-Methode.' },
     },
     mirror: {
+        autoHeight: {
+            description:
+                'Widget-Spiegel: Höhe an den Inhalt der Quelle anpassen, wie autoHeight der Quelle (nur wenn deren ' +
+                'Typ es kann). Leer = wie die Quelle, true/false = nur für den Spiegel an/aus – false lässt den ' +
+                'Spiegel bei seinem gridPos.h, auch wenn die Quelle mitwächst. Nicht beim Tab-Spiegel.',
+        },
         sourceKind: {
             description:
                 'Was gespiegelt wird: leer = ein Widget (targetWidgetId), "tab" = ein ganzer Tab (targetTabId). ' +
@@ -2774,6 +2780,10 @@ export const EXTRA_OPTIONS = {
     historytable: { ...AUTO_HEIGHT_OPTION },
     scenes: { ...AUTO_HEIGHT_OPTION },
     announcements: { ...AUTO_HEIGHT_OPTION },
+    // Read by utils/autoHeight usesContentAutoHeight via the source (#1041).
+    mirror: {
+        autoHeight: { type: 'boolean' },
+    },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own
         // options binding.

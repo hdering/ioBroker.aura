@@ -25,7 +25,7 @@ import {
 import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import { WidgetFullscreenOverlay } from './WidgetFullscreenOverlay';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
-import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
+import { mirrorAutoHeightView, stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
 import { WidgetFrame } from './WidgetFrame';
 import { TouchScrollbar } from './TouchScrollbar';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
@@ -804,7 +804,10 @@ export function Dashboard({
                                                 const ew = mirrorSrc ?? w;
                                                 // Group, media player, stacking weather layouts and content
                                                 // auto-height size to their content (utils/autoHeight).
-                                                const autoHeight = frameCollapsedNow(w, ew) || stacksToContent(ew);
+                                                // A mirror's own autoHeight may differ from the source's (#1041).
+                                                const autoHeight =
+                                                    frameCollapsedNow(w, ew) ||
+                                                    stacksToContent(mirrorSrc ? mirrorAutoHeightView(w, mirrorSrc) : w);
                                                 // The section title draws no card and clips nothing, so with a
                                                 // small row count its text sticks out of the box above and below
                                                 // (centered). On the desktop grid that overflow is simply

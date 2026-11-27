@@ -2,6 +2,8 @@ import type { WidgetConfig } from '../types';
 import { resolveSandboxAttr, type SandboxPreset } from './iframeSandbox';
 import { sandboxAllowsScripts } from './htmlBridge';
 import { isGroupType } from './groupTypes';
+import { findDashboardWidget, mirrorTargetWidgetId } from './mirrorSource';
+import { useDashboardStore } from '../store/dashboardStore';
 
 /**
  * Widget types that offer "Höhe automatisch an Inhalt anpassen" (option `autoHeight`).
@@ -50,11 +52,42 @@ export function htmlCanReportHeight(options?: Record<string, unknown>): boolean 
     return sandboxAllowsScripts(attr);
 }
 
+/**
+ * A widget mirror's auto-height (#1041): the mirror shows its source's content, so it
+ * can follow that content's height like the source does. Its own `autoHeight` decides:
+ * unset = as the source, true/false = on/off for the mirror alone (a mirror may be
+ * meant to keep another size). The result is the source's config under the mirror's
+ * id and placement — what every auto-height rule reads for the mirror, and what the
+ * mirror hands its embedded body.
+ */
+export function mirrorAutoHeightView(mirror: WidgetConfig, src: WidgetConfig): WidgetConfig {
+    const autoHeight = mirrorAutoHeight(mirror.options?.autoHeight, src);
+    return { ...src, id: mirror.id, gridPos: mirror.gridPos, options: { ...src.options, autoHeight } };
+}
+
+/** The mirror's effective `autoHeight`: its own when set, else the source's. */
+export function mirrorAutoHeight(own: unknown, src: WidgetConfig): boolean {
+    return typeof own === 'boolean' ? own : src.options?.autoHeight === true;
+}
+
+/** The live source of a widget mirror (not a tab mirror, never another mirror). */
+export function liveMirrorSource(w: WidgetConfig): WidgetConfig | undefined {
+    const tid = mirrorTargetWidgetId(w);
+    if (!tid || tid === w.id) return undefined;
+    const src = findDashboardWidget(useDashboardStore.getState().layouts, tid);
+    return src && src.type !== 'mirror' ? src : undefined;
+}
+
 /** The widget publishes its content height to autoHeightStore and the Dashboard sizes
- *  the grid item to it instead of the stored gridPos.h. */
+ *  the grid item to it instead of the stored gridPos.h. A widget mirror follows its
+ *  source's content (mirrorAutoHeightView). */
 export function usesContentAutoHeight(w?: WidgetConfig): boolean {
+    if (!w) return false;
+    if (w.type === 'mirror') {
+        const src = liveMirrorSource(w);
+        return !!src && usesContentAutoHeight(mirrorAutoHeightView(w, src));
+    }
     return (
-        !!w &&
         w.options?.autoHeight === true &&
         supportsAutoHeight(w.type, w.layout) &&
         (w.type !== 'html' || htmlCanReportHeight(w.options))

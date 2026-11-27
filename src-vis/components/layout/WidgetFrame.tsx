@@ -53,7 +53,7 @@ import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows, isFramelessGroup, withContentHeights } from '../../utils/groupLayout';
 import { CARD_PAD_MAX, cardPadding } from '../../utils/cardPadding';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
-import { htmlCanReportHeight, supportsAutoHeight } from '../../utils/autoHeight';
+import { htmlCanReportHeight, mirrorAutoHeight, supportsAutoHeight } from '../../utils/autoHeight';
 import { Unavailable } from '../config/Unavailable';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { TOUCH_DRAG_HANDLE } from '../../hooks/useGridEditInteraction';
@@ -6905,6 +6905,14 @@ function WidgetFrameInner({
         () => (mirrorLcSource && renderTransform ? renderTransform(mirrorLcSource) : mirrorLcSource),
         [mirrorLcSource, renderTransform],
     );
+    // A widget mirror offers "Höhe an Inhalt anpassen" when its source does (#1041);
+    // unset it follows the source, the switch overrides it for the mirror alone.
+    const autoHeightSrc =
+        config.type === 'mirror' && mirrorLcSource && mirrorLcSource.type !== 'mirror' ? mirrorLcSource : undefined;
+    const autoHeightCfg = autoHeightSrc ?? config;
+    const autoHeightOn = autoHeightSrc
+        ? mirrorAutoHeight(config.options?.autoHeight, autoHeightSrc)
+        : config.options?.autoHeight === true;
     // Inside a device card every child exists once per card under the same id — the
     // runtime registries below key on `rid` so the copies don't share a verdict (#743).
     const runtimeScope = useRuntimeScope();
@@ -10334,10 +10342,11 @@ function WidgetFrameInner({
                                     </Unavailable>
                                     {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). In a
                                         group too: the group sizes the child from it (#741). */}
-                                    {supportsAutoHeight(config.type, config.layout) && (
+                                    {supportsAutoHeight(autoHeightCfg.type, autoHeightCfg.layout) && (
                                         <Unavailable
                                             reason={
-                                                config.type === 'html' && !htmlCanReportHeight(o)
+                                                autoHeightCfg.type === 'html' &&
+                                                !htmlCanReportHeight(autoHeightCfg.options)
                                                     ? t('wf.edit.autoHeightNoScripts')
                                                     : undefined
                                             }
@@ -10351,10 +10360,10 @@ function WidgetFrameInner({
                                                     {t('wf.edit.autoHeight')}
                                                 </label>
                                                 <button
-                                                    onClick={() => setO({ autoHeight: !o.autoHeight })}
+                                                    onClick={() => setO({ autoHeight: !autoHeightOn })}
                                                     className="relative w-9 h-5 rounded-full transition-colors"
                                                     style={{
-                                                        background: o.autoHeight
+                                                        background: autoHeightOn
                                                             ? 'var(--accent)'
                                                             : 'var(--app-border)',
                                                     }}
@@ -10362,12 +10371,16 @@ function WidgetFrameInner({
                                                 >
                                                     <span
                                                         className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: o.autoHeight ? '18px' : '2px' }}
+                                                        style={{ left: autoHeightOn ? '18px' : '2px' }}
                                                     />
                                                 </button>
                                             </div>
                                             <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                                {t('wf.edit.autoHeightHint')}
+                                                {t(
+                                                    autoHeightSrc
+                                                        ? 'wf.edit.autoHeightMirrorHint'
+                                                        : 'wf.edit.autoHeightHint',
+                                                )}
                                             </p>
                                         </Unavailable>
                                     )}

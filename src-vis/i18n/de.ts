@@ -1394,6 +1394,8 @@ export const de = {
     'dash.autoHeightLocked': 'Höhe folgt dem Inhalt – abschaltbar unter Darstellung.',
     'wf.edit.autoHeightHint':
         'Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe wird dann überschrieben und lässt sich nicht mehr manuell ändern.',
+    'wf.edit.autoHeightMirrorHint':
+        'Der Spiegel wird so hoch wie der Inhalt der Quelle. Ohne eigene Einstellung gilt die der Quelle – ausschalten, wenn der Spiegel eine eigene Höhe behalten soll.',
     'wf.edit.autoHeightNoScripts':
         'Die Sandbox erlaubt keine Skripte – das HTML kann seine Höhe nicht melden. Bei eigenen Sandbox-Flags allow-scripts ergänzen.',
     'wf.edit.defaultCollapsed': 'Standardmäßig eingeklappt',

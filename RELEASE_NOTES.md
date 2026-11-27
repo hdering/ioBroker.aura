@@ -15,3 +15,4 @@
 # (about 10 bullets, same style). The stable release then puts only the summary into the
 # admin news and README; the full list goes to the GitHub release notes. Betas ignore it.
 - feat: Chart (extended) - the hover tooltip can be switched off (Behavior > Tooltip on hover) (#1040)
+- feat: Mirror - follows the source's "fit height to content" (e.g. HTML widget); can be switched on or off for the mirror alone (#1041)

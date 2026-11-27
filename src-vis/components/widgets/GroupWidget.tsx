@@ -41,7 +41,7 @@ import {
 } from '../../utils/groupLayout';
 import { clearResizeSize, showResizeSize } from '../../utils/resizeSizeBadge';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
-import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
+import { mirrorAutoHeightView, stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
 import { findDashboardWidget, mirrorTargetWidgetId } from '../../utils/mirrorSource';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -202,7 +202,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             const tid = mirrorTargetWidgetId(c);
             if (!tid) continue;
             const src = findDashboardWidget(s.layouts, tid);
-            if (src && src.type !== 'mirror' && stacksToContent(src)) key += `${c.id}|`;
+            if (src && src.type !== 'mirror' && stacksToContent(mirrorAutoHeightView(c, src))) key += `${c.id}|`;
         }
         return key;
     });

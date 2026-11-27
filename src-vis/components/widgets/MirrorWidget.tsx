@@ -1,9 +1,12 @@
+import { useMemo } from 'react';
 import { AlertTriangle, CopyPlus } from 'lucide-react';
 import type { WidgetConfig, WidgetProps } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { EmbeddedWidget } from './EmbeddedWidget';
 import { TabMirror } from './TabMirror';
 import { useT } from '../../i18n';
+import { mirrorAutoHeight } from '../../utils/autoHeight';
+import { ContentAutoHeightIdContext } from '../../hooks/useContentAutoHeight';
 
 /** Small centered notice card used for the mirror's various "cannot render" states. */
 function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string; detail?: string }) {
@@ -50,6 +53,17 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
         l.sections.flatMap((sec) => sec.tabs.flatMap((t) => t.widgets)),
     );
     const target = targetId && targetId !== config.id ? allWidgets.find((w) => w.id === targetId) : undefined;
+    // The body gets the mirror's own auto-height choice (#1041): unset follows the
+    // source, otherwise on/off for the mirror alone. Its height reports under the
+    // mirror's id (ContentAutoHeightIdContext), never over the source's.
+    const mirrorAuto = config.options?.autoHeight;
+    const shownTarget = useMemo(
+        () =>
+            target && target.type !== 'mirror'
+                ? { ...target, options: { ...target.options, autoHeight: mirrorAutoHeight(mirrorAuto, target) } }
+                : target,
+        [target, mirrorAuto],
+    );
 
     if (!targetId) {
         return editMode ? (
@@ -92,16 +106,24 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
     // Take the source's content but keep the mirror's own placement; option edits
     // go back to the source — never the whole config, that would clobber its gridPos.
     return (
-        <EmbeddedWidget
-            target={target}
-            gridPos={config.gridPos}
-            onOptionsChange={(options) => updateWidget(target.id, { options })}
-            // Let the mirror's frame overlay show the source's last-change
-            // for sources that self-report it (e.g. calendar).
-            onLastChange={onLastChange}
-            unknownType={
-                <Notice icon={<AlertTriangle size={22} />} title={t('mirror.unknownType', { type: target.type })} />
-            }
-        />
+        <ContentAutoHeightIdContext.Provider value={config.id}>
+            <EmbeddedWidget
+                target={shownTarget ?? target}
+                gridPos={config.gridPos}
+                // The body saw the mirror's autoHeight — the source keeps its own.
+                onOptionsChange={(options) => {
+                    const next = { ...options };
+                    if (target.options && 'autoHeight' in target.options) next.autoHeight = target.options.autoHeight;
+                    else delete next.autoHeight;
+                    updateWidget(target.id, { options: next });
+                }}
+                // Let the mirror's frame overlay show the source's last-change
+                // for sources that self-report it (e.g. calendar).
+                onLastChange={onLastChange}
+                unknownType={
+                    <Notice icon={<AlertTriangle size={22} />} title={t('mirror.unknownType', { type: target.type })} />
+                }
+            />
+        </ContentAutoHeightIdContext.Provider>
     );
 }

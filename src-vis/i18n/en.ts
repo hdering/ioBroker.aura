@@ -1380,6 +1380,8 @@ export const en: Record<TranslationKey, string> = {
     'dash.autoHeightLocked': 'Height follows the content – turn it off under Darstellung.',
     'wf.edit.autoHeightHint':
         'The widget grows as tall as its content instead of filling a fixed height. The set height is then overridden and can no longer be changed by hand.',
+    'wf.edit.autoHeightMirrorHint':
+        "The mirror grows as tall as the source's content. Without its own setting it follows the source – turn it off to give the mirror a height of its own.",
     'wf.edit.autoHeightNoScripts':
         'The sandbox does not allow scripts – the HTML cannot report its height. Add allow-scripts to the custom sandbox flags.',
     'wf.edit.defaultCollapsed': 'Collapsed by default',

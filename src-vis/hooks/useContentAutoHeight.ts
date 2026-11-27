@@ -13,6 +13,13 @@ import { usesContentAutoHeight } from '../utils/autoHeight';
 export const ContentAutoHeightBlockedContext = createContext(false);
 
 /**
+ * Id the widgets below report their content height under instead of their own — set
+ * by a widget mirror (#1041): its body is the source's config (source id), but the
+ * height belongs to the mirror's grid item, and the source measures apart from it.
+ */
+export const ContentAutoHeightIdContext = createContext<string | null>(null);
+
+/**
  * Shared "Höhe automatisch an Inhalt anpassen" wiring for content-driven widgets.
  * `fit`: render at natural height — no h-full/flex-1 fill, no inner scrollbar.
  * `measureRef`: attach to the widget's root; publishes its height to autoHeightStore,
@@ -32,7 +39,8 @@ export function useContentAutoHeight(config: WidgetConfig): {
     // overwrite each other's height. A device card already hands its children the
     // scoped id (deviceCardTransform) — that one is kept as is.
     const scope = useRuntimeScope();
-    const widgetId = scope && !config.id.startsWith(`${scope}~`) ? runtimeId(config.id, scope) : config.id;
+    const ownId = useContext(ContentAutoHeightIdContext) ?? config.id;
+    const widgetId = scope && !ownId.startsWith(`${scope}~`) ? runtimeId(ownId, scope) : ownId;
     const roRef = useRef<ResizeObserver | null>(null);
     const measureRef = useCallback(
         (el: HTMLElement | null) => {

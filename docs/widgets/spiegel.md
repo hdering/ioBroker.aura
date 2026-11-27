@@ -29,6 +29,7 @@ Beim Auswählen übernimmt der Spiegel einmalig Breite, Höhe und die Rahmen-Opt
 | Inhalt, Titel, Icon, Werte, Layout | Quelle |
 | Position im Raster | Spiegel |
 | Größe (`w` × `h`) | Spiegel — beim Auswählen von der Quelle übernommen |
+| Höhe an Inhalt anpassen (`autoHeight`) | Quelle — eigener Schalter am Spiegel ersetzt sie |
 | Transparenz und Stil-Overrides des Rahmens | Spiegel |
 | „Letzte Änderung"-Overlay | Quelle |
 | Bedingungen, Marker, Klick-Aktion | Quelle — eigene am Spiegel ersetzen sie |
@@ -37,6 +38,14 @@ Beim Auswählen übernimmt der Spiegel einmalig Breite, Höhe und die Rahmen-Opt
 Der Spiegel ist bedienbar wie die Quelle — Schalter schalten, Regler regeln, alles auf demselben Datenpunkt. Option-Änderungen, die ein Widget selbst speichert, landen auf der **Quelle**; die Position des Spiegels bleibt davon unberührt.
 
 Auf schmalen Bildschirmen richtet sich die automatische Höhe nach dem Typ der Quelle — ein Spiegel einer Gruppe wächst also mit ihrem Inhalt.
+
+| `autoHeight` am Spiegel | Höhe |
+| --- | --- |
+| nicht gesetzt | wie die Quelle |
+| an | folgt dem Inhalt — auch wenn die Quelle fest bleibt |
+| aus | feste Höhe `h` des Spiegels — auch wenn die Quelle mitwächst |
+
+Schalter: **Widget bearbeiten → Darstellung → Höhe automatisch an Inhalt anpassen**, nur wenn der Typ der Quelle es kann (z. B. HTML, Listen, Kalender). Der Spiegel misst eigenständig: ist er schmaler als die Quelle, wird er entsprechend höher.
 
 ## Grenzen
 
