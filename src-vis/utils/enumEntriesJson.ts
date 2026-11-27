@@ -17,7 +17,7 @@
  * verschachtelter Pfade wie `attributes.name`.
  */
 import type { EnumEntry, EnumRender } from '../components/widgets/enumEntry';
-import { extractJsonPath } from './dpRef';
+import { isPlainObject, pick, toText } from './jsonFieldPick';
 
 export interface EnumJsonKeys {
     /** Feld für den DP-Wert (leer = automatisch erkennen). */
@@ -39,38 +39,6 @@ const AUTO_ICON = ['icon'];
 const AUTO_IMAGE = ['image', 'img'];
 
 const RENDER_MODES: EnumRender[] = ['text', 'image', 'html', 'icon'];
-
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-    return !!v && typeof v === 'object' && !Array.isArray(v);
-}
-
-/** Skalare werden zu Text; Objekte/Arrays haben in einem Feld nichts verloren. */
-function toText(v: unknown): string | undefined {
-    if (v === null || v === undefined) return undefined;
-    const t = typeof v;
-    if (t === 'string') return v as string;
-    if (t === 'number' || t === 'boolean') return String(v);
-    return undefined;
-}
-
-/**
- * Wert eines Feldes: ein konfigurierter Feldname (auch als Pfad `a.b`) gewinnt,
- * sonst wird der erste Kandidat genommen, den die Zeile kennt — exakt, danach
- * ohne Rücksicht auf Groß-/Kleinschreibung.
- */
-function pick(row: Record<string, unknown>, explicit: string | undefined, auto: string[]): unknown {
-    const key = (explicit ?? '').trim();
-    if (key) return row[key] !== undefined ? row[key] : extractJsonPath(row, key);
-    for (const name of auto) {
-        if (row[name] !== undefined) return row[name];
-    }
-    const lower = new Map(Object.keys(row).map((k) => [k.toLowerCase(), k]));
-    for (const name of auto) {
-        const hit = lower.get(name);
-        if (hit !== undefined) return row[hit];
-    }
-    return undefined;
-}
 
 /**
  * Eine Zeile der Liste zu einem Eintrag. `mapKey` ist gesetzt, wenn die Zeile

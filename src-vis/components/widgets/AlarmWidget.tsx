@@ -1,13 +1,19 @@
+/**
+ * Alarm system widget. Data comes from the ioBroker.alarm adapter (`sourceMode:
+ * 'adapter'`, fixed paths under `alarmPrefix`) or from freely chosen datapoints
+ * (`sourceMode: 'manual'`, #1037). Mode buttons and zones are lists — set in the
+ * widget options or read from a JSON datapoint, like the Auswahlfeld's entries.
+ *
+ * The rendering only knows `AlarmSource` (alarm/useAlarmSource.ts); all options
+ * are read here, so the schema generator sees them.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import {
     ShieldAlert,
-    ShieldCheck,
-    ShieldOff,
     Moon,
     Home,
     AlertTriangle,
     Bell,
-    Lock,
     Activity,
     Clock as ClockIcon,
     Ban,
@@ -18,133 +24,25 @@ import {
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { useT, type TranslationKey } from '../../i18n';
-import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
+import { useT } from '../../i18n';
+import type { WidgetProps, AlarmContactDef, AlarmModeDef, AlarmStateMapEntry, AlarmZoneDef } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
-import { ConfigSection } from '../config/ConfigSection';
-import { ToggleRow, VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
-import { Unavailable } from '../config/Unavailable';
 import { AlarmKeypadModal } from './AlarmKeypadModal';
+import { parseAlarmModesJson, parseAlarmZonesJson } from '../../utils/alarmListJson';
+import {
+    PHASE_INFO,
+    resolveAdapterModes,
+    resolveAdapterZones,
+    resolveManualModes,
+    resolveManualZones,
+    isSet,
+    type LogSeparator,
+    type ResolvedMode,
+    type ResolvedZone,
+} from './alarm/alarmModel';
+import { useAlarmAdapterSource, useAlarmManualSource, type PinTarget } from './alarm/useAlarmSource';
 
-// ── alarm state mapping (mirrors info.state_list of ioBroker.alarm) ──────────
-
-type AlarmStateCode = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-const STATE_INFO: Record<AlarmStateCode, { labelKey: TranslationKey; color: string; pulse?: boolean }> = {
-    0: { labelKey: 'alarm.state.deactivated', color: '#64748b' },
-    1: { labelKey: 'alarm.state.sharp', color: '#3b82f6' },
-    2: { labelKey: 'alarm.state.sharpInside', color: '#06b6d4' },
-    3: { labelKey: 'alarm.state.burglary', color: '#ef4444', pulse: true },
-    4: { labelKey: 'alarm.state.nightRest', color: '#6366f1' },
-    5: { labelKey: 'alarm.state.getsActivated', color: '#eab308' },
-    6: { labelKey: 'alarm.state.activationFail', color: '#f97316' },
-    7: { labelKey: 'alarm.state.activationAbort', color: '#f97316' },
-    8: { labelKey: 'alarm.state.silentAlarm', color: '#dc2626' },
-};
-
-// use.list value mapping: 0 disable, 1 enable, 2 sharp_inside, 3 enable_with_delay, 4 night_rest
-const USE_LIST = {
-    off: 0,
-    sharp: 1,
-    inside: 2,
-    delay: 3,
-    night: 4,
-} as const;
-
-// ── data hook ────────────────────────────────────────────────────────────────
-
-interface AlarmData {
-    stateCode: AlarmStateCode;
-    stateText: string;
-    activated: boolean;
-    activatedWarnings: boolean;
-    sleep: boolean;
-    sharpInside: boolean;
-    burglar: boolean;
-    silent: boolean;
-    siren: boolean;
-    enableable: boolean;
-    activationCountdown: number;
-    silentCountdown: number;
-    alarmCircuitList: string;
-    notificationCircuitList: string;
-    sharpInsideCircuitList: string;
-    notificationChanges: boolean;
-    activationFailed: boolean;
-    wrongPassword: boolean;
-    logLast: string;
-    logToday: string;
-}
-
-const DEFAULT_DATA: AlarmData = {
-    stateCode: 0,
-    stateText: '',
-    activated: false,
-    activatedWarnings: false,
-    sleep: false,
-    sharpInside: false,
-    burglar: false,
-    silent: false,
-    siren: false,
-    enableable: true,
-    activationCountdown: 0,
-    silentCountdown: 0,
-    alarmCircuitList: '',
-    notificationCircuitList: '',
-    sharpInsideCircuitList: '',
-    notificationChanges: false,
-    activationFailed: false,
-    wrongPassword: false,
-    logLast: '',
-    logToday: '',
-};
-
-function useAlarmData(prefix: string): AlarmData {
-    const { subscribe, getState } = useIoBroker();
-    const [data, setData] = useState<AlarmData>({ ...DEFAULT_DATA });
-
-    useEffect(() => {
-        setData({ ...DEFAULT_DATA });
-        if (!prefix) return;
-
-        const cleanups: (() => void)[] = [];
-        const points: [string, keyof AlarmData][] = [
-            ['status.state_list', 'stateCode'],
-            ['status.state', 'stateText'],
-            ['status.activated', 'activated'],
-            ['status.activated_with_warnings', 'activatedWarnings'],
-            ['status.sleep', 'sleep'],
-            ['status.sharp_inside_activated', 'sharpInside'],
-            ['status.burglar_alarm', 'burglar'],
-            ['status.silent_alarm', 'silent'],
-            ['status.siren', 'siren'],
-            ['status.enableable', 'enableable'],
-            ['status.activation_countdown', 'activationCountdown'],
-            ['status.silent_countdown', 'silentCountdown'],
-            ['info.alarm_circuit_list', 'alarmCircuitList'],
-            ['info.notification_circuit_list', 'notificationCircuitList'],
-            ['info.sharp_inside_circuit_list', 'sharpInsideCircuitList'],
-            ['info.notification_circuit_changes', 'notificationChanges'],
-            ['status.activation_failed', 'activationFailed'],
-            ['info.wrong_password', 'wrongPassword'],
-            ['info.log', 'logLast'],
-            ['info.log_today', 'logToday'],
-        ];
-
-        for (const [dp, key] of points) {
-            const id = `${prefix}.${dp}`;
-            const apply = (s: ioBrokerState | null) => {
-                if (!s) return;
-                setData((prev) => ({ ...prev, [key]: (s.val ?? prev[key]) as AlarmData[typeof key] }));
-            };
-            cleanups.push(subscribe(id, apply));
-            getState(id).then(apply);
-        }
-
-        return () => cleanups.forEach((fn) => fn());
-    }, [prefix, subscribe, getState]);
-
-    return data;
-}
+export { AlarmConfig } from '../config/AlarmConfig';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -156,21 +54,7 @@ function fmtCountdown(s: number): string {
     return `${r}s`;
 }
 
-function parseLogToday(raw: string, max: number): { time: string; text: string }[] {
-    if (!raw) return [];
-    const parts = raw
-        .split(/<br\s*\/?>/i)
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const out: { time: string; text: string }[] = [];
-    for (const line of parts) {
-        if (out.length >= max) break;
-        const m = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s*[:-]\s*(.+)$/);
-        if (m) out.push({ time: m[1], text: m[2] });
-        else out.push({ time: '', text: line });
-    }
-    return out;
-}
+const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
 // ── tiny inline components ───────────────────────────────────────────────────
 
@@ -178,7 +62,7 @@ function ModeButton({
     active,
     color,
     label,
-    Icon,
+    icon,
     onClick,
     disabled,
     fontSize,
@@ -187,17 +71,19 @@ function ModeButton({
     active: boolean;
     color: string;
     label: string;
-    Icon: React.ComponentType<{ size?: number; color?: string }>;
+    icon: string;
     onClick: () => void;
     disabled?: boolean;
     fontSize: number;
     iconSize: number;
 }) {
+    const Icon = getWidgetIcon(icon, ShieldAlert);
     return (
         <button
             onClick={onClick}
             disabled={disabled}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 px-2 transition-all min-w-0"
+            className="aura-alarm-mode flex flex-col items-center gap-1 rounded-xl py-2 px-2 transition-all min-w-0"
+            data-active={active ? 'true' : undefined}
             style={{
                 background: active ? color : 'var(--app-bg)',
                 color: active ? '#fff' : 'var(--text-primary)',
@@ -208,7 +94,7 @@ function ModeButton({
             }}
             title={label}
         >
-            <Icon size={iconSize} color={active ? '#fff' : color} />
+            <Icon size={iconSize} style={{ color: active ? '#fff' : color }} />
             <span className="truncate" style={{ fontSize, lineHeight: 1.1 }}>
                 {label}
             </span>
@@ -216,23 +102,32 @@ function ModeButton({
     );
 }
 
-function StatePill({ code, label, fontSize }: { code: AlarmStateCode; label: string; fontSize: number }) {
-    const info = STATE_INFO[code] ?? STATE_INFO[0];
+function StatePill({
+    color,
+    pulse,
+    label,
+    fontSize,
+}: {
+    color: string;
+    pulse?: boolean;
+    label: string;
+    fontSize: number;
+}) {
     return (
         <span
-            className="inline-flex items-center gap-1 rounded-full font-semibold"
+            className="aura-alarm-state inline-flex items-center gap-1 rounded-full font-semibold"
             style={{
-                background: `${info.color}22`,
-                color: info.color,
-                border: `1px solid ${info.color}55`,
+                background: `color-mix(in srgb, ${color} 13%, transparent)`,
+                color,
+                border: `1px solid color-mix(in srgb, ${color} 33%, transparent)`,
                 padding: '2px 10px',
                 fontSize,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
-                animation: info.pulse ? 'alarm-pulse 1s ease-in-out infinite' : undefined,
+                animation: pulse ? 'alarm-pulse 1s ease-in-out infinite' : undefined,
             }}
         >
-            {info.pulse && <span style={{ width: 6, height: 6, borderRadius: '50%', background: info.color }} />}
+            {pulse && <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />}
             {label}
         </span>
     );
@@ -240,11 +135,11 @@ function StatePill({ code, label, fontSize }: { code: AlarmStateCode; label: str
 
 // ── main widget ──────────────────────────────────────────────────────────────
 
-export function AlarmWidget({ config }: WidgetProps) {
+export function AlarmWidget({ config, editMode }: WidgetProps) {
     const t = useT();
     const o = config.options ?? {};
-    const { setState } = useIoBroker();
 
+    const manual = o.sourceMode === 'manual';
     const prefix = ((o.alarmPrefix as string) || 'alarm.0').trim();
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -252,10 +147,6 @@ export function AlarmWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const showHeader = o.showHeader !== false;
     const showModes = o.showModes !== false;
-    const showModeOff = o.showModeOff !== false;
-    const showModeSharp = o.showModeSharp !== false;
-    const showModeInside = o.showModeInside !== false;
-    const showModeNight = o.showModeNight !== false;
     const showCountdown = o.showCountdown !== false;
     const showCircuits = o.showCircuits !== false;
     const showZones = o.showZones !== false;
@@ -266,35 +157,107 @@ export function AlarmWidget({ config }: WidgetProps) {
     const logLines = Math.max(0, Math.min(20, (o.logLines as number) ?? 5));
     const requirePin = o.requirePinForDisarm === true;
     // #911: arming via the adapter's toggle_password DPs, which check the same PIN.
-    // Only full arming — inside/night rest have no password DP in the adapter.
     const requireArmPin = o.requirePinForArm === true;
-    // #911: touch keypad in a popup instead of the inline field (wall tablets)
-    const keypad = (requirePin || requireArmPin) && o.pinInput === 'keypad';
     const panicConfirm = o.panicConfirm !== false;
     const compactMode = o.compactMode === true;
     const sizeScale = Math.max(0.5, Math.min(2.5, (o.sizeScale as number) ?? 1));
+    // Legacy per-button switches (before the mode list) — still honoured in adapter mode.
+    const legacyModes = {
+        showModeOff: o.showModeOff,
+        showModeSharp: o.showModeSharp,
+        showModeInside: o.showModeInside,
+        showModeNight: o.showModeNight,
+    };
+
+    // ── lists: own list or JSON datapoint ──────────────────────────────────────
+    const modesFromJson = o.modesSource === 'json';
+    const zonesFromJson = o.zonesSource === 'json';
+    const modesDp = str(o.modesDp);
+    const zonesDp = str(o.zonesDp);
+    const { value: modesRaw } = useDatapoint(modesFromJson ? modesDp : '');
+    const { value: zonesRaw } = useDatapoint(zonesFromJson ? zonesDp : '');
+    const ownModes = o.modes as AlarmModeDef[] | undefined;
+    const ownZones = o.zones as AlarmZoneDef[] | undefined;
+    const modeList = useMemo(
+        () => (modesFromJson ? parseAlarmModesJson(modesRaw).items : ownModes),
+        [modesFromJson, modesRaw, ownModes],
+    );
+    const zoneList = useMemo(
+        () => (zonesFromJson ? parseAlarmZonesJson(zonesRaw).items : ownZones),
+        [zonesFromJson, zonesRaw, ownZones],
+    );
+    const modes: ResolvedMode[] = useMemo(
+        () => (manual ? resolveManualModes(modeList) : resolveAdapterModes(modeList, legacyModes)),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            manual,
+            modeList,
+            legacyModes.showModeOff,
+            legacyModes.showModeSharp,
+            legacyModes.showModeInside,
+            legacyModes.showModeNight,
+        ],
+    );
+    const zones: ResolvedZone[] = useMemo(
+        () => (manual ? resolveManualZones(zoneList) : resolveAdapterZones(zoneList, prefix)),
+        [manual, zoneList, prefix],
+    );
+
+    // ── source ─────────────────────────────────────────────────────────────────
+    const adapter = useAlarmAdapterSource({ prefix, requirePin, requireArmPin, logLines }, !manual);
+    const manualSrc = useAlarmManualSource(
+        {
+            stateDp: str(o.stateDp),
+            stateMap: o.stateMap as AlarmStateMapEntry[] | undefined,
+            triggeredDp: str(o.triggeredDp),
+            sirenDp: str(o.sirenDp),
+            enableableDp: str(o.enableableDp),
+            countdownDp: str(o.countdownDp),
+            countdownUnit: o.countdownUnit === 'endTs' ? 'endTs' : 's',
+            circuitsDp: str(o.circuitsDp),
+            contacts: (o.contacts as AlarmContactDef[] | undefined) ?? [],
+            contactsBlockArm: o.contactsBlockArm === true,
+            noticeDp: str(o.noticeDp),
+            quitDp: str(o.quitDp),
+            quitValue: (o.quitValue as string) ?? 'true',
+            delayDp: str(o.delayDp),
+            delayValue: (o.delayValue as string) ?? 'true',
+            panicDp: str(o.panicDp),
+            panicValue: (o.panicValue as string) ?? 'true',
+            presenceDp: str(o.presenceDp),
+            logDp: str(o.logDp),
+            logSeparator: ((o.logSeparator as LogSeparator) ?? 'br') as LogSeparator,
+            logLines,
+            pinCheck: o.pinCheck === 'dp' ? 'dp' : 'none',
+            pinDp: str(o.pinDp),
+            pinPayload: o.pinPayload === 'pin' ? 'pin' : 'json',
+            wrongPinDp: str(o.wrongPinDp),
+            requirePin,
+            requireArmPin,
+            disarmMode: modes.find((m) => m.disarm),
+        },
+        manual,
+    );
+    const src = manual ? manualSrc : adapter;
+
+    // #911: touch keypad in a popup instead of the inline field (wall tablets)
+    const pinPossible = manual ? o.pinCheck === 'dp' : true;
+    const keypad = pinPossible && (requirePin || requireArmPin) && o.pinInput === 'keypad';
 
     const WidgetIcon = getWidgetIcon((o.icon as string) ?? 'ShieldAlert', ShieldAlert);
 
-    const data = useAlarmData(prefix);
-    const presence = useDatapoint(prefix ? `${prefix}.presence.on_off` : '');
-
     const [pin, setPin] = useState('');
     const [pinOpen, setPinOpen] = useState(false);
-    // What the PIN entry is for — decides the DP the code is written to.
-    const [pinTarget, setPinTarget] = useState<'disarm' | 'arm' | 'armDelay'>('disarm');
+    const [pinTarget, setPinTarget] = useState<PinTarget>({ kind: 'disarm' });
     const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
 
-    // Auto-open pin entry when burglar/silent active and a disarm is requested.
+    const triggered = src.triggered;
     useEffect(() => {
-        if (!data.burglar && !data.silent) setPinOpen(false);
-    }, [data.burglar, data.silent]);
+        if (!triggered) setPinOpen(false);
+    }, [triggered]);
 
-    const stateInfo = STATE_INFO[data.stateCode] ?? STATE_INFO[0];
-    const triggered = data.burglar || data.silent || data.siren;
-    // States that `use.quit_changes` actually resets — only show the acknowledge
-    // button when one of these is set, otherwise pressing it has no visible effect.
-    const canQuit = data.activationFailed || data.notificationChanges;
+    const info = PHASE_INFO[src.phase] ?? PHASE_INFO.off;
+    const stateLabel = src.stateLabel || (t(info.labelKey) as string);
 
     // Visual scaling
     const fsBase = 13 * sizeScale;
@@ -304,111 +267,56 @@ export function AlarmWidget({ config }: WidgetProps) {
     const fsModeLabel = 11 * sizeScale;
     const gap = 8 * sizeScale;
 
-    // ── command helpers ────────────────────────────────────────────────────────
-
-    const writeUseList = (n: number) => setState(`${prefix}.use.list`, n);
-
-    const askPin = (target: typeof pinTarget) => {
-        setPinTarget(target);
-        setPinOpen(true);
-    };
-    const doDisarm = () => {
-        if (requirePin) {
-            askPin('disarm');
+    // ── commands ───────────────────────────────────────────────────────────────
+    const press = (target: PinTarget) => {
+        const plan = src.plan(target);
+        if (plan === 'skip') return;
+        if (plan === 'pin') {
+            setPinTarget(target);
+            setPinOpen(true);
             return;
         }
-        setState(`${prefix}.use.disable`, true);
+        src.run(target);
     };
-    // The toggle DPs would disarm an already armed system — never send them then.
-    const doArm = () => {
-        if (!requireArmPin) writeUseList(USE_LIST.sharp);
-        else if (data.stateCode !== 1) askPin('arm');
-    };
-    const doEnableDelay = () => {
-        if (!requireArmPin) setState(`${prefix}.use.enable_with_delay`, true);
-        else if (data.stateCode !== 1) askPin('armDelay');
-    };
-    const doSharpInside = () => setState(`${prefix}.use.activate_sharp_inside`, true);
-    const doNightRest = () => setState(`${prefix}.use.activate_nightrest`, true);
     const doPanic = () => {
-        const fire = () => setState(`${prefix}.use.panic`, true);
-        if (panicConfirm) setConfirmAction(() => fire);
-        else fire();
+        if (panicConfirm) setConfirmAction(() => src.panic);
+        else src.panic();
     };
-    const doQuit = () => setState(`${prefix}.use.quit_changes`, true);
     const cancelPin = () => {
         setPin('');
         setPinOpen(false);
     };
     const submitPin = (code = pin) => {
         if (!code) return;
-        // A triggered alarm always shows the disarm entry, whatever was asked before.
-        const target = triggered ? 'disarm' : pinTarget;
-        const dp =
-            target === 'arm'
-                ? 'use.toggle_password'
-                : target === 'armDelay'
-                  ? 'use.toggle_with_delay_and_password'
-                  : 'use.disable_password';
-        setState(`${prefix}.${dp}`, code);
+        src.submitPin(triggered ? { kind: 'disarm' } : pinTarget, code);
         setPin('');
         setPinOpen(false);
     };
+    const pinForDisarm =
+        triggered || pinTarget.kind === 'disarm' || (pinTarget.kind === 'mode' && pinTarget.mode.disarm);
+    const pinWhileTriggered = triggered && src.pinWhileTriggered;
 
-    // ── render ────────────────────────────────────────────────────────────────
+    const modeLabel = (m: ResolvedMode) => m.label || (m.labelKey ? (t(m.labelKey) as string) : m.key);
+    const zoneLabel = (z: ResolvedZone) => z.label || (z.labelKey ? (t(z.labelKey) as string) : z.key);
 
-    const logEntries = useMemo(() => parseLogToday(data.logToday, logLines), [data.logToday, logLines]);
-
-    // Visible mode buttons (each can be individually hidden via config)
-    type ModeDef = {
-        key: string;
-        active: boolean;
-        color: string;
-        label: string;
-        Icon: React.ComponentType<{ size?: number; color?: string }>;
-        onClick: () => void;
-        disabled?: boolean;
-    };
-    const modeButtons: ModeDef[] = [
-        showModeOff && {
-            key: 'off',
-            active: data.stateCode === 0,
-            color: '#10b981',
-            label: t('alarm.mode.off') as string,
-            Icon: ({ size, color }: { size?: number; color?: string }) => <ShieldOff size={size} color={color} />,
-            onClick: doDisarm,
-        },
-        showModeSharp && {
-            key: 'sharp',
-            active: data.stateCode === 1,
-            color: '#3b82f6',
-            label: t('alarm.mode.sharp') as string,
-            Icon: ({ size, color }: { size?: number; color?: string }) => <ShieldCheck size={size} color={color} />,
-            onClick: doArm,
-            disabled: !data.enableable && data.stateCode !== 1,
-        },
-        showModeInside && {
-            key: 'inside',
-            active: data.stateCode === 2 || data.sharpInside,
-            color: '#06b6d4',
-            label: t('alarm.mode.inside') as string,
-            Icon: ({ size, color }: { size?: number; color?: string }) => <Lock size={size} color={color} />,
-            onClick: doSharpInside,
-        },
-        showModeNight && {
-            key: 'night',
-            active: data.stateCode === 4 || data.sleep,
-            color: '#6366f1',
-            label: t('alarm.mode.night') as string,
-            Icon: ({ size, color }: { size?: number; color?: string }) => <Moon size={size} color={color} />,
-            onClick: doNightRest,
-        },
-    ].filter(Boolean) as ModeDef[];
-
-    // Trigger overlay color tinting
     const cardTint = triggered
         ? { background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.45)' }
         : null;
+
+    const showPresenceChip = showPresence && src.presence !== null;
+    const listHint = (what: string, dp: string) => (
+        <div
+            className="aura-alarm-hint rounded-lg shrink-0"
+            style={{
+                padding: `${4 * sizeScale}px ${8 * sizeScale}px`,
+                border: '1px dashed var(--app-border)',
+                color: 'var(--text-secondary)',
+                fontSize: fsTiny,
+            }}
+        >
+            {t('alarm.hint.noEntries', { what, dp: dp || '–' }) as string}
+        </div>
+    );
 
     return (
         <div className="aura-widget-row w-full h-full flex flex-col overflow-hidden" style={{ gap }}>
@@ -464,12 +372,8 @@ export function AlarmWidget({ config }: WidgetProps) {
                     }}
                 >
                     <div className="flex items-center min-w-0" style={{ gap: 6 * sizeScale }}>
-                        <StatePill
-                            code={data.stateCode}
-                            label={t(stateInfo.labelKey) || data.stateText}
-                            fontSize={fsTiny}
-                        />
-                        {data.sleep && (
+                        <StatePill color={info.color} pulse={info.pulse} label={stateLabel} fontSize={fsTiny} />
+                        {src.sleep && (
                             <span
                                 className="inline-flex items-center gap-1"
                                 style={{ color: '#6366f1', fontSize: fsTiny }}
@@ -478,21 +382,21 @@ export function AlarmWidget({ config }: WidgetProps) {
                             </span>
                         )}
                     </div>
-                    {showPresence && (
+                    {showPresenceChip && (
                         <button
-                            onClick={() => setState(`${prefix}.presence.on_off`, !presence.value)}
+                            onClick={src.togglePresence}
                             className="inline-flex items-center gap-1 rounded-full"
                             style={{
                                 fontSize: fsTiny,
                                 padding: `${2 * sizeScale}px ${8 * sizeScale}px`,
-                                background: presence.value ? '#10b98122' : 'var(--app-surface)',
-                                color: presence.value ? '#10b981' : 'var(--text-secondary)',
-                                border: `1px solid ${presence.value ? '#10b98155' : 'var(--app-border)'}`,
+                                background: src.presence ? '#10b98122' : 'var(--app-surface)',
+                                color: src.presence ? '#10b981' : 'var(--text-secondary)',
+                                border: `1px solid ${src.presence ? '#10b98155' : 'var(--app-border)'}`,
                             }}
                             title={t('alarm.presence') as string}
                         >
                             <Home size={Math.round(11 * sizeScale)} />
-                            {presence.value ? (t('alarm.presence.on') as string) : (t('alarm.presence.off') as string)}
+                            {src.presence ? (t('alarm.presence.on') as string) : (t('alarm.presence.off') as string)}
                         </button>
                     )}
                 </div>
@@ -500,12 +404,8 @@ export function AlarmWidget({ config }: WidgetProps) {
 
             {keypad && pinOpen && (
                 <AlarmKeypadModal
-                    title={
-                        (triggered || pinTarget === 'disarm'
-                            ? t('alarm.keypad.title')
-                            : t('alarm.keypad.titleArm')) as string
-                    }
-                    wrongPin={data.wrongPassword}
+                    title={(pinForDisarm ? t('alarm.keypad.title') : t('alarm.keypad.titleArm')) as string}
+                    wrongPin={src.wrongPin}
                     onSubmit={submitPin}
                     onCancel={cancelPin}
                 />
@@ -529,12 +429,12 @@ export function AlarmWidget({ config }: WidgetProps) {
                         <KeyRound size={Math.round(14 * sizeScale)} />
                         {t('alarm.pinPlaceholder') as string}
                     </button>
-                    {data.wrongPassword && (
+                    {src.wrongPin && (
                         <span style={{ color: '#ef4444', fontSize: fsTiny }}>{t('alarm.wrongPin') as string}</span>
                     )}
                 </div>
-            ) : /* PIN entry: after a PIN disarm request, and always while an alarm is triggered */
-            !keypad && (pinOpen || (triggered && requirePin)) ? (
+            ) : /* PIN entry: after a PIN request, and always while an alarm is triggered */
+            !keypad && (pinOpen || pinWhileTriggered) ? (
                 <div
                     className="flex flex-wrap items-center rounded-xl shrink-0"
                     style={{
@@ -580,7 +480,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                         <Send size={Math.round(14 * sizeScale)} />
                     </button>
                     {/* While an alarm is triggered the PIN field stays — no way back to the mode buttons */}
-                    {!(triggered && requirePin) && (
+                    {!pinWhileTriggered && (
                         <button
                             onClick={cancelPin}
                             className="rounded-lg flex items-center justify-center shrink-0"
@@ -596,47 +496,53 @@ export function AlarmWidget({ config }: WidgetProps) {
                             <X size={Math.round(14 * sizeScale)} />
                         </button>
                     )}
-                    {data.wrongPassword && (
+                    {src.wrongPin && (
                         <span className="basis-full" style={{ color: '#ef4444', fontSize: fsTiny }}>
                             {t('alarm.wrongPin') as string}
                         </span>
                     )}
                 </div>
-            ) : (
-                showModes &&
-                modeButtons.length > 0 && (
-                    <div
-                        className="grid shrink-0"
-                        style={{
-                            gridTemplateColumns: `repeat(${
-                                compactMode ? Math.min(2, modeButtons.length) : modeButtons.length
-                            }, minmax(0, 1fr))`,
-                            gap: 6 * sizeScale,
-                        }}
-                    >
-                        {modeButtons.map((m) => (
+            ) : showModes && modes.length > 0 ? (
+                <div
+                    className="aura-alarm-modes grid shrink-0"
+                    style={{
+                        gridTemplateColumns: `repeat(${
+                            compactMode ? Math.min(2, modes.length) : modes.length
+                        }, minmax(0, 1fr))`,
+                        gap: 6 * sizeScale,
+                    }}
+                >
+                    {modes.map((m) => {
+                        const active = src.isModeActive(m);
+                        return (
                             <ModeButton
                                 key={m.key}
-                                active={m.active}
+                                active={active}
                                 color={m.color}
-                                label={m.label}
-                                Icon={m.Icon}
-                                onClick={m.onClick}
-                                disabled={m.disabled}
+                                label={modeLabel(m)}
+                                icon={m.icon}
+                                onClick={() => press({ kind: 'mode', mode: m })}
+                                // Adapter: only "Scharf" depends on status.enableable (as before #1037).
+                                disabled={!m.disarm && !src.enableable && !active && (manual || m.key === 'sharp')}
                                 fontSize={fsModeLabel}
                                 iconSize={fsModeIcon}
                             />
-                        ))}
-                    </div>
-                )
+                        );
+                    })}
+                </div>
+            ) : (
+                showModes &&
+                editMode &&
+                manual &&
+                listHint(t('alarm.hint.modes') as string, modesFromJson ? modesDp : '')
             )}
 
-            {/* Secondary actions (delay + panic + quit) */}
-            {!triggered && (showDelay || showPanic) && (
+            {/* Secondary actions (delay + panic) */}
+            {!triggered && ((showDelay && src.hasDelay) || (showPanic && src.hasPanic)) && (
                 <div className="flex shrink-0" style={{ gap: 6 * sizeScale }}>
-                    {showDelay && (
+                    {showDelay && src.hasDelay && (
                         <button
-                            onClick={doEnableDelay}
+                            onClick={() => press({ kind: 'delay' })}
                             className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg"
                             style={{
                                 padding: `${5 * sizeScale}px ${8 * sizeScale}px`,
@@ -650,7 +556,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                             {t('alarm.enableDelay') as string}
                         </button>
                     )}
-                    {showPanic && (
+                    {showPanic && src.hasPanic && (
                         <button
                             onClick={doPanic}
                             className="inline-flex items-center justify-center gap-1 rounded-lg"
@@ -670,10 +576,10 @@ export function AlarmWidget({ config }: WidgetProps) {
                 </div>
             )}
 
-            {/* Countdown + circuit warnings + quit */}
-            {showCountdown && (data.activationCountdown > 0 || data.silentCountdown > 0) && (
+            {/* Countdown */}
+            {showCountdown && (src.activationCountdown > 0 || src.silentCountdown > 0) && (
                 <div
-                    className="flex items-center rounded-lg shrink-0"
+                    className="aura-alarm-countdown flex items-center rounded-lg shrink-0"
                     style={{
                         padding: `${4 * sizeScale}px ${8 * sizeScale}px`,
                         background: '#eab30822',
@@ -684,23 +590,22 @@ export function AlarmWidget({ config }: WidgetProps) {
                     }}
                 >
                     <ClockIcon size={Math.round(13 * sizeScale)} />
-                    {data.activationCountdown > 0 ? (
+                    {src.activationCountdown > 0 ? (
                         <>
-                            {t('alarm.activatingIn') as string}{' '}
-                            <strong>{fmtCountdown(data.activationCountdown)}</strong>
+                            {t('alarm.activatingIn') as string} <strong>{fmtCountdown(src.activationCountdown)}</strong>
                         </>
                     ) : (
                         <>
-                            {t('alarm.silentIn') as string} <strong>{fmtCountdown(data.silentCountdown)}</strong>
+                            {t('alarm.silentIn') as string} <strong>{fmtCountdown(src.silentCountdown)}</strong>
                         </>
                     )}
                 </div>
             )}
 
             {/* Open alarm circuits — live status, cannot be acknowledged away */}
-            {showCircuits && data.alarmCircuitList && (
+            {showCircuits && src.openCircuits && (
                 <div
-                    className="flex items-start rounded-lg shrink-0"
+                    className="aura-alarm-circuits flex items-start rounded-lg shrink-0"
                     style={{
                         padding: `${4 * sizeScale}px ${8 * sizeScale}px`,
                         background: '#ef444422',
@@ -712,16 +617,15 @@ export function AlarmWidget({ config }: WidgetProps) {
                 >
                     <AlertTriangle size={Math.round(13 * sizeScale)} className="mt-0.5 shrink-0" />
                     <span className="flex-1">
-                        {t('alarm.openCircuits') as string}: {data.alarmCircuitList}
+                        {t('alarm.openCircuits') as string}: {src.openCircuits}
                     </span>
                 </div>
             )}
 
-            {/* Acknowledgeable notice (failed activation / circuit change) — pressing
-                quit_changes resets exactly these flags, so the block then disappears */}
-            {showCircuits && canQuit && (
+            {/* Acknowledgeable notice — quitting resets exactly these flags, so the block then disappears */}
+            {showCircuits && src.quitNotice && (
                 <div
-                    className="flex items-start rounded-lg shrink-0"
+                    className="aura-alarm-notice flex items-start rounded-lg shrink-0"
                     style={{
                         padding: `${4 * sizeScale}px ${8 * sizeScale}px`,
                         background: '#f9731622',
@@ -733,30 +637,32 @@ export function AlarmWidget({ config }: WidgetProps) {
                 >
                     <Bell size={Math.round(13 * sizeScale)} className="mt-0.5 shrink-0" />
                     <span className="flex-1 min-w-0" style={{ overflowWrap: 'anywhere' }}>
-                        {data.activationFailed
+                        {src.quitNotice.failed
                             ? (t('alarm.state.activationFail') as string)
-                            : data.notificationCircuitList || (t('alarm.changesPending') as string)}
+                            : src.quitNotice.text || (t('alarm.changesPending') as string)}
                     </span>
-                    <button
-                        onClick={doQuit}
-                        className="rounded inline-flex items-center gap-1 shrink-0"
-                        style={{
-                            padding: `${2 * sizeScale}px ${6 * sizeScale}px`,
-                            fontSize: fsTiny,
-                            color: '#f97316',
-                            border: '1px solid #f9731699',
-                            background: 'transparent',
-                        }}
-                        title={t('alarm.quitChanges') as string}
-                    >
-                        <Ban size={Math.round(11 * sizeScale)} />
-                        {t('alarm.quit') as string}
-                    </button>
+                    {src.hasQuit && (
+                        <button
+                            onClick={src.quit}
+                            className="rounded inline-flex items-center gap-1 shrink-0"
+                            style={{
+                                padding: `${2 * sizeScale}px ${6 * sizeScale}px`,
+                                fontSize: fsTiny,
+                                color: '#f97316',
+                                border: '1px solid #f9731699',
+                                background: 'transparent',
+                            }}
+                            title={t('alarm.quitChanges') as string}
+                        >
+                            <Ban size={Math.round(11 * sizeScale)} />
+                            {t('alarm.quit') as string}
+                        </button>
+                    )}
                 </div>
             )}
 
             {/* Passive notification list (nothing to acknowledge) */}
-            {showCircuits && !data.alarmCircuitList && !canQuit && data.notificationCircuitList && (
+            {showCircuits && !src.openCircuits && !src.quitNotice && src.passiveNotice && (
                 <div
                     className="flex items-center rounded-lg shrink-0"
                     style={{
@@ -769,17 +675,29 @@ export function AlarmWidget({ config }: WidgetProps) {
                     }}
                 >
                     <Bell size={Math.round(11 * sizeScale)} />
-                    {data.notificationCircuitList}
+                    {src.passiveNotice}
                 </div>
             )}
 
             {/* Zones */}
-            {showZones && <ZonesRow prefix={prefix} sizeScale={sizeScale} />}
+            {showZones && zones.length > 0 && (
+                <div className="aura-alarm-zones flex shrink-0" style={{ gap: 6 * sizeScale }}>
+                    {zones.map((z) => (
+                        <ZoneTile key={z.key} zone={z} label={zoneLabel(z)} sizeScale={sizeScale} />
+                    ))}
+                </div>
+            )}
+            {showZones &&
+                zones.length === 0 &&
+                editMode &&
+                manual &&
+                zonesFromJson &&
+                listHint(t('alarm.hint.zones') as string, zonesDp)}
 
             {/* Log (today) */}
-            {showLog && logEntries.length > 0 && (
+            {showLog && src.log.length > 0 && (
                 <div
-                    className="flex flex-col rounded-lg overflow-hidden min-h-0"
+                    className="aura-alarm-log flex flex-col rounded-lg overflow-hidden min-h-0"
                     style={{
                         background: 'var(--app-bg)',
                         border: '1px solid var(--app-border)',
@@ -795,7 +713,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                         {t('alarm.today') as string}
                     </div>
                     <div className="flex flex-col overflow-auto min-h-0" style={{ gap: 1 * sizeScale }}>
-                        {logEntries.map((entry, i) => (
+                        {src.log.map((entry, i) => (
                             <div key={i} className="flex" style={{ gap: 6 * sizeScale, fontSize: fsTiny }}>
                                 <span
                                     className="tabular-nums shrink-0"
@@ -872,61 +790,36 @@ export function AlarmWidget({ config }: WidgetProps) {
     );
 }
 
-// ── ZonesRow ─────────────────────────────────────────────────────────────────
+// ── ZoneTile ─────────────────────────────────────────────────────────────────
 
-function ZonesRow({ prefix, sizeScale }: { prefix: string; sizeScale: number }) {
-    const t = useT();
+function ZoneTile({ zone, label, sizeScale }: { zone: ResolvedZone; label: string; sizeScale: number }) {
     const { setState } = useIoBroker();
-    const zones = [
-        { key: 'one', label: t('alarm.zone.one') as string },
-        { key: 'two', label: t('alarm.zone.two') as string },
-        { key: 'three', label: t('alarm.zone.three') as string },
-    ];
-    return (
-        <div className="flex shrink-0" style={{ gap: 6 * sizeScale }}>
-            {zones.map((z) => (
-                <ZoneTile
-                    key={z.key}
-                    prefix={prefix}
-                    zoneKey={z.key}
-                    label={z.label}
-                    sizeScale={sizeScale}
-                    setState={setState}
-                />
-            ))}
-        </div>
-    );
-}
-
-function ZoneTile({
-    prefix,
-    zoneKey,
-    label,
-    sizeScale,
-    setState,
-}: {
-    prefix: string;
-    zoneKey: string;
-    label: string;
-    sizeScale: number;
-    setState: (id: string, val: boolean | number | string) => void;
-}) {
-    const enabled = useDatapoint(`${prefix}.zone.${zoneKey}_on_off`);
-    const trig = useDatapoint(`${prefix}.zone.${zoneKey}`);
-    const isOn = enabled.value === true;
-    const isTrig = trig.value === true;
+    const enabled = useDatapoint(zone.onOffDp ?? '');
+    const trig = useDatapoint(zone.triggeredDp ?? '');
+    const isOn = zone.onOffDp ? isSet(enabled.value) : false;
+    const isTrig = zone.triggeredDp ? isSet(trig.value) : false;
     const color = isTrig ? '#ef4444' : isOn ? '#10b981' : 'var(--text-secondary)';
     const fsLabel = 10 * sizeScale;
     const fsSub = 9 * sizeScale;
+    const canToggle = !!zone.onOffDp;
     return (
         <button
-            onClick={() => setState(`${prefix}.zone.${zoneKey}_on_off`, !isOn)}
-            className="flex-1 flex flex-col items-center rounded-lg transition-colors min-w-0"
+            onClick={() => canToggle && setState(zone.onOffDp!, !isOn)}
+            disabled={!canToggle}
+            className="aura-alarm-zone flex-1 flex flex-col items-center rounded-lg transition-colors min-w-0"
+            data-zone={zone.key}
             style={{
                 padding: `${4 * sizeScale}px ${4 * sizeScale}px`,
-                background: isTrig ? '#ef444422' : isOn ? `${color}18` : 'var(--app-bg)',
-                border: `1px solid ${isTrig ? '#ef444499' : isOn ? `${color}55` : 'var(--app-border)'}`,
+                background: isTrig
+                    ? '#ef444422'
+                    : isOn
+                      ? `color-mix(in srgb, ${color} 10%, transparent)`
+                      : 'var(--app-bg)',
+                border: `1px solid ${
+                    isTrig ? '#ef444499' : isOn ? `color-mix(in srgb, ${color} 33%, transparent)` : 'var(--app-border)'
+                }`,
                 gap: 2 * sizeScale,
+                cursor: canToggle ? 'pointer' : 'default',
             }}
             title={label}
         >
@@ -937,207 +830,8 @@ function ZoneTile({
                 {label}
             </span>
             <span style={{ fontSize: fsSub, color: 'var(--text-secondary)' }}>
-                {isTrig ? '⚠' : isOn ? 'on' : 'off'}
+                {isTrig ? '⚠' : canToggle ? (isOn ? 'on' : 'off') : ''}
             </span>
         </button>
-    );
-}
-
-// ── Config panel (rendered by WidgetFrame) ───────────────────────────────────
-
-export function AlarmConfig({
-    config,
-    onConfigChange,
-}: {
-    config: WidgetConfig;
-    onConfigChange: (c: WidgetConfig) => void;
-}) {
-    const t = useT();
-    const o = config.options ?? {};
-    const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
-
-    const prefix = (o.alarmPrefix as string) ?? 'alarm.0';
-    const logLines = (o.logLines as number) ?? 5;
-    const sizeScale = (o.sizeScale as number) ?? 1;
-
-    const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
-    const inputSty: React.CSSProperties = {
-        background: 'var(--app-bg)',
-        color: 'var(--text-primary)',
-        border: '1px solid var(--app-border)',
-    };
-
-    const Toggle = ({ label, k, def, hint }: { label: string; k: string; def?: boolean; hint?: string }) => {
-        const val = (o[k] as boolean | undefined) ?? def ?? false;
-        return (
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {label}
-                    </label>
-                    {hint && (
-                        <span className="text-[10px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                            {hint}
-                        </span>
-                    )}
-                </div>
-                <button
-                    onClick={() => set({ [k]: !val })}
-                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                    style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: val ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-        );
-    };
-
-    const modeRow = (k: string, label: string) => (
-        <ToggleRow
-            visKey={k}
-            label={label}
-            on={(o[k] as boolean | undefined) !== false}
-            onChange={(next) => set({ [k]: next })}
-        />
-    );
-    const fields: VisibleField[] = [
-        { key: 'showHeader', label: t('alarm.cfg.showHeader') as string },
-        {
-            key: 'showModes',
-            label: t('alarm.cfg.showModes') as string,
-            children: (
-                <>
-                    {modeRow('showModeOff', t('alarm.cfg.showModeOff') as string)}
-                    {modeRow('showModeSharp', t('alarm.cfg.showModeSharp') as string)}
-                    {modeRow('showModeInside', t('alarm.cfg.showModeInside') as string)}
-                    {modeRow('showModeNight', t('alarm.cfg.showModeNight') as string)}
-                </>
-            ),
-        },
-        { key: 'showDelay', label: t('alarm.cfg.showDelay') as string },
-        { key: 'showCountdown', label: t('alarm.cfg.showCountdown') as string },
-        { key: 'showCircuits', label: t('alarm.cfg.showCircuits') as string },
-        { key: 'showZones', label: t('alarm.cfg.showZones') as string },
-        {
-            key: 'showLog',
-            label: t('alarm.cfg.showLog') as string,
-            children: (
-                <div>
-                    <label
-                        className="text-[11px] mb-1 flex items-center justify-between"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        <span>{t('alarm.cfg.logLines') as string}</span>
-                        <span style={{ color: 'var(--text-primary)' }}>{logLines}</span>
-                    </label>
-                    <input
-                        type="range"
-                        min={0}
-                        max={20}
-                        step={1}
-                        value={logLines}
-                        onChange={(e) => set({ logLines: Number(e.target.value) })}
-                        className="w-full"
-                    />
-                </div>
-            ),
-        },
-        {
-            key: 'showPanic',
-            label: t('alarm.cfg.showPanic') as string,
-            def: false,
-            hint: t('alarm.cfg.showPanic.hint') as string,
-        },
-        { key: 'showPresence', label: t('alarm.cfg.showPresence') as string, def: false },
-    ];
-
-    return (
-        <>
-            <VisibleFieldsSection fields={fields} values={o} onChange={set} />
-
-            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('alarm.cfg.prefix') as string}
-                    </label>
-                    <input
-                        type="text"
-                        value={prefix}
-                        onChange={(e) => set({ alarmPrefix: e.target.value || 'alarm.0' })}
-                        placeholder="alarm.0"
-                        className={`${inputCls} font-mono`}
-                        style={inputSty}
-                    />
-                </div>
-            </ConfigSection>
-
-            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                <Toggle
-                    label={t('alarm.cfg.compactMode') as string}
-                    k="compactMode"
-                    def={false}
-                    hint={t('alarm.cfg.compactMode.hint') as string}
-                />
-                <div>
-                    <label
-                        className="text-[11px] mb-1 flex items-center justify-between"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        <span>{t('alarm.cfg.sizeScale') as string}</span>
-                        <span style={{ color: 'var(--text-primary)' }}>{sizeScale.toFixed(2)}×</span>
-                    </label>
-                    <input
-                        type="range"
-                        min={0.5}
-                        max={2.5}
-                        step={0.05}
-                        value={sizeScale}
-                        onChange={(e) => set({ sizeScale: Number(e.target.value) })}
-                        className="w-full"
-                    />
-                </div>
-            </ConfigSection>
-
-            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
-                <Toggle
-                    label={t('alarm.cfg.requirePin') as string}
-                    k="requirePinForDisarm"
-                    def={false}
-                    hint={t('alarm.cfg.requirePin.hint') as string}
-                />
-                <Toggle
-                    label={t('alarm.cfg.requirePinArm') as string}
-                    k="requirePinForArm"
-                    def={false}
-                    hint={t('alarm.cfg.requirePinArm.hint') as string}
-                />
-                <Unavailable
-                    reason={
-                        o.requirePinForDisarm === true || o.requirePinForArm === true
-                            ? undefined
-                            : (t('alarm.cfg.pinInput.needsPin') as string)
-                    }
-                >
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('alarm.cfg.pinInput') as string}
-                        </label>
-                        <select
-                            value={o.pinInput === 'keypad' ? 'keypad' : 'field'}
-                            onChange={(e) => set({ pinInput: e.target.value })}
-                            className={inputCls}
-                            style={inputSty}
-                        >
-                            <option value="field">{t('alarm.cfg.pinInput.field') as string}</option>
-                            <option value="keypad">{t('alarm.cfg.pinInput.keypad') as string}</option>
-                        </select>
-                    </div>
-                </Unavailable>
-                <Toggle label={t('alarm.cfg.panicConfirm') as string} k="panicConfirm" def={true} />
-            </ConfigSection>
-        </>
     );
 }

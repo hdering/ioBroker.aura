@@ -7,6 +7,7 @@ import { NS } from '../utils/namespace';
 import { BEHIND_WEB_EXTENSION } from '../utils/basePath';
 import { coerceToDpType } from '../utils/dpValueCoerce';
 import { idPatternToRegExp, isIdPattern } from '../utils/idPattern';
+import { isValidStateId } from '../utils/stateId';
 
 interface IoBrokerSocket {
     connected: boolean;
@@ -392,15 +393,7 @@ export function setOptimisticEcho(enabled: boolean): void {
 // ioBroker rejects ID patterns with forbidden characters ("Invalid pattern on
 // subscribe"). Filter them out client-side so a stale URL accidentally stored
 // in a DP-field can never crash the socket. The allowed set mirrors
-// js-controller's FORBIDDEN_CHARS — anything stricter silently drops live
-// updates for real IDs (initial getState works, stateChange never arrives):
-// '#' (Shelly), ' ' (0_userdata), ':' (lupusec, homekit-controller, #874).
-// '?' stays forbidden, which keeps it free as the JSON-path separator (dpRef).
-const FORBIDDEN_ID_CHARS = /[^._\-/ :!#$%&()+=@^{}|~*\p{Ll}\p{Lu}\p{Nd}]/u;
-
-export function isValidStateId(id: unknown): id is string {
-    return typeof id === 'string' && id.length > 0 && !FORBIDDEN_ID_CHARS.test(id) && !id.includes('://');
-}
+export { isValidStateId } from '../utils/stateId';
 
 /** Fetch multiple state IDs in parallel and warm the cache. Returns when all have resolved (or 4 s timeout). */
 export function prefetchStates(ids: string[], onProgress?: (loaded: number, total: number) => void): Promise<void> {

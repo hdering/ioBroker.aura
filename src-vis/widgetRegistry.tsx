@@ -856,7 +856,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         addMode: 'free',
         widgetGroup: 'special',
         mock: { t: 'Alarmanlage', v: 'Deaktiviert' },
-        hint: 'ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN-Entwaffnung, Tages-Log',
+        hint: 'Alarmanlage über den ioBroker.alarm-Adapter oder eigene Datenpunkte — Modi, Zonen, PIN, Kontakte, Tages-Log',
     },
     {
         type: 'map',

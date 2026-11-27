@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "1.6.0-next.5",
+    "auraVersion": "1.7.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6384,6 +6384,139 @@
         "submit"
       ]
     },
+    "AlarmModeDef": {
+      "type": "object",
+      "fields": {
+        "key": {
+          "type": "string",
+          "required": true,
+          "description": "stable id; adapter mode: off | sharp | inside | night"
+        },
+        "label": {
+          "type": "string",
+          "description": "button text; empty = default text (adapter) or key"
+        },
+        "icon": {
+          "type": "string",
+          "description": "icon name (lucide/Iconify); empty = shield icon"
+        },
+        "color": {
+          "type": "string",
+          "description": "button colour when active",
+          "color": true
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "keep the entry but do not show the button"
+        },
+        "writeDp": {
+          "type": "string",
+          "description": "manual mode: datapoint the button writes; empty = stateDp",
+          "datapoint": true
+        },
+        "writeValue": {
+          "type": "string",
+          "description": "manual mode: value written; empty = key"
+        },
+        "activeWhen": {
+          "type": "string",
+          "description": "manual mode: raw stateDp value that lights the button; empty = writeValue"
+        },
+        "disarm": {
+          "type": "boolean",
+          "description": "manual mode: this button disarms (PIN rule \"Deaktivieren\", always reachable during an alarm)"
+        },
+        "requirePin": {
+          "type": "boolean",
+          "description": "manual mode: PIN for this button; unset = requirePinForDisarm / requirePinForArm"
+        }
+      }
+    },
+    "AlarmZoneDef": {
+      "type": "object",
+      "fields": {
+        "key": {
+          "type": "string",
+          "required": true,
+          "description": "stable id"
+        },
+        "label": {
+          "type": "string",
+          "description": "tile text"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "keep the entry but do not show the tile"
+        },
+        "onOffDp": {
+          "type": "string",
+          "description": "manual mode: boolean datapoint, zone armed; a click toggles it",
+          "datapoint": true
+        },
+        "triggeredDp": {
+          "type": "string",
+          "description": "manual mode: boolean datapoint, zone triggered (display only)",
+          "datapoint": true
+        }
+      }
+    },
+    "AlarmStateMapEntry": {
+      "type": "object",
+      "fields": {
+        "value": {
+          "type": "string",
+          "required": true,
+          "description": "raw value of stateDp (compared as text, true/false for booleans)"
+        },
+        "phase": {
+          "type": "string",
+          "ref": "AlarmPhase",
+          "required": true,
+          "description": "off | armed | inside | night | arming | triggered | silent | failed | aborted"
+        },
+        "label": {
+          "type": "string",
+          "description": "text in the status pill; empty = default text of the phase"
+        }
+      }
+    },
+    "AlarmPhase": {
+      "type": "string",
+      "enum": [
+        "off",
+        "armed",
+        "inside",
+        "night",
+        "arming",
+        "triggered",
+        "silent",
+        "failed",
+        "aborted"
+      ]
+    },
+    "AlarmContactDef": {
+      "type": "object",
+      "fields": {
+        "dp": {
+          "type": "string",
+          "required": true,
+          "description": "contact datapoint; true / non-zero / \"open\" = open",
+          "datapoint": true
+        },
+        "name": {
+          "type": "string",
+          "description": "shown in the list of open contacts; empty = datapoint id"
+        }
+      }
+    },
+    "LogSeparator": {
+      "type": "string",
+      "enum": [
+        "br",
+        "newline",
+        "json"
+      ]
+    },
     "MapMarker": {
       "type": "object",
       "fields": {
@@ -7712,7 +7845,7 @@
       "label": "Alarmanlage",
       "group": "special",
       "addMode": "free",
-      "hint": "ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN-Entwaffnung, Tages-Log",
+      "hint": "Alarmanlage über den ioBroker.alarm-Adapter oder eigene Datenpunkte — Modi, Zonen, PIN, Kontakte, Tages-Log",
       "defaultSize": {
         "w": 12,
         "h": 9
@@ -7779,35 +7912,144 @@
         "alarmPrefix": {
           "type": "string",
           "default": "alarm.0",
-          "description": "Objektpfad der Alarmanlage, z. B. \"alarm.0\"."
+          "description": "Nur sourceMode \"adapter\": Objektpfad der Alarmanlage, z. B. \"alarm.0\"."
         },
         "batteryColor": {
           "type": "string",
           "description": "Farbe des Batterie-Badges bei schwacher Batterie. Leer = var(--badge-warn) (orange).",
           "color": true
         },
+        "circuitsDp": {
+          "description": "Manuell: Text-Datenpunkt mit offenen Kreisen, wird mit offenen contacts zusammen angezeigt.",
+          "type": "string",
+          "datapoint": true
+        },
         "compactMode": {
           "type": "boolean",
           "default": false,
-          "description": "Dichtere Darstellung."
+          "description": "Modus-Buttons in 2 Spalten statt in einer Reihe."
+        },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "AlarmContactDef"
+          },
+          "description": "Manuell: Fenster/Tür-Kontakte (AlarmContactDef[]: dp, name). Offene (true/1/\"open\") werden mit Namen gelistet."
+        },
+        "contactsBlockArm": {
+          "type": "boolean",
+          "default": false,
+          "description": "Manuell: Scharfschalten sperren, solange ein Kontakt aus contacts offen ist."
+        },
+        "countdownDp": {
+          "description": "Manuell: Countdown-Datenpunkt, Einheit siehe countdownUnit.",
+          "type": "string",
+          "datapoint": true
+        },
+        "countdownUnit": {
+          "description": "Manuell: \"s\" = Restsekunden (Standard), \"endTs\" = Endzeitpunkt als Zeitstempel (ms oder s), das Widget zählt selbst."
+        },
+        "delayDp": {
+          "description": "Manuell: Datenpunkt für \"Mit Verzögerung\" scharf.",
+          "type": "string",
+          "datapoint": true
+        },
+        "delayValue": {
+          "type": "string",
+          "default": "true",
+          "description": "Manuell: Wert für delayDp (Standard \"true\")."
+        },
+        "enableableDp": {
+          "description": "Manuell: false = Scharfschalten gesperrt; die Scharf-Buttons werden ausgegraut.",
+          "type": "string",
+          "datapoint": true
         },
         "icon": {
           "type": "string",
           "default": "ShieldAlert",
           "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, \"#tint\" färbt ein einfarbiges PNG in der Icon-Farbe ein; sonst hat ein PNG seine eigenen Farben). Leer = Standard-Icon des Typs."
         },
+        "logDp": {
+          "description": "Manuell: Datenpunkt mit dem Ereignis-Log.",
+          "type": "string",
+          "datapoint": true
+        },
         "logLines": {
           "type": "number",
           "default": 5,
           "description": "Anzahl Zeilen der Ereignisliste."
+        },
+        "logSeparator": {
+          "type": "string",
+          "ref": "LogSeparator",
+          "default": "br",
+          "description": "Manuell: Trenner im Log: \"br\" (<br>, Standard), \"newline\" oder \"json\" (Liste von Texten bzw. {time,text})."
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "AlarmModeDef"
+          },
+          "description": "Modus-Buttons (AlarmModeDef[]). Adapter-Modus: nur die keys off|sharp|inside|night, davon wirken label/icon/color/hidden und die Reihenfolge; fehlende keys werden angehängt. Manueller Modus: beliebig viele, jeder schreibt writeValue (leer = key) in writeDp (leer = stateDp) und leuchtet, wenn stateDp activeWhen (leer = writeValue) enthält; disarm: true markiert den Aus-Button."
+        },
+        "modesDp": {
+          "description": "Bei modesSource \"json\": Datenpunkt mit JSON (optional mit ?pfad). Formen: Liste von AlarmModeDef, Map {\"0\":\"Aus\",\"1\":\"Scharf\"} (key = geschriebener Wert), [\"Aus\",\"Scharf\"] oder {\"modes\":[…],\"zones\":[…]}.",
+          "type": "string",
+          "datapoint": true
+        },
+        "modesSource": {
+          "description": "Woher die Modus-Buttons kommen: \"list\" (Standard) = Option modes, \"json\" = JSON aus modesDp. Die JSON-Liste ersetzt die eigene Liste vollständig."
+        },
+        "noticeDp": {
+          "description": "Manuell: Meldung (Text oder Bool). Mit quitDp erscheint sie mit Quittieren-Button, sonst als stiller Hinweis.",
+          "type": "string",
+          "datapoint": true
         },
         "panicConfirm": {
           "type": "boolean",
           "default": true,
           "description": "Vor dem Panikalarm eine Rückfrage anzeigen."
         },
+        "panicDp": {
+          "description": "Manuell: Datenpunkt für den Panikalarm.",
+          "type": "string",
+          "datapoint": true
+        },
+        "panicValue": {
+          "type": "string",
+          "default": "true",
+          "description": "Manuell: Wert für panicDp (Standard \"true\")."
+        },
+        "pinCheck": {
+          "description": "Manuell: \"none\" (Standard) = keine PIN; \"dp\" = PIN-Anfrage in pinDp schreiben, ein Skript prüft und schaltet selbst. Das Widget schaltet dann nicht direkt."
+        },
+        "pinDp": {
+          "description": "Manuell mit pinCheck \"dp\": Datenpunkt für die PIN-Anfrage.",
+          "type": "string",
+          "datapoint": true
+        },
         "pinInput": {
           "description": "Art der PIN-Eingabe (mit requirePinForDisarm/requirePinForArm): \"field\" = Eingabefeld mit Gerätetastatur, \"keypad\" = Ziffernblock im Popup (für Wandtablets)."
+        },
+        "pinPayload": {
+          "description": "Manuell: Inhalt von pinDp — \"json\" (Standard) = {\"pin\",\"mode\",\"dp\",\"value\"} mit dem gewünschten Befehl, \"pin\" = nur die PIN."
+        },
+        "presenceDp": {
+          "description": "Manuell: Bool-Datenpunkt Anwesenheit/Anwesenheitssimulation, Klick schaltet um.",
+          "type": "string",
+          "datapoint": true
+        },
+        "quitDp": {
+          "description": "Manuell: Datenpunkt, in den \"Quittieren\" quitValue schreibt.",
+          "type": "string",
+          "datapoint": true
+        },
+        "quitValue": {
+          "type": "string",
+          "default": "true",
+          "description": "Manuell: Wert für quitDp (Standard \"true\"; Zahlen und true/false werden typisiert)."
         },
         "reachColor": {
           "type": "string",
@@ -7817,27 +8059,27 @@
         "requirePinForArm": {
           "type": "boolean",
           "default": false,
-          "description": "Zum Scharfschalten (Scharf, Verzögert) die PIN abfragen; schreibt use.toggle_password. Innen und Nachtruhe bleiben ohne PIN."
+          "description": "Zum Scharfschalten die PIN abfragen. Adapter: Scharf/Verzögert über use.toggle_password, Innen und Nachtruhe ohne PIN. Manuell (pinCheck \"dp\"): alle übrigen Buttons und \"Verzögert\"; je Button über modes[].requirePin übersteuerbar."
         },
         "requirePinForDisarm": {
           "type": "boolean",
           "default": false,
-          "description": "Zum Unscharfschalten die PIN abfragen."
+          "description": "Zum Unscharfschalten die PIN abfragen. Adapter: use.disable_password. Manuell nur mit pinCheck \"dp\", gilt für Buttons mit disarm: true."
         },
         "showCircuits": {
           "type": "boolean",
           "default": true,
-          "description": "Sicherungskreise anzeigen."
+          "description": "Offene Kreise / Kontakte und Meldungen anzeigen (manuell: circuitsDp, contacts, noticeDp)."
         },
         "showCountdown": {
           "type": "boolean",
           "default": true,
-          "description": "Verbleibende Verzögerungszeit anzeigen."
+          "description": "Countdown bis zum Scharfschalten anzeigen (manuell: countdownDp)."
         },
         "showDelay": {
           "type": "boolean",
           "default": true,
-          "description": "Eingestellte Verzögerungszeit anzeigen."
+          "description": "Button \"Mit Verzögerung\" anzeigen (manuell: delayDp)."
         },
         "showHeader": {
           "type": "boolean",
@@ -7847,52 +8089,65 @@
         "showLog": {
           "type": "boolean",
           "default": true,
-          "description": "Ereignisliste anzeigen."
+          "description": "Ereignisliste anzeigen (manuell: logDp)."
         },
         "showModeInside": {
-          "type": "boolean",
-          "default": true,
-          "description": "Modus \"Anwesend\" anbieten."
+          "description": "Veraltet — stattdessen modes[{key:\"inside\",hidden:true}]."
         },
         "showModeNight": {
-          "type": "boolean",
-          "default": true,
-          "description": "Modus \"Nacht\" anbieten."
+          "description": "Veraltet — stattdessen modes[{key:\"night\",hidden:true}]."
         },
         "showModeOff": {
-          "type": "boolean",
-          "default": true,
-          "description": "Modus \"Unscharf\" anbieten."
+          "description": "Veraltet — stattdessen modes[{key:\"off\",hidden:true}]. false blendet \"Aus\" aus."
         },
         "showModeSharp": {
-          "type": "boolean",
-          "default": true,
-          "description": "Modus \"Scharf\" anbieten."
+          "description": "Veraltet — stattdessen modes[{key:\"sharp\",hidden:true}]."
         },
         "showModes": {
           "type": "boolean",
           "default": true,
-          "description": "Auswahl der Scharfschaltmodi anzeigen."
+          "description": "Zeile mit den Modus-Buttons anzeigen."
         },
         "showPanic": {
           "type": "boolean",
           "default": false,
-          "description": "Panik-Taste anzeigen."
+          "description": "Panik-Taste anzeigen (manuell: panicDp)."
         },
         "showPresence": {
           "type": "boolean",
           "default": false,
-          "description": "Anwesenheit anzeigen."
+          "description": "Anwesenheits-Schalter anzeigen (manuell: presenceDp)."
         },
         "showZones": {
           "type": "boolean",
           "default": true,
-          "description": "Zonen anzeigen."
+          "description": "Zonen-Kacheln anzeigen."
+        },
+        "sirenDp": {
+          "description": "Manuell: Datenpunkt der Sirene, nur Anzeige (zählt als ausgelöst).",
+          "type": "string",
+          "datapoint": true
         },
         "sizeScale": {
           "type": "number",
           "default": 1,
           "description": "Skaliert die gesamte Darstellung (1 = Normalgröße)."
+        },
+        "sourceMode": {
+          "description": "Datenquelle: \"adapter\" (Standard) = ioBroker.alarm-Adapter unter alarmPrefix, alle Pfade fest; \"manual\" = eigene Datenpunkte (stateDp + optionale *Dp-Felder), für Alarmlösungen ohne den Adapter (#1037)."
+        },
+        "stateDp": {
+          "description": "Manuell, Pflicht: Datenpunkt mit dem Zustand der Anlage (Bool, Zahl oder Text). Modus-Buttons schreiben standardmäßig hierhin.",
+          "type": "string",
+          "datapoint": true
+        },
+        "stateMap": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "AlarmStateMapEntry"
+          },
+          "description": "Manuell: Zuordnung Rohwert → Phase (AlarmStateMapEntry[]: value, phase, label). Leer = true/false heißt armed/off, 0–8 wie der Alarm-Adapter; unbekannte Werte zeigen \"off\" mit dem Rohwert."
         },
         "titleAlign": {
           "type": "string",
@@ -7904,10 +8159,36 @@
           "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         },
+        "triggeredDp": {
+          "description": "Manuell: Datenpunkt \"Alarm ausgelöst\" (zusätzlich zur Phase triggered aus stateMap).",
+          "type": "string",
+          "datapoint": true
+        },
         "windowColor": {
           "type": "string",
           "description": "Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange).",
           "color": true
+        },
+        "wrongPinDp": {
+          "description": "Manuell: Rückmeldung \"falsche PIN\" (Bool), zeigt den Hinweis am PIN-Feld.",
+          "type": "string",
+          "datapoint": true
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "AlarmZoneDef"
+          },
+          "description": "Zonen (AlarmZoneDef[]). Adapter-Modus: keys one|two|three, nur label/hidden/Reihenfolge wirken. Manuell: 0…n Kacheln, onOffDp wird per Klick umgeschaltet, triggeredDp zeigt ⚠."
+        },
+        "zonesDp": {
+          "description": "Bei zonesSource \"json\": Datenpunkt mit JSON-Liste von AlarmZoneDef, [\"EG\",\"OG\"] oder {\"zones\":[…]} (darf derselbe DP wie modesDp sein).",
+          "type": "string",
+          "datapoint": true
+        },
+        "zonesSource": {
+          "description": "Woher die Zonen kommen: \"list\" (Standard) = Option zones, \"json\" = JSON aus zonesDp."
         }
       }
     },

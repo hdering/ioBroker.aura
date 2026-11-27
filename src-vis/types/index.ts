@@ -1219,3 +1219,53 @@ export interface BadgeAggregate {
     color?: string;
     size?: BadgeSize;
 }
+
+// ── Alarm system (#1037) ─────────────────────────────────────────────────────
+
+/** State of the alarm system as the widget shows it, whatever the source. */
+export type AlarmPhase =
+    | 'off'
+    | 'armed'
+    | 'inside'
+    | 'night'
+    | 'arming'
+    | 'triggered'
+    | 'silent'
+    | 'failed'
+    | 'aborted';
+
+/** One mode button. Adapter mode: only label/icon/color/hidden/order apply. */
+export interface AlarmModeDef {
+    key: string; // stable id; adapter mode: off | sharp | inside | night
+    label?: string; // button text; empty = default text (adapter) or key
+    icon?: string; // icon name (lucide/Iconify); empty = shield icon
+    color?: string; // button colour when active
+    hidden?: boolean; // keep the entry but do not show the button
+    writeDp?: string; // manual mode: datapoint the button writes; empty = stateDp
+    writeValue?: string; // manual mode: value written; empty = key
+    activeWhen?: string; // manual mode: raw stateDp value that lights the button; empty = writeValue
+    disarm?: boolean; // manual mode: this button disarms (PIN rule "Deaktivieren", always reachable during an alarm)
+    requirePin?: boolean; // manual mode: PIN for this button; unset = requirePinForDisarm / requirePinForArm
+}
+
+/** One zone tile. Adapter mode: only label/hidden/order apply (key one | two | three). */
+export interface AlarmZoneDef {
+    key: string; // stable id
+    label?: string; // tile text
+    hidden?: boolean; // keep the entry but do not show the tile
+    onOffDp?: string; // manual mode: boolean datapoint, zone armed; a click toggles it
+    triggeredDp?: string; // manual mode: boolean datapoint, zone triggered (display only)
+}
+
+/** Manual mode: how one raw value of stateDp is shown. */
+export interface AlarmStateMapEntry {
+    value: string; // raw value of stateDp (compared as text, true/false for booleans)
+    phase: AlarmPhase; // off | armed | inside | night | arming | triggered | silent | failed | aborted
+    label?: string; // text in the status pill; empty = default text of the phase
+}
+
+/** Manual mode: a door/window contact; open contacts are listed and can block arming. */
+export interface AlarmContactDef {
+    dp: string; // contact datapoint; true / non-zero / "open" = open
+    name?: string; // shown in the list of open contacts; empty = datapoint id
+}

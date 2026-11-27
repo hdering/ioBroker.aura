@@ -2114,32 +2114,134 @@ export const WIDGET_OPTION_NOTES = {
         stayMinutes: { description: 'Zeitleiste: Mindestdauer in Minuten für einen Aufenthalt (Standard 10).' },
     },
     alarm: {
-        alarmPrefix: { description: 'Objektpfad der Alarmanlage, z. B. "alarm.0".' },
-        showModes: { description: 'Auswahl der Scharfschaltmodi anzeigen.' },
-        showModeOff: { description: 'Modus "Unscharf" anbieten.' },
-        showModeSharp: { description: 'Modus "Scharf" anbieten.' },
-        showModeInside: { description: 'Modus "Anwesend" anbieten.' },
-        showModeNight: { description: 'Modus "Nacht" anbieten.' },
-        showCountdown: { description: 'Verbleibende Verzögerungszeit anzeigen.' },
-        showDelay: { description: 'Eingestellte Verzögerungszeit anzeigen.' },
-        showCircuits: { description: 'Sicherungskreise anzeigen.' },
-        showZones: { description: 'Zonen anzeigen.' },
-        showPresence: { description: 'Anwesenheit anzeigen.' },
-        showLog: { description: 'Ereignisliste anzeigen.' },
+        sourceMode: {
+            description:
+                'Datenquelle: "adapter" (Standard) = ioBroker.alarm-Adapter unter alarmPrefix, alle Pfade fest; ' +
+                '"manual" = eigene Datenpunkte (stateDp + optionale *Dp-Felder), für Alarmlösungen ohne den Adapter (#1037).',
+        },
+        alarmPrefix: { description: 'Nur sourceMode "adapter": Objektpfad der Alarmanlage, z. B. "alarm.0".' },
+        showModes: { description: 'Zeile mit den Modus-Buttons anzeigen.' },
+        modesSource: {
+            description:
+                'Woher die Modus-Buttons kommen: "list" (Standard) = Option modes, "json" = JSON aus modesDp. ' +
+                'Die JSON-Liste ersetzt die eigene Liste vollständig.',
+        },
+        modes: {
+            description:
+                'Modus-Buttons (AlarmModeDef[]). Adapter-Modus: nur die keys off|sharp|inside|night, davon wirken ' +
+                'label/icon/color/hidden und die Reihenfolge; fehlende keys werden angehängt. Manueller Modus: beliebig viele, ' +
+                'jeder schreibt writeValue (leer = key) in writeDp (leer = stateDp) und leuchtet, wenn stateDp activeWhen ' +
+                '(leer = writeValue) enthält; disarm: true markiert den Aus-Button.',
+        },
+        modesDp: {
+            description:
+                'Bei modesSource "json": Datenpunkt mit JSON (optional mit ?pfad). Formen: Liste von AlarmModeDef, ' +
+                'Map {"0":"Aus","1":"Scharf"} (key = geschriebener Wert), ["Aus","Scharf"] oder {"modes":[…],"zones":[…]}.',
+        },
+        showModeOff: { description: 'Veraltet — stattdessen modes[{key:"off",hidden:true}]. false blendet "Aus" aus.' },
+        showModeSharp: { description: 'Veraltet — stattdessen modes[{key:"sharp",hidden:true}].' },
+        showModeInside: { description: 'Veraltet — stattdessen modes[{key:"inside",hidden:true}].' },
+        showModeNight: { description: 'Veraltet — stattdessen modes[{key:"night",hidden:true}].' },
+        showCountdown: { description: 'Countdown bis zum Scharfschalten anzeigen (manuell: countdownDp).' },
+        showDelay: { description: 'Button "Mit Verzögerung" anzeigen (manuell: delayDp).' },
+        showCircuits: {
+            description: 'Offene Kreise / Kontakte und Meldungen anzeigen (manuell: circuitsDp, contacts, noticeDp).',
+        },
+        showZones: { description: 'Zonen-Kacheln anzeigen.' },
+        zonesSource: {
+            description: 'Woher die Zonen kommen: "list" (Standard) = Option zones, "json" = JSON aus zonesDp.',
+        },
+        zones: {
+            description:
+                'Zonen (AlarmZoneDef[]). Adapter-Modus: keys one|two|three, nur label/hidden/Reihenfolge wirken. ' +
+                'Manuell: 0…n Kacheln, onOffDp wird per Klick umgeschaltet, triggeredDp zeigt ⚠.',
+        },
+        zonesDp: {
+            description:
+                'Bei zonesSource "json": Datenpunkt mit JSON-Liste von AlarmZoneDef, ["EG","OG"] oder {"zones":[…]} ' +
+                '(darf derselbe DP wie modesDp sein).',
+        },
+        showPresence: { description: 'Anwesenheits-Schalter anzeigen (manuell: presenceDp).' },
+        showLog: { description: 'Ereignisliste anzeigen (manuell: logDp).' },
         logLines: { description: 'Anzahl Zeilen der Ereignisliste.' },
-        showPanic: { description: 'Panik-Taste anzeigen.' },
+        showPanic: { description: 'Panik-Taste anzeigen (manuell: panicDp).' },
         panicConfirm: { description: 'Vor dem Panikalarm eine Rückfrage anzeigen.' },
-        requirePinForDisarm: { description: 'Zum Unscharfschalten die PIN abfragen.' },
+        requirePinForDisarm: {
+            description:
+                'Zum Unscharfschalten die PIN abfragen. Adapter: use.disable_password. Manuell nur mit pinCheck "dp", ' +
+                'gilt für Buttons mit disarm: true.',
+        },
         requirePinForArm: {
             description:
-                'Zum Scharfschalten (Scharf, Verzögert) die PIN abfragen; schreibt use.toggle_password. Innen und Nachtruhe bleiben ohne PIN.',
+                'Zum Scharfschalten die PIN abfragen. Adapter: Scharf/Verzögert über use.toggle_password, Innen und Nachtruhe ' +
+                'ohne PIN. Manuell (pinCheck "dp"): alle übrigen Buttons und "Verzögert"; je Button über modes[].requirePin übersteuerbar.',
         },
         pinInput: {
             description:
                 'Art der PIN-Eingabe (mit requirePinForDisarm/requirePinForArm): "field" = Eingabefeld mit Gerätetastatur, ' +
                 '"keypad" = Ziffernblock im Popup (für Wandtablets).',
         },
-        compactMode: { description: 'Dichtere Darstellung.' },
+        compactMode: { description: 'Modus-Buttons in 2 Spalten statt in einer Reihe.' },
+        stateDp: {
+            description:
+                'Manuell, Pflicht: Datenpunkt mit dem Zustand der Anlage (Bool, Zahl oder Text). Modus-Buttons schreiben standardmäßig hierhin.',
+        },
+        stateMap: {
+            description:
+                'Manuell: Zuordnung Rohwert → Phase (AlarmStateMapEntry[]: value, phase, label). Leer = true/false heißt ' +
+                'armed/off, 0–8 wie der Alarm-Adapter; unbekannte Werte zeigen "off" mit dem Rohwert.',
+        },
+        triggeredDp: {
+            description: 'Manuell: Datenpunkt "Alarm ausgelöst" (zusätzlich zur Phase triggered aus stateMap).',
+        },
+        sirenDp: { description: 'Manuell: Datenpunkt der Sirene, nur Anzeige (zählt als ausgelöst).' },
+        enableableDp: {
+            description: 'Manuell: false = Scharfschalten gesperrt; die Scharf-Buttons werden ausgegraut.',
+        },
+        countdownDp: { description: 'Manuell: Countdown-Datenpunkt, Einheit siehe countdownUnit.' },
+        countdownUnit: {
+            description:
+                'Manuell: "s" = Restsekunden (Standard), "endTs" = Endzeitpunkt als Zeitstempel (ms oder s), das Widget zählt selbst.',
+        },
+        circuitsDp: {
+            description: 'Manuell: Text-Datenpunkt mit offenen Kreisen, wird mit offenen contacts zusammen angezeigt.',
+        },
+        contacts: {
+            description:
+                'Manuell: Fenster/Tür-Kontakte (AlarmContactDef[]: dp, name). Offene (true/1/"open") werden mit Namen gelistet.',
+        },
+        contactsBlockArm: {
+            description: 'Manuell: Scharfschalten sperren, solange ein Kontakt aus contacts offen ist.',
+        },
+        noticeDp: {
+            description:
+                'Manuell: Meldung (Text oder Bool). Mit quitDp erscheint sie mit Quittieren-Button, sonst als stiller Hinweis.',
+        },
+        quitDp: { description: 'Manuell: Datenpunkt, in den "Quittieren" quitValue schreibt.' },
+        quitValue: {
+            description: 'Manuell: Wert für quitDp (Standard "true"; Zahlen und true/false werden typisiert).',
+        },
+        delayDp: { description: 'Manuell: Datenpunkt für "Mit Verzögerung" scharf.' },
+        delayValue: { description: 'Manuell: Wert für delayDp (Standard "true").' },
+        panicDp: { description: 'Manuell: Datenpunkt für den Panikalarm.' },
+        panicValue: { description: 'Manuell: Wert für panicDp (Standard "true").' },
+        presenceDp: { description: 'Manuell: Bool-Datenpunkt Anwesenheit/Anwesenheitssimulation, Klick schaltet um.' },
+        logDp: { description: 'Manuell: Datenpunkt mit dem Ereignis-Log.' },
+        logSeparator: {
+            description:
+                'Manuell: Trenner im Log: "br" (<br>, Standard), "newline" oder "json" (Liste von Texten bzw. {time,text}).',
+        },
+        pinCheck: {
+            description:
+                'Manuell: "none" (Standard) = keine PIN; "dp" = PIN-Anfrage in pinDp schreiben, ein Skript prüft und schaltet selbst. ' +
+                'Das Widget schaltet dann nicht direkt.',
+        },
+        pinDp: { description: 'Manuell mit pinCheck "dp": Datenpunkt für die PIN-Anfrage.' },
+        pinPayload: {
+            description:
+                'Manuell: Inhalt von pinDp — "json" (Standard) = {"pin","mode","dp","value"} mit dem gewünschten Befehl, "pin" = nur die PIN.',
+        },
+        wrongPinDp: { description: 'Manuell: Rückmeldung "falsche PIN" (Bool), zeigt den Hinweis am PIN-Feld.' },
     },
     calendar: {
         calendars: { description: 'Die eingebundenen Kalenderquellen.' },
