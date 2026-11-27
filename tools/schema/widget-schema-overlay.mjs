@@ -3160,6 +3160,20 @@ export const UNIVERSAL_OPTIONS = {
             'Schriftgröße in px (Standard 12); größere Werte machen die Kopfzeile höher. ' +
             'Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen.',
     },
+    collapseGroup: {
+        ts: 'string',
+        description:
+            'Nur zusammen mit defaultCollapsed: Kopplungsgruppe (frei gewählter Name). Einklappbare Widgets ' +
+            'mit gleichem Namen reagieren aufeinander, wenn eines auf- oder zugeklappt wird (Verhalten: ' +
+            'collapseGroupMode). Gilt auch für Gruppen-Widgets, nicht für Kinder einer Gruppe. Leer = keine Kopplung.',
+    },
+    collapseGroupMode: {
+        ts: "'exclusive' | 'together'",
+        description:
+            'Nur mit collapseGroup: "exclusive" (Standard) klappt beim Ausklappen dieses Widgets alle anderen ' +
+            'der Gruppe zu (immer nur eines offen, Akkordeon); "together" klappt alle anderen mit auf und ' +
+            'wieder zu. Es entscheidet das Widget, das angetippt wurde.',
+    },
     collapseInEditor: {
         ts: 'boolean',
         description:

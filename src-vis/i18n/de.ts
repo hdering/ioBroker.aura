@@ -1409,6 +1409,16 @@ export const de = {
     'wf.edit.collapseInEditor': 'Auch im Editor eingeklappt',
     'wf.edit.collapseInEditorHint':
         'Aus: im Editor bleibt das Widget ausgeklappt. An: auch dort nur die Kopfzeile; ein Klick darauf klappt zum Bearbeiten aus, die gespeicherte Höhe bleibt erhalten.',
+    'wf.edit.collapseGroup': 'Kopplungsgruppe',
+    'wf.edit.collapseGroupPlaceholder': 'z.B. wohnzimmer',
+    'wf.edit.collapseGroupNeedsGroup': 'Erst eine Kopplungsgruppe eintragen.',
+    'wf.edit.collapseGroupMode': 'Beim Ausklappen',
+    'wf.edit.collapseGroupModeExclusive': 'Andere zuklappen',
+    'wf.edit.collapseGroupModeTogether': 'Andere mitklappen',
+    'wf.edit.collapseGroupModeExclusiveHint':
+        'Klappt dieses Widget auf, klappen alle anderen Widgets mit gleicher Kopplungsgruppe zu – immer nur eines offen.',
+    'wf.edit.collapseGroupModeTogetherHint':
+        'Klappt dieses Widget auf oder zu, folgen alle anderen Widgets mit gleicher Kopplungsgruppe.',
     'wf.collapse.expand': 'Ausklappen',
     'wf.collapse.collapse': 'Einklappen',
     'wf.edit.group.mobileKeepGrid': 'Raster auf dem Smartphone beibehalten',

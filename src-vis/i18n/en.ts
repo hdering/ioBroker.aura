@@ -1395,6 +1395,16 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.collapseInEditor': 'Also collapsed in the editor',
     'wf.edit.collapseInEditorHint':
         'Off: the widget stays expanded in the editor. On: the editor shows only the header row as well; a click opens it for editing, the stored height is kept.',
+    'wf.edit.collapseGroup': 'Link group',
+    'wf.edit.collapseGroupPlaceholder': 'e.g. livingroom',
+    'wf.edit.collapseGroupNeedsGroup': 'Enter a link group first.',
+    'wf.edit.collapseGroupMode': 'On expand',
+    'wf.edit.collapseGroupModeExclusive': 'Collapse the others',
+    'wf.edit.collapseGroupModeTogether': 'Expand the others too',
+    'wf.edit.collapseGroupModeExclusiveHint':
+        'When this widget expands, every other widget with the same link group collapses – only one open at a time.',
+    'wf.edit.collapseGroupModeTogetherHint':
+        'When this widget expands or collapses, every other widget with the same link group follows.',
     'wf.collapse.expand': 'Expand',
     'wf.collapse.collapse': 'Collapse',
     'wf.edit.group.mobileKeepGrid': 'Keep grid layout on mobile',

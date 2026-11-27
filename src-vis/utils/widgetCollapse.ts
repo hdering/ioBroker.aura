@@ -124,3 +124,54 @@ export function collapsePosition(options: Record<string, unknown> | undefined): 
     const raw = options?.collapsePosition;
     return (FULLSCREEN_POSITIONS as readonly string[]).includes(raw as string) ? (raw as CollapsePosition) : 'tr';
 }
+
+// ── Link groups (issue #1038) ────────────────────────────────────────────────
+// Collapsible widgets with the same `collapseGroup` name react to each other:
+// `collapseGroupMode: 'exclusive'` (default) folds every other member when one
+// opens — at most one open at a time, like an accordion; `'together'` opens and
+// folds the whole group at once. The mode of the widget the user tapped decides.
+// Only mounted, collapsible members take part (they register in the collapse
+// store), so a widget without a group or one that does not fold is never touched.
+
+export type CollapseGroupMode = 'exclusive' | 'together';
+
+export interface CollapseLink {
+    group: string;
+    mode: CollapseGroupMode;
+}
+
+/** The widget's link group, or null when it has none (blank name = none). */
+export function collapseLink(options: Record<string, unknown> | undefined): CollapseLink | null {
+    const raw = options?.collapseGroup;
+    const group = typeof raw === 'string' ? raw.trim() : '';
+    if (!group) return null;
+    return { group, mode: options?.collapseGroupMode === 'together' ? 'together' : 'exclusive' };
+}
+
+/**
+ * Collapsed map after the user toggled `id`: the widget flips, and the members of
+ * its link group follow the group mode. Returns a new map; untouched entries keep
+ * their identity.
+ */
+export function applyCollapseToggle(
+    collapsed: Record<string, boolean>,
+    links: Record<string, CollapseLink>,
+    id: string,
+): Record<string, boolean> {
+    const next = !collapsed[id];
+    const out: Record<string, boolean> = { ...collapsed, [id]: next };
+    const link = links[id];
+    if (!link) return out;
+    for (const [other, l] of Object.entries(links)) {
+        if (other === id || l.group !== link.group) continue;
+        if (link.mode === 'together') out[other] = next;
+        else if (!next) out[other] = true;
+    }
+    return out;
+}
+
+/** Same link (or both none) — lets the store skip a no-op registration. */
+export function sameCollapseLink(a: CollapseLink | null | undefined, b: CollapseLink | null | undefined): boolean {
+    if (!a || !b) return !a && !b;
+    return a.group === b.group && a.mode === b.mode;
+}

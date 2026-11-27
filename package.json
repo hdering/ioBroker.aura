@@ -138,6 +138,7 @@
     "test:status-header-values": "node tools/tests/status-header-values.mjs",
     "test:widget-collapse": "node tools/tests/widget-collapse.mjs",
     "test:widget-collapse-logic": "node tools/tests/widget-collapse-logic.mjs",
+    "test:widget-collapse-link": "node tools/tests/widget-collapse-link.mjs",
     "test:widget-collapse-title": "node tools/tests/widget-collapse-title.mjs",
     "test:widget-style": "node tools/tests/widget-style-copy.mjs",
     "test:text-wrap": "node tools/tests/widget-text-wrap.mjs",

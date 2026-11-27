@@ -126,6 +126,7 @@ import {
     collapseButtonSlot,
     collapsePosition,
     collapsedPadY,
+    collapseLink,
     collapsibleWidget,
     isCollapsedNow,
     supportsCollapse,
@@ -6621,6 +6622,8 @@ const DISPLAY_OPTION_KEYS = [
     'defaultCollapsed',
     'collapseInEditor',
     'collapsePosition',
+    'collapseGroup',
+    'collapseGroupMode',
     'clickActionIcon',
     'clickActionIconName',
     'clickActionIconPosition',
@@ -7652,6 +7655,16 @@ function WidgetFrameInner({
     useEffect(() => {
         if (frameCollapsible) initCollapse(rid, true);
     }, [rid, frameCollapsible, initCollapse]);
+    // Link group (#1038): register while collapsible so the members follow a toggle.
+    const setCollapseLink = useWidgetCollapseStore((s) => s.setLink);
+    const frameLink = frameCollapsible ? collapseLink(config.options) : null;
+    const frameLinkGroup = frameLink?.group;
+    const frameLinkMode = frameLink?.mode;
+    useEffect(() => {
+        if (!frameLinkGroup || !frameLinkMode) return;
+        setCollapseLink(rid, { group: frameLinkGroup, mode: frameLinkMode });
+        return () => setCollapseLink(rid, null);
+    }, [rid, frameLinkGroup, frameLinkMode, setCollapseLink]);
     const isCollapsed = frameCollapsible && isCollapsedNow(collapsedMap, rid);
     const collapsePos = collapsePosition(config.options);
 
@@ -10488,6 +10501,86 @@ function WidgetFrameInner({
                                                     >
                                                         {t('wf.edit.collapseInEditorHint')}
                                                     </p>
+                                                    {/* Link group (#1038): same name = the widgets react to
+                                                        each other when one is opened. */}
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.edit.collapseGroup')}
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={(o.collapseGroup as string | undefined) ?? ''}
+                                                            onChange={(e) =>
+                                                                setO({ collapseGroup: e.target.value || undefined })
+                                                            }
+                                                            placeholder={t('wf.edit.collapseGroupPlaceholder')}
+                                                            className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-primary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                            data-collapse-group-option=""
+                                                        />
+                                                    </div>
+                                                    <Unavailable
+                                                        reason={
+                                                            collapseLink(o)
+                                                                ? undefined
+                                                                : t('wf.edit.collapseGroupNeedsGroup')
+                                                        }
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <label
+                                                                className="text-[11px] shrink-0"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {t('wf.edit.collapseGroupMode')}
+                                                            </label>
+                                                            <select
+                                                                value={
+                                                                    o.collapseGroupMode === 'together'
+                                                                        ? 'together'
+                                                                        : 'exclusive'
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setO({
+                                                                        collapseGroupMode:
+                                                                            e.target.value === 'together'
+                                                                                ? 'together'
+                                                                                : undefined,
+                                                                    })
+                                                                }
+                                                                className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-primary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                                data-collapse-group-mode=""
+                                                            >
+                                                                <option value="exclusive">
+                                                                    {t('wf.edit.collapseGroupModeExclusive')}
+                                                                </option>
+                                                                <option value="together">
+                                                                    {t('wf.edit.collapseGroupModeTogether')}
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                        <p
+                                                            className="text-[10px] mt-1"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t(
+                                                                o.collapseGroupMode === 'together'
+                                                                    ? 'wf.edit.collapseGroupModeTogetherHint'
+                                                                    : 'wf.edit.collapseGroupModeExclusiveHint',
+                                                            )}
+                                                        </p>
+                                                    </Unavailable>
                                                 </>
                                             )}
                                         </>

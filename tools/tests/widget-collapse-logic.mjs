@@ -43,6 +43,9 @@ const {
     collapseButtonSlot,
     cornerInset,
     fullscreenButtonInset,
+    collapseLink,
+    applyCollapseToggle,
+    sameCollapseLink,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
@@ -150,6 +153,55 @@ eq(
     collapseButtonSlot('tl', { editMode: true, fullscreenSameCorner: false }),
     0,
 );
+
+// ── 8. Link groups (#1038) ──
+eq('no group = no link', collapseLink({ defaultCollapsed: true }), null);
+eq('blank group = no link', collapseLink({ collapseGroup: '   ' }), null);
+eq('group trims, default mode exclusive', collapseLink({ collapseGroup: ' wz ' }), { group: 'wz', mode: 'exclusive' });
+eq('together mode', collapseLink({ collapseGroup: 'wz', collapseGroupMode: 'together' }), {
+    group: 'wz',
+    mode: 'together',
+});
+eq('unknown mode falls back', collapseLink({ collapseGroup: 'wz', collapseGroupMode: 'x' }).mode, 'exclusive');
+ok('same link', sameCollapseLink({ group: 'a', mode: 'exclusive' }, { group: 'a', mode: 'exclusive' }));
+ok('both none', sameCollapseLink(undefined, null));
+ok('mode differs', !sameCollapseLink({ group: 'a', mode: 'exclusive' }, { group: 'a', mode: 'together' }));
+
+const ex = { group: 'g', mode: 'exclusive' };
+const tg = { group: 'g', mode: 'together' };
+const allFolded = { a: true, b: true, c: true, x: true };
+eq('no link: only the widget flips', applyCollapseToggle(allFolded, {}, 'a'), { a: false, b: true, c: true, x: true });
+eq(
+    'exclusive: opening one folds the others',
+    applyCollapseToggle({ a: true, b: false, c: false, x: false }, { a: ex, b: ex, c: ex }, 'a'),
+    { a: false, b: true, c: true, x: false },
+);
+eq('exclusive: folding leaves the others alone', applyCollapseToggle({ a: false, b: false }, { a: ex, b: ex }, 'a'), {
+    a: true,
+    b: false,
+});
+eq('together: opening one opens the group', applyCollapseToggle(allFolded, { a: tg, b: tg, c: tg }, 'a'), {
+    a: false,
+    b: false,
+    c: false,
+    x: true,
+});
+eq(
+    'together: folding one folds the group',
+    applyCollapseToggle({ a: false, b: false, c: true }, { a: tg, b: tg, c: tg }, 'a'),
+    { a: true, b: true, c: true },
+);
+eq(
+    'other group names untouched',
+    applyCollapseToggle({ a: true, b: false }, { a: ex, b: { group: 'h', mode: 'exclusive' } }, 'a'),
+    { a: false, b: false },
+);
+eq('the tapped widget decides the mode', applyCollapseToggle(allFolded, { a: tg, b: ex }, 'a'), {
+    a: false,
+    b: false,
+    c: true,
+    x: true,
+});
 
 // ── 7. The click-action icon steps aside for the fold button ──
 // Covered in click-action-icon-logic.mjs (clickActionIconSlot), which replaced the

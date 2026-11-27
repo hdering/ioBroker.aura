@@ -29,7 +29,7 @@ import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGridScale, useStretchedRowHeight } from '../../contexts/GridScaleContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
-import { collapsibleWidget } from '../../utils/widgetCollapse';
+import { collapseLink, collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
 import {
     groupAutoShrink,
@@ -224,6 +224,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     useEffect(() => {
         if (defaultCollapsed) initCollapse(config.id, true);
     }, [config.id, defaultCollapsed, initCollapse]);
+    // Link group (#1038): register while collapsible so the members follow a toggle.
+    const setCollapseLink = useWidgetCollapseStore((s) => s.setLink);
+    const link = collapsible ? collapseLink(config.options) : null;
+    const linkGroup = link?.group;
+    const linkMode = link?.mode;
+    useEffect(() => {
+        if (!linkGroup || !linkMode) return;
+        setCollapseLink(config.id, { group: linkGroup, mode: linkMode });
+        return () => setCollapseLink(config.id, null);
+    }, [config.id, linkGroup, linkMode, setCollapseLink]);
     const isCollapsed = collapsible && collapsed;
     const showIcon = config.options?.showIcon !== false;
     const iconSize = (config.options?.iconSize as number | undefined) || 20;

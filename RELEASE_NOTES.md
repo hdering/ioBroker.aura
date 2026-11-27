@@ -16,3 +16,4 @@
 # admin news and README; the full list goes to the GitHub release notes. Betas ignore it.
 - feat: Chart (extended) - the hover tooltip can be switched off (Behavior > Tooltip on hover) (#1040)
 - feat: Mirror - follows the source's "fit height to content" (e.g. HTML widget); can be switched on or off for the mirror alone; new option "Same size as source" keeps the mirror at the source's width and height (#1041)
+- feat: Collapsible widgets - new "Link group" option: widgets with the same group name either collapse the others when one expands (only one open at a time) or expand and collapse together (#1038)
