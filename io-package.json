@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -168,9 +168,76 @@
           "agree",
           "cancel"
         ]
+      },
+      {
+        "condition": {
+          "operand": "and",
+          "rules": [
+            "oldVersion<1.8.0",
+            "newVersion>=1.8.0-next.0"
+          ]
+        },
+        "title": {
+          "en": "Important: Test",
+          "de": "Wichtig: Testen",
+          "ru": "Важно: Тест",
+          "pt": "Importante: Teste",
+          "nl": "Belangrijk: testen",
+          "fr": "Important : Test",
+          "it": "Importante: prova",
+          "es": "Importante: prueba",
+          "pl": "Ważne: przetestuj",
+          "uk": "Важливо: Тест",
+          "zh-cn": "重要：测试"
+        },
+        "text": {
+          "en": "Test - this is only a test of the upgrade notice, port 8095 is ignored.",
+          "de": "Test – Dies ist nur ein Test des Upgrade-Hinweises, Port 8095 wird ignoriert.",
+          "ru": "Тест – это только проверка уведомления об обновлении, порт 8095 игнорируется.",
+          "pt": "Teste - este é apenas um teste do aviso de atualização, a porta 8095 é ignorada.",
+          "nl": "Test - dit is slechts een test van de upgrademelding, poort 8095 wordt genegeerd.",
+          "fr": "Test - il s'agit uniquement d'un test de l'avis de mise à niveau, le port 8095 est ignoré.",
+          "it": "Test: questo è solo un test dell'avviso di aggiornamento, la porta 8095 viene ignorata.",
+          "es": "Prueba: esto es solo una prueba del aviso de actualización; se ignora el puerto 8095.",
+          "pl": "Test - jest to tylko test powiadomienia o aktualizacji, port 8095 jest ignorowany.",
+          "uk": "Тест – це лише перевірка повідомлення про оновлення, порт 8095 ігнорується.",
+          "zh-cn": "测试 - 这只是升级通知的测试，端口 8095 被忽略。"
+        },
+        "link": "https://github.com/hdering/ioBroker.aura/issues/997",
+        "linkText": {
+          "en": "More information",
+          "de": "Weitere Informationen",
+          "ru": "Дополнительная информация",
+          "pt": "Mais informações",
+          "nl": "Meer informatie",
+          "fr": "Plus d'informations",
+          "it": "Maggiori informazioni",
+          "es": "Más información",
+          "pl": "Więcej informacji",
+          "uk": "Більше інформації",
+          "zh-cn": "更多信息"
+        },
+        "level": "warn",
+        "buttons": [
+          "agree",
+          "cancel"
+        ]
       }
     ],
     "news": {
+      "1.8.0": {
+        "en": "⚠️ **Breaking change:** Test - this is only a test of the upgrade notice, port `8095` is ignored (#997)\n🌟 New feature: Alarm system - works without the alarm adapter: every control (state, modes, zones, contacts, countdown, notices, panic, PIN request) can be bound to your own datapoints; mode buttons and zones come from a list in the settings or from a JSON datapoint and get their own labels, icons and colours; systems with one boolean per mode are supported, and the PIN can be checked by Aura against a named PIN (#1037)",
+        "de": "⚠️ **Wichtige Änderung:** Test – Dies ist nur ein Test des Upgrade-Hinweises, Port `8095` wird ignoriert (#997)\n🌟 Neue Funktion: Alarmsystem – funktioniert ohne Alarmadapter: Jede Steuerung (Zustand, Modi, Zonen, Kontakte, Countdown, Benachrichtigungen, Panik, PIN-Abfrage) kann an Ihre eigenen Datenpunkte gebunden werden; Modusschaltflächen und -zonen stammen aus einer Liste in den Einstellungen oder aus einem JSON-Datenpunkt und erhalten ihre eigenen Beschriftungen, Symbole und Farben; Systeme mit einem booleschen Wert pro Modus werden unterstützt und die PIN kann von Aura mit einer benannten PIN verglichen werden (#1037)",
+        "ru": "⚠️ **Критическое изменение:** Тест - это только проверка уведомления об обновлении, порт `8095` игнорируется (#997)\n🌟 Новая функция: Система сигнализации - работает без адаптера сигнализации: каждый элемент управления (состояние, режимы, зоны, контакты, обратный отсчет, уведомления, паника, запрос PIN-кода) может быть привязан к вашим собственным точкам данных; кнопки и зоны режимов берутся из списка в настройках или из точки данных JSON и получают собственные метки, значки и цвета; поддерживаются системы с одним логическим значением для каждого режима, и Aura может проверить PIN-код по именованному PIN-коду (# 1037) (#1037)",
+        "pt": "⚠️ **Alteração importante:** Teste - este é apenas um teste do aviso de atualização, a porta `8095` é ignorada (#997)\n🌟 Novo recurso: Sistema de alarme - funciona sem o adaptador de alarme: todos os controles (estado, modos, zonas, contatos, contagem regressiva, avisos, pânico, solicitação de PIN) podem ser vinculados aos seus próprios pontos de dados; botões e zonas de modo vêm de uma lista nas configurações ou de um ponto de dados JSON e recebem seus próprios rótulos, ícones e cores; sistemas com um booleano por modo são suportados, e o PIN pode ser verificado pelo Aura em relação a um PIN nomeado (#1037)",
+        "nl": "⚠️ **Belangrijke wijziging:** Test - dit is slechts een test van de upgrademelding, poort `8095` wordt genegeerd (#997)\n🌟 Nieuwe functie: Alarmsysteem - werkt zonder de alarmadapter: elke bediening (status, modi, zones, contacten, countdown, meldingen, paniek, pincodeverzoek) kan aan uw eigen datapunten worden gekoppeld; modusknoppen en zones komen uit een lijst in de instellingen of uit een JSON-datapunt en krijgen hun eigen labels, iconen en kleuren; systemen met één booleaanse waarde per modus worden ondersteund, en de pincode kan door Aura worden gecontroleerd aan de hand van een benoemde pincode (#1037)",
+        "fr": "⚠️ **Changement important:** Test - ceci n'est qu'un test de l'avis de mise à niveau, le port `8095` est ignoré (#997)\n🌟 Nouvelle fonctionnalité: Système d'alarme - fonctionne sans adaptateur d'alarme : chaque contrôle (état, modes, zones, contacts, compte à rebours, notifications, panique, demande de code PIN) peut être lié à vos propres points de données ; les boutons de mode et les zones proviennent d'une liste dans les paramètres ou d'un point de données JSON et obtiennent leurs propres étiquettes, icônes et couleurs ; les systèmes avec un booléen par mode sont pris en charge et le code PIN peut être vérifié par Aura par rapport à un code PIN nommé (#1037)",
+        "it": "⚠️ **Modifica importante:** Test: questo è solo un test dell'avviso di aggiornamento, la porta `8095` viene ignorata (#997)\n🌟 Nuova funzione: Sistema di allarme - funziona senza adattatore allarme: ogni controllo (stato, modalità, zone, contatti, conto alla rovescia, avvisi, panico, richiesta PIN) può essere associato ai propri datapoint; i pulsanti e le zone della modalità provengono da un elenco nelle impostazioni o da un datapoint JSON e ottengono le proprie etichette, icone e colori; sono supportati i sistemi con un valore booleano per modalità e il PIN può essere confrontato da Aura con un PIN denominato (#1037)",
+        "es": "⚠️ **Cambio importante:** Prueba: esto es solo una prueba del aviso de actualización, el puerto `8095` se ignora (#997)\n🌟 Nueva función: Sistema de alarma: funciona sin el adaptador de alarma: cada control (estado, modos, zonas, contactos, cuenta regresiva, avisos, pánico, solicitud de PIN) puede vincularse a sus propios puntos de datos; los botones y zonas de modo provienen de una lista en la configuración o de un punto de datos JSON y obtienen sus propias etiquetas, íconos y colores; Se admiten sistemas con un booleano por modo, y Aura puede comparar el PIN con un PIN con nombre (#1037)",
+        "pl": "⚠️ **Ważna zmiana:** Test — to tylko test powiadomienia o aktualizacji, port `8095` jest ignorowany (#997)\n🌟 Nowa funkcja: System alarmowy - działa bez adaptera alarmowego: każdą kontrolę (stan, tryby, strefy, kontakty, odliczanie, powiadomienia, panika, żądanie PIN) można powiązać z własnymi punktami danych; przyciski i strefy trybu pochodzą z listy w ustawieniach lub z punktu danych JSON i mają własne etykiety, ikony i kolory; obsługiwane są systemy z jedną wartością logiczną na tryb, a kod PIN może zostać sprawdzony przez firmę Aura w oparciu o nazwany kod PIN (nr 1037) (#1037)",
+        "uk": "⚠️ **Важлива зміна:** Тест – це лише перевірка повідомлення про оновлення, порт `8095` ігнорується (#997)\n🌟 Нова функція: Система сигналізації - працює без адаптера сигналізації: кожен контроль (стан, режими, зони, контакти, зворотний відлік, сповіщення, паніка, запит PIN-коду) можна прив'язати до ваших власних точок даних; кнопки режимів і зони надходять зі списку в налаштуваннях або з точки даних JSON і отримують власні мітки, значки та кольори; підтримуються системи з одним логічним значенням на режим, а PIN-код може бути перевірений Aura на відповідність іменованому PIN-коду (#1037)",
+        "zh-cn": "⚠️ **重大变更:** 测试 - 这只是升级通知的测试，端口 `8095` 被忽略 (#997)\n🌟 新功能: 报警系统 - 无需报警适配器即可工作：每个控件（状态、模式、区域、联系人、倒计时、通知、紧急情况、PIN 请求）都可以绑定到您自己的数据点；模式按钮和区域来自设置中的列表或来自 JSON 数据点，并获得自己的标签、图标和颜色；支持每种模式只有一个布尔值的系统，并且 Aura 可以根据指定的 PIN 来检查 PIN (#1037)"
+      },
       "1.7.0": {
         "en": "⚠️ Breaking change: Aura moves into the web adapter - reachable as <web-port>/aura/, the own port 8095 is deprecated; please follow the upgrade notice (#997)\n🌟 New feature: Status overview - greatly extended: tabbed configuration dialog, table layout with configurable rows, battery voltage/percent with own thresholds (also for 1.5 V cells), additional battery/alarm/window/light datapoints, own device names, documenting battery changes, counts as header values\n🌟 New feature: Chart - selectable bar interval for consumption series (incl. per quarter), smoother live updates, command datapoint keeps external from/to fields in step (#1036)\n🌟 New feature: Device card - further datapoints under short names, usable as {{name}} in the card's widgets (#1007)\n🌟 New feature: Grid & Mobile - own column count for phones in landscape (#1030)\n🌟 New feature: Web components - bind the edited value to a datapoint; clear message when a component cannot be loaded (#958)\n🌟 New feature: Click actions accept datapoint placeholders in URLs; the datapoint picker can pin its filters (#1006)\n🌟 New feature: History - VictoriaMetrics recognised as history source (#1020)\n🌟 New feature: New Aura icon for adapter, browser tab, home screen and loading screen\n🐛 Bug fix: Performance and stability - faster tab switching with groups, no more stalls of large installations after updates or reconnects, dashboards reload reliably after an update\n🐛 Bug fix: MCP server - far fewer false warnings and refusals when AI agents edit dashboards\nAll 65 changes: https://github.com/hdering/ioBroker.aura/releases/tag/v1.7.0",
         "de": "⚠️ Breaking Change: Aura wandert in den Webadapter – erreichbar als <web-port>/aura/, der eigene Port 8095 ist veraltet; Bitte befolgen Sie den Upgrade-Hinweis (#997).\n🌟 Neues Feature: Statusübersicht - stark erweitert: Konfigurationsdialog mit Registerkarten, Tabellenlayout mit konfigurierbaren Zeilen, Batteriespannung/Prozent mit eigenen Schwellenwerten (auch für 1,5-V-Zellen), zusätzliche Batterie-/Alarm-/Fenster-/Lichtdatenpunkte, eigene Gerätenamen, Dokumentation von Batteriewechseln, zählt als Header-Werte\n🌟 Neue Funktion: Diagramm – wählbares Balkenintervall für Verbrauchsreihen (inkl. pro Quartal), flüssigere Live-Updates, Befehlsdatenpunkt behält externe Von/Bis-Felder im Schritt bei (#1036)\n🌟 Neues Feature: Gerätekarte – weitere Datenpunkte unter Kurznamen, verwendbar als {{name}} in den Widgets der Karte (#1007)\n🌟 Neue Funktion: Grid & Mobile – eigene Spaltenanzahl für Telefone im Querformat (#1030)\n🌟 Neue Funktion: Webkomponenten – binden Sie den bearbeiteten Wert an einen Datenpunkt; klare Meldung, wenn eine Komponente nicht geladen werden kann (#958)\n🌟 Neue Funktion: Klickaktionen akzeptieren Datenpunktplatzhalter in URLs; Der Datenpunkt-Picker kann seine Filter pinnen (#1006)\n🌟 Neue Funktion: Verlauf – VictoriaMetrics als Verlaufsquelle erkannt (#1020)\n🌟 Neue Funktion: Neues Aura-Symbol für Adapter, Browser-Tab, Startbildschirm und Ladebildschirm\n🐛 Fehlerbehebung: Leistung und Stabilität – schnellerer Tab-Wechsel mit Gruppen, keine Verzögerungen bei großen Installationen mehr nach Updates oder erneuten Verbindungen, Dashboards werden nach einem Update zuverlässig neu geladen\n🐛 Fehlerbehebung: MCP-Server – deutlich weniger Fehlwarnungen und Ablehnungen, wenn KI-Agenten Dashboards bearbeiten\nAlle 65 Änderungen: https://github.com/hdering/ioBroker.aura/releases/tag/v1.7.0",

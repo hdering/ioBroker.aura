@@ -171,6 +171,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.8.0 (2026-11-27)
+- ⚠️ **Breaking change:** Test - this is only a test of the upgrade notice, port `8095` is ignored ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
+- 🌟 **New feature:** Alarm system - works without the alarm adapter: every control (state, modes, zones, contacts, countdown, notices, panic, PIN request) can be bound to your own datapoints; mode buttons and zones come from a list in the settings or from a JSON datapoint and get their own labels, icons and colours; systems with one boolean per mode are supported, and the PIN can be checked by Aura against a named PIN ([#1037](https://github.com/hdering/ioBroker.aura/issues/1037))
+
+
 ### 1.7.0 (2026-11-26)
 - ⚠️ **Breaking change:** Aura moves into the web adapter - reachable as <web-port>/aura/, the own port 8095 is deprecated; please follow the upgrade notice ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
 - 🌟 **New feature:** Status overview - greatly extended: tabbed configuration dialog, table layout with configurable rows, battery voltage/percent with own thresholds (also for 1.5 V cells), additional battery/alarm/window/light datapoints, own device names, documenting battery changes, counts as header values
@@ -197,6 +202,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
