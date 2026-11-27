@@ -9,7 +9,8 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 # 'breaking:' marks a change users must act on - it becomes the Breaking change marker
-# and is listed first. Pair it with an upgrade notice in io-package.json common.messages.
+# and is listed first (bold in the admin). Use `backticks` for paths, ports, option names.
+# Pair it with an upgrade notice in io-package.json common.messages (release.ps1 warns if missing).
 # Long list before a stable release: put a '## Summary' block above an '## All changes' heading
 # (about 10 bullets, same style). The stable release then puts only the summary into the
 # admin news and README; the full list goes to the GitHub release notes. Betas ignore it.
