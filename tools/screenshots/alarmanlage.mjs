@@ -2,6 +2,7 @@
 // Output: docs/widgets/assets/alarmanlage/manual.png   (Widget, eigene Datenpunkte, Modi aus der Liste)
 //         docs/widgets/assets/alarmanlage/source.png   (Bearbeiten-Dialog: Abschnitt Datenquelle)
 //         docs/widgets/assets/alarmanlage/modes.png    (Popup „Modi bearbeiten…")
+//         docs/widgets/assets/alarmanlage/config.png   (Bearbeiten-Dialog zugeklappt, wie widgets-all.mjs)
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/screenshots/alarmanlage.mjs
@@ -125,5 +126,40 @@ await editor.waitFor({ timeout: 10000 });
 await page.waitForTimeout(300);
 await editor.screenshot({ path: `${OUT}/modes.png` });
 console.log('✓ modes.png');
+
+// ── Übersicht des Dialogs (zugeklappt, Stil von widgets-all.mjs) ───────────────
+await page.keyboard.press('Escape').catch(() => {});
+await page.setViewportSize({ width: 1600, height: 1500 });
+await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+await page.waitForFunction(() => !!window.__auraShot?.ready, null, { timeout: 60000 });
+await page.evaluate((widget) => {
+    window.__auraShot.unfoldSections(false);
+    window.__auraShot.showWidgets([{ ...widget, id: 'w-doc' }], { editMode: true });
+    window.__auraShot.setEditMode(true);
+}, WIDGET);
+await page.waitForTimeout(700);
+await page.locator('.aura-widget-w-doc .aura-edit-chrome button').first().click();
+await page.waitForTimeout(300);
+await page.getByRole('button', { name: 'Bearbeiten' }).first().click();
+await page.waitForTimeout(900);
+const box = await page.evaluate(() => {
+    const el = document.querySelector('div.pointer-events-auto.rounded-xl.shadow-2xl');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+});
+if (box) {
+    const pad = 6;
+    await page.screenshot({
+        path: `${OUT}/config.png`,
+        clip: {
+            x: Math.max(0, box.x - pad),
+            y: Math.max(0, box.y - pad),
+            width: box.width + pad * 2,
+            height: box.height + pad * 2,
+        },
+    });
+    console.log('✓ config.png');
+} else console.log('✗ config.png - no modal');
 
 await browser.close();
