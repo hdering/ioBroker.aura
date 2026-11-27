@@ -2005,6 +2005,10 @@ export const WIDGET_OPTION_NOTES = {
                 'Wo die Beschriftung der Jetzt-Linie steht: "top" (Standard, oberes Ende) oder "bottom" (unteres Ende).',
         },
         echartAnimation: { description: 'Übergänge animieren.' },
+        echartTooltip: {
+            description:
+                'Tooltip samt Achsen-Zeiger beim Zeigen/Tippen auf das Diagramm anzeigen (Standard true). false = kein Tooltip.',
+        },
         echartLiveInterval: {
             description:
                 'Live-Werte höchstens alle N Sekunden übernehmen (gesammelt, je Reihe der letzte Wert). Für Datenpunkte, die sehr oft melden; leer/0 = sofort.',

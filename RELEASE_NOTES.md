@@ -14,3 +14,4 @@
 # Long list before a stable release: put a '## Summary' block above an '## All changes' heading
 # (about 10 bullets, same style). The stable release then puts only the summary into the
 # admin news and README; the full list goes to the GitHub release notes. Betas ignore it.
+- feat: Chart (extended) - the hover tooltip can be switched off (Behavior > Tooltip on hover) (#1040)

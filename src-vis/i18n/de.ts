@@ -2531,6 +2531,7 @@ export const de = {
     'echart.areaOpacity': 'Flächen-Deckkraft: {value} %',
     'echart.areaOpacityAuto': 'Flächen-Deckkraft: Auto ({value} %)',
     'echart.animation': 'Animation',
+    'echart.tooltip': 'Tooltip beim Zeigen',
     'echart.liveInterval': 'Live-Werte höchstens alle (s)',
     'echart.liveIntervalHint':
         'Für Datenpunkte, die sehr oft melden: Neue Werte werden gesammelt und höchstens in diesem Abstand übernommen. Leer oder 0 = sofort.',

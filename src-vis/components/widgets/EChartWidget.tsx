@@ -415,6 +415,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
     // Charts whose values, axes and time span keep changing look broken while echarts morphs
     // one state into the next, so the animation can be switched off entirely (issue #574).
     const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
+    // Hover tooltip (and its axis pointer); written in every mode so a merging setOption turns it back on (#1040).
+    const echartTooltip = (o.echartTooltip as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     // Rolling payloads can be sorted newest-first, so the "current" value is then the leftmost
     // point instead of the rightmost one (issue #549). Position of the block is free as well.
@@ -1371,6 +1373,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
             animation: echartAnimation,
             tooltip: {
                 trigger: 'axis',
+                show: echartTooltip,
                 backgroundColor: 'var(--app-surface, #1e1e1e)',
                 borderColor: 'var(--app-border, #333)',
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
@@ -1606,6 +1609,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
             animation: echartAnimation,
             tooltip: {
                 trigger: 'axis',
+                show: echartTooltip,
                 backgroundColor: 'var(--app-surface, #1e1e1e)',
                 borderColor: 'var(--app-border, #333)',
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
@@ -1887,6 +1891,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
         animation: echartAnimation,
         tooltip: {
             trigger: 'axis',
+            show: echartTooltip,
             backgroundColor: 'var(--app-surface, #1e1e1e)',
             borderColor: 'var(--app-border, #333)',
             textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },

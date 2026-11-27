@@ -2502,6 +2502,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.areaOpacity': 'Area opacity: {value}%',
     'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
     'echart.animation': 'Animation',
+    'echart.tooltip': 'Tooltip on hover',
     'echart.liveInterval': 'Live values at most every (s)',
     'echart.liveIntervalHint':
         'For datapoints that report very often: new values are collected and applied at most this often. Empty or 0 = immediately.',
