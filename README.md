@@ -10,7 +10,7 @@
 Build dashboards in the browser with a drag-and-drop editor - no code, no separate VIS project -
 and use them on wall tablets, phones and desktops.
 
-![Aura dashboard](https://raw.githubusercontent.com/hdering/ioBroker.aura/main/docs/public/readme/dashboard.png)
+![Aura dashboard: clock, weather, calendar, history, status overview, waste collection](https://raw.githubusercontent.com/hdering/ioBroker.aura/main/docs/public/readme/overview-dark.png)
 
 |   |   |
 |---|---|
@@ -23,6 +23,8 @@ and use them on wall tablets, phones and desktops.
 **Highlights:** drag-and-drop grid editor · themes with light and dark mode · own
 layouts for tablet and phone · charts from history adapters · device cards and popups · PIN
 protection · screensaver · home screen app · AI access via a built-in MCP server.
+
+![Aura energy tab: evcc energy flow, PV yield per day, production and consumption](https://raw.githubusercontent.com/hdering/ioBroker.aura/main/docs/public/readme/energy-dark.png)
 
 > ⚠️ **Version 1.7.0 and newer (Latest repository): port 8095 is deprecated.** Aura now runs inside
 > the web adapter at `http://<iobroker-ip>:<web-port>/aura/` (usually port 8082). Existing
