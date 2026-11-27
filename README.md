@@ -171,6 +171,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.9.0 (2026-11-27)
+- 🌟 **New feature:** Chart (extended) - the hover tooltip can be switched off (Behavior > Tooltip on hover) ([#1040](https://github.com/hdering/ioBroker.aura/issues/1040))
+- 🌟 **New feature:** Mirror - follows the source's "fit height to content" (e.g. HTML widget); can be switched on or off for the mirror alone; new option "Same size as source" keeps the mirror at the source's width and height ([#1041](https://github.com/hdering/ioBroker.aura/issues/1041))
+- 🌟 **New feature:** Collapsible widgets - new "Link group" option: widgets with the same group name either collapse the others when one expands (only one open at a time) or expand and collapse together ([#1038](https://github.com/hdering/ioBroker.aura/issues/1038))
+
+
 ### 1.8.0 (2026-11-27)
 - ⚠️ **Breaking change:** Test - this is only a test of the upgrade notice, port `8095` is ignored ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
 - 🌟 **New feature:** Alarm system - works without the alarm adapter: every control (state, modes, zones, contacts, countdown, notices, panic, PIN request) can be bound to your own datapoints; mode buttons and zones come from a list in the settings or from a JSON datapoint and get their own labels, icons and colours; systems with one boolean per mode are supported, and the PIN can be checked by Aura against a named PIN ([#1037](https://github.com/hdering/ioBroker.aura/issues/1037))
@@ -202,6 +208,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
