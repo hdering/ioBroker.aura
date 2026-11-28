@@ -171,6 +171,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 1.9.2 (2026-11-28)
+Release v1.9.2
+
+
 ### 1.9.1 (2026-11-27)
 - 🐛 **Bug fix:** Mirror - the mirror now shows its source's header (title colour and size, symbol place, header items) and can format its own header (Appearance -> Header); settings it leaves unset follow the source ([#1042](https://github.com/hdering/ioBroker.aura/issues/1042))
 - 🐛 **Bug fix:** Web component - after a reconnect the component kept the light theme instead of the dark one ([#1043](https://github.com/hdering/ioBroker.aura/issues/1043))
@@ -212,6 +216,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

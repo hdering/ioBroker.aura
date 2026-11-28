@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -171,6 +171,19 @@
       }
     ],
     "news": {
+      "1.9.2": {
+        "en": "Release v1.9.2",
+        "de": "Veröffentlichung v1.9.2",
+        "ru": "Релиз v1.9.2",
+        "pt": "Versão v1.9.2",
+        "nl": "Versie v1.9.2",
+        "fr": "Version v1.9.2",
+        "it": "Rilascio v1.9.2",
+        "es": "Versión v1.9.2",
+        "pl": "Wydanie wersji 1.9.2",
+        "uk": "Випуск v1.9.2",
+        "zh-cn": "发布v1.9.2"
+      },
       "1.9.1": {
         "en": "🐛 Bug fix: Mirror - the mirror now shows its source's header (title colour and size, symbol place, header items) and can format its own header (Appearance -> Header); settings it leaves unset follow the source (#1042)\n🐛 Bug fix: Web component - after a reconnect the component kept the light theme instead of the dark one (#1043)",
         "de": "🐛 Fehlerbehebung: Spiegeln – der Spiegel zeigt jetzt den Header seiner Quelle an (Titelfarbe und -größe, Symbolposition, Header-Elemente) und kann seinen eigenen Header formatieren (Darstellung -> Header); Einstellungen bleiben deaktiviert, folgen Sie der Quelle (#1042)\n🐛 Fehlerbehebung: Webkomponente – nach einer erneuten Verbindung behielt die Komponente das helle Thema statt des dunklen (#1043)",
