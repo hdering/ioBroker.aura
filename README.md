@@ -183,7 +183,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
 
 ### 1.8.0 (2026-11-27)
-- ⚠️ **Breaking change:** Test - this is only a test of the upgrade notice, port `8095` is ignored ([#997](https://github.com/hdering/ioBroker.aura/issues/997))
 - 🌟 **New feature:** Alarm system - works without the alarm adapter: every control (state, modes, zones, contacts, countdown, notices, panic, PIN request) can be bound to your own datapoints; mode buttons and zones come from a list in the settings or from a JSON datapoint and get their own labels, icons and colours; systems with one boolean per mode are supported, and the PIN can be checked by Aura against a named PIN ([#1037](https://github.com/hdering/ioBroker.aura/issues/1037))
 
 
